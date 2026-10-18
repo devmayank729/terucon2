@@ -1,0 +1,29 @@
+{
+  "name": "terucon",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Terucon: the website, Materials shop, Design Studio and client dashboard (Express), with an optional Python model service for surface segmentation.",
+  "main": "app.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node app.js",
+    "prestart": "node tools/build-site.js --if-missing",
+    "dev": "node --watch-path=server --watch-path=app.js app.js",
+    "model": "node tools/run-model.js",
+    "setup:model": "python -m pip install -r model/requirements.txt",
+    "build:site": "node tools/build-site.js",
+    "check:site": "node tools/build-site.js --check",
+    "check:links": "node tools/check-links.js",
+    "build:overview": "node tools/build-overview.js",
+    "test": "node tools/run-tests.js",
+    "test:js": "node --test tests/js/",
+    "test:model": "python -m unittest discover -s model/tests -t model",
+    "test:e2e": "node tests/e2e/run.mjs"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

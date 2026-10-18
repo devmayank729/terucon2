@@ -1,0 +1,13 @@
+{
+  "name": "terucon-e2e",
+  "private": true,
+  "type": "module",
+  "description": "Browser tests for the Terucon pages and the Design Studio: the real site (node app.js + the Python model service) against a mock Google, no credentials needed.",
+  "scripts": {
+    "test": "node run.mjs",
+    "test:sam": "node run.mjs --sam"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^23.11.1"
+  }
+}

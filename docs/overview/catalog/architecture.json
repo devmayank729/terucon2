@@ -1,0 +1,739 @@
+{
+  "_comment": "The diagram. x, y, w, h are drawing coordinates in a 1090 x 650 box. `parent` nests a node in a container. Edge sides: l, r, t, b. `files` are checked against the tree.",
+  "view": {
+    "w": 1070,
+    "h": 650
+  },
+  "kinds": {
+    "client": "The browser",
+    "server": "Express website (JS)",
+    "service": "Python model service",
+    "data": "Data and files",
+    "external": "Outside services",
+    "tool": "Build tooling"
+  },
+  "nodes": [
+    {
+      "id": "browser",
+      "label": "Browser",
+      "sub": "the four pages",
+      "kind": "client",
+      "x": 14,
+      "y": 232,
+      "w": 134,
+      "h": 118,
+      "summary": "Opens the pages from Express. The Design Studio is the only page that talks to the API: it asks /api/config what the server can do, sends photos to /api/segment, and sends render requests to /api/vertex/generate. It never sees a Google credential.",
+      "responsibilities": [
+        "Renders the four pages",
+        "Design Studio: upload, pick surfaces, preview finishes",
+        "Falls back to its own in-browser parser when the server cannot scan"
+      ],
+      "files": [
+        "pages/studio.html",
+        "site/patches/snippets/studio-server-runtime.js"
+      ],
+      "env": [],
+      "ports": "http://localhost:8080 (PORT)"
+    },
+    {
+      "id": "browser-parser",
+      "label": "In-browser parser",
+      "sub": "fallback",
+      "kind": "client",
+      "optional": true,
+      "x": 14,
+      "y": 410,
+      "w": 134,
+      "h": 70,
+      "summary": "SegFormer and SlimSAM running in a Web Worker inside the Design Studio. It is what the Studio uses when the model service is off, still loading, or fails. Coarser than the server's engine, and it works offline.",
+      "responsibilities": [
+        "Scene parsing without a server",
+        "Pick tool clicks while the server's SAM is still loading"
+      ],
+      "files": [
+        "site/patches/snippets/worker-exterior-classes.js"
+      ],
+      "env": [],
+      "ports": ""
+    },
+    {
+      "id": "express",
+      "label": "Express website",
+      "sub": "app.js, server/",
+      "kind": "server",
+      "container": true,
+      "x": 236,
+      "y": 104,
+      "w": 316,
+      "h": 410,
+      "summary": "One Node process. It serves the pages and media, answers a small JSON API, keeps the Google credentials, proxies photo scanning to the Python service and supervises that service. Express is the only runtime dependency.",
+      "responsibilities": [
+        "Serves pages and media from an allow-list; nothing else on disk",
+        "Runs the request guards",
+        "Reads .env and shows the browser a safe summary",
+        "Proxies Gemini calls and photo scans",
+        "Starts and restarts the model service"
+      ],
+      "files": [
+        "app.js",
+        "server/"
+      ],
+      "env": [
+        "HOST",
+        "PORT",
+        "ALLOWED_HOSTS",
+        "TERUCON_ENV_FILE",
+        "MODEL_SERVICE",
+        "MODEL_SERVICE_URL"
+      ],
+      "ports": "PORT (default 8080)"
+    },
+    {
+      "id": "ex-guards",
+      "label": "Guards",
+      "sub": "",
+      "kind": "server",
+      "vertical": true,
+      "parent": "express",
+      "x": 244,
+      "y": 146,
+      "w": 24,
+      "h": 310,
+      "summary": "Every request passes these first, in order: the Host check (421), the SAM key (401), JSON-only bodies on writes under /api/ (415), and a same-origin check (403). Then nosniff and no-referrer headers are added to every response.",
+      "responsibilities": [
+        "Host header must be this machine or in ALLOWED_HOSTS",
+        "SAM_SERVER_KEY on /api/sam/*",
+        "Content-Type: application/json before any body is parsed",
+        "Origin must equal Host"
+      ],
+      "files": [
+        "server/middleware/guards.js",
+        "server/middleware/headers.js"
+      ],
+      "env": [
+        "HOST",
+        "ALLOWED_HOSTS",
+        "SAM_SERVER_KEY"
+      ],
+      "ports": ""
+    },
+    {
+      "id": "ex-vertex",
+      "label": "Google proxy",
+      "sub": "POST /api/vertex/generate",
+      "kind": "server",
+      "parent": "express",
+      "x": 278,
+      "y": 146,
+      "w": 262,
+      "h": 44,
+      "summary": "Adds the credentials and forwards the Design Studio's generateContent calls to Vertex AI (service account) or the Gemini API (key). Google's status and body come back unchanged; 429 and 5xx are retried with back-off.",
+      "responsibilities": [
+        "Validate model and location names",
+        "Sign in to Google and cache the token",
+        "Retry 429/500/502/503/504 up to 4 attempts, honouring Retry-After",
+        "Give up after 240 s of silence (504 DEADLINE_EXCEEDED)"
+      ],
+      "files": [
+        "server/routes/api.js",
+        "server/lib/vertex.js",
+        "server/lib/googleAuth.js"
+      ],
+      "env": [
+        "GCP_SERVICE_ACCOUNT_JSON",
+        "GOOGLE_APPLICATION_CREDENTIALS",
+        "GOOGLE_CLOUD_PROJECT",
+        "GOOGLE_CLOUD_LOCATION",
+        "GEMINI_API_KEY",
+        "GOOGLE_GENAI_USE_VERTEXAI"
+      ],
+      "ports": ""
+    },
+    {
+      "id": "ex-model",
+      "label": "Model proxy",
+      "sub": "/api/segment, /api/sam/*",
+      "kind": "server",
+      "parent": "express",
+      "x": 278,
+      "y": 200,
+      "w": 262,
+      "h": 44,
+      "summary": "Checks that Google is configured, then streams the request to the Python service and streams the answer back. Photos can be tens of megabytes, so the body is never parsed and re-encoded. When the service cannot be used it answers 503 with a plain-language reason, and the Studio falls back to its in-browser parser.",
+      "responsibilities": [
+        "503 FAILED_PRECONDITION when Google is not configured (Python is not called)",
+        "Stream the body to the service with the shared key header",
+        "503 UNAVAILABLE with a reason when the service is starting, missing, off or crashed",
+        "SAM health always answers, even when the service is down"
+      ],
+      "files": [
+        "server/routes/model.js",
+        "server/model/client.js"
+      ],
+      "env": [
+        "SAM_SERVER_KEY",
+        "MODEL_SERVICE",
+        "MODEL_SERVICE_URL",
+        "MODEL_SERVICE_KEY"
+      ],
+      "ports": ""
+    },
+    {
+      "id": "ex-supervisor",
+      "label": "Model supervisor",
+      "sub": "spawn, watch, restart",
+      "kind": "server",
+      "parent": "express",
+      "x": 278,
+      "y": 254,
+      "w": 262,
+      "h": 44,
+      "summary": "In auto mode it finds a Python that has the right packages, starts python -m terucon_model, reads the READY line for the port, and restarts the process after a crash with growing pauses. It kills the child when Express stops.",
+      "responsibilities": [
+        "Pick an interpreter and check its imports",
+        "Pass an explicit environment and a per-run shared key",
+        "Restart after 1, 2, 4, 8, 16 s; give up after 5 tries in 10 minutes",
+        "Never throws into request handling"
+      ],
+      "files": [
+        "server/model/supervisor.js",
+        "server/model/python.js",
+        "tools/run-model.js"
+      ],
+      "env": [
+        "MODEL_SERVICE",
+        "MODEL_START_TIMEOUT",
+        "PYTHON",
+        "MODEL_SERVICE_KEY"
+      ],
+      "ports": ""
+    },
+    {
+      "id": "ex-api",
+      "label": "Config and health",
+      "sub": "/api/health, /config, /site",
+      "kind": "server",
+      "parent": "express",
+      "x": 278,
+      "y": 308,
+      "w": 262,
+      "h": 44,
+      "summary": "What the browser may know: whether the server is up, which Google mode is on, the model names, the segmentation settings, the SAM and model-service state, and the public site map. Never a secret.",
+      "responsibilities": [
+        "GET /api/health",
+        "GET /api/config (never fails because the model service did)",
+        "GET /api/site"
+      ],
+      "files": [
+        "server/routes/api.js",
+        "server/config/settings.js"
+      ],
+      "env": [
+        "SWATCHROOM_IMAGE_MODEL",
+        "SWATCHROOM_DETECT_MODEL",
+        "SEGMENTATION_ENGINE",
+        "EDGE_REFINE",
+        "EDGE_METHOD",
+        "ANALYSIS_MAX_SIDE",
+        "SAM_ENABLED"
+      ],
+      "ports": ""
+    },
+    {
+      "id": "ex-media",
+      "label": "Media",
+      "sub": "/media/*",
+      "kind": "server",
+      "parent": "express",
+      "x": 278,
+      "y": 362,
+      "w": 262,
+      "h": 44,
+      "summary": "Photos and videos from media/, only the allowed extensions, with Range support so video seeks, cached for an hour.",
+      "responsibilities": [
+        "Allow-listed extensions",
+        "No dot-segments, no traversal",
+        "Range requests"
+      ],
+      "files": [
+        "server/routes/media.js"
+      ],
+      "env": [],
+      "ports": ""
+    },
+    {
+      "id": "ex-pages",
+      "label": "Pages",
+      "sub": "site.json routes, aliases, redirects",
+      "kind": "server",
+      "parent": "express",
+      "x": 278,
+      "y": 416,
+      "w": 262,
+      "h": 44,
+      "summary": "Each page route in site/site.json sends its built file with Cache-Control: no-cache. Aliases redirect with 301, design-time names with 302. The studio page carries cross-origin isolation headers. Nothing else on disk is ever served.",
+      "responsibilities": [
+        "Page routes from site.json",
+        "301 aliases, 302 legacy names",
+        "Per-page headers (studio: COOP and COEP)",
+        "/project-overview"
+      ],
+      "files": [
+        "server/routes/pages.js",
+        "server/routes/docs.js",
+        "server/lib/siteMap.js"
+      ],
+      "env": [],
+      "ports": ""
+    },
+    {
+      "id": "site",
+      "label": "Site and pages",
+      "sub": "site/site.json + pages/",
+      "kind": "data",
+      "x": 392,
+      "y": 560,
+      "w": 160,
+      "h": 70,
+      "summary": "site/site.json is the single definition of the site: routes, files, aliases, headers and which page must link to which. pages/ holds the four built pages Express sends.",
+      "responsibilities": [
+        "Routes, sources and built files",
+        "Required links between pages",
+        "Per-page headers"
+      ],
+      "files": [
+        "site/site.json",
+        "pages/home.html",
+        "pages/materials.html",
+        "pages/studio.html",
+        "pages/dashboard.html"
+      ],
+      "env": [],
+      "ports": ""
+    },
+    {
+      "id": "build",
+      "label": "Site build",
+      "sub": "build-site.js + patches",
+      "kind": "tool",
+      "x": 190,
+      "y": 560,
+      "w": 150,
+      "h": 70,
+      "summary": "Turns the pristine exports into the pages: it decodes each Claude Design bundle, applies the JSON patches (anchored, each must match exactly once) and writes pages/. A changed export fails loudly instead of being half-patched.",
+      "responsibilities": [
+        "Apply site/patches/<page>.json",
+        "Rewrite links to routes or files",
+        "Add the shared navigation entries",
+        "Check the links afterwards"
+      ],
+      "files": [
+        "tools/build-site.js",
+        "tools/bundle.js",
+        "tools/check-links.js",
+        "site/patches/",
+        "site/components.json"
+      ],
+      "env": [],
+      "ports": ""
+    },
+    {
+      "id": "exports",
+      "label": "Exports",
+      "sub": "pages_original/",
+      "kind": "data",
+      "x": 14,
+      "y": 560,
+      "w": 134,
+      "h": 70,
+      "summary": "The four pristine exports from Claude Design. Replace one when you export again, then run npm run build:site.",
+      "responsibilities": [
+        "Input to the build; never served"
+      ],
+      "files": [
+        "pages_original/index.html",
+        "pages_original/market_place.html",
+        "pages_original/Swatchroom.html",
+        "pages_original/dashboard.html"
+      ],
+      "env": [],
+      "ports": ""
+    },
+    {
+      "id": "media",
+      "label": "media/",
+      "sub": "photos and videos",
+      "kind": "data",
+      "x": 590,
+      "y": 392,
+      "w": 140,
+      "h": 52,
+      "summary": "The photos and videos the pages use.",
+      "responsibilities": [
+        "Served at /media/"
+      ],
+      "files": [
+        "media/**"
+      ],
+      "env": [],
+      "ports": ""
+    },
+    {
+      "id": "model",
+      "label": "Python model service",
+      "sub": "",
+      "kind": "service",
+      "container": true,
+      "x": 630,
+      "y": 104,
+      "w": 260,
+      "h": 250,
+      "summary": "A small Flask service on 127.0.0.1 and an ephemeral port. It finds the surfaces in a photo (Gemini names and outlines them, SAM and edge snapping sharpen the outlines) and serves the SAM Pick tool. It has its own Google client so it can run on its own, for example on a GPU machine or while fine-tuning.",
+      "responsibilities": [
+        "POST /segment, GET /health, SAM routes",
+        "Guards: Host, shared key, JSON only, 80 MB limit",
+        "Prints one READY line with the real port",
+        "Exits when its parent disappears"
+      ],
+      "files": [
+        "model/terucon_model/app.py",
+        "model/terucon_model/__main__.py",
+        "model/terucon_model/segment/pipeline.py"
+      ],
+      "env": [
+        "MODEL_HOST",
+        "MODEL_PORT",
+        "MODEL_SERVICE_KEY",
+        "MODEL_PARENT_PID",
+        "SEGMENTATION_ENGINE",
+        "EDGE_REFINE",
+        "EDGE_METHOD",
+        "ANALYSIS_MAX_SIDE"
+      ],
+      "ports": "127.0.0.1, MODEL_PORT (0 = chosen by the system; 8081 when run by hand)"
+    },
+    {
+      "id": "py-detect",
+      "label": "detect.py",
+      "sub": "Gemini outlines surfaces",
+      "kind": "service",
+      "parent": "model",
+      "x": 648,
+      "y": 146,
+      "w": 224,
+      "h": 44,
+      "summary": "Sends the photo to Gemini with a structured-output request and gets back the surfaces it can see (wall, floor, ceiling, window, door, furniture) as rough polygons. Falls through the model list if a model is not available to the project.",
+      "responsibilities": [
+        "Structured output: label, kind, polygon",
+        "Model fallback on 404",
+        "Scene type: interior or exterior"
+      ],
+      "files": [
+        "model/terucon_model/segment/detect.py",
+        "model/terucon_model/vertex.py",
+        "model/terucon_model/google_auth.py"
+      ],
+      "env": [
+        "SWATCHROOM_DETECT_MODEL",
+        "GCP_SERVICE_ACCOUNT_JSON",
+        "GEMINI_API_KEY"
+      ],
+      "ports": ""
+    },
+    {
+      "id": "py-sam",
+      "label": "SAM",
+      "sub": "optional: edges, Pick tool",
+      "kind": "service",
+      "optional": true,
+      "parent": "model",
+      "x": 648,
+      "y": 200,
+      "w": 224,
+      "h": 44,
+      "summary": "Off by default. When on, SAM corrects each Gemini outline, but only near the outline's own edge, and answers the Pick tool's clicks. Loads in the background so the service is usable immediately.",
+      "responsibilities": [
+        "SAM 2/2.1 or SAM 1 locally, SAM 3 on a GPU, or a remote SAM server",
+        "Cache embeddings per photo",
+        "One inference at a time"
+      ],
+      "files": [
+        "model/terucon_model/sam/manager.py",
+        "model/terucon_model/sam/backends.py",
+        "model/terucon_model/segment/sam_refine.py"
+      ],
+      "env": [
+        "SAM_ENABLED",
+        "SAM_BACKEND",
+        "SAM_MODEL_ID",
+        "SAM_DEVICE",
+        "SAM_PRELOAD",
+        "HF_TOKEN",
+        "SAM_CHECKPOINT",
+        "SAM_REPO_DIR",
+        "SAM_REMOTE_URL",
+        "SAM_REMOTE_KEY"
+      ],
+      "ports": ""
+    },
+    {
+      "id": "py-snap",
+      "label": "snap.py + refine.py",
+      "sub": "edges, layering, clean-up",
+      "kind": "service",
+      "parent": "model",
+      "x": 648,
+      "y": 254,
+      "w": 224,
+      "h": 44,
+      "summary": "Contour snapping slides every boundary onto the photo's real edge, paying for every pixel it moves. Then surfaces are layered (structure below, windows and doors above, furniture on top) and cleaned into one label map.",
+      "responsibilities": [
+        "Snap outer edges and holes",
+        "8 s budget per photo; surfaces it does not reach keep their outline",
+        "Layer, clean, number 1..N"
+      ],
+      "files": [
+        "model/terucon_model/segment/snap.py",
+        "model/terucon_model/segment/refine.py",
+        "model/terucon_model/segment/geometry.py"
+      ],
+      "env": [
+        "EDGE_REFINE",
+        "EDGE_METHOD",
+        "ANALYSIS_MAX_SIDE"
+      ],
+      "ports": ""
+    },
+    {
+      "id": "model-tools",
+      "label": "Evaluation and fine-tuning",
+      "sub": "model/eval, model/finetune",
+      "kind": "service",
+      "optional": true,
+      "x": 630,
+      "y": 470,
+      "w": 240,
+      "h": 60,
+      "summary": "Offline work on the models: measure edge precision on ground-truth photos, and the home for fine-tuning. They import the same pipeline the service runs, so measured numbers are the shipped code's numbers.",
+      "responsibilities": [
+        "Score edge precision (IoU, boundary F1)",
+        "Train and export; plug the result in through the SAM backends or a tuned Gemini model name"
+      ],
+      "files": [
+        "model/eval/",
+        "model/finetune/"
+      ],
+      "env": [],
+      "ports": ""
+    },
+    {
+      "id": "google",
+      "label": "Google",
+      "sub": "Vertex AI or the Gemini API",
+      "kind": "external",
+      "x": 385,
+      "y": 14,
+      "w": 270,
+      "h": 62,
+      "summary": "Gemini for detection and Nano Banana for renders, reached either through Vertex AI with a service account (or application default credentials) or the Gemini API with an AI Studio key. Two clients talk to it on purpose: Express for renders, Python for detection.",
+      "responsibilities": [
+        "generateContent for renders (from Express)",
+        "generateContent for surface detection (from Python)"
+      ],
+      "files": [],
+      "env": [
+        "GOOGLE_CLOUD_LOCATION",
+        "GOOGLE_GENAI_USE_VERTEXAI"
+      ],
+      "ports": "https, outbound only"
+    },
+    {
+      "id": "remote-sam",
+      "label": "Remote SAM server",
+      "sub": "optional GPU box",
+      "kind": "external",
+      "optional": true,
+      "x": 912,
+      "y": 192,
+      "w": 150,
+      "h": 70,
+      "summary": "Another machine running the model service (or any server that answers /health, /segment and /refine). Set SAM_REMOTE_URL and SAM_REMOTE_KEY to use it.",
+      "responsibilities": [
+        "Runs SAM where a GPU is"
+      ],
+      "files": [],
+      "env": [
+        "SAM_REMOTE_URL",
+        "SAM_REMOTE_KEY",
+        "SAM_REMOTE_AUTH_HEADER"
+      ],
+      "ports": ""
+    }
+  ],
+  "edges": [
+    {
+      "id": "b-pages",
+      "from": "browser",
+      "to": "ex-pages",
+      "fromSide": "r",
+      "toSide": "l",
+      "label": "GET /, /materials, /design-studio, /my-project",
+      "noLabel": true
+    },
+    {
+      "id": "b-media",
+      "from": "browser",
+      "to": "ex-media",
+      "fromSide": "r",
+      "toSide": "l",
+      "label": "GET /media/*",
+      "noLabel": true
+    },
+    {
+      "id": "b-api",
+      "from": "browser",
+      "to": "ex-api",
+      "fromSide": "r",
+      "toSide": "l",
+      "label": "GET /api/config, /api/health",
+      "noLabel": true
+    },
+    {
+      "id": "b-vertex",
+      "from": "browser",
+      "to": "ex-vertex",
+      "fromSide": "r",
+      "toSide": "l",
+      "label": "POST /api/vertex/generate",
+      "noLabel": true
+    },
+    {
+      "id": "b-model",
+      "from": "browser",
+      "to": "ex-model",
+      "fromSide": "r",
+      "toSide": "l",
+      "label": "POST /api/segment, /api/sam/*",
+      "noLabel": true
+    },
+    {
+      "id": "b-parser",
+      "from": "browser",
+      "to": "browser-parser",
+      "fromSide": "b",
+      "toSide": "t",
+      "label": "fallback",
+      "dashed": true
+    },
+    {
+      "id": "pages-site",
+      "from": "ex-pages",
+      "to": "site",
+      "fromSide": "b",
+      "toSide": "t",
+      "label": "reads site.json, sends pages/"
+    },
+    {
+      "id": "media-files",
+      "from": "ex-media",
+      "to": "media",
+      "fromSide": "r",
+      "toSide": "l",
+      "label": "serves files from",
+      "labelAt": {
+        "t": 0.5,
+        "anchor": "middle",
+        "dy": -12
+      }
+    },
+    {
+      "id": "vertex-google",
+      "from": "ex-vertex",
+      "to": "google",
+      "fromSide": "t",
+      "toSide": "b",
+      "label": "generateContent (credentials added here)",
+      "always": true,
+      "labelAt": {
+        "t": 0.78,
+        "anchor": "end",
+        "dx": -10
+      }
+    },
+    {
+      "id": "model-proxy",
+      "from": "ex-model",
+      "to": "model",
+      "fromSide": "r",
+      "toSide": "l",
+      "label": "HTTP, shared key",
+      "always": true,
+      "labelAt": {
+        "t": 0.5,
+        "anchor": "middle",
+        "dy": -6
+      }
+    },
+    {
+      "id": "supervise",
+      "from": "ex-supervisor",
+      "to": "model",
+      "fromSide": "r",
+      "toSide": "l",
+      "label": "spawn, READY line, restart",
+      "labelAt": {
+        "t": 0.5,
+        "anchor": "middle",
+        "dy": 14
+      }
+    },
+    {
+      "id": "detect-google",
+      "from": "py-detect",
+      "to": "google",
+      "fromSide": "r",
+      "toSide": "r",
+      "label": "Gemini detection",
+      "always": true,
+      "labelAt": {
+        "t": 0.55,
+        "anchor": "start",
+        "dx": 6
+      }
+    },
+    {
+      "id": "sam-remote",
+      "from": "py-sam",
+      "to": "remote-sam",
+      "fromSide": "r",
+      "toSide": "l",
+      "label": "optional",
+      "dashed": true
+    },
+    {
+      "id": "exports-build",
+      "from": "exports",
+      "to": "build",
+      "fromSide": "r",
+      "toSide": "l",
+      "label": "input"
+    },
+    {
+      "id": "build-site",
+      "from": "build",
+      "to": "site",
+      "fromSide": "r",
+      "toSide": "l",
+      "label": "writes pages/"
+    },
+    {
+      "id": "model-tools-link",
+      "from": "model-tools",
+      "to": "model",
+      "fromSide": "t",
+      "toSide": "b",
+      "label": "same pipeline",
+      "dashed": true
+    }
+  ]
+}

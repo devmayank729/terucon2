@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+service-account*.json
+*-key.json
+credentials/
+.git
+node_modules
+tests/e2e/node_modules
+_legacy_python_site
+__pycache__
+*.pyc
+.venv
+models/
+.cache/
+data/

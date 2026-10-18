@@ -1,0 +1,79 @@
+{
+  "_comment": "The site, as data. The Express server (app.js, server/) reads it to serve pages and redirects; tools/build-site.js reads it to rebuild the pages from pages_original/ (the patches are in site/patches/*.json); tools/check-links.js and the project overview read it too. To add or rename a page, change it here. If you export a page again from Claude Design, drop it into pages_original/ under the same name and run: npm run build:site",
+  "name": "Terucon",
+  "linkStyle": "route",
+  "pages": {
+    "home": {
+      "label": "Terucon website",
+      "nav": "Home",
+      "description": "The landing page: who Terucon is, the process, the work, and the enquiry form.",
+      "route": "/",
+      "source": "pages_original/index.html",
+      "file": "pages/home.html",
+      "aliases": ["/index.html"],
+      "headers": {}
+    },
+    "materials": {
+      "label": "Materials",
+      "nav": "Materials",
+      "description": "The materials shop: sheets, stone, terracotta and finishes, priced per unit, with a saved list and a cart.",
+      "route": "/materials",
+      "source": "pages_original/market_place.html",
+      "file": "pages/materials.html",
+      "aliases": ["/materials.html", "/market_place_1.html"],
+      "headers": {}
+    },
+    "studio": {
+      "label": "Design Studio",
+      "nav": "Design Studio",
+      "description": "Upload a photo of a space, pick its surfaces and see them in Terucon materials. Surface finding is done by the Python model service.",
+      "route": "/design-studio",
+      "source": "pages_original/Swatchroom.html",
+      "file": "pages/studio.html",
+      "aliases": ["/design-studio.html", "/Terucon Swatchroom.html"],
+      "headers": {
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "credentialless"
+      }
+    },
+    "dashboard": {
+      "label": "My project",
+      "nav": "My project",
+      "description": "The client dashboard: design, decisions, quote and materials in one place (a front-end prototype with a demo project).",
+      "route": "/my-project",
+      "source": "pages_original/dashboard.html",
+      "file": "pages/dashboard.html",
+      "aliases": ["/my-project.html", "/Terucon Client Dashboard v3.html"],
+      "headers": {}
+    }
+  },
+  "connections": {
+    "_comment": "Which pages each page must link to (checked by tools/check-links.js and the browser tests). The dashboard keeps some links inside its own views, so its links are looked for in every view.",
+    "home": ["materials", "studio", "dashboard"],
+    "materials": ["home", "studio", "dashboard"],
+    "studio": ["home", "materials", "dashboard"],
+    "dashboard": ["home", "materials", "studio"]
+  },
+  "legacy_names": {
+    "Terucon landing page.html": "home",
+    "Terucon Home v2.html": "home",
+    "Terucon _marketplace.dc.html": "materials",
+    "Design Studio.dc.html": "studio",
+    "Swatchroom.dc.html": "studio"
+  },
+  "docs": {
+    "overview": {
+      "label": "Project overview",
+      "description": "What every part of the project does, with live status when the server is running.",
+      "route": "/project-overview",
+      "file": "docs/PROJECT_OVERVIEW.html",
+      "aliases": ["/docs/PROJECT_OVERVIEW.html"]
+    }
+  },
+  "media": {
+    "route": "/media",
+    "dir": "media",
+    "maxAgeSeconds": 3600,
+    "extensions": [".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg", ".mp4", ".webm", ".woff", ".woff2", ".avif", ".ico"]
+  }
+}

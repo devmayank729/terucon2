@@ -1,0 +1,151 @@
+{
+  "rows": [
+    {
+      "area": "Start",
+      "symptom": "Could not start on port 8080",
+      "cause": "Another program is using the port.",
+      "fix": "Set PORT in .env to a free port and start again.",
+      "keywords": "port EADDRINUSE"
+    },
+    {
+      "area": "Start",
+      "symptom": "421 Unexpected Host header",
+      "cause": "The site was opened under a name the server does not know (an IP, a domain).",
+      "fix": "Use localhost, or add the name to ALLOWED_HOSTS in .env and restart.",
+      "keywords": "host rebinding"
+    },
+    {
+      "area": "Start",
+      "symptom": "A page is a 404, or the server says the pages are missing",
+      "cause": "pages/ has not been built.",
+      "fix": "npm run build:site. npm start does this for you when pages are missing.",
+      "keywords": "pages build 404"
+    },
+    {
+      "area": "Start",
+      "symptom": "The Design Studio misbehaves when a page is opened by double-clicking it",
+      "cause": "From file:// the Studio's in-browser vision worker can fail to start, which silently drops it to a much coarser fallback.",
+      "fix": "Open the site through the server (http://localhost:8080).",
+      "keywords": "file worker"
+    },
+    {
+      "area": "Model service",
+      "symptom": "The Studio says the model service is not available, or /api/segment answers 503 UNAVAILABLE",
+      "cause": "The Python service is still starting, was not found, is switched off, or crashed. The message says which.",
+      "fix": "Wait a moment if it says starting. If Python is missing packages: npm run setup:model (or set PYTHON to an interpreter that has them). To see Python's own errors: npm run model.",
+      "keywords": "python model 503 unavailable"
+    },
+    {
+      "area": "Model service",
+      "symptom": "model.status is unavailable in /api/config and the reason mentions a timeout",
+      "cause": "Python did not print its READY line within MODEL_START_TIMEOUT seconds (90 by default), for example on a slow first start while its libraries load. The service is then reported unavailable and not restarted in a loop.",
+      "fix": "Raise MODEL_START_TIMEOUT and restart Express. SAM, if enabled, loads in the background after READY, so it does not count towards this timeout.",
+      "keywords": "timeout ready start"
+    },
+    {
+      "area": "Model service",
+      "symptom": "The service keeps restarting",
+      "cause": "It exits right after starting. After 5 tries in 10 minutes Express gives up and stays unavailable with the reason.",
+      "fix": "Run npm run model in a terminal and read the error. Restart Express after fixing it.",
+      "keywords": "crash restart back-off"
+    },
+    {
+      "area": "Model service",
+      "symptom": "I want to run the model service somewhere else (a GPU machine)",
+      "cause": "-",
+      "fix": "On that machine: MODEL_HOST, MODEL_PORT and MODEL_SERVICE_KEY, then npm run model. Here: MODEL_SERVICE=external, MODEL_SERVICE_URL and the same MODEL_SERVICE_KEY.",
+      "keywords": "gpu external remote"
+    },
+    {
+      "area": "Google",
+      "symptom": "\"The Terucon server is running but has no Google credentials yet\" / scans answer 503 FAILED_PRECONDITION",
+      "cause": "No credentials in .env.",
+      "fix": "Fill in GCP_SERVICE_ACCOUNT_JSON (or GOOGLE_APPLICATION_CREDENTIALS) and GOOGLE_CLOUD_PROJECT, or GEMINI_API_KEY. Save and reload the page. No restart is needed.",
+      "keywords": "credentials google env"
+    },
+    {
+      "area": "Google",
+      "symptom": "\"The Vertex AI API is turned off for project ...\"",
+      "cause": "aiplatform.googleapis.com is not enabled.",
+      "fix": "Enable it in the Cloud console and wait a minute.",
+      "keywords": "vertex api"
+    },
+    {
+      "area": "Google",
+      "symptom": "\"... is not allowed to call ...\"",
+      "cause": "The service account lacks a role.",
+      "fix": "Give it Vertex AI User (roles/aiplatform.user).",
+      "keywords": "permission role"
+    },
+    {
+      "area": "Google",
+      "symptom": "\"... is not available in location ...\" or a 404 for a model",
+      "cause": "The model is not offered in that location to your project.",
+      "fix": "GOOGLE_CLOUD_LOCATION=global, or set the model in .env. The terminal shows each model tried.",
+      "keywords": "location model 404"
+    },
+    {
+      "area": "Google",
+      "symptom": "\"Google rejected the token time\"",
+      "cause": "The computer's clock is wrong.",
+      "fix": "Turn on automatic date and time.",
+      "keywords": "clock time token"
+    },
+    {
+      "area": "Google",
+      "symptom": "\"GCP_SERVICE_ACCOUNT_JSON ... not valid JSON\"",
+      "cause": "The key was pasted over several lines or without quotes.",
+      "fix": "The whole key on one line, inside single quotes (they keep the \\n in the private key intact).",
+      "keywords": "json key quotes"
+    },
+    {
+      "area": "SAM",
+      "symptom": "SAM: error ... in the Studio's settings or /api/sam/health",
+      "cause": "A missing package (torch, transformers), a gated model, or no GPU for SAM 3.",
+      "fix": "The message says which: pip install -r model/requirements-sam.txt, set HF_TOKEN, or use a GPU machine (SAM_BACKEND=sam3 / SAM_REMOTE_URL).",
+      "keywords": "sam torch hf"
+    },
+    {
+      "area": "Surfaces",
+      "symptom": "Edges look worse than before on some photos",
+      "cause": "Contour snapping misjudged an image.",
+      "fix": "Set EDGE_METHOD=watershed in .env (the earlier method) and reload, or EDGE_REFINE=false to switch snapping off. The Studio's footer names what ran.",
+      "keywords": "edges snap"
+    },
+    {
+      "area": "Surfaces",
+      "symptom": "Surfaces look coarse, and the footer says \"SegFormer ... on WASM\"",
+      "cause": "The in-browser fallback ran because the server engine failed.",
+      "fix": "Read the Studio's notes toast and the terminal for why: Google not configured, the model service unavailable, a quota.",
+      "keywords": "fallback coarse"
+    },
+    {
+      "area": "Surfaces",
+      "symptom": "\"Edge snapping was skipped for N outlines\"",
+      "cause": "It ran out of its 8 second budget or hit an error on those surfaces.",
+      "fix": "They keep the outline as drawn. The terminal says why. Lower ANALYSIS_MAX_SIDE to speed it up.",
+      "keywords": "budget snapping"
+    },
+    {
+      "area": "Pages",
+      "symptom": "npm run build:site fails with \"anchor matched 0 times\"",
+      "cause": "A re-exported page changed in a way a patch cannot follow. It fails on purpose rather than half-patching.",
+      "fix": "Open the step named in the message in site/patches/<page>.json and update its anchor to the new export.",
+      "keywords": "patch anchor"
+    },
+    {
+      "area": "Pages",
+      "symptom": "Some images on the Materials page are blank",
+      "cause": "That page asks for media/materials/*.jpg, which has not been added yet.",
+      "fix": "Add the photos to media/materials/. They are served at /media/materials/.",
+      "keywords": "images blank media"
+    },
+    {
+      "area": "Overview",
+      "symptom": "npm test fails at \"the project overview matches the tree\"",
+      "cause": "A file, route or variable was added or removed without describing it here, or a file changed since this page was generated.",
+      "fix": "The message lists what disagrees. Edit docs/overview/catalog/*.json, then npm run build:overview and commit docs/PROJECT_OVERVIEW.html.",
+      "keywords": "overview stale catalog"
+    }
+  ]
+}

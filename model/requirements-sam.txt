@@ -1,0 +1,6 @@
+# Optional: only needed when SAM_ENABLED=true and you run SAM on this machine.
+# (Install PyTorch first for your hardware: https://pytorch.org/get-started/locally/)
+-r requirements.txt
+torch>=2.2
+transformers>=4.56
+huggingface_hub>=0.24

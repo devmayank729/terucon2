@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: terucon
+    runtime: docker
+    plan: starter            # the model service (OpenCV, Flask) needs more than the 512 MB free tier
+    healthCheckPath: /api/health
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: /etc/secrets/service-account.json   # the Secret File you upload in the Render dashboard
+      - key: GOOGLE_GENAI_USE_VERTEXAI
+        value: "true"
+      - key: GOOGLE_CLOUD_LOCATION
+        value: global
+      - key: MODEL_SERVICE
+        value: auto
+      - key: MODEL_START_TIMEOUT
+        value: "180"

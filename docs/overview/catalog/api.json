@@ -1,0 +1,425 @@
+{
+  "_comment": "The route table. owner JS = registered by app.js (compared with the real Express router stack by tools/build-overview.js --check); owner Python = the model service (compared with the Flask decorators in model/terucon_model). `derived` rows stand for routes generated from site/site.json. `tryIt` rows get a live button.",
+  "intro": "Express is the only thing a browser talks to. The Python service is internal: it listens on 127.0.0.1 on a port the system chooses, and Express proxies to it. All API bodies are JSON and every error has the same shape, {error:{code,status,message}}.",
+  "errorShape": "{\"error\":{\"code\":503,\"status\":\"UNAVAILABLE\",\"message\":\"The model service is still starting. Try again in a moment.\"}}",
+  "groups": [
+    {
+      "id": "site",
+      "title": "Pages and files",
+      "blurb": "Defined by site/site.json and the media rules; nothing else on disk is served."
+    },
+    {
+      "id": "config",
+      "title": "Configuration and health",
+      "blurb": "What the browser may know. Never a secret."
+    },
+    {
+      "id": "google",
+      "title": "Google",
+      "blurb": "The Design Studio's Gemini and Nano Banana calls, with credentials added server-side."
+    },
+    {
+      "id": "model",
+      "title": "Surfaces and SAM",
+      "blurb": "Streamed to the Python model service."
+    },
+    {
+      "id": "internal",
+      "title": "Model service (internal)",
+      "blurb": "Not reachable from a browser. Express calls these with the shared key."
+    }
+  ],
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/{page}",
+      "display": "/  /materials  /design-studio  /my-project",
+      "derived": true,
+      "owner": "JS",
+      "group": "site",
+      "guards": [
+        "Host"
+      ],
+      "summary": "The four pages, from site/site.json.",
+      "request": "No body. The route list comes from site/site.json (`pages.<key>.route`).",
+      "response": "200 text/html, Cache-Control: no-cache, conditional requests. The studio also sends Cross-Origin-Opener-Policy: same-origin and Cross-Origin-Embedder-Policy: credentialless.",
+      "errors": [
+        {
+          "status": 421,
+          "when": "Unexpected Host header"
+        },
+        {
+          "status": 404,
+          "when": "The built page is missing (run npm run build:site)"
+        }
+      ],
+      "curl": "curl -i http://localhost:8080/materials"
+    },
+    {
+      "method": "GET",
+      "path": "/{alias}",
+      "display": "/index.html  /materials.html  /Terucon Swatchroom.html ...",
+      "derived": true,
+      "owner": "JS",
+      "group": "site",
+      "guards": [
+        "Host"
+      ],
+      "summary": "Aliases redirect (301) to the canonical route; design-time names such as Design Studio.dc.html redirect (302).",
+      "request": "No body. Aliases and `legacy_names` come from site/site.json; names are compared decoded.",
+      "response": "301 or 302 with a Location header.",
+      "errors": [],
+      "curl": "curl -sI 'http://localhost:8080/Terucon%20Swatchroom.html' | head -3"
+    },
+    {
+      "method": "GET",
+      "path": "/project-overview",
+      "owner": "JS",
+      "group": "site",
+      "guards": [
+        "Host"
+      ],
+      "summary": "This page.",
+      "request": "No body.",
+      "response": "200 text/html, docs/PROJECT_OVERVIEW.html.",
+      "errors": [],
+      "curl": "curl -sI http://localhost:8080/project-overview | head -1",
+      "derived": true,
+      "siteRef": "docs.overview.route"
+    },
+    {
+      "method": "GET",
+      "path": "/media/*name",
+      "owner": "JS",
+      "group": "site",
+      "guards": [
+        "Host"
+      ],
+      "summary": "Photos and videos from media/.",
+      "request": "No body. Only the extensions listed in site/site.json `media.extensions`; Range requests work.",
+      "response": "200 or 206 with Cache-Control: public, max-age=3600.",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Other extension, a dot-segment, or traversal (/media/../.env, /media/%2e%2e/.env)"
+        }
+      ],
+      "curl": "curl -sI http://localhost:8080/media/m01-acp.jpg | head -5"
+    },
+    {
+      "method": "GET",
+      "path": "/favicon.ico",
+      "owner": "JS",
+      "group": "site",
+      "guards": [
+        "Host"
+      ],
+      "summary": "No icon; answers quietly so the browser stops asking.",
+      "request": "No body.",
+      "response": "204 No Content.",
+      "errors": [],
+      "curl": "curl -sI http://localhost:8080/favicon.ico | head -1"
+    },
+    {
+      "method": "GET",
+      "path": "/api/health",
+      "owner": "JS",
+      "group": "config",
+      "guards": [
+        "Host"
+      ],
+      "tryIt": true,
+      "summary": "Is the server up, and is Google and the model service usable?",
+      "request": "No body.",
+      "response": "{ok:true, version, google:boolean, mode:\"vertex\"|\"api-key\"|\"none\", model:{mode:\"auto\"|\"external\"|\"off\", status:\"ready\"|\"starting\"|\"unavailable\"|\"off\"}}",
+      "errors": [
+        {
+          "status": 421,
+          "when": "Unexpected Host header"
+        }
+      ],
+      "curl": "curl -s http://localhost:8080/api/health"
+    },
+    {
+      "method": "GET",
+      "path": "/api/config",
+      "owner": "JS",
+      "group": "config",
+      "guards": [
+        "Host"
+      ],
+      "tryIt": true,
+      "summary": "Everything the Design Studio needs to know about this server. No secret ever appears.",
+      "request": "No body.",
+      "response": "{version:\"1\", server:true, google:{configured, mode, projectId, clientEmail, location, error}, models:{...only those set in .env}, segmentation:{engine, edgeRefine, edgeMethod, analysisMaxSide}, sam:{enabled, status, backend, model, interactive, textPrompts, ...}, model:{mode, status, error?}, warnings:[...]}. It never fails because the model service did: sam then reads unavailable or off.",
+      "errors": [],
+      "curl": "curl -s http://localhost:8080/api/config"
+    },
+    {
+      "method": "GET",
+      "path": "/api/site",
+      "owner": "JS",
+      "group": "config",
+      "guards": [
+        "Host"
+      ],
+      "tryIt": true,
+      "summary": "The public view of site/site.json: names and routes, no file paths, no headers.",
+      "request": "No body.",
+      "response": "{name, pages:[{key, label, nav, description, route}], docs:[...], connections}",
+      "errors": [],
+      "curl": "curl -s http://localhost:8080/api/site"
+    },
+    {
+      "method": "POST",
+      "path": "/api/vertex/generate",
+      "owner": "JS",
+      "group": "google",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "Forward a generateContent call to Google with the server's credentials.",
+      "request": "{model: \"gemini-...\" (letters, digits, . _ -, 3 to 80), location?: \"global\" (a-z 0-9 -), body: {contents: [...], generationConfig?: {...}}}",
+      "response": "Google's status and body, unchanged, plus X-Terucon-Attempts. Retries 429/500/502/503/504 (up to 4 attempts, Retry-After honoured, capped at 20 s); a 401 refreshes the token once; no answer within 240 s after connecting is 504 DEADLINE_EXCEEDED (not retried); the whole call is capped at 330 s.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "Missing model or body, or an invalid model or location name"
+        },
+        {
+          "status": 415,
+          "when": "Not application/json"
+        },
+        {
+          "status": 403,
+          "when": "Origin differs from Host"
+        },
+        {
+          "status": 503,
+          "when": "Google is not configured"
+        }
+      ],
+      "curl": "curl -s http://localhost:8080/api/vertex/generate -H 'Content-Type: application/json' -d '{\"model\":\"gemini-3.8-flash\",\"body\":{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Say hello\"}]}]}}'"
+    },
+    {
+      "method": "POST",
+      "path": "/api/segment",
+      "owner": "JS",
+      "group": "model",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "Find the surfaces in a photo. Checked by Express, then streamed to POST /segment on the model service.",
+      "request": "{image: base64 or a data: URL (JPEG or PNG, at most 4096 px on the long side, 80 MB body), options?: {useSam?: boolean, edgeRefine?: boolean, model?: string, location?: string, hint?: string (300 characters)}}",
+      "response": "{ok:true, width, height, labelMap:{encoding:\"zlib-u8\"|\"zlib-u16le\", data: base64}, metas:[{index, label, kind, source, share}], scene, engine, model, notes:[...], hints:[...], timings:{gemini, sam?, edges?}, sam:{used, imageId}}",
+      "errors": [
+        {
+          "status": 503,
+          "when": "FAILED_PRECONDITION: Google is not configured (Python is not called)"
+        },
+        {
+          "status": 503,
+          "when": "UNAVAILABLE: the model service is starting, missing, off or crashed (the message says which)"
+        },
+        {
+          "status": 400,
+          "when": "The image is missing, cannot be decoded, or is too large"
+        },
+        {
+          "status": 422,
+          "when": "Gemini's outlines were too small, or no surface was large enough"
+        },
+        {
+          "status": 413,
+          "when": "Body over 80 MB"
+        }
+      ],
+      "curl": "curl -s http://localhost:8080/api/segment -H 'Content-Type: application/json' -d \"{\\\"image\\\":\\\"$(base64 -w0 tests/fixtures/room.jpg)\\\"}\" | head -c 400"
+    },
+    {
+      "method": "GET",
+      "path": "/api/sam/health",
+      "owner": "JS",
+      "group": "model",
+      "guards": [
+        "Host",
+        "SAM key (if set)"
+      ],
+      "tryIt": true,
+      "summary": "SAM's state, in the shape the Design Studio's settings already speak.",
+      "request": "No body. When SAM_SERVER_KEY is set: x-api-key or Authorization: Bearer.",
+      "response": "{status:\"ok\"|\"loading\"|\"off\"|\"error\"|\"unavailable\", model, backend, device, interactive:boolean, text_prompts:boolean, error}. Always 200: when the model service is unusable the status is unavailable and error says why.",
+      "errors": [
+        {
+          "status": 401,
+          "when": "SAM_SERVER_KEY is set and the key is missing or wrong"
+        }
+      ],
+      "curl": "curl -s http://localhost:8080/api/sam/health"
+    },
+    {
+      "method": "POST",
+      "path": "/api/sam/refine",
+      "owner": "JS",
+      "group": "model",
+      "guards": [
+        "Host",
+        "SAM key (if set)",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "The Pick tool: clicks or a box in, one mask out.",
+      "request": "{image_id?: string (from an earlier answer), image?: base64 (when the id is not cached), points?: [[x, y], ...], labels?: [1 or 0, ...], box?: [x0, y0, x1, y1]}. At least one point or a box.",
+      "response": "{mask: base64 PNG, image_id, score, model}",
+      "errors": [
+        {
+          "status": 409,
+          "when": "image_id is no longer cached and no image was sent"
+        },
+        {
+          "status": 422,
+          "when": "SAM found nothing at that point"
+        },
+        {
+          "status": 503,
+          "when": "SAM is off, still loading, errored, or the model service is unusable"
+        },
+        {
+          "status": 401,
+          "when": "SAM key needed"
+        }
+      ],
+      "curl": "curl -s http://localhost:8080/api/sam/refine -H 'Content-Type: application/json' -d '{\"image_id\":\"<id from /api/segment>\",\"points\":[[400,300]],\"labels\":[1]}'"
+    },
+    {
+      "method": "POST",
+      "path": "/api/sam/segment",
+      "owner": "JS",
+      "group": "model",
+      "guards": [
+        "Host",
+        "SAM key (if set)",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "Text prompts in, masks out. Only for backends that understand text (SAM 3).",
+      "request": "{image: base64, prompts: [\"wall\", \"floor\", ...] (at most 40), confidence_threshold?: 0.4, max_per_prompt?: 8 (1 to 20)}",
+      "response": "{detections:[{prompt, mask: base64 PNG, score}], image_id, model}",
+      "errors": [
+        {
+          "status": 501,
+          "when": "UNIMPLEMENTED: the backend takes boxes and points, not text"
+        },
+        {
+          "status": 503,
+          "when": "SAM is off, still loading or the service is unusable"
+        }
+      ],
+      "curl": "curl -s http://localhost:8080/api/sam/segment -H 'Content-Type: application/json' -d \"{\\\"prompts\\\":[\\\"wall\\\"],\\\"image\\\":\\\"$(base64 -w0 tests/fixtures/room.jpg)\\\"}\" | head -c 300"
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "owner": "Python",
+      "group": "internal",
+      "guards": [
+        "Host (local)",
+        "Model key"
+      ],
+      "summary": "The service's own state.",
+      "request": "No body.",
+      "response": "{ok:true, service:\"terucon-model\", version, google:{configured, mode, error}, sam:{...SamManager.status()}, segmentation:{engine, edgeRefine, edgeMethod, analysisMaxSide}}",
+      "errors": [
+        {
+          "status": 401,
+          "when": "A key is configured and X-Terucon-Model-Key is missing or wrong"
+        },
+        {
+          "status": 421,
+          "when": "Host is not localhost, 127.0.0.1, [::1] or in ALLOWED_HOSTS"
+        }
+      ],
+      "curl": "curl -s http://127.0.0.1:8081/health   # port 8081 when started with npm run model; the supervised service picks its own"
+    },
+    {
+      "method": "POST",
+      "path": "/segment",
+      "owner": "Python",
+      "group": "internal",
+      "guards": [
+        "Host (local)",
+        "Model key",
+        "JSON only"
+      ],
+      "summary": "Photo in, labelled surfaces out. What /api/segment streams to.",
+      "request": "Same body as /api/segment.",
+      "response": "Same body as /api/segment.",
+      "errors": [
+        {
+          "status": 415,
+          "when": "Not application/json"
+        },
+        {
+          "status": 413,
+          "when": "Body over 80 MB"
+        },
+        {
+          "status": 400,
+          "when": "Image missing or undecodable"
+        }
+      ],
+      "curl": "curl -s http://127.0.0.1:8081/segment -H 'Content-Type: application/json' -d \"{\\\"image\\\":\\\"$(base64 -w0 tests/fixtures/room.jpg)\\\"}\" | head -c 300"
+    },
+    {
+      "method": "GET",
+      "path": "/sam/health",
+      "owner": "Python",
+      "group": "internal",
+      "guards": [
+        "Host (local)",
+        "Model key or SAM key"
+      ],
+      "summary": "SAM's state. What /api/sam/health streams to.",
+      "request": "No body.",
+      "response": "Same body as /api/sam/health.",
+      "errors": [],
+      "curl": "curl -s http://127.0.0.1:8081/sam/health"
+    },
+    {
+      "method": "POST",
+      "path": "/sam/refine",
+      "owner": "Python",
+      "group": "internal",
+      "guards": [
+        "Host (local)",
+        "Model key or SAM key",
+        "JSON only"
+      ],
+      "summary": "Clicks or a box to a mask.",
+      "request": "Same body as /api/sam/refine.",
+      "response": "Same body as /api/sam/refine.",
+      "errors": [],
+      "curl": "curl -s http://127.0.0.1:8081/sam/refine -H 'Content-Type: application/json' -d '{\"image_id\":\"...\",\"points\":[[400,300]]}'"
+    },
+    {
+      "method": "POST",
+      "path": "/sam/segment",
+      "owner": "Python",
+      "group": "internal",
+      "guards": [
+        "Host (local)",
+        "Model key or SAM key",
+        "JSON only"
+      ],
+      "summary": "Text prompts to masks (SAM 3).",
+      "request": "Same body as /api/sam/segment.",
+      "response": "Same body as /api/sam/segment.",
+      "errors": [],
+      "curl": "curl -s http://127.0.0.1:8081/sam/segment -H 'Content-Type: application/json' -d '{\"prompts\":[\"wall\"],\"image\":\"...\"}'"
+    }
+  ]
+}

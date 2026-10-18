@@ -1,0 +1,25 @@
+{
+  "_comment": "Shared HTML for the navigation entries that the site build adds to the pages (site/patches/*.json refer to these by name). {{name}} is replaced by the parameter of that name; {{#name}}...{{/name}} is kept only when the parameter is true; {{target}} is the link to the page named by the parameter `page` (route or file name, following linkStyle in site.json) plus the optional parameter `fragment`; {{link:KEY}} is the link to the page KEY. Parameters come from the step and from the named entry below. Values are inserted as HTML, unescaped: this file is trusted data. Format: site/patches/README.md",
+  "components": {
+    "headerLink": "<a href=\"{{target}}\"{{#mobileHide}} data-m=\"display:none\"{{/mobileHide}} style=\"display:flex;align-items:center;gap:8px;color:inherit;font:500 13px/1 Switzer,Helvetica,Arial,sans-serif\" style-hover=\"color:inherit;opacity:.75\">{{label}}</a>",
+    "menuCard": "<a href=\"{{target}}\" style=\"display:flex;flex-direction:column;gap:10px;padding:26px;border:1px solid rgba(225,212,194,.2);color:#E1D4C2\" style-hover=\"border-color:#E1D4C2;color:#E1D4C2\"><span style=\"font:500 10.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#A78D78\">{{eyebrow}}</span><span style=\"font:300 clamp(26px,2.4vw,36px)/1.1 Zodiak,Georgia,serif\">{{title}}</span><span style=\"font:400 14px/1.5 Switzer,Helvetica,Arial,sans-serif;color:#BEB5A9\">{{blurb}}</span></a>",
+    "footerLink": "<a href=\"{{target}}\" style=\"align-self:flex-start;font:400 15px/1.5 Switzer,sans-serif;color:#E1D4C2\" style-hover=\"color:#FFFFFF\">{{label}}</a>",
+    "footerLinkUnderlined": "<a href=\"{{target}}\" style=\"align-self:flex-start;font:400 15px/1.5 Switzer,Helvetica,Arial,sans-serif;color:#E1D4C2;background:linear-gradient(#E1D4C2,#E1D4C2) 0 100%/0 1px no-repeat;transition:background-size .5s cubic-bezier(.2,.7,.2,1),color .3s\" style-hover=\"background-size:100% 1px;color:#FFFFFF\">{{label}}</a>"
+  },
+  "entries": {
+    "materials": {
+      "page": "materials",
+      "label": "Materials",
+      "eyebrow": "Materials",
+      "title": "Shop materials →",
+      "blurb": "Sheets, stone, terracotta and finishes, priced per unit."
+    },
+    "project": {
+      "page": "dashboard",
+      "label": "My project",
+      "eyebrow": "Your project",
+      "title": "Open My project →",
+      "blurb": "Your design, decisions, quote and materials in one place."
+    }
+  }
+}

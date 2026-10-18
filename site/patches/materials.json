@@ -1,0 +1,47 @@
+{
+  "_comment": "Patches for the Materials shop (pages_original/market_place.html). Format: site/patches/README.md",
+  "page": "materials",
+  "steps": [
+    {
+      "id": "relink",
+      "op": "relink",
+      "why": "rewrite the design-time file names to the pages of the site",
+      "expect": 18
+    },
+    {
+      "id": "header-project",
+      "op": "insertAfter",
+      "why": "header: My project link",
+      "anchor": "Saved<span style=\"font:400 12px/1 Switzer,sans-serif;opacity:.7\">{{ savedN }}</span></a>",
+      "insert": ["\n      ", {"component": "headerLink", "entry": "project"}]
+    },
+    {
+      "id": "menu-project",
+      "op": "insertAfter",
+      "why": "menu: My project card",
+      "anchor": "Upload a photo of your space and see it in Terucon materials.</span></a>",
+      "insert": ["\n        ", {"component": "menuCard", "entry": "project"}]
+    },
+    {
+      "id": "footer-project",
+      "op": "insertAfter",
+      "why": "footer: My project link",
+      "anchor": "style-hover=\"color:#FFFFFF\">Design Studio</a>",
+      "insert": [{"component": "footerLink", "entry": "project"}]
+    },
+    {
+      "id": "media-guides-off",
+      "op": "replace",
+      "why": "hide the design-review media pill (its target file does not exist)",
+      "anchor": "&quot;mediaGuides&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true",
+      "with": "&quot;mediaGuides&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false"
+    },
+    {
+      "id": "media-pill-retarget",
+      "op": "replace",
+      "why": "retarget the hidden media pill (no dead link left in the page)",
+      "anchor": "<a href=\"Materials%20Media%20Brief.dc.html\"",
+      "with": "<a href=\"#\""
+    }
+  ]
+}

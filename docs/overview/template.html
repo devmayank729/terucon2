@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generated" content="{{GENERATED}}">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
+<title>{{TITLE}}</title>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=zodiak@400,500&amp;f[]=switzer@400,500,600&amp;display=swap" media="print" onload="this.media='all'">
+<script>{{THEME_BOOT}}</script>
+<style>{{STYLE}}</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="shell">
+  <header class="rail" id="top">
+    <div class="rail-top">
+      <a class="brand" href="#status" aria-label="Terucon project overview, back to the top">
+        <span class="brand-mark" aria-hidden="true">T</span>
+        <span class="brand-text"><b>Terucon</b><small>Project overview</small></span>
+      </a>
+      <div class="rail-tools">
+        <button type="button" class="tool" id="kbd-help" aria-haspopup="dialog" aria-label="Keyboard shortcuts">
+          <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="2.5" y="5" width="15" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 8.5h1M8.5 8.5h1M11.5 8.5h1M14 8.5h.5M6 11.5h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span class="tool-text">Keys</span>
+        </button>
+        <button type="button" class="tool" id="theme-toggle" aria-pressed="false">
+          <svg class="i-sun" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <svg class="i-moon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M16.5 11.8A6.8 6.8 0 0 1 8.2 3.5a6.8 6.8 0 1 0 8.3 8.3z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <span id="theme-label">Dark</span>
+        </button>
+      </div>
+    </div>
+    <nav class="sections" aria-label="Sections">
+      <ol id="section-nav">
+        <li><a href="#status"><span class="n">01</span><span class="t">Status</span></a></li>
+        <li><a href="#architecture"><span class="n">02</span><span class="t">Architecture</span></a></li>
+        <li><a href="#flows"><span class="n">03</span><span class="t">Request flows</span></a></li>
+        <li><a href="#pages"><span class="n">04</span><span class="t">Pages &amp; site map</span></a></li>
+        <li><a href="#api"><span class="n">05</span><span class="t">API reference</span></a></li>
+        <li><a href="#config"><span class="n">06</span><span class="t">Configuration</span></a></li>
+        <li><a href="#files"><span class="n">07</span><span class="t">Files</span></a></li>
+        <li><a href="#boundary"><span class="n">08</span><span class="t">Python vs JS</span></a></li>
+        <li><a href="#tests"><span class="n">09</span><span class="t">Tests</span></a></li>
+        <li><a href="#commands"><span class="n">10</span><span class="t">Commands</span></a></li>
+      </ol>
+    </nav>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <noscript><p class="noscript">This page draws itself from the data embedded in it, so it needs JavaScript. The same facts are in README.md and docs/HOW_TO_RUN.md.</p></noscript>
+
+    <section class="sec hero" id="status" aria-labelledby="h-status">
+      <div id="hero"></div>
+      <div id="live" class="live" aria-labelledby="h-live"></div>
+    </section>
+
+    <section class="sec" id="architecture" aria-labelledby="h-architecture">
+      <header class="sec-head"><p class="kicker">02  Architecture</p><h2 id="h-architecture">How the parts fit</h2></header>
+      <div id="architecture-body"></div>
+    </section>
+
+    <section class="sec" id="flows" aria-labelledby="h-flows">
+      <header class="sec-head"><p class="kicker">03  Request flows</p><h2 id="h-flows">Follow a request through the system</h2></header>
+      <div id="flows-body"></div>
+    </section>
+
+    <section class="sec" id="pages" aria-labelledby="h-pages">
+      <header class="sec-head"><p class="kicker">04  Pages &amp; site map</p><h2 id="h-pages">The site, as defined in site/site.json</h2></header>
+      <div id="pages-body"></div>
+    </section>
+
+    <section class="sec" id="api" aria-labelledby="h-api">
+      <header class="sec-head"><p class="kicker">05  API reference</p><h2 id="h-api">Every route, and who answers it</h2></header>
+      <div id="api-body"></div>
+    </section>
+
+    <section class="sec" id="config" aria-labelledby="h-config">
+      <header class="sec-head"><p class="kicker">06  Configuration</p><h2 id="h-config">Environment variables</h2></header>
+      <div id="config-body"></div>
+    </section>
+
+    <section class="sec" id="files" aria-labelledby="h-files">
+      <header class="sec-head"><p class="kicker">07  Files</p><h2 id="h-files">Every file, and what it is for</h2></header>
+      <div id="files-body"></div>
+    </section>
+
+    <section class="sec" id="boundary" aria-labelledby="h-boundary">
+      <header class="sec-head"><p class="kicker">08  Python vs JS</p><h2 id="h-boundary">What lives where, and why</h2></header>
+      <div id="boundary-body"></div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <header class="sec-head"><p class="kicker">09  Tests</p><h2 id="h-tests">What is tested, and how to run it</h2></header>
+      <div id="tests-body"></div>
+    </section>
+
+    <section class="sec" id="commands" aria-labelledby="h-commands">
+      <header class="sec-head"><p class="kicker">10  Commands &amp; troubleshooting</p><h2 id="h-commands">Commands, and what to do when something is wrong</h2></header>
+      <div id="commands-body"></div>
+    </section>
+
+    <footer class="foot" id="footer"></footer>
+  </main>
+</div>
+
+<dialog id="kbd-dialog" aria-labelledby="kbd-title">
+  <form method="dialog" class="dlg">
+    <h2 id="kbd-title">Keyboard</h2>
+    <dl class="keys">
+      <div><dt><kbd>&larr;</kbd> <kbd>&rarr;</kbd></dt><dd>Move between tabs; step through a flow (when the flow is focused)</dd></div>
+      <div><dt><kbd>&uarr;</kbd> <kbd>&darr;</kbd></dt><dd>Move in the file tree; <kbd>&rarr;</kbd> opens and <kbd>&larr;</kbd> closes a folder</dd></div>
+      <div><dt><kbd>c</kbd> or <kbd>Enter</kbd></dt><dd>Copy the path of the focused file (only while a file in the tree has focus)</dd></div>
+      <div><dt><kbd>Enter</kbd></dt><dd>Open a part of the diagram; <kbd>Esc</kbd> closes it</dd></div>
+    </dl>
+    <p class="dlg-actions"><button class="btn" value="close" autofocus>Close</button></p>
+  </form>
+</dialog>
+<div id="live-region" class="sr-only" role="status" aria-live="polite"></div>
+
+<script type="application/json" id="overview-data">{{DATA}}</script>
+<script>{{SCRIPT}}</script>
+</body>
+</html>

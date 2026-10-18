@@ -1,0 +1,35 @@
+# Secrets: never commit. Copy .env.example to .env and paste credentials there.
+.env
+.env.*
+!.env.example
+
+# Service-account keys and local credentials
+*.pem
+*-key.json
+service-account*.json
+credentials/
+
+# Python / local runtime
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Model weights and caches downloaded for the optional SAM service
+models/
+.cache/
+data/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+
+# JS dependencies and test output
+node_modules/
+npm-debug.log*
+coverage/
+
+# The Flask version of the site that the Express + Python-model split replaced, kept until you delete it
+_legacy_python_site/

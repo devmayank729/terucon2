@@ -1,0 +1,114 @@
+{
+  "_comment": "Authored text for the project overview. Facts (files, lines, tests, routes, variables, pages) are scanned by tools/build-overview.js; this folder only holds what a scan cannot know. Run: node tools/build-overview.js --check",
+  "title": "Terucon project overview",
+  "tagline": "An Express website, a Python model service, and a site that is written as data.",
+  "hero": {
+    "eyebrow": "Terucon  /  Project overview",
+    "heading": "A website, a model service, and a site written as data",
+    "lead": "Four pages are served by one small Express server. The part that looks at photos is a separate Python service that the server starts and supervises, so the site keeps working when Python does not. This page is generated from the tree: the files, line counts, routes, tests and variables below were read from the project when it was built.",
+    "facts": [
+      {
+        "label": "Website",
+        "value": "Express 5, ES modules, no other runtime package"
+      },
+      {
+        "label": "Models",
+        "value": "Python 3 / Flask, internal service on 127.0.0.1"
+      },
+      {
+        "label": "Site",
+        "value": "site/site.json + JSON patches, built into pages/"
+      }
+    ]
+  },
+  "owners": {
+    "website": {
+      "label": "Website (JS)",
+      "blurb": "Express: pages, media, API, guards, Google proxy"
+    },
+    "model": {
+      "label": "Model (Python)",
+      "blurb": "Surface detection, SAM, evaluation, fine-tuning"
+    },
+    "site-data": {
+      "label": "Site data",
+      "blurb": "site.json, JSON patches, pages, exports, media"
+    },
+    "tooling": {
+      "label": "Tooling",
+      "blurb": "Build, check and run scripts"
+    },
+    "tests": {
+      "label": "Tests",
+      "blurb": "node:test, unittest, browser tests, fixtures"
+    },
+    "docs": {
+      "label": "Docs",
+      "blurb": "Guides and this overview"
+    },
+    "private": {
+      "label": "Private",
+      "blurb": "Secrets and local environments"
+    }
+  },
+  "tags": {
+    "Run": "You start it or use it directly",
+    "Edit": "Yours to change",
+    "Generated": "Written by a tool; do not edit by hand",
+    "Source": "Input to a build; replace it on re-export",
+    "Private": "Secrets or local-only; git-ignored, never served",
+    "Optional": "Not needed for the site to work",
+    "Dev": "For developers and tests only"
+  },
+  "languages": [
+    "JavaScript",
+    "Python",
+    "JSON",
+    "HTML",
+    "CSS",
+    "Markdown"
+  ],
+  "generatedFrom": "A scan of the project tree plus the authored descriptions in docs/overview/catalog/*.json",
+  "docs": [
+    {
+      "path": "README.md",
+      "note": "The full reference"
+    },
+    {
+      "path": "docs/HOW_TO_RUN.md",
+      "note": "A short run guide"
+    },
+    {
+      "path": "model/README.md",
+      "note": "The model service"
+    },
+    {
+      "path": ".env.example",
+      "note": "Every setting, documented"
+    }
+  ],
+  "baseline": {
+    "_comment": "Measured on 2026-10-16 from the tree before the migration (wc -l of the authored files; tests counted as def test_ / await test). A fixed historical record, not rescanned.",
+    "date": "2026-10-16",
+    "python": {
+      "server": 2842,
+      "buildTools": 816,
+      "evaluation": 948,
+      "tests": 1474,
+      "launcher": 8,
+      "total": 6088
+    },
+    "javascript": {
+      "total": 156,
+      "note": "the browser test only"
+    },
+    "pythonTests": 84
+  },
+  "scan": {
+    "_comment": "Extra paths the scanner skips, besides everything .gitignore hides. _legacy_python_site/ holds the Flask version of the site that the Express + Python-model split replaced; it is kept only until the owner deletes it, then this line can go.",
+    "ignore": [
+      "_legacy_python_site/**"
+    ]
+  },
+  "provisional": []
+}

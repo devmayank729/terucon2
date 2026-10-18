@@ -1,0 +1,88 @@
+{
+  "_comment": "Test suites. Counts are scanned (counter: node-test = test( / it( at line start, py-def = def test_, await-test = await test( ). `files` are globs, checked against the tree.",
+  "intro": "Three suites with three runners, plus the checks that make sure the site, its links and this page agree with the project. npm test runs them in order and prints one summary; only the browser tests are optional.",
+  "suites": [
+    {
+      "id": "js",
+      "title": "JavaScript tests",
+      "runner": "node:test",
+      "counter": "node-test",
+      "command": "npm run test:js",
+      "also": "node --test tests/js/server-*.test.js",
+      "files": [
+        "tests/js/*.test.js"
+      ],
+      "needs": "Node 20. No credentials, no Python, no browser.",
+      "proves": [
+        "Settings come from .env and the real environment in the right order, from the same fixture the Python reader uses",
+        "The guards refuse bad hosts, missing JSON content types and cross-origin writes, the content type before any body is read",
+        "Only the pages in site.json and allowed media are served; traversal, hidden files and every secret path are 404",
+        "The Google proxy signs a valid RS256 token, retries with Retry-After and back-off, refreshes a 401 once, and gives up on time",
+        "Application default credentials work (gcloud login file, metadata server) and failures are explained in plain words",
+        "The model proxy streams 30 MB both ways unchanged, refuses oversized requests, and answers every unavailable case plainly",
+        "The supervisor follows the READY protocol, restarts after 1, 2, 4, 8, 16 s, gives up, times out, and cleans up",
+        "The site build applies each patch exactly the expected number of times; an untouched bundle round-trips byte for byte",
+        "This overview is complete, deterministic and safe to embed; its page works in Chrome (that file skips without Chrome)"
+      ]
+    },
+    {
+      "id": "python",
+      "title": "Python model tests",
+      "runner": "unittest",
+      "counter": "py-def",
+      "command": "npm run test:model",
+      "also": "python -m unittest discover -s model/tests -t model",
+      "files": [
+        "model/tests/test_*.py"
+      ],
+      "needs": "Python 3 with the packages in model/requirements.txt. Skipped by npm test when they are missing (a failure with --strict).",
+      "proves": [
+        "The service starts as a real process: one READY line with the real bound port, then /health over HTTP",
+        "Its guards: Host (421), the model key on every route (401), JSON only (415), the 80 MB limit (413), JSON for every error",
+        "Nothing from the parent's environment reaches the child; the env file is TERUCON_ENV_FILE and is re-read while running",
+        "SIGTERM is a clean exit that frees the port; a busy port exits 1 with no READY line",
+        "The segmentation pipeline finds the surfaces of a synthetic room whose answer is known exactly; snapping lands on the true edge",
+        "The service's own Google client signs, retries and passes Google's errors through; settings parse the same as in JavaScript",
+        "Everything runs against a fake Google: nothing real is called or billed"
+      ]
+    },
+    {
+      "id": "e2e",
+      "title": "Browser tests",
+      "runner": "puppeteer-core",
+      "counter": "await-test",
+      "command": "npm run test:e2e",
+      "also": "npm test -- --e2e   (npm run test:e2e runs it directly; add --sam for real SAM 2)",
+      "files": [
+        "tests/e2e/run.mjs"
+      ],
+      "needs": "Chrome or Chromium (CHROME_PATH if it is somewhere unusual). Starts the dev stack: the real site and model service against a fake Google.",
+      "proves": [
+        "Every page loads cleanly and links to the pages the site map requires; every same-site link resolves",
+        "Old addresses redirect: file names with 301, design-time names with 302",
+        "Secrets and source code are never served; the API never contains a secret",
+        "The project overview opens and shows the live server",
+        "The Design Studio opens already connected, scans a photo through the Python service, and renders a finish: Google is only ever called by the server",
+        "SAM and the Pick tool work when SAM is on",
+        "Without the Python service the website still works and scanning explains itself"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "title": "Site build check",
+      "command": "npm run check:site",
+      "proves": "The patches still apply to the pristine exports, and the pages in pages/ equal a fresh build."
+    },
+    {
+      "title": "Link check",
+      "command": "npm run check:links",
+      "proves": "Every same-site link resolves, every page links to the pages site.json requires, and no design-time name is left."
+    },
+    {
+      "title": "Overview check",
+      "command": "node tools/build-overview.js --check",
+      "proves": "Every file, route and variable is described, nothing described is missing, and the committed overview is not stale."
+    }
+  ]
+}

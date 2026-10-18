@@ -1,0 +1,30 @@
+{
+  "groups": [
+    { "id": "run", "title": "Run" },
+    { "id": "build", "title": "Build and check" },
+    { "id": "test", "title": "Test" },
+    { "id": "maintain", "title": "Maintain" }
+  ],
+  "npm": [
+    { "script": "start", "group": "run", "desc": "Start the website on PORT (default 8080), and the model service with it. The pages are built first if they are missing.", "primary": true },
+    { "script": "prestart", "group": "build", "desc": "Runs by itself before npm start: builds pages/ when it is empty." },
+    { "script": "dev", "group": "run", "desc": "Start the website and restart it when app.js or server/ change." },
+    { "script": "model", "group": "run", "desc": "Start only the Python model service, in the foreground, on MODEL_HOST:MODEL_PORT. For working on models or running them on a GPU machine." },
+    { "script": "setup:model", "group": "run", "desc": "Install the model service's Python packages (pip install -r model/requirements.txt)." },
+    { "script": "build:site", "group": "build", "desc": "Rebuild pages/ from pages_original/ and the JSON patches. Run it after a new Claude Design export or a patch change.", "primary": true },
+    { "script": "check:site", "group": "build", "desc": "Rebuild in memory and report whether the patches still apply and pages/ is current. Writes nothing." },
+    { "script": "check:links", "group": "build", "desc": "Check every link in the built pages against site/site.json." },
+    { "script": "build:overview", "group": "maintain", "desc": "Regenerate this page. Run it after adding, removing or changing a file, route or variable, then commit docs/PROJECT_OVERVIEW.html." },
+    { "script": "test", "group": "test", "desc": "Everything that needs neither a browser nor credentials, in order, with one summary. Add -- --e2e for the browser tests, -- --strict to fail instead of skip when Python is missing, -- --only js to run one step.", "primary": true },
+    { "script": "test:js", "group": "test", "desc": "The JavaScript tests only (node:test)." },
+    { "script": "test:model", "group": "test", "desc": "The Python model-service tests only (unittest)." },
+    { "script": "test:e2e", "group": "test", "desc": "The browser tests: Chrome drives the real pages against a fake Google." }
+  ],
+  "extra": [
+    { "group": "run", "cmd": "cp .env.example .env", "desc": "Create your settings file, then paste your Google credentials into it." },
+    { "group": "run", "cmd": "node tests/dev/stack.mjs --port 8765", "desc": "Try the whole Design Studio without credentials: the real site and model service against a fake Google, using the built-in synthetic room." },
+    { "group": "run", "cmd": "curl -s localhost:8080/api/health", "desc": "Is it up? Shows the version, the Google mode and the model service status." },
+    { "group": "build", "cmd": "node tools/check-links.js --json", "desc": "The link check as JSON: which page links to which." },
+    { "group": "maintain", "cmd": "node tools/build-overview.js --check", "desc": "Fail with a list if this overview and the project disagree, or the committed page is stale. Writes nothing." }
+  ]
+}
