@@ -1,8 +1,0 @@
-# Model service (needed for everything)
-flask>=3.0
-requests>=2.31
-google-auth>=2.30
-cryptography>=42
-numpy>=1.26
-pillow>=10
-opencv-python-headless>=4.8

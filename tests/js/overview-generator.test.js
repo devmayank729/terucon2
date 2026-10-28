@@ -2,13 +2,12 @@
 // Everything here runs on small throw-away projects (overview-helpers.js), so it does not depend on the real tree.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { describe, test } from 'node:test';
 import {
   bestEntry, checkEnv, checkPrivacy, checkRoutes, collect, compileEntries, countTests, globToRegExp, isIgnoredName, normalizeRoute,
-  parseEnvExample, readExpressRoutes, readPythonRoutes, run, scanTree, siteRoutePaths, specificity, walkStack,
+  parseEnvExample, readExpressRoutes, run, scanTree, siteRoutePaths, specificity, walkStack,
 } from '../../tools/build-overview.js';
 import { makeProject, ROOT, runCli } from './overview-helpers.js';
 
@@ -86,7 +85,7 @@ describe('the scanner', () => {
     for (const n of ['.env', '.env.production', 'a.pem', 'x-key.json', 'service-account.json', 'a.pyc', '.DS_Store']) assert.equal(isIgnoredName(n, false), true, n);
     for (const n of ['.env.example', 'app.js', 'README.md', 'envfile.js']) assert.equal(isIgnoredName(n, false), false, n);
     for (const n of ['node_modules', '.git', '__pycache__', '.venv', 'models', 'data']) assert.equal(isIgnoredName(n, true), true, n);
-    assert.equal(isIgnoredName('model', true), false, 'model/ is the Python package folder, not the ignored models/');
+    assert.equal(isIgnoredName('model', true), false, 'only models/ is ignored, not model/');
   });
 
   test('extra ignores from the catalog apply to files and folders', () => {
@@ -251,34 +250,32 @@ describe('check 3: routes', () => {
   });
 
   test('a catalog route the app does not register is a problem; so is a registered route the catalog does not know', () => {
-    const catalog = [r('GET', '/api/health'), r('POST', '/api/segment')];
-    assert.deepEqual(checkRoutes(catalog, [r('GET', '/api/health'), r('POST', '/api/segment')], null), []);
-    assert.deepEqual(checks(checkRoutes(catalog, [r('GET', '/api/health')], null)), ['3: catalog route POST /api/segment (JS) is not registered by the Express app (app.js)']);
-    assert.deepEqual(checks(checkRoutes(catalog, [r('GET', '/api/health'), r('POST', '/api/segment'), r('GET', '/api/secret')], null)), ['3: the Express app (app.js) registers GET /api/secret, which the catalog does not describe']);
+    const catalog = [r('GET', '/api/health'), r('POST', '/api/save')];
+    assert.deepEqual(checkRoutes(catalog, [r('GET', '/api/health'), r('POST', '/api/save')]), []);
+    assert.deepEqual(checks(checkRoutes(catalog, [r('GET', '/api/health')])), ['3: catalog route POST /api/save (JS) is not registered by the Express app (app.js)']);
+    assert.deepEqual(checks(checkRoutes(catalog, [r('GET', '/api/health'), r('POST', '/api/save'), r('GET', '/api/secret')])), ['3: the Express app (app.js) registers GET /api/secret, which the catalog does not describe']);
   });
 
   test('the method counts', () => {
-    assert.equal(checkRoutes([r('POST', '/api/x')], [r('GET', '/api/x')], null).length, 2);
+    assert.equal(checkRoutes([r('POST', '/api/x')], [r('GET', '/api/x')]).length, 2);
   });
 
   test('catch-all handlers are not "routes", derived rows are not compared, and ALL covers a method', () => {
     const catalog = [r('GET', '/{page}', 'JS', { derived: true }), r('GET', '/media/*name'), r('GET', '/api/x')];
     const actual = [r('GET', '/media/*name'), r('GET', '/{*splat}'), r('ALL', '/api/x'), r('GET', '/*rest'), r('GET', '*')];
-    assert.deepEqual(checks(checkRoutes(catalog, actual, null)), []);
+    assert.deepEqual(checks(checkRoutes(catalog, actual)), []);
   });
 
-  test('only JavaScript rows are compared with Express, only Python rows with the model service', () => {
-    const catalog = [r('GET', '/api/a'), r('GET', '/health', 'Python')];
-    assert.deepEqual(checkRoutes(catalog, [r('GET', '/api/a')], [r('GET', '/health')]), []);
-    assert.deepEqual(checks(checkRoutes(catalog, [r('GET', '/api/a')], [])), ['3: catalog route GET /health (Python) is not registered by the model service (model/terucon_model)']);
-    assert.deepEqual(checks(checkRoutes(catalog, null, [r('GET', '/health'), r('POST', '/extra')])), ['3: the model service (model/terucon_model) registers POST /extra, which the catalog does not describe']);
+  test('without the registered routes (the app could not be read) nothing is compared, but the catalog is still checked against itself', () => {
+    assert.deepEqual(checkRoutes([r('GET', '/api/a')], null), []);
+    assert.match(checks(checkRoutes([r('GET', '/a'), r('GET', '/a')], null))[0], /described twice/);
   });
 
   test('a route listed twice is reported, and a siteRef must agree with site.json', () => {
-    assert.match(checks(checkRoutes([r('GET', '/a'), r('GET', '/a')], null, null))[0], /described twice in the catalog: GET \/a/);
+    assert.match(checks(checkRoutes([r('GET', '/a'), r('GET', '/a')], null))[0], /described twice in the catalog: GET \/a/);
     const site = { pages: {}, docs: { overview: { route: '/project-overview', aliases: [] } } };
-    assert.deepEqual(checkRoutes([r('GET', '/project-overview', 'JS', { derived: true, siteRef: 'docs.overview.route' })], null, null, site), []);
-    assert.match(checks(checkRoutes([r('GET', '/overview', 'JS', { derived: true, siteRef: 'docs.overview.route' })], null, null, site))[0], /should be \/project-overview/);
+    assert.deepEqual(checkRoutes([r('GET', '/project-overview', 'JS', { derived: true, siteRef: 'docs.overview.route' })], null, site), []);
+    assert.match(checks(checkRoutes([r('GET', '/overview', 'JS', { derived: true, siteRef: 'docs.overview.route' })], null, site))[0], /should be \/project-overview/);
   });
 
   test('siteRoutePaths lists routes, aliases, legacy names and docs', () => {
@@ -296,10 +293,10 @@ describe('check 3: routes', () => {
         '  const app = express();',
         '  const api = express.Router();',
         "  api.get('/health', (q, s) => s.end());",
-        "  api.post('/segment', (q, s) => s.end());",
-        '  const sam = express.Router();',
-        "  sam.get('/health', (q, s) => s.end());",
-        "  api.use('/sam', sam);",
+        "  api.post('/items', (q, s) => s.end());",
+        '  const admin = express.Router();',
+        "  admin.get('/health', (q, s) => s.end());",
+        "  api.use('/admin', admin);",
         "  app.use('/api', api);",
         "  app.get('/media/*name', (q, s) => s.end());",
         "  app.get('/', (q, s) => s.end());",
@@ -313,7 +310,7 @@ describe('check 3: routes', () => {
       const { routes, warning } = await readExpressRoutes(p.root);
       assert.equal(warning, undefined);
       const got = routes.map((x) => `${x.method} ${x.path}`).sort();
-      assert.deepEqual(got, ['ALL /anything', 'GET /', 'GET /a', 'GET /api/health', 'GET /api/sam/health', 'GET /b', 'GET /media/*name', 'POST /api/segment'].sort());
+      assert.deepEqual(got, ['ALL /anything', 'GET /', 'GET /a', 'GET /api/admin/health', 'GET /api/health', 'GET /b', 'GET /media/*name', 'POST /api/items'].sort());
       assert.equal(globalThis.__closed, true, 'the app is closed again');
     } finally { p.cleanup(); }
   });
@@ -327,8 +324,12 @@ describe('check 3: routes', () => {
 
   test('without an app the check degrades to a warning, and a broken app does too', async () => {
     const p = makeProject();
+    // The clock stands still, so every import below gets the same millisecond: each one must still be a fresh module, or the
+    // second import of app.js would be answered with the failure of the first.
+    const realNow = Date.now;
     try {
       fs.symlinkSync(path.join(ROOT, 'node_modules'), path.join(p.root, 'node_modules'), 'dir');
+      Date.now = () => 1_700_000_000_000;
       assert.match((await readExpressRoutes(p.root)).warning, /app\.js does not exist yet/);
       p.write('app.js', 'throw new Error("boom");\n');
       assert.match((await readExpressRoutes(p.root)).warning, /could not be started for the route check \(boom\)/);
@@ -337,22 +338,13 @@ describe('check 3: routes', () => {
       const { problems, warnings } = await collect(p.root, { skipLinks: true });
       assert.deepEqual(checks(problems), ['1: file not described in the catalog: app.js'], 'no route problem, only a warning');
       assert.ok(warnings.some((w) => /createApp/.test(w)));
-    } finally { p.cleanup(); }
+    } finally {
+      Date.now = realNow;
+      p.cleanup();
+    }
   });
 
-  test('Python routes are read from the Flask decorators', () => {
-    const p = makeProject();
-    try {
-      p.write('model/terucon_model/app.py', [
-        '@app.get("/health")', 'def health(): ...', '@app.post("/segment")', 'def seg(): ...',
-        '@bp.route("/both", methods=["GET", "POST"])', 'def both(): ...', "@app.route('/plain')", 'def plain(): ...',
-      ].join('\n'));
-      assert.deepEqual(readPythonRoutes(p.root).routes.map((x) => `${x.method} ${x.path}`), ['GET /health', 'POST /segment', 'GET /both', 'POST /both', 'GET /plain']);
-      assert.match(readPythonRoutes(path.join(os.tmpdir(), 'nowhere-at-all')).warning, /does not exist yet/);
-    } finally { p.cleanup(); }
-  });
-
-  test('the real catalog agrees with the real Express app and the real Flask service', async () => {
+  test('the real catalog agrees with the real Express app', async () => {
     const { problems } = await collect(ROOT, { skipLinks: true });
     assert.deepEqual(checks(problems.filter((x) => x.check === 3)), []);
   });
@@ -362,14 +354,14 @@ describe('test counts', () => {
   test('node:test, unittest and await test( are counted per suite', () => {
     const p = makeProject({ files: {
       'tests/js/b.test.js': "test('a', () => {});\n  it('b', () => {});\ntest.skip('c', () => {});\n// test('commented', () => {});\nconst x = `test(`;\n",
-      'model/tests/test_x.py': 'class A:\n    def test_one(self): ...\n    def helper(self): ...\n    async def test_two(self): ...\n',
+      'scripts/test_x.py': 'class A:\n    def test_one(self): ...\n    def helper(self): ...\n    async def test_two(self): ...\n',
       'tests/e2e/run.mjs': "await test('one', async () => {});\nawait test('two', async () => {});\n",
     } });
     try {
       const files = scanTree(p.root).files;
       const out = countTests(p.root, [
         { id: 'js', counter: 'node-test', files: ['tests/js/*.test.js'] },
-        { id: 'py', counter: 'py-def', files: ['model/tests/test_*.py'] },
+        { id: 'py', counter: 'py-def', files: ['scripts/test_*.py'] },
         { id: 'e2e', counter: 'await-test', files: ['tests/e2e/run.mjs'] },
       ], files);
       assert.deepEqual(out.map((s) => [s.id, s.count]), [['js', 2 + 3], ['py', 2], ['e2e', 2]]);

@@ -85,25 +85,19 @@ test('home: header, menu and footer entries are added once each, as route links'
   assert.ok(!t.includes('Media%20Brief'));
 });
 
-test('studio: server mode, Automatic engine and the three user-facing strings', () => {
+test('studio: the shell is patched (links, footer wording, warm-up) and the studio itself is left exactly as the swatchroom exported it', () => {
   const { bundle } = memoBuild('route').results.find((r) => r.key === 'studio');
-  const app = bundle.assetText(bundle.extUuid('swatchroomApp'));
-  assert.ok(app.includes('Start the server (npm start) to use Google Cloud from your .env file'));
-  assert.ok(app.includes('Start the server (npm start in the project folder) and open http://localhost:8080/design-studio instead.'));
-  assert.ok(app.includes('Paste them into the .env file next to package.json (see .env.example)'));
-  assert.ok(app.includes('/* ---- Terucon server mode (added by the site build, site/patches/studio.json)'));
-  assert.ok(app.startsWith('/* Swatchroom (Terucon edition)'));
-  assert.ok(app.includes('var srSrv=await('));
-  assert.ok(app.includes('ht=srDefaults({version:4,'));
-  assert.ok(app.includes('fetch(`/api/vertex/generate`'));
-  assert.ok(!app.includes('SAM 3.1'));
-  // the worker is still one single string literal, now double-quoted and without a raw "</"
-  const at = app.indexOf('var Cn="');
-  assert.ok(at > 0 && countOccurrences(app, 'var Cn=') === 1);
-  const worker = scanJsString(app, at + 'var Cn='.length).value;
-  assert.ok(worker.includes('function srIsExterior('));
-  assert.ok(worker.includes('function ojBase(e){let t=ij(e);'));
-  assert.ok(worker.includes('if(a===0||i.split===`drop`)continue;'));
+  const exported = Bundle.load(path.join(ROOT, SITE.pages.studio.source));
+  const id = exported.extUuid('swatchroomApp');
+  assert.ok(bundle.asset(id).equals(exported.asset(id)), 'the swatchroomApp asset (a loader for /js/swatchroom-app.js) is not patched');
+  assert.match(bundle.assetText(id), /import\(new URL\("\/js\/swatchroom-app\.js", window\.location\.href\)\.href\);/);
+  for (const uuid of exported.uuids.filter((u) => u !== id)) assert.ok(bundle.asset(uuid).equals(exported.asset(uuid)), `asset ${uuid} is untouched`);
+  const t = bundle.template;
+  assert.ok(t.includes('/api/studio/warmup'), 'the page wakes the studio services');
+  assert.ok(t.includes('Your rooms are saved on our server, so they open on any device.'));
+  assert.ok(!t.includes('stay in this browser'), 'the export\'s browser-key footer line is gone');
+  assert.ok(t.includes('href="/my-project"'), 'My project is linked');
+  assert.ok(!/stu[d]io-server-runtime|srDefaults|api\/vertex/.test(bundle.assetText(id) + t), 'nothing of the old server mode is left');
 });
 
 test('nothing the build injects tells users to run a Python file or names the old tools', () => {
@@ -349,31 +343,30 @@ test('snippets: read verbatim, chomp drops one newline, a path outside site/patc
 
 // ---- breaking things on purpose -------------------------------------------------------------------------
 
-test('a syntax error in the studio runtime snippet is caught by the node --check step, and nothing is written', () => {
+test('a syntax error in code injected into an asset is caught by the node --check step, and nothing is written', () => {
   const root = makeTempRoot();
   const out = path.join(root, 'out');
   try {
-    const snippet = path.join(root, 'site', 'patches', 'snippets', 'studio-server-runtime.js');
-    const good = fs.readFileSync(snippet, 'utf8');
-    assert.ok(good.includes('function srSamName(){'));
-    fs.writeFileSync(snippet, good.replace('function srSamName(){', 'function srSamName({'));
+    fs.writeFileSync(path.join(root, 'site', 'patches', 'snippets', 'broken.js'), 'var broken = ;\n');
+    const file = path.join(root, 'site', 'patches', 'studio.json');
+    const spec = JSON.parse(fs.readFileSync(file, 'utf8'));
+    spec.steps.push({
+      id: 'app',
+      op: 'group',
+      why: 'inject a broken snippet into the loader',
+      target: 'asset:swatchroomApp',
+      steps: [
+        { id: 'inject', op: 'insertBefore', why: 'a snippet with a syntax error', anchor: 'import(new URL(', insert: { file: 'snippets/broken.js' } },
+        { id: 'check-syntax', op: 'checkSyntax', why: 'parse the patched loader', name: 'app.mjs' },
+      ],
+    });
+    fs.writeFileSync(file, JSON.stringify(spec, null, 2));
     throwsPatch(() => buildPage('studio', { root }), /\[studio\/app\/check-syntax\]/, /patched app\.mjs does not parse/, /SyntaxError/);
     const built = buildSite({ root, outDir: out });
     assert.equal(built.ok, false);
     assert.equal(built.results.filter((r) => !r.ok).length, 1);
     assert.match(built.results.find((r) => r.key === 'studio').error, /app\.mjs does not parse/);
     assert.equal(fs.existsSync(out), false, 'a failed build writes no page at all, not even the pages that were fine');
-  } finally {
-    removeTempRoot(root);
-  }
-});
-
-test('a syntax error in the worker snippet is caught by its own check step', () => {
-  const root = makeTempRoot();
-  try {
-    const snippet = path.join(root, 'site', 'patches', 'snippets', 'worker-exterior-classes.js');
-    fs.writeFileSync(snippet, fs.readFileSync(snippet, 'utf8').replace('function srIsExterior(e,t,n){', 'function srIsExterior(e,t,n{'));
-    throwsPatch(() => buildPage('studio', { root }), /\[studio\/worker\/check-syntax\]/, /patched worker\.mjs does not parse/);
   } finally {
     removeTempRoot(root);
   }
@@ -434,6 +427,6 @@ test('makeContext defaults: link style from site.json, overridable', () => {
 test('the snippets are plain JavaScript that parses on its own (as a module)', () => {
   const dir = path.join(ROOT, 'site', 'patches', 'snippets');
   const files = fs.readdirSync(dir).filter((f) => f.endsWith('.js'));
-  assert.deepEqual(files.sort(), ['studio-server-runtime.js', 'worker-exterior-classes.js']);
+  assert.deepEqual(files.sort(), ['warmup.js']);
   for (const f of files) checkSyntax(fs.readFileSync(path.join(dir, f), 'utf8'), f.replace(/\.js$/, '.mjs'), `[${f}] `);
 });

@@ -30,6 +30,20 @@
       "insert": ["\n        ", {"component": "menuCard", "entry": "materials"}, "\n        ", {"component": "menuCard", "entry": "project"}]
     },
     {
+      "id": "hero-studio",
+      "op": "insertBefore",
+      "why": "hero: a plain way into the Design Studio that is visible without opening the menu (also on a phone)",
+      "anchor": "<a href=\"#work\" style=\"display:inline-flex;align-items:center;gap:10px;font:500 14px/1 Switzer,Helvetica,Arial,sans-serif;color:#E1D4C2;border-bottom:1px solid rgba(225,212,194,.4);padding-bottom:6px\" style-hover=\"color:#E1D4C2;border-bottom-color:#E1D4C2\">See the work</a>",
+      "insert": [{"component": "heroPill", "entry": "studio"}, "\n          "]
+    },
+    {
+      "id": "studio-warmup",
+      "op": "insertBefore",
+      "why": "start the Design Studio's cold start as soon as the landing page opens",
+      "anchor": "</helmet>",
+      "insert": ["<script>", {"file": "snippets/warmup.js", "chomp": true}, "</script>\n"]
+    },
+    {
       "id": "footer-links",
       "op": "insertAfter",
       "why": "footer: Shop materials and My project links",

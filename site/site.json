@@ -1,5 +1,5 @@
 {
-  "_comment": "The site, as data. The Express server (app.js, server/) reads it to serve pages and redirects; tools/build-site.js reads it to rebuild the pages from pages_original/ (the patches are in site/patches/*.json); tools/check-links.js and the project overview read it too. To add or rename a page, change it here. If you export a page again from Claude Design, drop it into pages_original/ under the same name and run: npm run build:site",
+  "_comment": "The site, as data. The Express server (app.js, server/) reads it to serve pages and redirects; tools/build-site.js reads it to rebuild the pages from pages_original/ (the patches are in site/patches/*.json); tools/check-links.js and the project overview read it too. To add or rename a page, change it here. If you export a page again from Claude Design, drop it into pages_original/ under the same name and run: npm run build:site. The Design Studio page is built from the studio's own export, swatchroom/terucon/Swatchroom.html. `docs` holds the pages that are not built from an export: the project overview and the Coming soon page (shown, with a 404 status, for any address that is no page).",
   "name": "Terucon",
   "linkStyle": "route",
   "pages": {
@@ -26,14 +26,13 @@
     "studio": {
       "label": "Design Studio",
       "nav": "Design Studio",
-      "description": "Upload a photo of a space, pick its surfaces and see them in Terucon materials. Surface finding is done by the Python model service.",
+      "description": "Photograph a room, tap a wall, floor or ceiling, pick a finish and see it rendered into the real photo (Swatchroom). The studio itself is the swatchroom/ app, mounted in this website.",
       "route": "/design-studio",
-      "source": "pages_original/Swatchroom.html",
+      "source": "swatchroom/terucon/Swatchroom.html",
       "file": "pages/studio.html",
-      "aliases": ["/design-studio.html", "/Terucon Swatchroom.html"],
+      "aliases": ["/design-studio.html", "/Terucon Swatchroom.html", "/studio", "/swatchroom"],
       "headers": {
-        "Cross-Origin-Opener-Policy": "same-origin",
-        "Cross-Origin-Embedder-Policy": "credentialless"
+        "Permissions-Policy": "camera=(self), microphone=(), geolocation=()"
       }
     },
     "dashboard": {
@@ -68,6 +67,13 @@
       "route": "/project-overview",
       "file": "docs/PROJECT_OVERVIEW.html",
       "aliases": ["/docs/PROJECT_OVERVIEW.html"]
+    },
+    "comingSoon": {
+      "label": "Coming soon",
+      "description": "Shown for any page that does not exist yet, and the page to link to for something that is still being built.",
+      "route": "/coming-soon",
+      "file": "pages/coming-soon.html",
+      "aliases": []
     }
   },
   "media": {

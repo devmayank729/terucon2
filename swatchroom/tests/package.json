@@ -1,0 +1,9 @@
+{
+  "name": "swatchroom-tests",
+  "private": true,
+  "type": "commonjs",
+  "description": "Playwright walk-throughs of Swatchroom on phone, tablet and laptop sizes, against a mock of Google's endpoints.",
+  "devDependencies": {
+    "playwright": "^1.56.0"
+  }
+}

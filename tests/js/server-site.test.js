@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict';
+import express from 'express';
 import fs from 'node:fs';
+import http from 'node:http';
 import path from 'node:path';
 import test, { after, before, describe } from 'node:test';
+import { createApiRegistry } from '../../server/routes/api.js';
 import { DECOYS, PROJECT_ROOT } from '../helpers/tempRoot.js';
 import { startTestApp } from '../helpers/app.js';
-import { rawRequest } from '../helpers/http.js';
+import { rawRequest, request } from '../helpers/http.js';
 
 const site = JSON.parse(fs.readFileSync(path.join(PROJECT_ROOT, 'site', 'site.json'), 'utf8'));
 const pages = Object.entries(site.pages);
@@ -45,12 +48,6 @@ describe('pages, aliases and redirects', () => {
       });
     }
   }
-
-  test('the studio gets the headers that let the in-browser models use threads', async () => {
-    const r = await app.get('/design-studio');
-    assert.equal(r.headers['cross-origin-opener-policy'], 'same-origin');
-    assert.equal(r.headers['cross-origin-embedder-policy'], 'credentialless');
-  });
 
   test('conditional requests: ETag and Last-Modified give 304', async () => {
     const first = await app.get('/materials');
@@ -104,10 +101,19 @@ describe('pages, aliases and redirects', () => {
     assert.equal(r.text, '');
   });
 
-  test('names are exact: case and a trailing slash do not match', async () => {
-    for (const p of ['/MATERIALS', '/Materials', '/materials/', '/design-studio/', '//materials', '/materials%2f']) {
-      assert.equal((await app.get(p)).status, 404, p);
+  test('another capital or a trailing slash leads to the page (301); nothing else is guessed', async () => {
+    const same = { '/MATERIALS': '/materials', '/Materials': '/materials', '/materials/': '/materials', '/design-studio/': '/design-studio', '/materials%2f': '/materials', '/Design-Studio': '/design-studio' };
+    for (const [p, to] of Object.entries(same)) {
+      const r = await app.get(p);
+      assert.equal(r.status, 301, p);
+      assert.equal(r.headers.location, to, p);
     }
+    const q = await app.get('/Materials/?utm=1');
+    assert.equal(q.headers.location, '/materials?utm=1', 'the query string is kept');
+    // a legacy name in another case still ends at the page, not at the legacy name
+    assert.equal((await app.get('/design%20studio.dc.html')).headers.location, '/design-studio');
+    // not near any name: unknown, so the Coming soon page (below)
+    for (const p of ['//materials', '/material', '/materials/extra']) assert.equal((await app.get(p)).status, 404, p);
   });
 
   test('malformed percent escapes are refused, not a crash', async () => {
@@ -123,11 +129,36 @@ describe('pages, aliases and redirects', () => {
     assert.equal((await app.request('/materials', { method: 'POST' })).status, 404);
   });
 
-  test('an unknown path is a plain 404', async () => {
-    const r = await app.get('/nothing-here');
-    assert.equal(r.status, 404);
-    assert.match(r.headers['content-type'], /^text\/plain/);
-    assert.equal(r.headers['x-content-type-options'], 'nosniff');
+  test('a page that does not exist yet gets the Coming soon page, with a 404 status', async () => {
+    const browser = { Accept: 'text/html,application/xhtml+xml,*/*;q=0.8' };
+    for (const p of ['/nothing-here', '/about', '/careers/', '/materials/extra', '/my-project/x/y']) {
+      const r = await app.get(p, browser);
+      assert.equal(r.status, 404, p);
+      assert.match(r.headers['content-type'], /^text\/html/, p);
+      assert.match(r.text, /<title>Coming soon<\/title>/, p);
+      assert.equal(r.headers['x-content-type-options'], 'nosniff');
+      assert.equal(r.headers['cache-control'], 'no-cache');
+    }
+    const head = await app.request('/nothing-here', { method: 'HEAD', headers: browser });
+    assert.equal(head.status, 404);
+    // asking for it by name is a normal page
+    const direct = await app.get('/coming-soon', browser);
+    assert.equal(direct.status, 200);
+    assert.match(direct.text, /<title>Coming soon<\/title>/);
+  });
+
+  test('everything that is not a page keeps a plain 404: files, /media, /api, clients that do not want HTML, other methods', async () => {
+    const browser = { Accept: 'text/html' };
+    for (const p of ['/missing.js', '/nothing/here.css', '/media/missing.jpg', '/media/sub']) {
+      const r = await app.get(p, browser);
+      assert.equal(r.status, 404, p);
+      assert.doesNotMatch(r.text, /Coming soon/, p);
+    }
+    assert.equal((await app.get('/api/nothing', browser)).json().error.status, 'NOT_FOUND');
+    const json = await app.get('/nothing-here', { Accept: 'application/json' });
+    assert.equal(json.status, 404);
+    assert.match(json.headers['content-type'], /^text\/plain/);
+    assert.equal((await app.request('/nothing-here', { method: 'POST', headers: { ...browser, 'Content-Type': 'application/json' }, body: '{}' })).status, 404);
   });
 });
 
@@ -155,8 +186,8 @@ describe('nothing else on disk is ever served', () => {
   after(() => app.stop());
 
   const urls = [
-    '/.env', '/.env.example', '/app.js', '/package.json', '/server/secret.js', '/site/site.json', '/site/notes.txt', '/model/terucon_model.py',
-    '/tools/build.js', '/tests/secret.test.js', '/node_modules/pkg/index.js', '/pages/home.html', '/pages/studio.html', '/pages_original/index.html',
+    '/.env', '/.env.example', '/app.js', '/package.json', '/server/secret.js', '/server/config/settings.js', '/site/site.json', '/site/notes.txt',
+    '/tools/build.js', '/tools/build-site.js', '/tests/secret.test.js', '/node_modules/pkg/index.js', '/pages/home.html', '/pages/studio.html', '/pages_original/index.html',
     '/.git/config', '/docs/notes.md', '/test.env', '/media/../.env', '/media/%2e%2e/.env', '/media/%2e%2e/%2e%2e/app.js', '/media/sub/../../.env',
     '/media/..%2f.env', '/media/%2e%2e%2f.env', '/media/sub%2f..%2f..%2f.env', '/media/..\\.env', '/media/%5c..%5c.env', '/media/.env', '/media//.env',
   ];
@@ -234,7 +265,7 @@ describe('/api: JSON 404 and 405, no-store, and the small endpoints', () => {
   after(() => app.stop());
 
   test('unknown API paths are a JSON 404', async () => {
-    for (const p of ['/api/nope', '/api/', '/api', '/api/health/', '/api/vertex/generate/']) {
+    for (const p of ['/api/nope', '/api/', '/api', '/api/health/', '/api/site/']) {
       const r = await app.get(p);
       assert.equal(r.status, 404, p);
       assert.match(r.headers['content-type'], /^application\/json/);
@@ -243,16 +274,39 @@ describe('/api: JSON 404 and 405, no-store, and the small endpoints', () => {
     }
   });
 
+  test('the routes of the old Design Studio backend are gone', async () => {
+    for (const p of ['/api/config', '/api/vertex/generate', '/api/segment', '/api/sam/health', '/api/sam/refine', '/api/sam/segment']) {
+      for (const r of [await app.get(p), await app.post(p, {})]) {
+        assert.equal(r.status, 404, p);
+        assert.deepEqual(r.json(), { error: { code: 404, status: 'NOT_FOUND', message: 'No such API route.' } });
+      }
+    }
+  });
+
   test('a known path with the wrong method is a JSON 405 with Allow', async () => {
     const post = await app.post('/api/health', {});
     assert.equal(post.status, 405);
     assert.equal(post.headers.allow, 'GET, HEAD');
     assert.equal(post.json().error.code, 405);
-    const get = await app.get('/api/vertex/generate');
-    assert.equal(get.status, 405);
-    assert.equal(get.headers.allow, 'POST');
-    assert.equal((await app.request('/api/config', { method: 'DELETE', headers: { 'Content-Type': 'application/json' } })).status, 405);
-    assert.equal((await app.post('/api/sam/health', {})).status, 405);
+    assert.equal((await app.request('/api/site', { method: 'DELETE', headers: { 'Content-Type': 'application/json' } })).status, 405);
+  });
+
+  test('a route registered for POST only answers GET with 405 and Allow: POST', async () => {
+    const mini = express();
+    const api = createApiRegistry(mini);
+    api.post('/api/only-post', (req, res) => res.json({ ok: true }));
+    api.fallback();
+    const server = http.createServer(mini);
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    try {
+      const get = await request(server.address().port, { path: '/api/only-post' });
+      assert.equal(get.status, 405);
+      assert.equal(get.headers.allow, 'POST');
+      assert.equal(get.headers['cache-control'], 'no-store');
+      assert.equal((await request(server.address().port, { method: 'POST', path: '/api/only-post', body: {} })).status, 200);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
   });
 
   test('a POST to an unknown API path with the wrong content type is refused by the guard first', async () => {
@@ -261,12 +315,13 @@ describe('/api: JSON 404 and 405, no-store, and the small endpoints', () => {
   });
 
   test('every API answer is no-store', async () => {
-    for (const p of ['/api/health', '/api/config', '/api/site', '/api/sam/health']) assert.equal((await app.get(p)).headers['cache-control'], 'no-store', p);
+    for (const p of ['/api/health', '/api/site', '/api/nope']) assert.equal((await app.get(p)).headers['cache-control'], 'no-store', p);
   });
 
-  test('/api/health keeps its first four keys and adds the model', async () => {
+  test('/api/health says it is up and which version', async () => {
     const r = await app.get('/api/health');
-    assert.deepEqual(r.json(), { ok: true, version: JSON.parse(fs.readFileSync(path.join(PROJECT_ROOT, 'package.json'), 'utf8')).version, google: false, mode: 'none', model: { mode: 'off', status: 'off' } });
+    assert.equal(r.status, 200);
+    assert.deepEqual(r.json(), { ok: true, version: JSON.parse(fs.readFileSync(path.join(PROJECT_ROOT, 'package.json'), 'utf8')).version, studio: { running: false } });
   });
 
   test('/api/site is the public view: no files, no headers, no private keys', async () => {
@@ -274,7 +329,7 @@ describe('/api: JSON 404 and 405, no-store, and the small endpoints', () => {
     assert.equal(view.name, site.name);
     assert.deepEqual(view.pages.map((p) => p.key), Object.keys(site.pages));
     assert.deepEqual(Object.keys(view.pages[0]), ['key', 'label', 'nav', 'description', 'route']);
-    assert.deepEqual(view.docs.map((d) => d.route), [site.docs.overview.route]);
+    assert.deepEqual(view.docs.map((d) => d.route), Object.values(site.docs).map((d) => d.route));
     assert.ok(!('_comment' in view.connections));
     assert.deepEqual(view.connections.home, site.connections.home);
     const dumped = JSON.stringify(view);

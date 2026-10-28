@@ -1,0 +1,12 @@
+[
+ {"label": "back wall with TV niche", "kind": "wall", "polygon": [[165,175],[165,830],[670,830],[670,175]]},
+ {"label": "left wall", "kind": "wall", "polygon": [[40,0],[165,175],[680,175],[760,0]]},
+ {"label": "right wall with artwork", "kind": "wall", "polygon": [[165,830],[110,1000],[800,1000],[680,830]]},
+ {"label": "ceiling", "kind": "ceiling", "polygon": [[0,0],[0,1000],[110,1000],[165,830],[165,175],[40,0]]},
+ {"label": "light oak floor", "kind": "floor", "polygon": [[670,175],[670,830],[800,1000],[1000,1000],[1000,0],[760,0]]},
+ {"label": "window with linen curtains", "kind": "window", "polygon": [[100,0],[100,175],[640,175],[640,0]]},
+ {"label": "TV unit", "kind": "furniture", "polygon": [[560,335],[560,660],[675,660],[675,335]]},
+ {"label": "left armchair", "kind": "furniture", "polygon": [[600,0],[600,270],[900,270],[900,0]]},
+ {"label": "right armchair", "kind": "furniture", "polygon": [[600,710],[600,980],[880,980],[880,710]]},
+ {"label": "wooden coffee table", "kind": "furniture", "polygon": [[680,335],[680,660],[820,660],[820,335]]}
+]

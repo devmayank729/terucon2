@@ -49,18 +49,26 @@ export function makeBundleText({ template, assets = {}, ext = [], bom = false })
   );
 }
 
-/** A throw-away project root: its own copy of site/ (patches can be damaged), links to the real sources and media. */
+/** Where the Design Studio page's export lives (site.json `source` of the studio), relative to the project. */
+const STUDIO_EXPORT = SITE.pages.studio.source;
+
+/**
+ * A throw-away project root: its own copy of site/ (patches can be damaged), links to the real sources and media.
+ * The studio's export sits inside swatchroom/, so only that one file is linked, never the swatchroom folder (its .env).
+ */
 export function makeTempRoot() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'terucon-site-test-'));
   fs.cpSync(path.join(ROOT, 'site'), path.join(dir, 'site'), { recursive: true });
   fs.symlinkSync(path.join(ROOT, 'pages_original'), path.join(dir, 'pages_original'), 'dir');
   fs.symlinkSync(path.join(ROOT, 'media'), path.join(dir, 'media'), 'dir');
+  fs.mkdirSync(path.dirname(path.join(dir, STUDIO_EXPORT)), { recursive: true });
+  fs.symlinkSync(path.join(ROOT, STUDIO_EXPORT), path.join(dir, STUDIO_EXPORT));
   return dir;
 }
 
 /** Remove a temp root without ever following its links into the real project. */
 export function removeTempRoot(dir) {
-  for (const link of ['pages_original', 'media']) {
+  for (const link of ['pages_original', 'media', STUDIO_EXPORT]) {
     try {
       if (fs.lstatSync(path.join(dir, link)).isSymbolicLink()) fs.unlinkSync(path.join(dir, link));
     } catch {

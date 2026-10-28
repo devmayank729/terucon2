@@ -1,10 +1,10 @@
 {
-  "intro": "One rule decides where code lives: anything a browser or a person touches is JavaScript; anything that needs the scientific Python stack (numpy, OpenCV, PyTorch) or touches models is Python. The two meet at one narrow, authenticated HTTP seam, and the website works when the seam is closed.",
+  "intro": "The website is JavaScript: the Express server and the tools that build and check it. The Design Studio (swatchroom/) is a Node app too, but its models are not: the scan models run on PyTorch and the GPU services are defined in Python, and both are reached over HTTP. What lives where, and why:",
   "rows": [
     {
       "piece": "Pages, redirects, media, headers",
       "lives": "JS",
-      "why": "The whole site is a handful of files and a route table. Making a visitor's page depend on a second process would only add a way for it to fail.",
+      "why": "The whole site is a handful of files and a route table.",
       "files": [
         "server/routes/pages.js",
         "server/routes/media.js",
@@ -14,41 +14,19 @@
     {
       "piece": "Security guards",
       "lives": "JS",
-      "why": "They must run first, on every request, in the one process that faces the browser. The model service repeats the ones that matter (Host, key, JSON only) because it must be safe on its own.",
+      "why": "They must run first, on every request, in the one process that faces the browser.",
       "files": [
-        "server/middleware/guards.js",
-        "model/terucon_model/app.py"
+        "server/middleware/guards.js"
       ]
     },
     {
-      "piece": ".env to settings, and what the browser may see",
+      "piece": ".env to settings",
       "lives": "JS",
-      "why": "One place decides the public summary, so no secret can leak by accident. Python needs the same file, so it has a second reader, and tests/fixtures/env-cases.json runs against both so they cannot drift.",
+      "why": "One place decides where the server listens and which Host names it answers to. The real environment wins over the file, and the file is re-read when it changes.",
       "files": [
         "server/config/settings.js",
         "server/config/envfile.js",
-        "model/terucon_model/config.py",
         "tests/fixtures/env-cases.json"
-      ]
-    },
-    {
-      "piece": "Render proxy to Google (/api/vertex/generate)",
-      "lives": "JS",
-      "why": "Signing in and retrying an HTTP call needs no scientific library, and it keeps the basic Design Studio working without Python installed.",
-      "files": [
-        "server/routes/api.js",
-        "server/lib/vertex.js",
-        "server/lib/googleAuth.js"
-      ]
-    },
-    {
-      "piece": "Starting and supervising the model service",
-      "lives": "JS",
-      "why": "Whoever serves the website decides what to do when a helper dies. The website never waits for it and never throws because of it.",
-      "files": [
-        "server/model/supervisor.js",
-        "server/model/python.js",
-        "server/model/client.js"
       ]
     },
     {
@@ -62,87 +40,34 @@
       ]
     },
     {
-      "piece": "Finding surfaces with Gemini (detect)",
-      "lives": "Python",
-      "why": "It decodes photos, rotates them, builds masks from polygons and feeds the rest of the pipeline: Pillow and numpy territory. It has its own small Google client so the service runs on its own.",
+      "piece": "The studio inside the website",
+      "lives": "JS",
+      "why": "The studio is a Node app (Express and MongoDB), so the website loads it into its own process. That is what lets the landing page start the cold start and the studio's start-up check read the answer: one process, one record of which GPU services are awake.",
       "files": [
-        "model/terucon_model/segment/detect.py",
-        "model/terucon_model/vertex.py",
-        "model/terucon_model/google_auth.py"
+        "server/lib/swatchroom.js",
+        "server/routes/studio.js",
+        "swatchroom/server/index.js",
+        "swatchroom/server/lib/wake.js",
+        "swatchroom/server/lib/warmth.js"
       ]
     },
     {
-      "piece": "SAM",
+      "piece": "Local scan and Pick models",
       "lives": "Python",
-      "why": "PyTorch and transformers exist only here. The backends (local SAM 2, SAM 3 on a GPU, a remote server) are all models.",
+      "why": "SegFormer and SlimSAM run on PyTorch. The studio sends photos to this small service over HTTP and falls back to Gemini outlines when it is not running.",
       "files": [
-        "model/terucon_model/sam/manager.py",
-        "model/terucon_model/sam/backends.py"
+        "swatchroom/python/app.py",
+        "swatchroom/python/scene.py",
+        "swatchroom/python/pick.py"
       ]
     },
     {
-      "piece": "Contour snapping, layering, clean-up",
+      "piece": "GPU services on Modal",
       "lives": "Python",
-      "why": "Dense array work with OpenCV and numpy (dynamic programming along every boundary). The evaluation tools call the same functions, so the measured numbers are the shipped code's numbers.",
+      "why": "OneFormer, MoGe-2, Marigold and SAM 3 run on Modal GPUs that scale to zero; one Python file defines every pool, its GPUs and its idle time.",
       "files": [
-        "model/terucon_model/segment/snap.py",
-        "model/terucon_model/segment/refine.py",
-        "model/terucon_model/segment/pipeline.py"
-      ]
-    },
-    {
-      "piece": "Evaluation and fine-tuning",
-      "lives": "Python",
-      "why": "Datasets, training loops and metrics. They need to import the pipeline directly, not call it over HTTP.",
-      "files": [
-        "model/eval/refine_eval.py",
-        "model/finetune/"
+        "swatchroom/modalBlueprint.py"
       ]
     }
-  ],
-  "seam": {
-    "title": "The seam",
-    "points": [
-      "Express listens on PORT. The model service listens on 127.0.0.1 on a port the system chooses and prints it in one READY line.",
-      "Express streams /api/segment and /api/sam/* to it with a shared key in X-Terucon-Model-Key (random per run when Express starts it).",
-      "The service answers in JSON with the same error shape, so a failure reaches the person as a plain message.",
-      "Express never needs the service to answer /api/config or /api/health, and the Studio falls back to its in-browser parser when it does not."
-    ]
-  },
-  "finetuning": [
-    {
-      "title": "A tuned Gemini for detection",
-      "text": "Point SWATCHROOM_DETECT_MODEL at the tuned model or endpoint name. detect_surfaces sends it the same structured-output request. No code changes.",
-      "file": "model/terucon_model/segment/detect.py",
-      "fn": "detect_surfaces"
-    },
-    {
-      "title": "Your own SAM weights",
-      "text": "Set SAM_MODEL_ID to a Hugging Face repository or a local folder written by save_pretrained. The backend decides between SAM 2 and the original SAM by looking for sam2 or sam-2 in that string, so a local SAM 2 fine-tune must live in a folder whose path contains sam2. Or use SAM_BACKEND=sam3 with SAM_CHECKPOINT and SAM_REPO_DIR. A new kind of backend is a class in backends.py next to HfSamBackend.",
-      "file": "model/terucon_model/sam/backends.py",
-      "fn": "HfSamBackend"
-    },
-    {
-      "title": "A new stage in the pipeline",
-      "text": "sharpen() takes rough outlines and returns one label map: SAM correction, then snapping, then layering. A learned edge model or a mask refiner is one more step in it, switched by a setting.",
-      "file": "model/terucon_model/segment/pipeline.py",
-      "fn": "sharpen"
-    },
-    {
-      "title": "Measure before and after",
-      "text": "refine_eval.py runs the same sharpen() the service runs against ground-truth photos and reports overlap and boundary accuracy, so a tuned model is compared on the shipped code path.",
-      "file": "model/eval/refine_eval.py"
-    },
-    {
-      "title": "Train and serve in one place",
-      "text": "model/finetune/ holds training scripts, data recipes and the notes of a run, once they exist. They import terucon_model for the label vocabulary and geometry, so training and serving cannot disagree about what a surface is. Build new photo sets for each round: the sets used so far are spent.",
-      "file": "model/finetune/"
-    },
-    {
-      "title": "Run it where the GPU is",
-      "text": "Start the service on the GPU machine with npm run model (MODEL_HOST, MODEL_PORT, MODEL_SERVICE_KEY) and point this website at it with MODEL_SERVICE=external and MODEL_SERVICE_URL.",
-      "file": "tools/run-model.js"
-    }
-  ],
-  "finetuning_intro": "Everything about the models lives in model/, so fine-tuning has one home. There is no training code yet; what exists is the evaluation that says whether a tuned model helps, and these places a tuned model plugs in, from least to most code."
+  ]
 }

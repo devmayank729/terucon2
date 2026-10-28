@@ -1,0 +1,11 @@
+# Swatchroom model service (local models only).
+# For a CPU-only machine install torch first from the CPU index to keep it small:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+torch>=2.4
+torchvision>=0.19
+transformers>=4.46
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9
+pillow>=10.4
+numpy>=1.26

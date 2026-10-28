@@ -4,7 +4,8 @@
     "headerLink": "<a href=\"{{target}}\"{{#mobileHide}} data-m=\"display:none\"{{/mobileHide}} style=\"display:flex;align-items:center;gap:8px;color:inherit;font:500 13px/1 Switzer,Helvetica,Arial,sans-serif\" style-hover=\"color:inherit;opacity:.75\">{{label}}</a>",
     "menuCard": "<a href=\"{{target}}\" style=\"display:flex;flex-direction:column;gap:10px;padding:26px;border:1px solid rgba(225,212,194,.2);color:#E1D4C2\" style-hover=\"border-color:#E1D4C2;color:#E1D4C2\"><span style=\"font:500 10.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#A78D78\">{{eyebrow}}</span><span style=\"font:300 clamp(26px,2.4vw,36px)/1.1 Zodiak,Georgia,serif\">{{title}}</span><span style=\"font:400 14px/1.5 Switzer,Helvetica,Arial,sans-serif;color:#BEB5A9\">{{blurb}}</span></a>",
     "footerLink": "<a href=\"{{target}}\" style=\"align-self:flex-start;font:400 15px/1.5 Switzer,sans-serif;color:#E1D4C2\" style-hover=\"color:#FFFFFF\">{{label}}</a>",
-    "footerLinkUnderlined": "<a href=\"{{target}}\" style=\"align-self:flex-start;font:400 15px/1.5 Switzer,Helvetica,Arial,sans-serif;color:#E1D4C2;background:linear-gradient(#E1D4C2,#E1D4C2) 0 100%/0 1px no-repeat;transition:background-size .5s cubic-bezier(.2,.7,.2,1),color .3s\" style-hover=\"background-size:100% 1px;color:#FFFFFF\">{{label}}</a>"
+    "footerLinkUnderlined": "<a href=\"{{target}}\" style=\"align-self:flex-start;font:400 15px/1.5 Switzer,Helvetica,Arial,sans-serif;color:#E1D4C2;background:linear-gradient(#E1D4C2,#E1D4C2) 0 100%/0 1px no-repeat;transition:background-size .5s cubic-bezier(.2,.7,.2,1),color .3s\" style-hover=\"background-size:100% 1px;color:#FFFFFF\">{{label}}</a>",
+    "heroPill": "<a href=\"{{target}}\" style=\"display:inline-flex;align-items:center;gap:10px;height:50px;padding:0 24px;border-radius:999px;border:1px solid rgba(225,212,194,.55);color:#E1D4C2;font:500 14px/1 Switzer,Helvetica,Arial,sans-serif;transition:background .35s,border-color .35s\" style-hover=\"background:rgba(225,212,194,.14);border-color:#E1D4C2;color:#E1D4C2\">{{label}}<span>→</span></a>"
   },
   "entries": {
     "materials": {
@@ -20,6 +21,10 @@
       "eyebrow": "Your project",
       "title": "Open My project →",
       "blurb": "Your design, decisions, quote and materials in one place."
+    },
+    "studio": {
+      "page": "studio",
+      "label": "Try it with your photo"
     }
   }
 }

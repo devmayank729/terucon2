@@ -2,6 +2,8 @@
 .env
 .env.*
 !.env.example
+# the Design Studio's browser-test settings: mock-server addresses only, tracked in the studio's own repo
+!swatchroom/tests/.env.test
 
 # Service-account keys and local credentials
 *.pem
@@ -16,10 +18,11 @@ __pycache__/
 venv/
 .pytest_cache/
 
-# Model weights and caches downloaded for the optional SAM service
-models/
+# Model weights and local caches. Anchored to the project root: unanchored, "models/" and "data/" would also hide the
+# Design Studio's own source folders (swatchroom/server/models/, swatchroom/public/js/data/) from git.
+/models/
 .cache/
-data/
+/data/
 
 # Editor / OS
 .DS_Store

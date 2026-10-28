@@ -1,7 +1,9 @@
 # Page patches
 
 The four pages are Claude Design exports: self-extracting HTML bundles with a minified React app inside.
-They are kept untouched in `pages_original/`. `node tools/build-site.js` (`npm run build:site`) turns them into
+They are kept untouched: the landing page, shop and dashboard in `pages_original/`, the Design Studio page in
+`swatchroom/terucon/Swatchroom.html` (the studio's own export, in which the studio itself is a small loader for
+`/js/swatchroom-app.js`). `node tools/build-site.js` (`npm run build:site`) turns them into
 `pages/home.html`, `materials.html`, `studio.html` and `dashboard.html` by applying the patch file of each page.
 Everything that makes a page different from its export is in this folder, as data:
 
@@ -13,7 +15,9 @@ Everything that makes a page different from its export is in this folder, as dat
 | `../site.json` | pages, source and output files, routes, `linkStyle`, `legacy_names` (not edited here) |
 
 If you export a page again from Claude Design, drop it into `pages_original/` under the same name and run
-`npm run build:site`. If an anchor no longer matches exactly once the build fails and names the page, the step and the
+`npm run build:site` (the studio's page: re-export it with `npm run terucon-page -w swatchroom -- path/to/export.html`
+from the project folder with an absolute path (the script runs inside `swatchroom/`), which swaps the studio for its loader,
+then build). If an anchor no longer matches exactly once the build fails and names the page, the step and the
 anchor; nothing is written. Fix the step (or retire it), rebuild, check the result in a browser, then
 `node tools/build-site.js --write-golden` to record the new digests used by `tests/js/site-golden.test.js`.
 
@@ -36,10 +40,10 @@ are an error (typos fail instead of being ignored); keys starting with `_` are c
 
 ### Targets
 
-A top-level step edits the page template by default. `"target": "asset:swatchroomApp"` edits the decompressed
-asset that the bundle's `ext_resources` calls `swatchroomApp` (the Design Studio's minified app). The text is decoded,
-edited by all steps, and written back once (gzip level 9, same mime type and flag). Nested steps (inside `group` or
-`inJsString`) work on the text of their parent and take no `target`.
+A top-level step edits the page template by default. `"target": "asset:<name>"` edits the decompressed asset that the
+bundle's `ext_resources` calls `<name>` (for the Design Studio page that is `swatchroomApp`, which today is only a
+loader, so no patch uses this). The text is decoded, edited by all steps, and written back once (gzip level 9, same
+mime type and flag). Nested steps (inside `group` or `inJsString`) work on the text of their parent and take no `target`.
 
 ### Operations
 
@@ -84,19 +88,20 @@ the menu card and the footer link. A step can override any parameter (`"label": 
 
 ### Snippets
 
-`snippets/studio-server-runtime.js` is the Design Studio's "server mode": it runs first inside the app module, asks
-`/api/config`, and routes Vertex calls and surface finding through the Express server. `snippets/worker-exterior-classes.js`
-is the part of the worker patch that maps outdoor classes to Facade / Ground. Both are plain JavaScript and parse on their own
-(`node --check` accepts them; the first uses top-level `await`, so treat it as a module). They use names of the minified app
-(`P`, `vr`, `ij`, …) that only exist once they are inside it, so a linter will report those as undefined; the
-`checkSyntax` steps parse the finished module and worker on every build.
+`snippets/warmup.js` is the browser script that the `home` and `studio` patches put in the page head
+(`["<script>", {"file": "snippets/warmup.js", "chomp": true}, "</script>\n"]`): it asks the website to wake the
+Design Studio's GPU services as soon as the page opens (`POST /api/studio/warmup`, `server/routes/studio.js`), at most
+once a minute per tab, and never waits for the answer. It is plain JavaScript that parses on its own
+(`tests/js/site-patches.test.js` checks that).
 
 ## What each patch does
 
 * `home`, `materials`, `studio`: relink the design-time names; add the missing entry points (Materials and "My project" on
   the landing page; "My project" on the other two) to the header, the menu overlay and the footer; on `home` and `materials`
   switch off the design-review "media guides" pill and retarget its dead link to `#`.
-* `dashboard`: only the relink.
-* `studio` also: the footer wording, the Automatic engine (Gemini on Google Cloud through the server, SAM or edge snapping,
-  the in-browser parser as fallback), `.env` driven defaults, no key screen when the server holds the credentials,
-  SAM wording, and outdoor photos in the in-browser worker (building / ground classes instead of one giant "Window").
+* `home` also: a "Try it with your photo" button in the hero, next to "Start a project" (the shared `heroPill` component and
+  the `studio` entry of `site/components.json`), so the studio is one tap away on a phone without opening the menu; and the
+  wake-up script.
+* `studio` also: the footer line (the export says photos and key stay in the browser; the studio saves rooms on the server),
+  and the wake-up script. The studio inside the page is not patched.
+* `dashboard`: the relink, and the Design Studio link in "My design" is named "Open the Design Studio" (the export says "Open the full design studio (for advanced users)").

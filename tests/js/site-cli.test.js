@@ -26,7 +26,7 @@ test('default: builds the four pages, prints OK and the applied steps, runs the 
     assert.match(r.stdout, new RegExp(`^OK {4}${SITE.pages[k].file.replace('.', '\\.')}$`, 'm'));
   }
   assert.match(r.stdout, /^ {8}- relink: .* \(5 links\)$/m);
-  assert.match(r.stdout, /^ {8}- app\/server-runtime: /m);
+  assert.match(r.stdout, /^ {8}- studio-warmup: /m);
   assert.match(r.stdout, /Link check: every same-site link .* \(link style: route\)\./);
   // the output is a bundle that decodes and has the route links
   assert.match(Bundle.load(pageFile(root, 'studio')).template, /href="\/my-project"/);

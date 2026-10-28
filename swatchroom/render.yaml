@@ -1,0 +1,105 @@
+# Render Blueprint for Swatchroom. On dashboard.render.com: New > Blueprint, pick this repo -
+# Render finds this file automatically. See DEPLOY.md for the full walkthrough.
+#
+# Two services:
+#   swatchroom          the Node/Express app: studio, API, admin dashboard (public/admin.html).
+#   swatchroom-models   the Python model service (SegFormer scene parsing, SlimSAM Pick tool).
+#                       CPU only on Render (no GPU plans), so scans are slower than with a GPU
+#                       - the studio falls back to Gemini outlines automatically if this service
+#                       is ever unreachable, so it is not a hard dependency.
+#
+# MongoDB is NOT created here - Render has no managed MongoDB. MONGODB_URI is left blank
+# (sync: false) for you to paste in after the blueprint deploys (MongoDB Atlas or your own).
+services:
+  - type: web
+    name: swatchroom
+    runtime: node
+    plan: starter
+    region: oregon
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/session
+    envVars:
+      - key: MONGODB_URI
+        sync: false # your MongoDB Atlas (or other) connection string
+      - key: GOOGLE_SERVICE_ACCOUNT_JSON
+        sync: false # the whole service-account JSON key, pasted as one line
+      - key: GOOGLE_CLOUD_PROJECT
+        sync: false # usually not needed - defaults to the key's own project_id
+      - key: VERTEX_LOCATION
+        value: global
+      - key: MODEL_SERVICE_URL
+        fromService:
+          type: web
+          name: swatchroom-models
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: MODEL_SERVICE_KEY
+        fromService:
+          type: web
+          name: swatchroom-models
+          envVarKey: MODEL_SERVICE_KEY
+      - key: STUDIO_PASSCODE
+        sync: false # set this before sharing the URL - see DEPLOY.md
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: SECURE_COOKIES
+        value: "true"
+      - key: TRUST_PROXY
+        value: "1"
+      # Admin dashboard (public/admin.html): defaults to admin@terucon.in / admin@123 when
+      # left unset (server/config.js) - set these here, or in the Render dashboard, to change
+      # them without a code change. Do this before sharing the URL with anyone.
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      # PostHog analytics (server/lib/posthogClient.js, public/js/lib/analytics.js) - leave
+      # POSTHOG_KEY blank to disable analytics entirely.
+      - key: POSTHOG_KEY
+        sync: false
+      - key: POSTHOG_HOST
+        value: https://us.i.posthog.com
+      # One Modal pool for the scan's HD engine and the whole room analysis (modalBlueprint.py's "VisionAll",
+      # see DEPLOY.md) - optional. Without ONEFORMER_URL the scan runs on the local model only; without
+      # ANALYZE_URL the pipeline uses the three separate URLs below.
+      - key: ONEFORMER_URL
+        sync: false
+      - key: ONEFORMER_KEY
+        sync: false
+      - key: ANALYZE_URL
+        sync: false
+      - key: ANALYZE_KEY
+        sync: false
+      # The room pipeline's three separate Modal-hosted models (server/lib/pipelineRunner.js) - optional;
+      # leave blank and the pipeline runs mocked (PIPELINE_MOCK=auto).
+      - key: SAM3_URL
+        sync: false
+      - key: SAM3_KEY
+        sync: false
+      - key: MOGE2_URL
+        sync: false
+      - key: MOGE2_KEY
+        sync: false
+      - key: MARIGOLD_URL
+        sync: false
+      - key: MARIGOLD_KEY
+        sync: false
+
+  - type: web
+    name: swatchroom-models
+    runtime: python
+    plan: standard # needs real RAM for torch + transformers; Starter's 512MB is too small.
+    # SegFormer-B5 (the default scan model) wants about 3 GB; on this 2 GB plan the service answers with B4 instead
+    # (SCENE_B5_MIN_GB, see python/scene.py). Pick a 4 GB plan if you want B5 locally.
+    region: oregon
+    rootDir: python
+    buildCommand: "pip install --upgrade pip && pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu && pip install -r requirements.txt"
+    startCommand: "uvicorn app:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health
+    envVars:
+      - key: MODEL_SERVICE_KEY
+        generateValue: true
+      - key: MODEL_DEVICE
+        value: cpu
+      - key: PYTHON_VERSION
+        value: 3.11.9

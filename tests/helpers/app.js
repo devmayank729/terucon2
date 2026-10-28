@@ -15,16 +15,12 @@ export function collectLog() {
  * @param {object} [options]
  * @param {string} [options.env] text of the env file
  * @param {Record<string, string>} [options.environ] the process environment the server sees (default: empty)
- * @param {object} [options.model] default: switched off
- * @param {object} [options.vertex] see createApp
- * @param {object} [options.auth] see createApp
- * @param {boolean} [options.startModel]
  */
-export async function startTestApp({ env = '', environ = {}, model = { mode: 'off' }, vertex, auth, startModel = false } = {}) {
+export async function startTestApp({ env = '', environ = {} } = {}) {
   const temp = makeTempRoot();
   fs.writeFileSync(temp.envPath, env);
   const log = collectLog();
-  const started = await startServer({ root: temp.root, envPath: temp.envPath, environ, model, vertex, auth, log, port: 0, host: '127.0.0.1', startModel });
+  const started = await startServer({ root: temp.root, envPath: temp.envPath, environ, log, port: 0, host: '127.0.0.1' });
   const call = (path, options = {}) => request(started.port, { path, ...options });
   return {
     ...started,

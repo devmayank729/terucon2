@@ -1,16 +1,21 @@
-.env
-.env.*
-!.env.example
-service-account*.json
-*-key.json
-credentials/
+# Secrets: never bake them into an image (the ** forms also cover swatchroom/.env and swatchroom/keys/)
+**/.env
+**/.env.*
+!**/.env.example
+**/service-account*.json
+**/*-key.json
+**/credentials/
+**/keys/
 .git
-node_modules
+**/node_modules
 tests/e2e/node_modules
 _legacy_python_site
-__pycache__
-*.pyc
-.venv
+**/__pycache__
+**/*.pyc
+**/.venv
 models/
 .cache/
 data/
+# Local test output of the Design Studio's browser walk-throughs
+swatchroom/tests/shots-*
+swatchroom/tests/sa.json

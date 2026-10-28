@@ -44,7 +44,7 @@ describe('the project overview page, in Chrome', { skip }, () => {
       const { startServer } = await import(pathToFileURL(path.join(ROOT, 'app.js')).href);
       const envPath = path.join(tmp, 'test.env');
       fs.writeFileSync(envPath, '');
-      served = await startServer({ port: 0, host: '127.0.0.1', root: ROOT, envPath, environ: { TERUCON_ENV_FILE: envPath, MODEL_SERVICE: 'off' }, model: { mode: 'off' }, startModel: false });
+      served = await startServer({ port: 0, host: '127.0.0.1', root: ROOT, envPath, environ: { TERUCON_ENV_FILE: envPath } });
     } catch {
       served = null; // app.js is not importable yet: the served checks skip themselves
     }
@@ -149,7 +149,7 @@ describe('the project overview page, in Chrome', { skip }, () => {
     try {
       await jump(page, 'flows');
       const tabs = await page.$$('#flows [role=tab]');
-      assert.ok(tabs.length >= 6, 'six or more flows');
+      assert.ok(tabs.length >= 3, 'three or more flows');
       assert.equal(await page.$eval('#flows [role=tab][aria-selected=true]', (t) => t.textContent), (await page.$eval('#flows [role=tab]', (t) => t.textContent)));
       assert.equal(await page.$$eval('#flows [role=tab][tabindex="0"]', (t) => t.length), 1, 'roving tabindex');
       await tabs[0].focus();
@@ -222,33 +222,33 @@ describe('the project overview page, in Chrome', { skip }, () => {
     const { page, errors } = await open(fileUrl);
     try {
       await jump(page, 'architecture');
-      await page.$eval('#architecture [data-node="ex-model"]', (n) => n.focus());
+      await page.$eval('#architecture [data-node="ex-pages"]', (n) => n.focus());
       assert.ok((await page.$$eval('#architecture .edge.is-on', (e) => e.length)) >= 2, 'edges of the focused part light up');
       assert.equal(await page.$eval('#architecture .dg', (s) => s.classList.contains('has-focus')), true);
       await page.keyboard.press('Enter');
       assert.equal(await page.$eval('#node-panel', (p) => p.classList.contains('open')), true, 'the side panel is open');
       assert.equal(await page.$eval('#node-panel', (p) => p.getAttribute('role')), 'complementary');
       assert.equal(await page.evaluate(() => document.activeElement.id), 'node-panel', 'focus moves into the panel');
-      assert.match(await page.$eval('#node-panel h3', (h) => h.textContent), /Model proxy/);
-      assert.match(await page.$eval('#node-panel', (p) => p.textContent), /server\/routes\/model\.js/);
-      assert.match(await page.$eval('#node-panel', (p) => p.textContent), /MODEL_SERVICE_KEY/);
+      assert.match(await page.$eval('#node-panel h3', (h) => h.textContent), /Pages/);
+      assert.match(await page.$eval('#node-panel', (p) => p.textContent), /server\/routes\/pages\.js/);
+      assert.match(await page.$eval('#node-panel', (p) => p.textContent), /site\/site\.json/);
       assert.equal(await page.$eval('#node-panel', (p) => getComputedStyle(p).position), 'fixed');
       await page.keyboard.press('Escape');
       assert.equal(await page.$('#node-panel h3'), null);
       assert.equal(await page.$eval('#node-panel', (p) => p.classList.contains('open')), false);
-      assert.equal(await page.evaluate(() => document.activeElement.dataset.node), 'ex-model', 'focus returns to the part');
+      assert.equal(await page.evaluate(() => document.activeElement.dataset.node), 'ex-pages', 'focus returns to the part');
       // the close button works too
       await page.keyboard.press('Enter');
       await settle(page);
       await page.click('#node-panel .panel-close');
       assert.equal(await page.$eval('#node-panel', (p) => p.classList.contains('open')), false);
       // a file in the panel opens the explorer at that file (and closes the panel)
-      await page.click('#architecture [data-node="ex-model"]');
+      await page.click('#architecture [data-node="ex-pages"]');
       await settle(page);
       await shot(page, 'architecture-panel');
       await page.click('#node-panel .file-links button');
       assert.equal(await page.$eval('#node-panel', (p) => p.classList.contains('open')), false);
-      assert.match(await page.evaluate(() => document.activeElement.dataset.path || ''), /server\/routes\/model\.js/);
+      assert.match(await page.evaluate(() => document.activeElement.dataset.path || ''), /server\/routes\/pages\.js/);
       assert.deepEqual(errors, []);
     } finally { await page.close(); }
   });
@@ -260,28 +260,27 @@ describe('the project overview page, in Chrome', { skip }, () => {
       const total = Number(((await page.$eval('#file-count', (n) => n.textContent)).match(/\d+/) || [0])[0]);
       assert.ok(total > 100, `${total} files`);
       // search finds a file deep in the tree and opens its folders
-      await page.type('#file-search', 'supervisor');
+      await page.type('#file-search', 'siteMap');
       assert.match(await page.$eval('#file-count', (n) => n.textContent), /\d+ of \d+ files match/);
       const paths = await page.$$eval('.ti.file:not([hidden])', (l) => l.filter((x) => x.offsetParent !== null).map((x) => x.dataset.path));
-      assert.ok(paths.includes('server/model/supervisor.js'), paths.join(', '));
-      assert.ok(paths.every((p) => /supervisor/i.test(p) || true));
+      assert.ok(paths.includes('server/lib/siteMap.js'), paths.join(', '));
       await page.click('#file-clear');
       assert.equal(await page.$eval('#file-search', (i) => i.value), '');
       // nonsense gives the empty message
       await page.type('#file-search', 'zzzz-no-such-file');
       assert.equal(await page.$eval('#file-empty', (e) => e.hidden), false);
       await page.click('#file-clear');
-      // owner chip: only Python files, aria-pressed toggles
-      await page.click('.chip.filter[data-group=owner][data-value=model]');
-      assert.equal(await page.$eval('.chip.filter[data-group=owner][data-value=model]', (b) => b.getAttribute('aria-pressed')), 'true');
+      // owner chip: only that owner's files, aria-pressed toggles
+      await page.click('.chip.filter[data-group=owner][data-value=tooling]');
+      assert.equal(await page.$eval('.chip.filter[data-group=owner][data-value=tooling]', (b) => b.getAttribute('aria-pressed')), 'true');
       const owners = await page.$$eval('.ti.file:not([hidden])', (l) => [...new Set(l.filter((x) => x.offsetParent !== null).map((x) => [...x.classList].find((c) => c.startsWith('o-'))))]);
-      assert.deepEqual(owners, ['o-model']);
+      assert.deepEqual(owners, ['o-tooling']);
       await page.click('#file-clear');
       // language and tag chips combine (AND across groups)
-      await page.click('.chip.filter[data-group=lang][data-value=Python]');
+      await page.click('.chip.filter[data-group=lang][data-value=JSON]');
       await page.click('.chip.filter[data-group=tag][data-value=Dev]');
       const langs = await page.$$eval('.ti.file:not([hidden]) .lang', (l) => [...new Set(l.filter((x) => x.offsetParent !== null).map((x) => x.textContent))]);
-      assert.deepEqual(langs, ['PY']);
+      assert.deepEqual(langs, ['JSON']);
       await page.click('#file-clear');
       // keyboard: arrows move, left goes to the folder, right opens it, c copies the path
       await page.click('#file-expand');
@@ -316,7 +315,7 @@ describe('the project overview page, in Chrome', { skip }, () => {
       await page.click('#cmd-t-2');
       assert.equal(await page.$eval('#cmd-p-2', (p) => p.hidden), false);
       await jump(page, 'commands');
-      await page.type('#trouble-search', 'timeout');
+      await page.type('#trouble-search', 'rebinding');
       const shown = await page.$$eval('.trouble-table tbody tr:not([hidden])', (r) => r.length);
       assert.ok(shown >= 1 && shown < 6, `${shown} rows match`);
     } finally { await page.close(); }
@@ -326,25 +325,29 @@ describe('the project overview page, in Chrome', { skip }, () => {
     const { page, errors } = await open(fileUrl);
     try {
       await jump(page, 'api');
-      const all = await page.$$eval('.route-row:not([hidden])', (r) => r.length);
-      assert.ok(all >= 15, `${all} routes`);
-      await page.click('#api-owner [data-value=Python]');
-      assert.deepEqual(await page.$$eval('.route-row:not([hidden]) .owner-tag', (t) => [...new Set(t.map((x) => x.textContent))]), ['Python']);
+      const routes = await page.$eval('#overview-data', (n) => JSON.parse(n.textContent).api.routes);
+      const visible = () => page.$$eval('.route-row:not([hidden])', (r) => r.length);
+      const all = await visible();
+      assert.equal(all, routes.length);
+      assert.ok(all >= 5, `${all} routes`);
       await page.click('#api-owner [data-value=JS]');
+      assert.deepEqual(await page.$$eval('.route-row:not([hidden]) .owner-tag', (t) => [...new Set(t.map((x) => x.textContent))]), ['Express']);
       await page.click('#api-method [data-value=POST]');
+      assert.equal(await visible(), routes.filter((r) => r.owner === 'JS' && r.method === 'POST').length, 'the POST filter shows the POST routes');
+      await page.click('#api-method [data-value=GET]');
       const methods = await page.$$eval('.route-row:not([hidden]) .method', (t) => [...new Set(t.map((x) => x.textContent))]);
-      assert.deepEqual(methods, ['POST']);
-      await page.select('#api-guard', 'SAM key (if set)');
-      assert.ok((await page.$$eval('.route-row:not([hidden])', (r) => r.length)) >= 2);
+      assert.deepEqual(methods, ['GET']);
+      await page.select('#api-guard', 'Host');
+      assert.equal(await visible(), routes.filter((r) => r.owner === 'JS' && r.method === 'GET' && r.guards.includes('Host')).length, 'the guard filter shows the routes behind that guard');
       await page.click('#api-owner [data-value=all]');
       await page.click('#api-method [data-value=all]');
       await page.select('#api-guard', 'all');
-      await page.type('#api-search', 'api/config');
+      await page.type('#api-search', 'api/site');
       assert.equal(await page.$$eval('.route-row:not([hidden])', (r) => r.length), 1);
       await page.click('.route-row:not([hidden]) .row-toggle');
       assert.equal(await page.$eval('.route-row:not([hidden]) .row-toggle', (b) => b.getAttribute('aria-expanded')), 'true');
       const detail = await page.$eval('tr.detail:not([hidden])', (d) => d.textContent);
-      assert.match(detail, /curl -s http:\/\/localhost:8080\/api\/config/);
+      assert.match(detail, /curl -s http:\/\/localhost:8080\/api\/site/);
       assert.equal(await page.$eval('tr.detail:not([hidden]) [data-try]', (b) => b.disabled), true, 'no live server from a file');
       assert.deepEqual(errors, []);
     } finally { await page.close(); }
@@ -355,8 +358,8 @@ describe('the project overview page, in Chrome', { skip }, () => {
     try {
       await jump(page, 'config');
       const all = await page.$$eval('.var:not([hidden])', (v) => v.length);
-      assert.ok(all >= 35, `${all} variables`);
-      await page.type('#env-search', 'MODEL_SERVICE_KEY');
+      assert.ok(all >= 3, `${all} variables`);
+      await page.type('#env-search', 'TERUCON_ENV_FILE');
       assert.equal(await page.$$eval('.var:not([hidden])', (v) => v.length), 1);
       await page.click('#env-search', { clickCount: 3 });
       await page.keyboard.press('Backspace');
@@ -364,10 +367,10 @@ describe('the project overview page, in Chrome', { skip }, () => {
       const secrets = await page.$$eval('.var:not([hidden]) .badge.secret', (b) => b.length);
       const shown = await page.$$eval('.var:not([hidden])', (v) => v.length);
       assert.equal(secrets, shown, 'only secrets are shown');
-      assert.ok(shown >= 5 && shown < all);
+      assert.ok(shown < all, 'none of the website\'s own settings is a secret');
       await page.click('#env-secret');
-      await page.click('#env-reader [data-value=Python]');
-      assert.ok(await page.$$eval('.var:not([hidden]) .badge.read', (b) => b.every((x) => /Python/.test(x.textContent))));
+      await page.click('#env-reader [data-value=Node]');
+      assert.ok(await page.$$eval('.var:not([hidden]) .badge.read', (b) => b.length > 0 && b.every((x) => /Node/.test(x.textContent))));
     } finally { await page.close(); }
   });
 
@@ -435,9 +438,7 @@ describe('the project overview page, in Chrome', { skip }, () => {
       await page.waitForFunction(() => document.querySelector('#live')?.getAttribute('data-mode') === 'live', { timeout: 8000 });
       assert.match(await page.$eval('#cell-server', (c) => c.textContent), /Up/);
       assert.match(await page.$eval('#cell-server', (c) => c.textContent), /version \d/);
-      assert.match(await page.$eval('#cell-google', (c) => c.textContent), /Not configured/);
-      assert.match(await page.$eval('#cell-model', (c) => c.textContent), /Off/);
-      assert.match(await page.$eval('#cell-sam', (c) => c.textContent), /Off/);
+      assert.equal(await page.$$eval('#live .cell', (c) => c.length), 1, 'the server is the one thing /api/health reports');
       assert.equal(await page.$eval('#cell-server .dot', (d) => d.classList.contains('s-ok')), true);
       assert.doesNotMatch(await page.$eval('#live', (c) => c.textContent), /offline view/i);
       // refresh works

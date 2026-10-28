@@ -1,4 +1,4 @@
-/** One-line logs like the Python server's: "HH:MM:SS  message". */
+/** One-line logs: "HH:MM:SS  message". */
 
 const two = (n) => String(n).padStart(2, '0');
 
@@ -14,7 +14,7 @@ export function createLogger({ out = process.stdout, err = process.stderr, now =
     info: (message) => out.write(`${stamp()}  ${message}\n`),
     warn: (message) => err.write(`${stamp()}  ${message}\n`),
     error: (message) => err.write(`${stamp()}  ${message}\n`),
-    /** A line that already carries its own timestamp (the model service's output). */
+    /** A line that already carries its own timestamp. */
     raw: (line) => out.write(`${line}\n`),
   };
 }

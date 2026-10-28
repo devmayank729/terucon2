@@ -1,19 +1,110 @@
+# Render Blueprint for Terucon. On dashboard.render.com: New > Blueprint, pick this repo -
+# Render finds this file automatically. swatchroom/DEPLOY.md has the full walkthrough of the Design Studio's settings.
+#
+# Two services:
+#   terucon          the website AND the Design Studio (swatchroom/) in one Node process, built from the Dockerfile.
+#   terucon-models   the Design Studio's local scan models (Python: SegFormer scene parsing, SlimSAM for the Pick tool).
+#                    CPU only on Render (no GPU plans), so scans are slower than with a GPU - the studio falls
+#                    back to Gemini outlines automatically if this service is ever unreachable, so it is not a
+#                    hard dependency (the Pick tool does need it).
+#
+# MongoDB is NOT created here - Render has no managed MongoDB. MONGODB_URI is left blank
+# (sync: false) for you to paste in after the blueprint deploys (MongoDB Atlas or your own).
+#
+# These settings were carried over from swatchroom/render.yaml (the studio's own blueprint) and have not been
+# deployed from this repo yet: after the first deploy open /api/health, then /design-studio > Settings > Check.
 services:
   - type: web
     name: terucon
     runtime: docker
-    plan: starter            # the model service (OpenCV, Flask) needs more than the 512 MB free tier
+    plan: starter
+    region: oregon
     healthCheckPath: /api/health
     envVars:
       - key: HOST
         value: 0.0.0.0
-      - key: GOOGLE_APPLICATION_CREDENTIALS
-        value: /etc/secrets/service-account.json   # the Secret File you upload in the Render dashboard
-      - key: GOOGLE_GENAI_USE_VERTEXAI
-        value: "true"
-      - key: GOOGLE_CLOUD_LOCATION
+      # The Design Studio's settings (read by swatchroom/server/config.js from the environment)
+      - key: MONGODB_URI
+        sync: false # your MongoDB Atlas (or other) connection string
+      - key: GOOGLE_SERVICE_ACCOUNT_JSON
+        sync: false # the whole service-account JSON key, pasted as one line
+      - key: GOOGLE_CLOUD_PROJECT
+        sync: false # usually not needed - defaults to the key's own project_id
+      - key: VERTEX_LOCATION
         value: global
-      - key: MODEL_SERVICE
-        value: auto
-      - key: MODEL_START_TIMEOUT
-        value: "180"
+      - key: MODEL_SERVICE_URL
+        fromService:
+          type: web
+          name: terucon-models
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: MODEL_SERVICE_KEY
+        fromService:
+          type: web
+          name: terucon-models
+          envVarKey: MODEL_SERVICE_KEY
+      - key: STUDIO_PASSCODE
+        sync: false # set this before sharing the URL: without it anyone can use (and spend) the Google project
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: SECURE_COOKIES
+        value: "true"
+      - key: TRUST_PROXY
+        value: "1"
+      # Admin dashboard (/admin): defaults to admin@terucon.in / admin@123 when left unset (swatchroom/server/config.js) -
+      # set these to change them. Do this before sharing the URL with anyone.
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      # PostHog analytics - leave POSTHOG_KEY blank to disable analytics entirely.
+      - key: POSTHOG_KEY
+        sync: false
+      - key: POSTHOG_HOST
+        value: https://us.i.posthog.com
+      # The Modal GPU pools (swatchroom/modalBlueprint.py) - optional. Without ONEFORMER_URL the scan runs on the local
+      # model only; without ANALYZE_URL the pipeline uses the three separate URLs below.
+      - key: ONEFORMER_URL
+        sync: false
+      - key: ONEFORMER_KEY
+        sync: false
+      - key: ANALYZE_URL
+        sync: false
+      - key: ANALYZE_KEY
+        sync: false
+      # The room pipeline's three separate Modal-hosted models - optional; leave blank and the pipeline runs mocked
+      # (PIPELINE_MOCK=auto).
+      - key: SAM3_URL
+        sync: false
+      - key: SAM3_KEY
+        sync: false
+      - key: MOGE2_URL
+        sync: false
+      - key: MOGE2_KEY
+        sync: false
+      - key: MARIGOLD_URL
+        sync: false
+      - key: MARIGOLD_KEY
+        sync: false
+      # The website wakes the studio's GPU services as soon as the landing page opens (see README, "Cold start").
+      # "off" wakes them only when a photo is scanned, which is what the studio does on its own.
+      - key: STUDIO_WARMUP
+        value: "on"
+
+  - type: web
+    name: terucon-models
+    runtime: python
+    plan: standard # needs real RAM for torch + transformers; Starter's 512MB is too small.
+    # SegFormer-B5 (the default scan model) wants about 3 GB; on this 2 GB plan the service answers with B4 instead
+    # (SCENE_B5_MIN_GB, see swatchroom/python/scene.py). Pick a 4 GB plan if you want B5 locally.
+    region: oregon
+    rootDir: swatchroom/python
+    buildCommand: "pip install --upgrade pip && pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu && pip install -r requirements.txt"
+    startCommand: "uvicorn app:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health
+    envVars:
+      - key: MODEL_SERVICE_KEY
+        generateValue: true
+      - key: MODEL_DEVICE
+        value: cpu
+      - key: PYTHON_VERSION
+        value: 3.11.9

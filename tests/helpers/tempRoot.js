@@ -16,9 +16,10 @@ export const DECOYS = [
   'app.js',
   'package.json',
   'server/secret.js',
+  'server/config/settings.js',
   'site/notes.txt',
-  'model/terucon_model.py',
   'tools/build.js',
+  'tools/build-site.js',
   'tests/secret.test.js',
   'node_modules/pkg/index.js',
   'pages_original/index.html',
@@ -42,7 +43,7 @@ export function makeTempRoot({ prefix = 'terucon-test-' } = {}) {
   const site = JSON.parse(fs.readFileSync(siteJson, 'utf8'));
   const page = (key) => `<!doctype html><title>${key}</title><p>page ${key}</p>`;
   for (const [key, spec] of Object.entries(site.pages)) write(path.join(root, spec.file), page(key));
-  for (const spec of Object.values(site.docs)) write(path.join(root, spec.file), '<!doctype html><title>overview</title>');
+  for (const spec of Object.values(site.docs)) write(path.join(root, spec.file), `<!doctype html><title>${spec.label}</title>`);
   write(path.join(root, 'media', 'photo.jpg'), Buffer.from(Array.from({ length: 4096 }, (_, i) => i % 251)));
   write(path.join(root, 'media', 'clip.mp4'), 'not really a video');
   write(path.join(root, 'media', 'sub', 'deep.png'), 'png');

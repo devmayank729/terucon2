@@ -1,19 +1,18 @@
-/** The JSON API: health, config, the site map, and the Google (Vertex / Gemini) proxy. */
-import express from 'express';
+/** The JSON API: health and the site map. */
 import { sendError } from '../lib/errors.js';
-import { generateContent } from '../lib/vertex.js';
-import { publicSettings } from '../config/settings.js';
-
-const BODY_LIMIT = '80mb';
 
 /**
  * Registers API routes and remembers their methods, so that a known path with the wrong method answers
  * 405 (with Allow) and an unknown one 404, both as JSON. Every /api response is marked no-store.
+ *
+ * `leaveTo(path)` names the /api paths that belong to something mounted after these routes (the Design Studio's own API):
+ * they get none of this (no no-store, no 404 / 405), so the studio answers exactly as it does on its own. tests/js/
+ * server-studio-parity.test.js compares the two.
  */
-export function createApiRegistry(app) {
+export function createApiRegistry(app, leaveTo = () => false) {
   const methods = new Map();
   app.use('/api', (req, res, next) => {
-    res.set('Cache-Control', 'no-store');
+    if (!leaveTo(req.baseUrl + req.path)) res.set('Cache-Control', 'no-store');
     next();
   });
   const register = (method, route, handlers) => {
@@ -28,7 +27,8 @@ export function createApiRegistry(app) {
     post: (route, ...handlers) => register('POST', route, handlers),
     /** Mount last among the API routes. */
     fallback() {
-      app.use('/api', (req, res) => {
+      app.use('/api', (req, res, next) => {
+        if (leaveTo(req.baseUrl + req.path)) return next();
         const allowed = methods.get(req.baseUrl + req.path);
         if (allowed) {
           res.set('Allow', [...allowed].join(', '));
@@ -40,41 +40,15 @@ export function createApiRegistry(app) {
   };
 }
 
-const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
-
 export function mountApi(app, ctx) {
-  const { api, log } = ctx;
+  const { api } = ctx;
 
-  api.get('/api/health', async (req, res) => {
-    const s = ctx.settings();
-    const model = await ctx.model.status();
-    res.json({ ok: true, version: ctx.version, google: s.google.configured, mode: s.google.mode, model: { mode: model.mode, status: model.status } });
-  });
-
-  api.get('/api/config', async (req, res) => {
-    const model = await ctx.model.status();
-    res.json(publicSettings(ctx.settings(), model.status === 'ready' ? model.health?.sam : undefined, model));
+  // `studio.database` is whether the studio's MongoDB is connected: the studio opens without it (rooms just can not be
+  // saved), so it is shown here but never makes `ok` false.
+  api.get('/api/health', (req, res) => {
+    const studio = ctx.swatchroom ? { running: true, ...ctx.swatchroom.status() } : { running: false };
+    res.json({ ok: true, version: ctx.version, studio });
   });
 
   api.get('/api/site', (req, res) => res.json(ctx.site.publicView()));
-
-  api.post('/api/vertex/generate', express.json({ limit: BODY_LIMIT }), async (req, res) => {
-    const s = ctx.settings();
-    const payload = req.body;
-    const location = payload?.location;
-    if (!isObject(payload) || !isObject(payload.body) || typeof payload.model !== 'string' || (location != null && typeof location !== 'string')) {
-      return sendError(res, 400, 'Expected JSON {model, location?, body}.');
-    }
-    const started = performance.now();
-    const { status, data, info } = await generateContent(s, ctx.auth(), payload.model, payload.body, location, ctx.vertexOptions);
-    const took = ((performance.now() - started) / 1000).toFixed(1);
-    const model = payload.model.padEnd(28);
-    if (status === 200) {
-      log.info(`google  ${model} ok    ${took}s${info.attempts > 1 ? ` (${info.attempts} attempts)` : ''}`);
-    } else {
-      const message = isObject(data) && isObject(data.error) ? String(data.error.message ?? '').slice(0, 160) : '';
-      log.warn(`google  ${model} ${status}  ${took}s  ${message}`);
-    }
-    res.set('X-Terucon-Attempts', String(info.attempts ?? 1)).status(status).json(data);
-  });
 }

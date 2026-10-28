@@ -1,0 +1,1 @@
+{ "type": "module", "private": true, "description": "Browser code (ES modules). This file only tells Node tools that these files are modules." }

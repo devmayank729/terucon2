@@ -5,40 +5,28 @@
     "docs/overview/": "The overview's template, styles, script and authored text. Edit these, then run npm run build:overview.",
     "docs/overview/catalog/": "The authored half of the overview: descriptions, diagram, flows, API rows, variables, tests, troubleshooting.",
     "media/": "Photos and videos the pages use. Only these file types are served, from /media/.",
-    "model/": "Everything about the models, in Python. The website starts this as a separate service and works without it.",
-    "model/terucon_model/": "The Python package: the service, its Google client, surface detection and SAM.",
-    "model/terucon_model/segment/": "Photo in, named surfaces with exact edges out.",
-    "model/terucon_model/sam/": "The optional SAM model. Nothing here loads unless SAM_ENABLED=true.",
-    "model/eval/": "Measure how precise the surface edges are, against ground-truth photos.",
-    "model/finetune/": "Where fine-tuning work lives: training scripts and data recipes plug in here, next to the code that serves the result.",
-    "model/tests/": "The model service's own tests (unittest) and the fake Google they run against.",
-    "model/tests/fixtures/": "Sample photos for the model tests.",
-    "pages/": "The four built pages, written by tools/build-site.js from pages_original/ and site/patches/. Do not edit by hand.",
+    "pages/": "The built pages (written by tools/build-site.js from the exports and site/patches/; do not edit by hand) and the Coming soon page, which is written by hand.",
     "pages_original/": "Untouched exports from Claude Design. The build starts from these, never from pages/.",
     "server/": "The Express website's modules (JavaScript).",
     "server/config/": "Reading .env and the real environment into one settings object.",
-    "server/lib/": "Google sign-in and the generateContent proxy, the site map, errors and logging.",
+    "server/lib/": "The site map, errors, logging, and the loader for the Design Studio.",
     "server/middleware/": "The guards every request passes through, and the response headers.",
-    "server/routes/": "One module per group of routes: pages, media, API, model proxy, docs.",
-    "server/model/": "Starting, watching and talking to the Python model service.",
+    "server/routes/": "One module per group of routes: pages (and the Coming soon page), media, API, docs, studio.",
     "site/": "The site as data: site.json, shared HTML components and the JSON patches that turn exports into pages.",
     "site/patches/": "One JSON patch file per page (anchored edits, applied by the build).",
-    "site/patches/snippets/": "Code the patches insert (the Design Studio's server mode, the exterior classes).",
-    "tests/": "Automated checks: node:test, shared helpers, a dev stack with a fake Google, browser tests.",
+    "site/patches/snippets/": "Code the patches insert into the pages.",
+    "tests/": "Automated checks: node:test, shared helpers, a dev stack on throw-away settings, browser tests.",
     "tests/js/": "node:test suites for the server, the site build and the overview. Run: npm run test:js",
-    "tests/helpers/": "A JavaScript fake of Google and small helpers shared by the server tests.",
-    "tests/dev/": "A runnable dev stack: the real site against a fake Google, for trying the Design Studio without credentials.",
-    "tests/e2e/": "Browser tests that drive Chrome through the real pages. Run: npm run test:e2e",
-    "tests/fixtures/": "Data the JavaScript and Python tests both read, so the two implementations cannot drift.",
+    "tests/helpers/": "Small helpers shared by the server tests.",
+    "tests/dev/": "A runnable dev stack: the real site with the Design Studio mounted, against mock GPU services and no database, for trying the whole flow without credentials.",
+    "tests/e2e/": "Browser tests that drive Chrome through the real pages and the studio's start-up. Run: npm run test:e2e",
+    "tests/fixtures/": "Data the tests read.",
     "tools/": "Scripts that build, check and run things. The site works without them.",
     ".venv/": {
       "virtual": true,
       "desc": "Optional Python virtual environment (git-ignored)."
     },
-    "model/.venv/": {
-      "virtual": true,
-      "desc": "Optional Python virtual environment for the model service (git-ignored). The website looks here first."
-    }
+    "swatchroom/": "The Design Studio (Swatchroom 5), copied in unchanged: its Express routes and libraries, the browser code, the Python scan models, the Modal GPU blueprint, and its own tests and guides. The website mounts it; start with swatchroom/README.md."
   },
   "files": [
     {
@@ -48,7 +36,7 @@
         "Run",
         "Edit"
       ],
-      "desc": "The website's entry point. createApp(options) builds the Express app (guards, pages, media, API, model-service proxy); startServer() listens, prints the banner and starts the model service. npm start runs it."
+      "desc": "The website's entry point. createApp(options) builds the Express app (guards, pages, media, API); startServer() listens. npm start runs it and prints the banner."
     },
     {
       "match": "package.json",
@@ -56,7 +44,7 @@
       "tags": [
         "Edit"
       ],
-      "desc": "ES-module package. One runtime dependency (express) and every npm script: start, model, build:site, test, build:overview."
+      "desc": "ES-module package. One runtime dependency (express) and every npm script: start, build:site, test, build:overview."
     },
     {
       "match": "package-lock.json",
@@ -72,7 +60,7 @@
       "tags": [
         "Edit"
       ],
-      "desc": "The documented template for .env. Every setting the website and the model service read, with blank values."
+      "desc": "The documented template for .env. Every setting the website reads, with blank values."
     },
     {
       "match": ".gitignore",
@@ -81,6 +69,30 @@
         "Edit"
       ],
       "desc": "Keeps .env, keys, caches, model downloads and node_modules out of git."
+    },
+    {
+      "match": ".dockerignore",
+      "owner": "tooling",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Files Docker leaves out of the image."
+    },
+    {
+      "match": "Dockerfile",
+      "owner": "tooling",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The Docker image used for deployment."
+    },
+    {
+      "match": "render.yaml",
+      "owner": "tooling",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The Render blueprint (service definition)."
     },
     {
       "match": "README.md",
@@ -97,7 +109,7 @@
         "Private"
       ],
       "virtual": true,
-      "desc": "Your private settings and Google credentials. Git-ignored, never served, never read by this overview."
+      "desc": "Your private settings. Git-ignored, never served, never read by this overview."
     },
     {
       "match": "docs/HOW_TO_RUN.md",
@@ -231,7 +243,7 @@
       "tags": [
         "Generated"
       ],
-      "desc": "The Design Studio, built from pages_original/Swatchroom.html with the server-mode patches. Served at /design-studio."
+      "desc": "The Design Studio page. Served at /design-studio. The Design Studio (Swatchroom) is a separate app kept in swatchroom/; the website mounts it. See swatchroom/README.md."
     },
     {
       "match": "pages/dashboard.html",
@@ -256,14 +268,6 @@
         "Source"
       ],
       "desc": "Claude Design export of the Materials shop."
-    },
-    {
-      "match": "pages_original/Swatchroom.html",
-      "owner": "site-data",
-      "tags": [
-        "Source"
-      ],
-      "desc": "Claude Design export of the Design Studio (a shell plus one minified app module)."
     },
     {
       "match": "pages_original/dashboard.html",
@@ -311,7 +315,7 @@
       "tags": [
         "Edit"
       ],
-      "desc": "Anchored edits for the Design Studio: server mode (no key in the browser), scanning through /api/segment, the Pick tool, exterior classes, wording."
+      "desc": "Anchored edits for the Design Studio page."
     },
     {
       "match": "site/patches/dashboard.json",
@@ -330,22 +334,6 @@
       "desc": "The patch format: operations, anchors and expected counts."
     },
     {
-      "match": "site/patches/snippets/studio-server-runtime.js",
-      "owner": "site-data",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "Code the Studio patch inserts: when /api/config answers, use the server's Google credentials, model names and SAM state."
-    },
-    {
-      "match": "site/patches/snippets/worker-exterior-classes.js",
-      "owner": "site-data",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "Maps building, sky, trees and road to Facade / Ground / not-a-surface in the in-browser parser."
-    },
-    {
       "match": "site/patches/snippets/**",
       "owner": "site-data",
       "tags": [
@@ -359,7 +347,7 @@
       "tags": [
         "Edit"
       ],
-      "desc": "A small reader for .env files: quotes, multi-line JSON, comments. Shares tests/fixtures/env-cases.json with the Python reader."
+      "desc": "A small reader for .env files: quotes, multi-line JSON, comments. Its parsing cases are in tests/fixtures/env-cases.json."
     },
     {
       "match": "server/config/settings.js",
@@ -367,23 +355,7 @@
       "tags": [
         "Edit"
       ],
-      "desc": "Turns .env and the real environment into typed settings, re-read when the file changes. The browser only ever gets the public summary, never a secret."
-    },
-    {
-      "match": "server/lib/googleAuth.js",
-      "owner": "website",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "Signs in to Google with the service-account key (or application default credentials) and caches the access token. The private key stays in the server."
-    },
-    {
-      "match": "server/lib/vertex.js",
-      "owner": "website",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "Forwards the Design Studio's Gemini and Nano Banana calls to Google, with retries, back-off and a hard deadline."
+      "desc": "Turns .env and the real environment into the server's settings (host, port, allowed hosts), re-read when the file changes."
     },
     {
       "match": "server/lib/siteMap.js",
@@ -407,7 +379,7 @@
       "tags": [
         "Edit"
       ],
-      "desc": "One-line logs, the same style as the model service. Never prints keys or images."
+      "desc": "One-line logs, \"HH:MM:SS  message\". Never prints keys or images."
     },
     {
       "match": "server/middleware/guards.js",
@@ -415,7 +387,7 @@
       "tags": [
         "Edit"
       ],
-      "desc": "The guards, in order: Host check, SAM key, JSON content type, same-origin check."
+      "desc": "The guards, in order: Host check, JSON content type, same-origin check."
     },
     {
       "match": "server/middleware/headers.js",
@@ -431,7 +403,7 @@
       "tags": [
         "Edit"
       ],
-      "desc": "Pages from site.json: the route, 301 for aliases, 302 for design-time names, the page's own headers."
+      "desc": "Pages from site.json: the route, 301 for aliases and for another capital or a trailing slash, 302 for design-time names, the page's own headers; and the Coming soon page for an address that is no page."
     },
     {
       "match": "server/routes/media.js",
@@ -447,15 +419,7 @@
       "tags": [
         "Edit"
       ],
-      "desc": "/api/health, /api/config, /api/site and /api/vertex/generate."
-    },
-    {
-      "match": "server/routes/model.js",
-      "owner": "website",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "/api/segment and /api/sam/*: checked here, then streamed to the Python service. Plain-language 503 when it is not usable."
+      "desc": "/api/health (also says whether the Design Studio is running) and /api/site, and the JSON 404 / 405 for the rest of the website's /api."
     },
     {
       "match": "server/routes/docs.js",
@@ -466,300 +430,12 @@
       "desc": "Serves this overview at /project-overview."
     },
     {
-      "match": "server/model/supervisor.js",
-      "owner": "website",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "Starts python -m terucon_model, reads its READY line, restarts it with back-off, and kills it on exit."
-    },
-    {
-      "match": "server/model/client.js",
-      "owner": "website",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "Talks to the model service: health, streamed proxying, the shared key header."
-    },
-    {
-      "match": "server/model/python.js",
-      "owner": "website",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "Finds a Python that has the packages the service needs."
-    },
-    {
       "match": "server/**",
       "owner": "website",
       "tags": [
         "Edit"
       ],
       "desc": "A module of the Express website."
-    },
-    {
-      "match": "model/README.md",
-      "owner": "model",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "How to run, test and extend the model service, on its own or under the website."
-    },
-    {
-      "match": "model/requirements.txt",
-      "owner": "model",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "Python packages the model service needs (Flask, Pillow, OpenCV, numpy, requests, google-auth)."
-    },
-    {
-      "match": "model/requirements-sam.txt",
-      "owner": "model",
-      "tags": [
-        "Optional"
-      ],
-      "desc": "Extra packages (PyTorch, transformers) only if you switch SAM on."
-    },
-    {
-      "match": "model/terucon_model/__init__.py",
-      "owner": "model",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "Package marker and the version number."
-    },
-    {
-      "match": "model/terucon_model/__main__.py",
-      "owner": "model",
-      "tags": [
-        "Run"
-      ],
-      "desc": "python -m terucon_model: binds a socket, prints TERUCON_MODEL_READY <url> and serves; exits cleanly on SIGTERM or when the parent process disappears."
-    },
-    {
-      "match": "model/terucon_model/app.py",
-      "owner": "model",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "The Flask service: /health, /segment, /sam/*. Guards: Host, model key, JSON only, size limit. JSON errors everywhere."
-    },
-    {
-      "match": "model/terucon_model/config.py",
-      "owner": "model",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "Turns .env into settings for the service. Checked against the same fixture as the JavaScript reader."
-    },
-    {
-      "match": "model/terucon_model/envfile.py",
-      "owner": "model",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "The Python .env reader."
-    },
-    {
-      "match": "model/terucon_model/google_auth.py",
-      "owner": "model",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "The service's own Google sign-in, so it runs on its own (GPU box, fine-tuning, evaluation)."
-    },
-    {
-      "match": "model/terucon_model/vertex.py",
-      "owner": "model",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "The service's own generateContent client, used by detect.py."
-    },
-    {
-      "match": "model/terucon_model/segment/pipeline.py",
-      "owner": "model",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "The conductor: detect, optional SAM correction, contour snapping, layering, clean-up. Also called by the evaluation tools."
-    },
-    {
-      "match": "model/terucon_model/segment/detect.py",
-      "owner": "model",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "Asks Gemini which surfaces the photo contains and gets a rough outline for each."
-    },
-    {
-      "match": "model/terucon_model/segment/sam_refine.py",
-      "owner": "model",
-      "tags": [
-        "Optional"
-      ],
-      "desc": "If SAM is on, corrects each rough outline, but only close to the outline's own edge."
-    },
-    {
-      "match": "model/terucon_model/segment/snap.py",
-      "owner": "model",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "Contour snapping: slides every boundary onto the photo's real edge. The default edge method."
-    },
-    {
-      "match": "model/terucon_model/segment/refine.py",
-      "owner": "model",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "Layers surfaces (structure under windows, furniture on top) and cleans them. Also holds the earlier watershed method."
-    },
-    {
-      "match": "model/terucon_model/segment/geometry.py",
-      "owner": "model",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "Small image helpers shared by the pipeline and the evaluation tools (outline to mask)."
-    },
-    {
-      "match": "model/terucon_model/segment/__init__.py",
-      "owner": "model",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "Package marker."
-    },
-    {
-      "match": "model/terucon_model/sam/manager.py",
-      "owner": "model",
-      "tags": [
-        "Optional"
-      ],
-      "desc": "Picks the SAM backend, loads it in the background, serialises inference and caches work per photo."
-    },
-    {
-      "match": "model/terucon_model/sam/backends.py",
-      "owner": "model",
-      "tags": [
-        "Optional"
-      ],
-      "desc": "The ways to run SAM: SAM 2 / SAM 1 on this computer, SAM 3 on a GPU, or a remote SAM server."
-    },
-    {
-      "match": "model/terucon_model/sam/__init__.py",
-      "owner": "model",
-      "tags": [
-        "Optional"
-      ],
-      "desc": "Package marker."
-    },
-    {
-      "match": "model/terucon_model/**",
-      "owner": "model",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "A module of the Python model service."
-    },
-    {
-      "match": "model/eval/ade_subset.py",
-      "owner": "model",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "Builds a small ground-truth photo set from the public ADE20K dataset."
-    },
-    {
-      "match": "model/eval/refine_eval.py",
-      "owner": "model",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "Scores edge precision after refinement (overlap and boundary accuracy) for each method."
-    },
-    {
-      "match": "model/eval/sam_oracle.py",
-      "owner": "model",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "Measures SAM's best possible accuracy and how often it disagrees with a rough outline."
-    },
-    {
-      "match": "model/eval/segformer_baseline.py",
-      "owner": "model",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "Accuracy of the in-browser fallback model and its class mapping."
-    },
-    {
-      "match": "model/eval/thin_scenes.py",
-      "owner": "model",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "Thin objects (chair legs, railings) and speed on synthetic scenes; needs no downloads."
-    },
-    {
-      "match": "model/eval/**",
-      "owner": "model",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "An evaluation tool."
-    },
-    {
-      "match": "model/finetune/**",
-      "owner": "model",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "Fine-tuning notes and scripts: where to train, what to export, how the result plugs into the service."
-    },
-    {
-      "match": "model/tests/mock_google.py",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "A local fake of Google's sign-in and Gemini endpoints, so nothing real is called or billed."
-    },
-    {
-      "match": "model/tests/synthetic.py",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "Draws a synthetic room with exactly known surfaces, for testing."
-    },
-    {
-      "match": "model/tests/test_*.py",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "A model-service test module (unittest)."
-    },
-    {
-      "match": "model/tests/fixtures/**",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "Sample photos for the model tests."
-    },
-    {
-      "match": "model/tests/**",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "Support code for the model-service tests."
     },
     {
       "match": "tools/build-site.js",
@@ -794,20 +470,12 @@
       "desc": "Generates this page from the tree and the catalog. --check fails when they disagree or the page is stale."
     },
     {
-      "match": "tools/run-model.js",
-      "owner": "tooling",
-      "tags": [
-        "Run"
-      ],
-      "desc": "Starts the Python model service on its own (npm run model): for working on models, or on a GPU box."
-    },
-    {
       "match": "tools/run-tests.js",
       "owner": "tooling",
       "tags": [
         "Run"
       ],
-      "desc": "npm test: site build check, link check, overview check, JavaScript tests and Python tests, with one summary."
+      "desc": "npm test: site build check, link check, overview check and JavaScript tests, with one summary."
     },
     {
       "match": "tools/**",
@@ -823,7 +491,7 @@
       "tags": [
         "Dev"
       ],
-      "desc": "Server tests (node:test): settings, guards, pages, media, API, Google proxy, model proxy and supervision."
+      "desc": "Server tests (node:test): settings, the .env reader, guards, pages, media, API, error handling and start-up."
     },
     {
       "match": "tests/js/site-*.test.js",
@@ -847,7 +515,7 @@
       "tags": [
         "Dev"
       ],
-      "desc": "A JavaScript fake of Google and helpers the server tests share."
+      "desc": "Helpers the server tests share."
     },
     {
       "match": "tests/dev/stack.mjs",
@@ -856,7 +524,7 @@
         "Run",
         "Dev"
       ],
-      "desc": "The dev stack: the real site (node app.js) and the Python model service against a fake Google, on throw-away settings. Try the Design Studio without credentials; the browser tests use it."
+      "desc": "The dev stack: starts the real site (node app.js) on throw-away settings. The browser tests use it."
     },
     {
       "match": "tests/e2e/run.mjs",
@@ -864,7 +532,7 @@
       "tags": [
         "Dev"
       ],
-      "desc": "Starts the dev stack (tests/dev/stack.mjs), opens the pages in Chrome and checks links, redirects, the overview, scanning, rendering, the Pick tool, and that secrets are never served."
+      "desc": "Starts the dev stack (tests/dev/stack.mjs), opens the pages in Chrome and checks links, redirects, the overview, and that secrets are never served."
     },
     {
       "match": "tests/e2e/package.json",
@@ -896,7 +564,7 @@
       "tags": [
         "Dev"
       ],
-      "desc": "Cases for reading .env, run by both the JavaScript and the Python test suites so the two readers cannot drift apart."
+      "desc": "Cases for reading .env: how the reader parses a file, and how the settings come out of it."
     },
     {
       "match": "tests/fixtures/**",
@@ -907,141 +575,12 @@
       "desc": "Test data."
     },
     {
-      "match": "server/lib/adc.js",
-      "owner": "website",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "Application Default Credentials without a dependency: the gcloud login file (a refresh token) and the metadata server of Compute Engine, Cloud Run and App Engine."
-    },
-    {
-      "match": "server/lib/httpClient.js",
-      "owner": "website",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "A small outbound HTTP(S) client that tells \"could not connect\" from \"connected, no answer\", so Google calls can have a 10 s connect limit and a 240 s silence limit instead of fetch's 300 s."
-    },
-    {
       "match": "server/middleware/errorHandler.js",
       "owner": "website",
       "tags": [
         "Edit"
       ],
       "desc": "What is left after the routes: a plain 404, body-parser errors as 400/413/415 sentences, and a 500 whose detail stays in the log."
-    },
-    {
-      "match": "server/model/index.js",
-      "owner": "website",
-      "tags": [
-        "Edit"
-      ],
-      "desc": "createModel(): the model service as the rest of the server sees it, one object that starts, probes, proxies to and stops it (auto, external or off)."
-    },
-    {
-      "match": "model/tests/__init__.py",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "Package marker for the model tests."
-    },
-    {
-      "match": "model/tests/support.py",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "Helpers every model test uses. A test can never read the real .env: apps are built from a temp env file and an explicit environment."
-    },
-    {
-      "match": "model/tests/fakes.py",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "Stand-ins for SAM shaped like the real backends, so routes and the pipeline are tested without PyTorch."
-    },
-    {
-      "match": "model/tests/dev_handler.py",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "How the fake Google answers like Gemini would for the synthetic room photo: outlines for detection, a picture for a render."
-    },
-    {
-      "match": "model/tests/mock_google_server.py",
-      "owner": "tests",
-      "tags": [
-        "Run",
-        "Dev"
-      ],
-      "desc": "The fake Google as its own process. The dev stack and the browser tests run the real site against it."
-    },
-    {
-      "match": "model/tests/test_config.py",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "Settings and the .env reader of the service, including every case of tests/fixtures/env-cases.json and the MODEL_* variables."
-    },
-    {
-      "match": "model/tests/test_process.py",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "The service as a real process: the READY line, the real bound port, the model key, the env file re-read while running, a clean environment, SIGTERM."
-    },
-    {
-      "match": "model/tests/test_segmentation.py",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "The segmentation pipeline and the SAM routes against a fake Google; optionally the real SAM 2 model (TERUCON_HEAVY_TESTS=1)."
-    },
-    {
-      "match": "model/tests/test_service.py",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "The service as an HTTP API: Host and key guards, error shapes, /health, /segment without Google, SAM keys, hot reload."
-    },
-    {
-      "match": "model/tests/test_snap.py",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "Contour snapping on small synthetic photos with exact ground truth."
-    },
-    {
-      "match": "model/tests/test_vertex_client.py",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "The service's own Google client (signing, retries, error pass-through) called directly against a fake Google."
-    },
-    {
-      "match": "model/finetune/README.md",
-      "owner": "model",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "Honest status: no training code yet. What to measure first, three lessons from the evaluation, and where a tuned model can plug in today."
-    },
-    {
-      "match": "tests/js/server-auth.test.js",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "Google sign-in: token caching and refresh, application default credentials, the metadata server, and the sentences people see."
     },
     {
       "match": "tests/js/server-envfile.test.js",
@@ -1060,20 +599,12 @@
       "desc": "The Host guard, the JSON content-type check (before any body is read) and the Origin check."
     },
     {
-      "match": "tests/js/server-model.test.js",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "The proxy to a model service: byte-for-byte streaming (30 MB both ways), the key, size limits, a cancelled browser, a service cut off halfway, and every unavailable answer."
-    },
-    {
       "match": "tests/js/server-settings.test.js",
       "owner": "tests",
       "tags": [
         "Dev"
       ],
-      "desc": "Settings from .env and the environment: Google credentials in every form, models, segmentation, SAM, the MODEL_* variables, the public summary."
+      "desc": "Settings from .env and the environment: host, port and allowed hosts, the real environment winning over the file, and the reload when the file changes."
     },
     {
       "match": "tests/js/server-site.test.js",
@@ -1082,22 +613,6 @@
         "Dev"
       ],
       "desc": "Pages, aliases (301), design-time names (302), headers, conditional requests, media safety, and files that must never be served."
-    },
-    {
-      "match": "tests/js/server-supervisor.test.js",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "The start-up protocol and restarts: READY line, child environment, back-off 1/2/4/8/16 s, giving up, timeouts, stopping."
-    },
-    {
-      "match": "tests/js/server-vertex.test.js",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "The Google proxy against a fake Google: JWT signing, token reuse, retries and Retry-After, the 240 s deadline, 401 refresh, big bodies."
     },
     {
       "match": "tests/js/site-bundle.test.js",
@@ -1170,14 +685,6 @@
         "Dev"
       ],
       "desc": "A raw HTTP client that can choose the Host header and send paths fetch would rewrite (/media/../.env)."
-    },
-    {
-      "match": "tests/helpers/mockGoogle.js",
-      "owner": "tests",
-      "tags": [
-        "Dev"
-      ],
-      "desc": "A JavaScript fake of Google: the token endpoint (which verifies the RS256 signature), the metadata server, and generateContent."
     },
     {
       "match": "tests/helpers/tempRoot.js",
@@ -1275,7 +782,7 @@
       "tags": [
         "Edit"
       ],
-      "desc": "What lives in JavaScript and what in Python, why, and where fine-tuning plugs into model/."
+      "desc": "What lives in JavaScript, and why."
     },
     {
       "match": "docs/overview/catalog/commands.json",
@@ -1324,6 +831,126 @@
         "Dev"
       ],
       "desc": "Builds small throw-away projects for the overview tests. Not a test file."
+    },
+    {
+      "match": "swatchroom/**",
+      "owner": "swatchroom",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "A file of the Design Studio (Swatchroom 5). It is kept exactly as built; the website only mounts it. See swatchroom/README.md."
+    },
+    {
+      "match": "pages/coming-soon.html",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The Coming soon page, written by hand (it is not an export). Served at /coming-soon, and with a 404 status for any page address that does not exist yet."
+    },
+    {
+      "match": "server/lib/swatchroom.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Loads the Design Studio (swatchroom/) into this server: mounts its Express app, connects its MongoDB (and keeps trying), and starts its GPU services with the studio's own wake-up code. The studio's files are loaded, never changed."
+    },
+    {
+      "match": "server/routes/studio.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "POST /api/studio/warmup: the landing page and the studio page call it so the studio's GPU services wake early. STUDIO_WARMUP=off switches it off."
+    },
+    {
+      "match": "site/patches/snippets/warmup.js",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Code the home and studio patches insert: asks the website to wake the studio's GPU services as soon as the page opens (at most once a minute per tab)."
+    },
+    {
+      "match": "swatchroom/terucon/Swatchroom.html",
+      "owner": "swatchroom",
+      "tags": [
+        "Source"
+      ],
+      "desc": "Claude Design export of the Design Studio page with the studio itself swapped for a small loader. site.json builds pages/studio.html from it; the build patches only the page around the studio."
+    },
+    {
+      "match": "tests/helpers/studio.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The Design Studio as a throw-away folder: its real server code and browser files but never its .env or keys, so no test can reach a database, Modal or Google."
+    },
+    {
+      "match": "tests/helpers/mockModal.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "A stand-in for one Modal GPU service: answers /healthz after a delay, checks the key, records who asked."
+    },
+    {
+      "match": "tests/js/server-studio.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The website with the Design Studio mounted: its files and API behind its passcode, photo uploads through the guards, the cold start from the landing page to the studio's start-up gate, and that its .env never becomes the website's settings."
+    },
+    {
+      "match": "tests/js/server-studio-warm.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The cold start with the studio's own code against mock GPU services: which services start, the waking and warm states the start-up gate reads, and that a repeat costs nothing."
+    },
+    {
+      "match": "tests/js/server-studio-route.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "POST /api/studio/warmup on its own: the on/off switch, the count-only answer, no studio mounted."
+    },
+    {
+      "match": "tests/js/site-flow.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The path through the site: the studio page comes from the swatchroom's export, the wake-up is on the landing and studio pages only, the hero link, the Coming soon page, every page reachable from the landing page."
+    },
+    {
+      "match": "tests/js/server-studio-parity.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The studio on its own (node server/index.js) against the studio mounted in the website, same requests: status, headers and body must match for its files, its session, its passcode refusals, its wake-up and a raw photo upload. The behavioural proof that mounting changed nothing."
+    },
+    {
+      "match": "tests/js/server-studio-warm-failure.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "A GPU service that answers /healthz with 401 is not shown as warm, the failure is logged, and the next visit retries only that service."
+    },
+    {
+      "match": "tests/js/repo-hygiene.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "What git commits and Docker copies, from the outside: nothing in swatchroom/ is ignored except its secrets and caches (an unanchored models/ rule once hid its Mongoose models), secrets are ignored, and the image leaves them out."
     }
   ]
 }

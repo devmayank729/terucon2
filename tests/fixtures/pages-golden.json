@@ -4,8 +4,8 @@
   "pages": {
     "home": {
       "templates": {
-        "route": "ef699dd6f6a0b3556f94d72a7c48f5e76c33d686a68660533d5b30a77aa5a4ff",
-        "file": "4cc59fb19f89e0e80e5799357d2f534edda72809268eecd6df0f034a93278cae"
+        "route": "fc24d84903b44421fcfcc1063323a09f14ed5f2de9ac8c7f998d408e979084e0",
+        "file": "764ede9f455a474fe764811349fc0b883920d6929aeb24f6802750ab0851b36e"
       },
       "assets": {
         "a909a13d-7e0e-434b-8f1b-972f0f2fc46d": "dc1c6912756f1b72d05f44c5db851d442ad7dae0bd8eda0f9806a3adc7a58d47",
@@ -126,13 +126,13 @@
     },
     "studio": {
       "templates": {
-        "route": "ac97736b1c7e717283be252020dec09b44992580c7b3a14fb379acd28d211d71",
-        "file": "39fc73f6bbdb132f793e980fd01f2f73f6f13fb2a2af61510923f931a5e90580"
+        "route": "267871a14ed3056fe6237d4ea833a3097c8d62cddc233c57d660c32bec204cf0",
+        "file": "58e912470946c8a8ff5bb7b51eb9822b1979b2b1bfc7ad7bd1bd0a48217cf8f6"
       },
       "assets": {
         "8374d943-7b04-4b96-9ca0-83a2d686decd": "d949f1c3687aedadcedac85261865f29b17cd273997e7f6b2bfc53b2f9d4c4dd",
         "6331cac6-6935-4e96-b16f-9d7a52d23e49": "35f4f974f4b2bcd44da73963347f8952e341f83909e4498227d4e26b98f66f0d",
-        "8c15bfc1-7f7e-43b9-a5d1-a5e87d0974c2": "c284e2c0f46c32601fd3321938e5c6ad0ecbba2eef496ab45b0a57fa16b36a70",
+        "8c15bfc1-7f7e-43b9-a5d1-a5e87d0974c2": "38c07b742ee8db4194203ae3d062c4c97ee9372d2dc13246305dcb0c36ab7d14",
         "2c4a3cce-3f9b-48f3-96c3-2fb0b41b1e5f": "8fe7df74405f3c55f49b7249c74ea1397e65d07dea2b1bd3b4a489bec2e28cbe",
         "7bcb2582-6599-46d5-865f-fb330c7f75b9": "0cff7678eb5ee92955f35041befc933a4f13014aad58c52e8e18b5612f24c77a",
         "fe95463e-64a4-438b-a174-74dd0ff61ea9": "f12ba0247c0cf6ee30b034addcd5ba5abef818ce477546be0f691787d01fa63c",
@@ -156,8 +156,8 @@
     },
     "dashboard": {
       "templates": {
-        "route": "e2a5d340eaf437bfab4e57947b0d855d19410d768bbd332fc6d9dc3e566af752",
-        "file": "addb6bcdf793039f428e1749ca78da29b7c9635e3531342078db56235f6ecb38"
+        "route": "fa9c5962df7f8b4f604fff1e2134c3e375f74fda69c762f626f120e6a9479ba8",
+        "file": "7d52b73e18ff3a8760ac7994e183da0b0330638d6f771f4840e3b554a9758505"
       },
       "assets": {
         "75f571be-b3e6-4873-a1b5-fcaa3bb4ae49": "6642282c751543bf00e244588beae703fd4ffcb95735065565b24250555b7af8",

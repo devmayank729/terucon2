@@ -42,7 +42,7 @@
         },
         {
           "title": "The built page is sent",
-          "text": "pages/<page>.html with Cache-Control: no-cache and conditional-request support, plus the page's own headers from site.json (the Design Studio gets cross-origin isolation for its in-browser models).",
+          "text": "pages/<page>.html with Cache-Control: no-cache and conditional-request support, plus the page's own headers from site.json.",
           "nodes": [
             "ex-pages",
             "browser"
@@ -71,339 +71,13 @@
       ]
     },
     {
-      "id": "scan-photo",
-      "title": "Scanning a photo in the Design Studio",
-      "summary": "Browser to Express to Python and back: Gemini outlines the surfaces, SAM and edge snapping make the edges exact.",
-      "steps": [
-        {
-          "title": "The Studio posts the photo",
-          "text": "The Studio's server-mode code first asked /api/config what the server can do. Now it sends POST /api/segment with the photo as base64 and the chosen options (SAM on or off, edge refinement, model, a hint).",
-          "nodes": [
-            "browser"
-          ],
-          "edges": [
-            "b-model"
-          ],
-          "file": "site/patches/snippets/studio-server-runtime.js"
-        },
-        {
-          "title": "Express guards the request",
-          "text": "Host check, then for a write under /api/: Content-Type must be application/json (415 before the body is read) and a present Origin must equal the Host (403).",
-          "nodes": [
-            "ex-guards"
-          ],
-          "edges": [],
-          "file": "server/middleware/guards.js",
-          "fn": "guards"
-        },
-        {
-          "title": "Is Google configured?",
-          "text": "If not, the answer is 503 FAILED_PRECONDITION with the reason, and Python is not called. The Studio shows the message and uses its in-browser parser.",
-          "nodes": [
-            "ex-model"
-          ],
-          "edges": [],
-          "file": "server/routes/model.js",
-          "fn": "mountModelRoutes"
-        },
-        {
-          "title": "The body is streamed to Python",
-          "text": "No JSON parsing, no re-encoding of an 80 MB photo: the request is piped to POST /segment on 127.0.0.1 with the shared key in X-Terucon-Model-Key, and the answer is piped back. Five seconds to connect; after that Google may take minutes, so the silence limit is ten.",
-          "nodes": [
-            "ex-model",
-            "model"
-          ],
-          "edges": [
-            "model-proxy"
-          ],
-          "file": "server/model/client.js",
-          "fn": "createModelClient"
-        },
-        {
-          "title": "Python checks and decodes",
-          "text": "Its own guards (Host, key, JSON only), then the image is decoded, rotated by its EXIF orientation and limited to 4096 px on the long side.",
-          "nodes": [
-            "model"
-          ],
-          "edges": [],
-          "file": "model/terucon_model/app.py",
-          "fn": "decode_image"
-        },
-        {
-          "title": "Gemini names and outlines the surfaces",
-          "text": "detect.py asks Gemini (Vertex AI or an API key, through the service's own Google client) for every surface as a rough polygon with a kind: wall, floor, ceiling, window, door, furniture. If the configured model is not available to the project, the next one is tried.",
-          "nodes": [
-            "py-detect",
-            "google"
-          ],
-          "edges": [
-            "detect-google"
-          ],
-          "file": "model/terucon_model/segment/detect.py",
-          "fn": "detect_surfaces"
-        },
-        {
-          "title": "SAM corrects the outlines (if it is on)",
-          "text": "sam_refine corrects each outline, but only within a band around the outline's own edge, so SAM can fix a boundary and cannot wander off. Skipped when SAM is off or still loading.",
-          "nodes": [
-            "py-sam"
-          ],
-          "edges": [],
-          "file": "model/terucon_model/segment/sam_refine.py",
-          "fn": "band_blend"
-        },
-        {
-          "title": "Every boundary snaps onto a real edge",
-          "text": "Contour snapping slides each boundary, outer edges and holes, along its normal onto the photo's edge, paying for every pixel it moves, so a good outline barely changes and a bad one is pulled in. It has an 8 second budget; surfaces it does not reach keep their outline.",
-          "nodes": [
-            "py-snap"
-          ],
-          "edges": [],
-          "file": "model/terucon_model/segment/snap.py",
-          "fn": "snap_mask"
-        },
-        {
-          "title": "Layering and clean-up",
-          "text": "Structure goes below, windows and doors above, furniture on top. Specks and holes are cleaned, surfaces that end up too small are dropped, the rest are numbered 1..N and compressed into one label map.",
-          "nodes": [
-            "py-snap"
-          ],
-          "edges": [],
-          "file": "model/terucon_model/segment/pipeline.py",
-          "fn": "segment_image"
-        },
-        {
-          "title": "The answer goes back",
-          "text": "labelMap, metas (label, kind, share, source), scene, engine, model, notes, hints and timings stream through Express to the Studio, which paints the surfaces and names the engine in its footer.",
-          "nodes": [
-            "model",
-            "ex-model",
-            "browser"
-          ],
-          "edges": [
-            "model-proxy",
-            "b-model"
-          ],
-          "file": "model/terucon_model/app.py",
-          "fn": "segment"
-        }
-      ]
-    },
-    {
-      "id": "scan-fallback",
-      "title": "Scanning when the model service is down",
-      "summary": "The website works without Python. The Studio says why and uses its own parser.",
-      "steps": [
-        {
-          "title": "The Studio asks as usual",
-          "text": "POST /api/segment, exactly the same request.",
-          "nodes": [
-            "browser"
-          ],
-          "edges": [
-            "b-model"
-          ],
-          "file": "site/patches/snippets/studio-server-runtime.js"
-        },
-        {
-          "title": "Express cannot reach Python",
-          "text": "The service may be starting, not installed (no Python with the packages), switched off with MODEL_SERVICE=off, or crashed and waiting for its next restart. Express knows which, because the supervisor tracks it and a cached health check confirms it.",
-          "nodes": [
-            "ex-model",
-            "ex-supervisor"
-          ],
-          "edges": [],
-          "file": "server/model/client.js",
-          "fn": "createModelClient"
-        },
-        {
-          "title": "503 UNAVAILABLE with a plain reason",
-          "text": "The message says what is wrong and what to do: still starting (try again in a moment), switched off (MODEL_SERVICE=off), Python or its packages missing (npm run setup:model), or the reason it crashed. The Studio shows it verbatim.",
-          "nodes": [
-            "ex-model",
-            "browser"
-          ],
-          "edges": [
-            "b-model"
-          ],
-          "file": "server/model/client.js",
-          "fn": "unavailableMessage"
-        },
-        {
-          "title": "The in-browser parser takes over",
-          "text": "SegFormer in a Web Worker names the surfaces from the photo on the person's own computer. Coarser edges, no Google and no server needed. The footer says which engine produced the surfaces.",
-          "nodes": [
-            "browser",
-            "browser-parser"
-          ],
-          "edges": [
-            "b-parser"
-          ],
-          "file": "site/patches/snippets/worker-exterior-classes.js"
-        },
-        {
-          "title": "/api/config tells the truth meanwhile",
-          "text": "GET /api/config never fails because Python did: it reports model.status (starting, ready, unavailable, off) and a SAM state of unavailable or off, so the Studio's settings show the real situation.",
-          "nodes": [
-            "ex-api"
-          ],
-          "edges": [
-            "b-api"
-          ],
-          "file": "server/routes/api.js",
-          "fn": "mountApi"
-        }
-      ]
-    },
-    {
-      "id": "render-finish",
-      "title": "Rendering a finish",
-      "summary": "The credentials never leave the server: the browser sends a request, Express adds the sign-in.",
-      "steps": [
-        {
-          "title": "The Studio asks for a render",
-          "text": "POST /api/vertex/generate with {model, location?, body}: the body is what Gemini or Nano Banana would receive, including the photo and the chosen material.",
-          "nodes": [
-            "browser"
-          ],
-          "edges": [
-            "b-vertex"
-          ],
-          "file": "site/patches/snippets/studio-server-runtime.js"
-        },
-        {
-          "title": "Guards and validation",
-          "text": "JSON only and same-origin as before, then the body must be {model, location?, body} (400 otherwise). The model name must match [A-Za-z0-9._-]{3,80} and the location [a-z0-9-]{2,40}; lib/vertex.js refuses anything else before any network call.",
-          "nodes": [
-            "ex-guards",
-            "ex-vertex"
-          ],
-          "edges": [],
-          "file": "server/routes/api.js",
-          "fn": "mountApi"
-        },
-        {
-          "title": "Express signs in to Google",
-          "text": "A service-account key is exchanged for an access token (RS256-signed request to Google's token endpoint) and cached; application default credentials or an API key work too. The key is read from .env or the environment and never sent to the browser.",
-          "nodes": [
-            "ex-vertex"
-          ],
-          "edges": [],
-          "file": "server/lib/googleAuth.js",
-          "fn": "GoogleAuth"
-        },
-        {
-          "title": "generateContent, with patience",
-          "text": "The call goes to Vertex AI or the Gemini API. 429 and 5xx are retried up to 4 attempts honouring Retry-After, with exponential back-off; a 401 refreshes the token once; silence for 240 s after connecting is a 504 and is not retried; the whole call is capped at 330 s.",
-          "nodes": [
-            "ex-vertex",
-            "google"
-          ],
-          "edges": [
-            "vertex-google"
-          ],
-          "file": "server/lib/vertex.js",
-          "fn": "generateContent"
-        },
-        {
-          "title": "Google's answer passes through",
-          "text": "Status and body come back unchanged (the Studio's model fallback is built on Google's own 404 messages), with X-Terucon-Attempts telling how many tries it took. One log line per call: model, status, seconds. No images, no keys.",
-          "nodes": [
-            "ex-vertex",
-            "browser"
-          ],
-          "edges": [
-            "b-vertex"
-          ],
-          "file": "server/routes/api.js",
-          "fn": "mountApi"
-        }
-      ]
-    },
-    {
-      "id": "sam-pick",
-      "title": "The SAM Pick tool",
-      "summary": "Click on a surface, get an exact mask. Needs SAM; until it has loaded the Studio uses SlimSAM in the browser.",
-      "steps": [
-        {
-          "title": "A click, or a box, on the photo",
-          "text": "The Studio sends POST /api/sam/refine with the points (and labels, or a box) and either the image_id it got earlier or the photo itself.",
-          "nodes": [
-            "browser"
-          ],
-          "edges": [
-            "b-model"
-          ],
-          "file": "site/patches/snippets/studio-server-runtime.js"
-        },
-        {
-          "title": "The SAM key, if one is set",
-          "text": "When SAM_SERVER_KEY is set (a GPU box that other servers call) the request needs it as x-api-key or a Bearer token, compared in constant time. Otherwise 401.",
-          "nodes": [
-            "ex-guards"
-          ],
-          "edges": [],
-          "file": "server/middleware/guards.js",
-          "fn": "isSamPath"
-        },
-        {
-          "title": "Streamed to the model service",
-          "text": "Same path as a scan: piped to POST /sam/refine. If the service is not usable, health answers 200 with status unavailable and the POSTs answer 503, so the Studio can say why.",
-          "nodes": [
-            "ex-model",
-            "model"
-          ],
-          "edges": [
-            "model-proxy"
-          ],
-          "file": "server/routes/model.js",
-          "fn": "mountModelRoutes"
-        },
-        {
-          "title": "Is SAM ready?",
-          "text": "Off: 503 with the instruction to set SAM_ENABLED=true. Still loading: 503 UNAVAILABLE, try again in a moment (the Studio meanwhile uses SlimSAM in the browser). Error: the reason.",
-          "nodes": [
-            "py-sam"
-          ],
-          "edges": [],
-          "file": "model/terucon_model/app.py",
-          "fn": "ready_or_error"
-        },
-        {
-          "title": "The photo is embedded once",
-          "text": "The image embedding is cached per photo (by image_id), so the first click costs seconds and the next ones about a tenth of a second.",
-          "nodes": [
-            "py-sam"
-          ],
-          "edges": [],
-          "file": "model/terucon_model/sam/manager.py",
-          "fn": "embed_cached"
-        },
-        {
-          "title": "The best mask comes back",
-          "text": "The backend predicts candidate masks, the highest score wins, and it is returned as a base64 PNG with the score, the image_id and the model label.",
-          "nodes": [
-            "py-sam",
-            "model",
-            "browser"
-          ],
-          "edges": [
-            "model-proxy",
-            "b-model"
-          ],
-          "file": "model/terucon_model/sam/backends.py",
-          "fn": "encode_png_mask"
-        }
-      ]
-    },
-    {
       "id": "rebuild-pages",
       "title": "Rebuilding the pages from a new Claude Design export",
       "summary": "pages_original/ plus JSON patches become pages/. A changed export fails loudly instead of being half-patched.",
       "steps": [
         {
           "title": "Drop the new export in place",
-          "text": "Replace the file in pages_original/ under the same name (index.html, market_place.html, Swatchroom.html, dashboard.html). These are never edited and never served.",
+          "text": "Replace the file in pages_original/ under the same name (index.html, market_place.html, dashboard.html). These are never edited and never served.",
           "nodes": [
             "exports"
           ],
@@ -433,7 +107,7 @@
         },
         {
           "title": "Anchored JSON patches",
-          "text": "site/patches/<page>.json is a list of steps: relink design-time names, insert the navigation entries from components.json, apply the Studio's server-mode snippets. Every anchor must match exactly the expected number of times, otherwise the build stops and says which step.",
+          "text": "site/patches/<page>.json is a list of steps: relink design-time names and insert the navigation entries from components.json. Every anchor must match exactly the expected number of times, otherwise the build stops and says which step.",
           "nodes": [
             "build"
           ],
@@ -442,7 +116,7 @@
         },
         {
           "title": "pages/ is written",
-          "text": "The four built pages are written and committed. An untouched bundle round-trips byte for byte, so only the patched parts differ from the export.",
+          "text": "The built pages are written and committed. An untouched bundle round-trips byte for byte, so only the patched parts differ from the export.",
           "nodes": [
             "build",
             "site"
@@ -465,8 +139,8 @@
     },
     {
       "id": "startup",
-      "title": "Starting up and supervising the model service",
-      "summary": "npm start brings up Express; Express brings up Python, watches it, and cleans up after it.",
+      "title": "Starting up",
+      "summary": "npm start builds the pages if they are missing, then Express reads its settings, assembles the app and listens.",
       "steps": [
         {
           "title": "npm start",
@@ -480,83 +154,61 @@
           "fn": "startServer"
         },
         {
-          "title": "MODEL_SERVICE decides",
-          "text": "auto (default) starts the Python service as a child process; external uses MODEL_SERVICE_URL and starts nothing; off means no model service at all and the Studio uses its in-browser parser.",
+          "title": "The settings are read",
+          "text": "HOST, PORT and ALLOWED_HOSTS come from the env file and the real environment, which wins. The file is re-read whenever it changes; HOST and PORT are used when the server starts listening.",
           "nodes": [
-            "ex-supervisor"
+            "express"
           ],
           "edges": [],
-          "file": "server/model/index.js",
-          "fn": "createModel"
+          "file": "server/config/settings.js",
+          "fn": "SettingsManager"
         },
         {
-          "title": "A usable Python is found",
-          "text": "An explicit PYTHON is the only candidate. Otherwise: model/.venv, .venv, then python3 and python (Windows: Scripts\\python.exe, then py -3). A candidate is accepted only if flask, numpy, PIL, cv2, requests and google.auth import.",
+          "title": "site.json is loaded",
+          "text": "site/site.json is read and checked once. A route that is not a path, or a file outside the project, stops the start with a message that says where.",
           "nodes": [
-            "ex-supervisor"
-          ],
-          "edges": [],
-          "file": "server/model/python.js",
-          "fn": "findPython"
-        },
-        {
-          "title": "The child is spawned",
-          "text": "python -m terucon_model in model/, with MODEL_PORT=0 (the system picks a free port), MODEL_HOST=127.0.0.1, a random per-run MODEL_SERVICE_KEY, MODEL_PARENT_PID, and an explicit environment. Its output lines are prefixed [model].",
-          "nodes": [
-            "ex-supervisor",
-            "model"
+            "ex-pages",
+            "site"
           ],
           "edges": [
-            "supervise"
+            "pages-site"
           ],
-          "file": "server/model/supervisor.js",
-          "fn": "buildChildEnv"
+          "file": "server/lib/siteMap.js",
+          "fn": "SiteMap"
         },
         {
-          "title": "Python binds, then announces",
-          "text": "It binds the socket first and prints exactly one line, flushed: TERUCON_MODEL_READY http://127.0.0.1:<port>. SAM, if enabled, keeps loading in the background; /health shows loading, then ready.",
+          "title": "The app is assembled",
+          "text": "The security headers and the guards come first, then the pages, the overview, the media and the API. An unknown address under /api/ is a JSON 404, anything else a plain 404, and the error handler comes last.",
           "nodes": [
-            "model"
-          ],
-          "edges": [],
-          "file": "model/terucon_model/__main__.py",
-          "fn": "serve"
-        },
-        {
-          "title": "Express goes ready",
-          "text": "It parses the READY line for the port, checks /health, and the status moves starting, ready. /api/config and /api/health now show model.status = ready.",
-          "nodes": [
-            "ex-supervisor",
+            "express",
+            "ex-guards",
+            "ex-pages",
+            "ex-media",
             "ex-api"
           ],
-          "edges": [
-            "supervise"
-          ],
-          "file": "server/model/supervisor.js",
-          "fn": "ModelSupervisor"
+          "edges": [],
+          "file": "app.js",
+          "fn": "createApp"
         },
         {
-          "title": "If it dies, it comes back",
-          "text": "After an unexpected exit it restarts after 1, 2, 4, 8, 16 seconds. A sixth exit within ten minutes is not restarted: the service stays unavailable with the reason, and the website keeps serving throughout. A start that only took too long (MODEL_START_TIMEOUT) is reported, not looped.",
+          "title": "The server listens",
+          "text": "It listens on HOST and PORT and prints the addresses of the site and of this overview, and which settings file it read. A busy port ends with a message and exit code 1.",
           "nodes": [
-            "ex-supervisor",
-            "model"
-          ],
-          "edges": [
-            "supervise"
-          ],
-          "file": "server/model/supervisor.js",
-          "fn": "ModelSupervisor"
-        },
-        {
-          "title": "Nothing is left behind",
-          "text": "Express kills the child on close, SIGINT, SIGTERM and exit. If Express itself is killed hard, the child notices MODEL_PARENT_PID is gone and exits within about 3 seconds.",
-          "nodes": [
-            "model"
+            "express"
           ],
           "edges": [],
-          "file": "model/terucon_model/__main__.py",
-          "fn": "watch_parent"
+          "file": "app.js",
+          "fn": "main"
+        },
+        {
+          "title": "Ctrl+C stops it cleanly",
+          "text": "SIGINT and SIGTERM close the server: idle connections end at once, busy ones get two seconds, then the process exits with 0.",
+          "nodes": [
+            "express"
+          ],
+          "edges": [],
+          "file": "app.js",
+          "fn": "startServer"
         }
       ]
     }

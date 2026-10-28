@@ -1,34 +1,34 @@
 {
   "_comment": "Authored text for the project overview. Facts (files, lines, tests, routes, variables, pages) are scanned by tools/build-overview.js; this folder only holds what a scan cannot know. Run: node tools/build-overview.js --check",
   "title": "Terucon project overview",
-  "tagline": "An Express website, a Python model service, and a site that is written as data.",
+  "tagline": "An Express website with the Design Studio mounted in it, and a site that is written as data.",
   "hero": {
     "eyebrow": "Terucon  /  Project overview",
-    "heading": "A website, a model service, and a site written as data",
-    "lead": "Four pages are served by one small Express server. The part that looks at photos is a separate Python service that the server starts and supervises, so the site keeps working when Python does not. This page is generated from the tree: the files, line counts, routes, tests and variables below were read from the project when it was built.",
+    "heading": "A website with a design studio in it, and a site written as data",
+    "lead": "Four pages are served by one small Express server, with the Design Studio (Swatchroom) mounted in the same process. The landing page wakes the studio's GPU services as it opens, so they are usually ready by the first scan. The studio itself is kept in swatchroom/ exactly as it was built (its own guides are there). This page is generated from the tree: the files, line counts, routes, tests and variables below were read from the project when it was built.",
     "facts": [
       {
         "label": "Website",
-        "value": "Express 5, ES modules, no other runtime package"
+        "value": "Express 5, ES modules; the studio's packages come with it (one npm workspace)"
       },
       {
-        "label": "Models",
-        "value": "Python 3 / Flask, internal service on 127.0.0.1"
+        "label": "Design Studio",
+        "value": "Swatchroom 5 in swatchroom/: Express routes, browser code, Python scan models, Modal GPU services, MongoDB, Gemini"
+      },
+      {
+        "label": "Cold start",
+        "value": "the landing page and the studio page wake the GPU services (STUDIO_WARMUP)"
       },
       {
         "label": "Site",
-        "value": "site/site.json + JSON patches, built into pages/"
+        "value": "site/site.json + JSON patches, built into pages/; any other address shows Coming soon"
       }
     ]
   },
   "owners": {
     "website": {
       "label": "Website (JS)",
-      "blurb": "Express: pages, media, API, guards, Google proxy"
-    },
-    "model": {
-      "label": "Model (Python)",
-      "blurb": "Surface detection, SAM, evaluation, fine-tuning"
+      "blurb": "Express: pages, media, API, guards"
     },
     "site-data": {
       "label": "Site data",
@@ -40,7 +40,7 @@
     },
     "tests": {
       "label": "Tests",
-      "blurb": "node:test, unittest, browser tests, fixtures"
+      "blurb": "node:test, browser tests, fixtures"
     },
     "docs": {
       "label": "Docs",
@@ -49,6 +49,10 @@
     "private": {
       "label": "Private",
       "blurb": "Secrets and local environments"
+    },
+    "swatchroom": {
+      "label": "Swatchroom (studio)",
+      "blurb": "The Design Studio: its own Express routes, browser code, Python scan models and Modal GPU blueprint, kept exactly as built"
     }
   },
   "tags": {
@@ -79,31 +83,15 @@
       "note": "A short run guide"
     },
     {
-      "path": "model/README.md",
-      "note": "The model service"
+      "path": "swatchroom/README.md",
+      "note": "The Design Studio"
     },
     {
       "path": ".env.example",
       "note": "Every setting, documented"
     }
   ],
-  "baseline": {
-    "_comment": "Measured on 2026-10-16 from the tree before the migration (wc -l of the authored files; tests counted as def test_ / await test). A fixed historical record, not rescanned.",
-    "date": "2026-10-16",
-    "python": {
-      "server": 2842,
-      "buildTools": 816,
-      "evaluation": 948,
-      "tests": 1474,
-      "launcher": 8,
-      "total": 6088
-    },
-    "javascript": {
-      "total": 156,
-      "note": "the browser test only"
-    },
-    "pythonTests": 84
-  },
+  "baseline": null,
   "scan": {
     "_comment": "Extra paths the scanner skips, besides everything .gitignore hides. _legacy_python_site/ holds the Flask version of the site that the Express + Python-model split replaced; it is kept only until the owner deletes it, then this line can go.",
     "ignore": [

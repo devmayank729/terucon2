@@ -1,7 +1,7 @@
 # How to run Terucon
 
 A short guide: what the folders do, how they fit together, and how to start the project.
-For the full reference (every setting, how the segmentation works, test results) see the main `README.md`.
+For the full reference (the studio's settings, the cold start and what it costs, deployment) see the main `README.md`.
 For a map of every file, the API, the settings and the request flows, open `/project-overview` on the running site
 (or `docs/PROJECT_OVERVIEW.html` straight from disk).
 
@@ -9,149 +9,135 @@ For a map of every file, the API, the settings and the request flows, open `/pro
 
 ## 1. What this project is
 
-Four web pages that work as one site, an Express server behind them, and a small Python service for the models.
+Four web pages that work as one site, an Express server behind them, and the Design Studio ("Swatchroom") mounted in that server.
 
 | Page | Address (server running) | Built from |
 |---|---|---|
-| Terucon website | `/` | `pages_original/index.html` |
+| Terucon website (landing page) | `/` | `pages_original/index.html` |
 | Materials shop | `/materials` | `pages_original/market_place.html` |
-| Design Studio | `/design-studio` | `pages_original/Swatchroom.html` |
+| Design Studio | `/design-studio` | `swatchroom/terucon/Swatchroom.html` |
 | My project (client dashboard) | `/my-project` | `pages_original/dashboard.html` |
+| Coming soon (any address that is no page) | `/coming-soon` | `pages/coming-soon.html` |
 
-* **JavaScript (Express) runs the website.** It serves the pages and photos, keeps your Google credentials private
-  (the browser never sees them), forwards the Design Studio's render requests to Google, and starts the Python service.
-* **Python runs the models.** Finding the surfaces in a photo (Gemini outlines, optional SAM, edge snapping) lives in `model/`
-  as an internal service that Express talks to. Evaluation and fine-tuning also live there.
+* **JavaScript (Express) runs the website.** It serves the pages and photos, and loads the Design Studio into the same process.
+* **The Design Studio is its own project, kept in `swatchroom/`** exactly as it was built. It has its own settings file
+  (`swatchroom/.env`), its own database (MongoDB), calls Google (Gemini) for the renders with its own key, and uses GPU services
+  on Modal plus a small Python service for the scan. The website only mounts it and links to it.
 * **The pages are data.** `site/site.json` lists the pages and their routes; `site/patches/*.json` describes every change made
-  to the Claude Design exports (links, menu entries, the Design Studio's server mode). `npm run build:site` applies them.
-
-The site works without the Python service: scanning a photo then falls back to the Design Studio's in-browser parser.
+  to the Claude Design exports (links, menu entries, the hero button, the wake-up script). `npm run build:site` applies them.
+* **The landing page wakes the studio's GPU services** as it opens, because they need 10-45 seconds to start from sleep (README, "Cold start").
 
 ---
 
 ## 2. Folder flow
 
 ```
-Terucon_2/
+Terucon/
 ├─ app.js                  ← START HERE: the Express server (npm start)
-├─ package.json            ← npm scripts: start, model, build:site, test, ...
-├─ .env                    ← your private settings and Google credentials (never committed, never served)
+├─ package.json            ← npm scripts: start, models, build:site, test, ... (swatchroom/ is an npm workspace)
+├─ .env                    ← the website's settings: port and the wake-up switch (never committed, never served)
 │
 ├─ server/                 ← Express modules (JavaScript)
 │   ├─ config/                .env reader and settings
-│   ├─ lib/                   Google sign-in, Gemini/Vertex client, site map
+│   ├─ lib/                   site map, errors, logging, and swatchroom.js (loads the Design Studio)
 │   ├─ middleware/            host / origin / content-type guards, headers
-│   ├─ routes/                pages, /media, /api/*
-│   └─ model/                 starts and supervises the Python service, proxies requests to it
+│   └─ routes/                pages (and Coming soon), /media, /api/*, the studio wake-up
 │
 ├─ site/                   ← the website as JSON
 │   ├─ site.json              pages, routes, aliases, connections between pages
-│   ├─ components.json        shared HTML snippets (menu cards, footer links)
+│   ├─ components.json        shared HTML snippets (menu cards, footer links, the hero button)
 │   └─ patches/               one JSON file per page + snippets/ (the injected code)
-├─ pages_original/         ← untouched Claude Design exports (the source for the build)
-├─ pages/                  ← the four built pages (generated, do not edit by hand)
+├─ pages_original/         ← untouched Claude Design exports of the landing page, shop and dashboard
+├─ pages/                  ← the four built pages (generated, do not edit by hand) and coming-soon.html (written by hand)
 ├─ media/                  ← photos and videos used by the website
 │
-├─ model/                  ← PYTHON: everything about the models
-│   ├─ terucon_model/         the service: segment/ (photo → surfaces), sam/ (optional SAM), Google client
-│   ├─ eval/                  accuracy measurements on ground-truth photos
-│   ├─ finetune/              where fine-tuning code and notes live
-│   └─ tests/                 Python tests + a mock Google
+├─ swatchroom/             ← the DESIGN STUDIO, copied in unchanged
+│   ├─ server/                its routes and libraries (rooms, Gemini, scans, the cold-start bookkeeping)
+│   ├─ public/                its browser code, fonts and textures
+│   ├─ python/                the local scan models (SegFormer, SlimSAM)
+│   ├─ modalBlueprint.py      the GPU services on Modal
+│   ├─ terucon/Swatchroom.html  the Claude Design export of the studio's page
+│   ├─ .env  .env.example     the studio's settings (database, Google key, GPU services, passcode)
+│   └─ README.md  ARCHITECTURE.md  DEPLOY.md  its own guides
 │
 ├─ tools/                  ← JavaScript tooling: build-site, check-links, build-overview, run-tests
-├─ tests/                  ← JavaScript tests, browser tests (e2e), a dev stack with a mock Google
+├─ tests/                  ← JavaScript tests, browser tests (e2e), a dev stack on throw-away settings
 └─ docs/                   ← this guide and the project overview
 ```
 
 ### How a request moves
 
 **Opening a page:** browser → Express (`server/routes/pages.js`) → looks the address up in `site/site.json` → sends `pages/*.html`.
-Photos come from `media/`.
+Photos come from `media/`. An address that is no page gets `pages/coming-soon.html` (status 404).
 
-**Scanning a photo in the Design Studio:**
+**Opening the Design Studio:** the page `/design-studio` loads the studio's script `/js/swatchroom-app.js`; the studio shows its
+"Powered by Terucon India" splash while it asks `/api/vision/warmup` whether the GPU services are awake, then (if a passcode is
+set) asks for it, then opens. Everything the studio does after that goes to its own `/api/*` routes.
 
-```
-browser ─► /api/segment ─► Express (checks Google is set up, streams the photo on)
-                          ─► Python model service  /segment
-                             1. detect.py       Gemini names the surfaces and outlines them roughly
-                             2. sam_refine.py   (only if SAM is on) SAM corrects each outline near its edge
-                             3. snap.py         every boundary slides onto the photo's real edge
-                             4. refine.py       surfaces are layered and cleaned
-                          ◄─ labelled surfaces back to the browser
-```
+**The cold start:** landing page (or studio page) → `POST /api/studio/warmup` → Express → the studio's wake-up code → `/healthz` of
+the scan service and of the room-analysis service, in the background, skipping any that are already awake.
 
-**Rendering a finish:** browser → `/api/vertex/generate` → Express (`server/lib/vertex.js`, `googleAuth.js`) → Google → image back.
-The credentials stay inside the server the whole time.
+**Scanning a photo and rendering a finish** (the studio's own flow, `swatchroom/README.md`): the photo goes to `/api/vision/segment`
+(the local model and OneFormer on Modal race; the first answer is shown at once); a render goes to `/api/ai/generate`, where the
+server adds the Google key and calls Gemini on Vertex AI. The key never reaches the browser.
 
 **Updating a page:** put the new Claude Design export in `pages_original/` (same file name), then run `npm run build:site`.
 It applies the JSON patches in `site/patches/` and writes the four pages to `pages/`. It fails loudly, naming the step, if the
 new export no longer matches a patch. Change the patch JSON (not the built page) if you want a different result;
-edits made directly to `pages/*.html` are lost on the next build.
+edits made directly to `pages/*.html` are lost on the next build. (The studio's page export is `swatchroom/terucon/Swatchroom.html`.)
 
 ---
 
 ## 3. Run it
 
-You need Node 20 or newer. For scanning photos you also need Python 3.10+ (tested on 3.13); the site runs without it.
+You need Node 20 or newer. For the studio's local scan models you also need Python 3.10+; the site and the studio run without them.
 
 ```bash
-cd Terucon_2
-npm install                                  # Express
-npm run setup:model                          # Python packages for the model service (once; optional)
-cp .env.example .env                         # skip if .env already exists
+cd Terucon
+npm install                                  # the website and the Design Studio, in one go
+cp .env.example .env                         # skip if .env already exists (optional: the defaults work)
 npm start
 ```
 
-Open **http://localhost:8080** and use the site through that address, not by double-clicking the HTML files
-(from `file://` the Design Studio's in-browser vision worker can fail to start, and the links between pages are server addresses).
+Open **http://localhost:8080** and use the site through that address, not by double-clicking the HTML files.
 
-The terminal prints a banner that says whether Google credentials were found and whether the model service is up.
-Stop everything with `Ctrl+C` (the Python service stops with it).
+The Design Studio needs its own settings in `swatchroom/.env` (copy `swatchroom/.env.example` if it is not there):
+`MONGODB_URI`, `GOOGLE_APPLICATION_CREDENTIALS` (the key goes in `swatchroom/keys/`), the Modal URLs and keys, and `STUDIO_PASSCODE`.
+The terminal prints a banner that says whether that file was found, and then what the studio found (database, Google key, models).
+Stop everything with `Ctrl+C`.
 
 `npm start` first runs `node tools/build-site.js --if-missing`, which builds any page that is missing from `pages/`.
 
-### Add your Google credentials (needed for scanning and rendering)
+### The scan models (optional, a second terminal)
 
-Open `.env` and fill in **one** of these. The file explains each line.
+```bash
+cd swatchroom/python && python3 -m venv .venv && source .venv/bin/activate        # once
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu    # once (CPU build)
+pip install -r requirements.txt                                                    # once
+cd ../.. && npm run models                                                         # every time, with the environment active
+```
 
-* `GCP_SERVICE_ACCOUNT_JSON` (or `GOOGLE_APPLICATION_CREDENTIALS`) plus `GOOGLE_CLOUD_PROJECT`: Vertex AI with a service account. Recommended.
-* `GEMINI_API_KEY`: a Google AI Studio key.
-
-Save and reload the page; `.env` is re-read automatically. Only `HOST`, `PORT` and the `MODEL_*` settings need a restart.
-`.env` is git-ignored: never paste its contents into chat, issues or commits.
-
-### The Python model service
-
-| You want | Do |
-|---|---|
-| The normal setup | nothing: `npm start` starts it (`MODEL_SERVICE=auto`) and stops it again |
-| To run it by hand, with its own log window | `MODEL_SERVICE=external` and `MODEL_SERVICE_URL=http://127.0.0.1:8081` in `.env`, then `npm run model` in a second terminal |
-| To run it on a GPU machine | on that machine: `cd model && MODEL_HOST=0.0.0.0 MODEL_SERVICE_KEY=... python -m terucon_model`; here: `MODEL_SERVICE=external`, `MODEL_SERVICE_URL=https://that-machine:8081`, the same `MODEL_SERVICE_KEY` |
-| To switch it off | `MODEL_SERVICE=off` (the Design Studio uses its in-browser parser) |
+Without them the studio still scans (Gemini outlines, OneFormer on Modal when set up); the Pick tool needs them.
 
 ### Try it without credentials
 
 ```bash
-node tests/dev/stack.mjs --port 8765
+node tests/dev/stack.mjs --port 8765 --passcode letmein
 ```
 
-This runs the real site and the real Python service against a fake Google, so the whole Design Studio (scan and render) can be tried
-for free using the built-in synthetic room. Open the address it prints. It is a test rig, not for real work.
-
-### Optional: SAM for sharper edges
-
-Everything works without it. To turn it on: `pip install -r model/requirements-sam.txt`, set `SAM_ENABLED=true` in `.env`,
-and restart. The first start downloads about 180 MB.
+This runs the real site with the real Design Studio mounted, against two mock GPU services, with no database and no Google key
+("AI off" in the studio). Open the address it prints; the passcode is `letmein`. It copies the code into a temp folder and runs
+there, so it never reads your `.env` files or reaches your services. It is a test rig, not for real work.
 
 ---
 
 ## 4. Tests
 
 ```bash
-npm test                          # site build check, link check, overview check, JavaScript tests, Python tests (~1 min, no credentials, no GPU)
-npm test -- --e2e                 # + the browser tests (needs Chrome; starts the real site against a mock Google)
-npm run test:js                   # only the JavaScript tests
-npm run test:model                # only the Python tests
+npm test                          # site build check, link check, overview check, JavaScript tests (about a minute, no credentials)
+npm test -- --e2e                 # + the browser tests (needs Chrome): the whole path with real clicks, the cold start, the studio's start-up
+npm run test:js                   # only the website's JavaScript tests
+npm run test:swatchroom           # the Design Studio's own unit tests
 ```
 
 The browser tests need their one dependency once: `cd tests/e2e && npm install`.
@@ -163,10 +149,12 @@ The browser tests need their one dependency once: `cd tests/e2e && npm install`.
 | What you see | What to do |
 |---|---|
 | `Could not start on port 8080` | Another program uses the port. Change `PORT` in `.env` and start again. |
-| The banner says `.env NOT FOUND` | Run `cp .env.example .env` next to `package.json`. |
-| Banner says `Google: not configured` / scans fail | No credentials yet. Fill in `.env` (see above), or use `tests/dev/stack.mjs` to try the Studio. |
-| `Model service: unavailable` in the banner | The message says why. Usually: `npm run setup:model` (Python packages missing), or set `PYTHON` in `.env` to the interpreter that has them. The website works meanwhile. |
-| The Design Studio says "The Terucon server engine failed" | The model service is down or Google refused; the note names the reason, and the in-browser parser was used instead. |
+| `Cannot find module 'mongoose'` | Run `npm install` in the project folder (the studio's packages come with it). |
+| The banner says `Studio settings … NOT FOUND` | Copy `swatchroom/.env.example` to `swatchroom/.env` and fill it in. |
+| `/design-studio` asks for a passcode | `STUDIO_PASSCODE` is set in `swatchroom/.env`. Give people the passcode, or remove it to open the studio to everyone. |
+| The studio says "AI off" | No Google key yet: `GOOGLE_APPLICATION_CREDENTIALS` in `swatchroom/.env`. In the studio, Settings → Check says what is missing. |
+| `MongoDB is not reachable … Retrying` | `MONGODB_URI` in `swatchroom/.env` (with Atlas, allow this machine's address). The studio opens, but rooms cannot be saved. |
+| `Scan model service … is not running` | Start the local models (section 3), or ignore it: scans fall back to Gemini outlines. |
 | `421 Unexpected Host header` | You opened the site by an address the server does not know. Use `localhost` or add the name to `ALLOWED_HOSTS`. |
 | `npm run build:site` says a step "matched 0 times" | The re-exported page changed. Update that step in `site/patches/<page>.json` (it fails on purpose instead of half-patching). |
 | The aluminium support frame on My project has no photo | That page asks for `media/materials/fx-mill.jpg`, which was never exported. Add the file to `media/materials/`. (Every other material photo is embedded in the page.) |

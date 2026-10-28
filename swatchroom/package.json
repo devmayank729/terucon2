@@ -1,0 +1,44 @@
+{
+  "name": "swatchroom",
+  "version": "5.0.0",
+  "private": true,
+  "description": "Swatchroom: Terucon Design Studio. Restyle real rooms surface by surface. Plain HTML, CSS and JavaScript in the browser; Node.js, Express and MongoDB on the server; Python for the local models.",
+  "main": "server/index.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "models": "cd python && uvicorn app:app --host 127.0.0.1 --port 8001",
+    "terucon-page": "node scripts/build-terucon-page.js",
+    "build-textures": "node scripts/build-textures.js",
+    "check": "node --check server/index.js",
+    "test:fusion": "node server/lib/fusion.test.js",
+    "test:npy": "node server/lib/npy.test.js",
+    "test:adapters": "node server/lib/remoteModels/adapters.test.js",
+    "test:coldstart": "node server/lib/coldStart.test.js",
+    "test:owner": "node tests/owner.test.js",
+    "test:outlines": "node tests/outlines.test.js",
+    "test": "npm run test:fusion && npm run test:npy && npm run test:adapters && npm run test:coldstart && npm run test:owner && npm run test:outlines && npm run test:vision && npm run test:splits && npm run test:startup && npm run test:sam && npm run test:fastrender && npm run test:bridge && npm run test:python",
+    "test:vision": "node server/lib/vision.test.js",
+    "test:splits": "node server/lib/planeSplit.test.js",
+    "test:startup": "node tests/startup_race.test.js",
+    "test:sam": "node tests/sam.test.js",
+    "test:fastrender": "node tests/fastrender.test.js",
+    "test:bridge": "node tests/render_bridge.test.js",
+    "test:python": "node scripts/run-python-tests.js"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "fflate": "^0.8.3",
+    "mongoose": "^9.11.2",
+    "pngjs": "^7.0.0",
+    "posthog-node": "^4.18.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.0"
+  }
+}

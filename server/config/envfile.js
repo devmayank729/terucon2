@@ -12,8 +12,7 @@
  * Real environment variables win over the file, like every other dotenv loader, so a value
  * set on a host (Render, Cloud Run, a shell export) is never silently replaced.
  *
- * The Python model service has the same parser (model/terucon_model/envfile.py); both run
- * the shared cases in tests/fixtures/env-cases.json so they cannot drift apart.
+ * The parsing cases are in tests/fixtures/env-cases.json (tests/js/server-envfile.test.js).
  */
 import fs from 'node:fs';
 

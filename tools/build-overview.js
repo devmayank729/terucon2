@@ -327,9 +327,11 @@ export function walkStack(stack, mountOf, prefix = '') {
 
 const CATCH_ALL = /^\/?(?:\*[A-Za-z_]*|\{\/?\*[A-Za-z_]*\})$/;
 
+let importCount = 0;
+
 /**
- * Starts the real app the way a test would (model service off, a temporary env file, an explicit empty environment) and
- * reads the routes it registered. Never throws: returns {routes: null, warning} when the app cannot be imported yet.
+ * Starts the real app the way a test would (a temporary env file, an explicit empty environment) and reads the routes it
+ * registered. Never throws: returns {routes: null, warning} when the app cannot be imported yet.
  */
 export async function readExpressRoutes(root, { createOptions } = {}) {
   const appFile = path.join(root, 'app.js');
@@ -355,9 +357,10 @@ export async function readExpressRoutes(root, { createOptions } = {}) {
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'terucon-overview-'));
     const envPath = path.join(tmp, 'overview.env');
     fs.writeFileSync(envPath, '');
-    const mod = await import(`${pathToFileURL(appFile).href}?overview=${Date.now()}`);
+    // A module that failed to load stays failed under the same address, so every import gets an address of its own (a clock tick is not enough).
+    const mod = await import(`${pathToFileURL(appFile).href}?overview=${Date.now()}-${++importCount}`);
     if (typeof mod.createApp !== 'function') return { routes: null, warning: 'app.js does not export createApp(), so the registered routes could not be compared' };
-    const options = createOptions ? createOptions({ envPath, root }) : { root, envPath, environ: { TERUCON_ENV_FILE: envPath, MODEL_SERVICE: 'off' }, model: { mode: 'off' } };
+    const options = createOptions ? createOptions({ envPath, root }) : { root, envPath, environ: { TERUCON_ENV_FILE: envPath } };
     const app = await mod.createApp(options);
     const stack = (app.router && app.router.stack) || (app._router && app._router.stack);
     if (!stack) return { routes: null, warning: 'the Express app exposes no router stack' };
@@ -373,34 +376,8 @@ export async function readExpressRoutes(root, { createOptions } = {}) {
   }
 }
 
-/** Python routes, read from the Flask decorators in model/terucon_model (the service cannot be started here). */
-export function readPythonRoutes(root) {
-  const dir = path.join(root, 'model/terucon_model');
-  if (!exists(dir)) return { routes: null, warning: 'model/terucon_model does not exist yet, so the Python routes could not be compared' };
-  const out = [];
-  const walk = (d) => {
-    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
-      const abs = path.join(d, e.name);
-      if (e.isDirectory() && !isIgnoredName(e.name, true)) walk(abs);
-      else if (e.isFile() && e.name.endsWith('.py')) {
-        const text = readText(abs);
-        const re = /@\w+\.(get|post|put|delete|patch|route)\(\s*["']([^"']+)["']([^)]*)\)/g;
-        let m;
-        while ((m = re.exec(text))) {
-          if (m[1] === 'route') {
-            const methods = /methods\s*=\s*\[([^\]]*)\]/.exec(m[3]);
-            for (const meth of methods ? methods[1].match(/[A-Za-z]+/g) : ['GET']) out.push({ method: meth.toUpperCase(), path: m[2] });
-          } else out.push({ method: m[1].toUpperCase(), path: m[2] });
-        }
-      }
-    }
-  };
-  walk(dir);
-  return { routes: out };
-}
-
-/** Check 3. `registered` and `python` may be null (could not be read): then that half is skipped, not failed. */
-export function checkRoutes(catalogRoutes, registered, python, site = null) {
+/** Check 3. `registered` may be null (the app could not be read): then the comparison is skipped, not failed. */
+export function checkRoutes(catalogRoutes, registered, site = null) {
   const problems = [];
   const siteRoutes = site ? siteRoutePaths(site) : [];
   const at = (obj, dotted) => dotted.split('.').reduce((o, k) => (o == null ? o : o[k]), obj);
@@ -416,25 +393,22 @@ export function checkRoutes(catalogRoutes, registered, python, site = null) {
     if (dup.has(key(r))) problems.push(problem(3, `route described twice in the catalog: ${key(r)}`));
     dup.add(key(r));
   }
-  const compare = (owner, actual, label) => {
-    if (!actual) return;
-    const expected = catalogRoutes.filter((r) => r.owner === owner && !r.derived);
-    const have = new Map(actual.filter((r) => !CATCH_ALL.test(r.path)).map((r) => [key(r), r]));
-    for (const r of expected) {
-      if (!have.has(key(r))) {
-        const all = actual.some((a) => a.method === 'ALL' && a.path === r.path);
-        if (!all) problems.push(problem(3, `catalog route ${key(r)} (${owner}) is not registered by ${label}`));
-      }
+  if (!registered) return problems;
+  const label = 'the Express app (app.js)';
+  const expected = catalogRoutes.filter((r) => r.owner === 'JS' && !r.derived);
+  const have = new Map(registered.filter((r) => !CATCH_ALL.test(r.path)).map((r) => [key(r), r]));
+  for (const r of expected) {
+    if (!have.has(key(r))) {
+      const all = registered.some((a) => a.method === 'ALL' && a.path === r.path);
+      if (!all) problems.push(problem(3, `catalog route ${key(r)} (JS) is not registered by ${label}`));
     }
-    const known = new Set([...expected.map(key), ...catalogRoutes.filter((r) => r.owner === owner).map(key)]);
-    const derived = new Set(siteRoutes.map((p) => `GET ${p}`));
-    for (const [k, r] of have) {
-      if (r.method === 'ALL' && catalogRoutes.some((c) => c.path === r.path)) continue;
-      if (!known.has(k) && !derived.has(k)) problems.push(problem(3, `${label} registers ${k}, which the catalog does not describe`));
-    }
-  };
-  compare('JS', registered, 'the Express app (app.js)');
-  compare('Python', python, 'the model service (model/terucon_model)');
+  }
+  const known = new Set([...expected.map(key), ...catalogRoutes.filter((r) => r.owner === 'JS').map(key)]);
+  const derived = new Set(siteRoutes.map((p) => `GET ${p}`));
+  for (const [k, r] of have) {
+    if (r.method === 'ALL' && catalogRoutes.some((c) => c.path === r.path)) continue;
+    if (!known.has(k) && !derived.has(k)) problems.push(problem(3, `${label} registers ${k}, which the catalog does not describe`));
+  }
   return problems;
 }
 
@@ -635,16 +609,12 @@ export async function collect(root, options = {}) {
   if (!site) problems.push(problem(0, 'site/site.json does not exist'));
 
   let registered = null;
-  let python = null;
   const catalogRoutes = catalog.api.routes;
   if (!options.skipRoutes) {
     const ex = await readExpressRoutes(root, { createOptions: options.createOptions });
     if (ex.warning) warnings.push(ex.warning);
     registered = ex.routes;
-    const py = readPythonRoutes(root);
-    if (py.warning) warnings.push(py.warning);
-    python = py.routes;
-    problems.push(...checkRoutes(catalogRoutes, registered, python, site));
+    problems.push(...checkRoutes(catalogRoutes, registered, site));
   }
 
   let matrix = null;
@@ -664,9 +634,8 @@ export async function collect(root, options = {}) {
   const sums = summarize(files, catalog);
   const verified = (r2) => {
     const k = normalizeRoute(r2.method, r2.path);
-    const list = r2.owner === 'JS' ? registered : python;
-    if (!list || r2.derived) return null;
-    return list.some((x) => normalizeRoute(x.method, x.path) === k || (x.method === 'ALL' && x.path === r2.path));
+    if (!registered || r2.derived) return null;
+    return registered.some((x) => normalizeRoute(x.method, x.path) === k || (x.method === 'ALL' && x.path === r2.path));
   };
 
   const data = {
@@ -685,7 +654,7 @@ export async function collect(root, options = {}) {
     dirs: normalizeDirs(catalog.files.dirs), files, byLang: sums.byLang, byOwner: sums.byOwner, scoreboard: sums.scoreboard,
     architecture: catalog.architecture,
     flows: catalog.flows.flows,
-    api: { intro: catalog.api.intro, errorShape: catalog.api.errorShape, groups: catalog.api.groups, routes: catalogRoutes.map((r2) => ({ ...r2, verified: verified(r2) })), checkedAgainst: { express: registered !== null, python: python !== null } },
+    api: { intro: catalog.api.intro, errorShape: catalog.api.errorShape, groups: catalog.api.groups, routes: catalogRoutes.map((r2) => ({ ...r2, verified: verified(r2) })), checkedAgainst: { express: registered !== null } },
     env: { precedence: catalog.env.precedence, groups: catalog.env.groups, notes: catalog.env.notes, vars: catalog.env.vars },
     tests: { intro: catalog.tests.intro, suites: testSuites, checks: catalog.tests.checks || [], total: testSuites.reduce((a, b) => a + b.count, 0) },
     scripts: (catalog.commands.npm || []).map((c) => ({ ...c, cmd: pkg.scripts[c.script] || '' })),

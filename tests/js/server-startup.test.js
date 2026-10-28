@@ -29,7 +29,7 @@ describe('Express 5 pitfalls are avoided in the source', () => {
 
   test('the scan finds the routes (so the checks below mean something)', () => {
     const routes = routePaths.map((r) => r.route);
-    assert.ok(routes.includes('/api/health') && routes.includes('/api/vertex/generate') && routes.includes('/favicon.ico'));
+    assert.ok(routes.includes('/api/health') && routes.includes('/api/site') && routes.includes('/favicon.ico'));
     assert.ok(routes.some((r) => r.includes('*name')));
   });
 
@@ -54,12 +54,12 @@ describe('Express 5 pitfalls are avoided in the source', () => {
 });
 
 describe('createApp and startServer', () => {
-  test('createApp alone listens on nothing and starts no process', () => {
+  test('createApp alone listens on nothing and starts no process', async () => {
     const temp = makeTempRoot();
     try {
       const app = createApp({ root: temp.root, envPath: temp.envPath, environ: {}, log: collectLog() });
-      assert.deepEqual(Object.keys(app.locals.terucon).sort(), ['close', 'model', 'settings', 'site']);
-      assert.equal(app.locals.terucon.model.mode, 'auto');
+      for (const key of ['close', 'settings', 'site']) assert.ok(key in app.locals.terucon, key);
+      assert.equal(await app.locals.terucon.close(), undefined, 'closing an app that was never started is fine');
       assert.equal(app.locals.terucon.settings().port, 8080);
       assert.equal(app.locals.terucon.site.pages.home.route, '/');
     } finally {
@@ -83,7 +83,7 @@ describe('createApp and startServer', () => {
 
   test('PORT=0 in the env file picks a free port, which is the one reported', async () => {
     const temp = makeTempRoot();
-    fs.writeFileSync(temp.envPath, 'PORT=0\nMODEL_SERVICE=off\n');
+    fs.writeFileSync(temp.envPath, 'PORT=0\n');
     const running = await startServer({ root: temp.root, envPath: temp.envPath, environ: {}, log: collectLog() });
     try {
       assert.ok(running.port > 0);
@@ -97,7 +97,6 @@ describe('createApp and startServer', () => {
 
   test('close() is idempotent, ends keep-alive connections, and frees the port', async () => {
     const temp = makeTempRoot();
-    fs.writeFileSync(temp.envPath, 'MODEL_SERVICE=off\n');
     const running = await startServer({ root: temp.root, envPath: temp.envPath, environ: {}, log: collectLog(), port: 0 });
     const socket = net.connect(running.port, '127.0.0.1');
     await new Promise((resolve) => socket.on('connect', resolve));
@@ -114,7 +113,7 @@ describe('createApp and startServer', () => {
     const taken = net.createServer().listen(0, '127.0.0.1');
     await new Promise((resolve) => taken.once('listening', resolve));
     try {
-      await assert.rejects(startServer({ root: temp.root, envPath: temp.envPath, environ: {}, log: collectLog(), port: taken.address().port, host: '127.0.0.1', model: { mode: 'off' } }), { code: 'EADDRINUSE' });
+      await assert.rejects(startServer({ root: temp.root, envPath: temp.envPath, environ: {}, log: collectLog(), port: taken.address().port, host: '127.0.0.1' }), { code: 'EADDRINUSE' });
     } finally {
       taken.close();
       temp.cleanup();
@@ -125,7 +124,7 @@ describe('createApp and startServer', () => {
     const temp = makeTempRoot();
     try {
       fs.writeFileSync(path.join(temp.root, 'custom.env'), 'PORT=4321\n');
-      const app = createApp({ root: temp.root, environ: { TERUCON_ENV_FILE: 'custom.env' }, log: collectLog(), model: { mode: 'off' } });
+      const app = createApp({ root: temp.root, environ: { TERUCON_ENV_FILE: 'custom.env' }, log: collectLog() });
       assert.equal(app.locals.terucon.settings().port, 4321);
       assert.equal(app.locals.terucon.settings().envPath, path.join(temp.root, 'custom.env'));
     } finally {
@@ -141,11 +140,11 @@ describe('running it: node app.js', () => {
   });
   after(() => fs.rmSync(dir, { recursive: true, force: true }));
 
-  /** Start `node app.js` with an explicit, minimal environment: no real credential can reach it. */
+  /** Start `node app.js` with an explicit, minimal environment: nothing of the real one can reach it. */
   function launch(envText, extraEnv = {}, { writeEnvFile = true } = {}) {
     const envFile = path.join(dir, `${Math.random().toString(36).slice(2)}.env`);
     if (writeEnvFile) fs.writeFileSync(envFile, envText);
-    const child = spawn(process.execPath, [path.join(PROJECT_ROOT, 'app.js')], { cwd: dir, env: { PATH: process.env.PATH, TERUCON_ENV_FILE: envFile, PORT: '0', MODEL_SERVICE: 'off', ...extraEnv } });
+    const child = spawn(process.execPath, [path.join(PROJECT_ROOT, 'app.js')], { cwd: dir, env: { PATH: process.env.PATH, TERUCON_ENV_FILE: envFile, PORT: '0', ...extraEnv } });
     const out = { text: '', code: null };
     child.stdout.on('data', (d) => (out.text += d));
     child.stderr.on('data', (d) => (out.text += d));
@@ -154,34 +153,27 @@ describe('running it: node app.js', () => {
   }
   const portOf = (text) => Number(/Site: {14}http:\/\/[^:]+:(\d+)\//.exec(text)?.[1]);
 
-  test('the banner: site, studio, overview, settings file, Google/SAM/segmentation/model lines, Ctrl+C', async () => {
-    const run = launch('SEGMENTATION_ENGINE=bogus\n');
+  test('the banner: site, overview, settings file, Ctrl+C', async () => {
+    const run = launch('');
     await waitFor(() => /Press Ctrl\+C/.test(run.out.text), { what: 'the banner' });
     const port = portOf(run.out.text);
     assert.ok(port > 0, run.out.text);
     const lines = run.out.text.split('\n');
     assert.equal(lines.find((l) => l.startsWith('Terucon server')), 'Terucon server');
     assert.ok(lines.includes(`  Site:              http://localhost:${port}/`), run.out.text);
-    assert.ok(lines.includes(`  Design Studio:     http://localhost:${port}/design-studio`));
     assert.ok(lines.includes(`  Project overview:  http://localhost:${port}/project-overview`));
     assert.ok(lines.includes(`  Settings file:     ${run.envFile}  (found)`));
-    assert.ok(lines.includes('  Google: not configured - fill in .env (see .env.example)'));
-    assert.ok(lines.some((l) => l.startsWith('  SAM: off')));
-    assert.ok(lines.includes('  Segmentation: engine=auto, edge refinement=on, contour'));
-    assert.ok(lines.includes('  Model service: off (MODEL_SERVICE=off); surfaces are found in the browser'));
-    assert.ok(lines.some((l) => l.startsWith("  ! SEGMENTATION_ENGINE='bogus'")), 'warnings are shown');
-    assert.ok(!run.out.text.includes('reachable from your network'));
+    assert.ok(lines.includes('  Press Ctrl+C to stop.'));
     assert.equal((await request(port, { path: '/api/health' })).status, 200);
     const { code } = await run.stop();
     assert.equal(code, 0);
     assert.match(run.out.text, /Stopping\.\.\./);
   });
 
-  test('the file is reported when it is not there; HOST=0.0.0.0 prints the warning', async () => {
-    const run = launch('', { HOST: '0.0.0.0' }, { writeEnvFile: false });
+  test('the file is reported when it is not there', async () => {
+    const run = launch('', {}, { writeEnvFile: false });
     await waitFor(() => /Press Ctrl\+C/.test(run.out.text), { what: 'the banner' });
     assert.match(run.out.text, /Settings file: +.*\.env {2}\(NOT FOUND - copy \.env\.example to \.env\)/);
-    assert.match(run.out.text, /! HOST makes this server reachable from your network\. Anyone who can reach it can use your Google credentials\./);
     await run.stop();
   });
 
@@ -197,19 +189,6 @@ describe('running it: node app.js', () => {
     } finally {
       taken.close();
     }
-  });
-
-  test('the model service that can not start is reported in the [model] lines, the site stays up', async () => {
-    const run = launch('', { MODEL_SERVICE: 'auto', PYTHON: path.join(dir, 'no-such-python') });
-    await waitFor(() => /\[model\] unavailable: PYTHON is set to/.test(run.out.text), { what: 'the model line' });
-    assert.match(run.out.text, /\[model\] starting the model service/);
-    assert.match(run.out.text, /The site keeps working; the Design Studio uses its in-browser parser meanwhile\./);
-    const port = portOf(run.out.text);
-    const config = (await request(port, { path: '/api/config' })).json();
-    assert.equal(config.model.status, 'unavailable');
-    assert.match(config.model.error, /PYTHON is set to/);
-    assert.equal((await request(port, { path: '/api/health' })).status, 200);
-    await run.stop();
   });
 
   test('SIGTERM stops it cleanly as well', async () => {

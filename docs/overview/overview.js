@@ -245,7 +245,7 @@
         el('span', { class: 'live-when', id: 'live-when', 'aria-live': 'polite' }),
         live.button = el('button', { type: 'button', class: 'btn ghost', id: 'live-refresh', onclick: function () { checkLive(); } }, icon('refresh'), el('span', { class: 'lbl', text: 'Refresh' }))));
     var grid = el('div', { class: 'cells' });
-    [['server', 'Server'], ['google', 'Google'], ['model', 'Model service'], ['sam', 'SAM']].forEach(function (c) {
+    [['server', 'Server']].forEach(function (c) {
       var dot = el('span', { class: 'dot s-idle', 'aria-hidden': 'true' });
       var value = el('div', { class: 'cell-value', text: 'Not checked' });
       var detail = el('div', { class: 'cell-detail', text: '' });
@@ -265,7 +265,7 @@
     c.dot.parentNode.setAttribute('data-state', state);
   }
   function offline(reason) {
-    ['server', 'google', 'model', 'sam'].forEach(function (n) { setCell(n, 'idle', 'Not checked', ''); });
+    ['server'].forEach(function (n) { setCell(n, 'idle', 'Not checked', ''); });
     live.note.textContent = 'Offline view. ' + reason;
     $('#live').setAttribute('data-mode', 'offline');
     $('#live-when').textContent = '';
@@ -285,48 +285,18 @@
     live.busy = true;
     live.button.disabled = true;
     live.button.querySelector('.lbl').textContent = 'Checking';
-    Promise.all([
-      fetchJson('/api/health').catch(function (e) { return { __error: e }; }),
-      fetchJson('/api/config').catch(function (e) { return { __error: e }; })
-    ]).then(function (res) {
-      var health = res[0], config = res[1];
+    fetchJson('/api/health').catch(function (e) { return { __error: e }; }).then(function (health) {
       live.busy = false;
       live.button.disabled = false;
       live.button.querySelector('.lbl').textContent = 'Refresh';
-      if (health.__error && config.__error) {
+      if (health.__error) {
         offline('This page is served, but /api/health did not answer, so there is no live data. Is the website running?');
         return;
       }
       $('#live').setAttribute('data-mode', 'live');
       $('#live-when').textContent = 'Checked ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      var parts = [];
-      if (!health.__error) {
-        setCell('server', health.ok ? 'ok' : 'bad', health.ok ? 'Up' : 'Not healthy', health.version ? 'version ' + health.version : '');
-        var g = config.__error ? null : config.google;
-        var modeName = { vertex: 'Vertex AI', 'api-key': 'Gemini API key', none: 'no credentials' }[health.mode] || health.mode;
-        if (health.google) setCell('google', 'ok', 'Configured', modeName + (g && g.location ? ', ' + g.location : ''));
-        else setCell('google', 'warn', 'Not configured', g && g.error ? g.error.slice(0, 110) : 'Add credentials to .env to scan and render');
-        var m = health.model || (config.model) || null;
-        if (m) {
-          var ms = { ready: ['ok', 'Ready'], starting: ['warn', 'Starting'], unavailable: ['bad', 'Unavailable'], off: ['off', 'Off'] }[m.status] || ['warn', m.status];
-          setCell('model', ms[0], ms[1], 'mode ' + m.mode + (config.model && config.model.error ? ': ' + String(config.model.error).slice(0, 100) : ''));
-        } else setCell('model', 'idle', 'Unknown', 'This server does not report it');
-      } else {
-        setCell('server', 'bad', 'No answer', health.__error.message || '');
-      }
-      if (!config.__error) {
-        var sam = config.sam || {};
-        var st = String(sam.status || 'off');
-        var map = { ok: ['ok', 'Ready'], ready: ['ok', 'Ready'], loading: ['warn', 'Loading'], idle: ['warn', 'Starting'], off: ['off', 'Off (optional)'], unavailable: ['bad', 'Unavailable'], error: ['bad', 'Error'] };
-        var s = map[st] || ['warn', st];
-        var d = sam.model ? sam.model + (sam.backend ? ' (' + sam.backend + ')' : '') : (st === 'off' ? 'SAM_ENABLED=false' : '');
-        if (sam.error) d = String(sam.error).slice(0, 110);
-        setCell('sam', s[0], s[1], d);
-        var seg = config.segmentation;
-        parts.push(seg ? 'Engine ' + seg.engine + ', edges ' + (seg.edgeRefine ? seg.edgeMethod : 'off') + '.' : '');
-        if (config.warnings && config.warnings.length) parts.push(config.warnings.length + ' warning' + (config.warnings.length > 1 ? 's' : '') + ' from the settings; see the terminal.');
-      } else setCell('sam', 'idle', 'Unknown', '/api/config did not answer');
-      live.note.textContent = parts.filter(Boolean).join(' ') || 'Live data from this server (same origin). No secret is ever shown here.';
+      setCell('server', health.ok ? 'ok' : 'bad', health.ok ? 'Up' : 'Not healthy', health.version ? 'version ' + health.version : '');
+      live.note.textContent = 'Live data from this server (same origin). No secret is ever shown here.';
       announce('Live status updated');
     });
   }
@@ -388,7 +358,7 @@
           var b = svg('text', { class: 'sub', x: n.x + 12, y: n.y + n.h / 2 + 13 }); b.textContent = n.sub;
           g.appendChild(b); defer(b, n.w - 24);
         }
-        if (n.optional) { var o = svg('text', { class: 'opt', x: n.x + n.w - 10, y: n.y + 12, 'text-anchor': 'end' }); o.textContent = 'optional'; g.appendChild(o); }
+        if (n.optional && n.w >= 170) { var o = svg('text', { class: 'opt', x: n.x + n.w - 10, y: n.y + 12, 'text-anchor': 'end' }); o.textContent = 'optional'; g.appendChild(o); } /* a narrower box has no room for the word; its dashed outline says it */
       }
       (n.container ? layerContainers : layerNodes).appendChild(g);
       nodeEls[n.id] = g;
@@ -515,7 +485,7 @@
   function renderArchitecture() {
     var host = clear($('#architecture-body'));
     var a = DATA.architecture;
-    host.appendChild(el('p', { class: 'sec-lede' }, rich('Browser, Express, and the Python model service, with the files and settings behind each part. Hover or focus a part to see what it talks to; click it, or press Enter, to open a side panel with its files, responsibilities and variables. Dashed outlines are optional.')));
+    host.appendChild(el('p', { class: 'sec-lede' }, rich('The browser, the Express website with the Design Studio mounted in it, and the services around the studio, with the files and settings behind each part. Hover or focus a part to see what it talks to; click it, or press Enter, to open a side panel with its files, responsibilities and variables. Dashed outlines are optional.')));
     var wrap = el('div', { class: 'arch' });
     var scroll = el('div', { class: 'dg-scroll', tabindex: '-1' });
     var panel = el('aside', { class: 'panel', id: 'node-panel', role: 'complementary', 'aria-label': 'Part details', tabindex: '-1' });
@@ -796,9 +766,11 @@
     api.routes.forEach(function (r) { r.guards.forEach(function (g) { if (guards.indexOf(g) < 0) guards.push(g); }); });
 
     var bar = el('div', { class: 'toolbar', role: 'search' });
-    var search = el('input', { type: 'search', id: 'api-search', class: 'input', placeholder: 'Filter routes, e.g. segment, SAM, 503', 'aria-label': 'Filter routes' });
+    var search = el('input', { type: 'search', id: 'api-search', class: 'input', placeholder: 'Filter routes, e.g. warmup, health, 404', 'aria-label': 'Filter routes' });
     bar.appendChild(el('label', { class: 'field grow' }, el('span', { class: 'sr-only', text: 'Filter routes' }), search));
-    bar.appendChild(segmented('Owner', 'api-owner', [['all', 'All'], ['JS', 'Express (JS)'], ['Python', 'Python']], function (v) { q.owner = v; apply2(); }));
+    // an owner is offered only when some route has it (today every route is Express's)
+    var owners = [['all', 'All'], ['JS', 'Express (JS)']].concat(api.routes.some(function (r) { return r.owner === 'Python'; }) ? [['Python', 'Python']] : []);
+    bar.appendChild(segmented('Owner', 'api-owner', owners, function (v) { q.owner = v; apply2(); }));
     bar.appendChild(segmented('Method', 'api-method', [['all', 'Any'], ['GET', 'GET'], ['POST', 'POST']], function (v) { q.method = v; apply2(); }));
     var gsel = el('select', { id: 'api-guard', class: 'input select', 'aria-label': 'Guard' }, el('option', { value: 'all', text: 'Any guard' }), guards.map(function (g) { return el('option', { value: g, text: g }); }));
     gsel.addEventListener('change', function () { q.guard = gsel.value; apply2(); });
@@ -822,7 +794,7 @@
       groupEls.push({ sec: sec, rows: rowsEls });
     });
     host.appendChild(el('details', { class: 'errshape' }, el('summary', { text: 'The error shape' }),
-      el('p', { class: 'small' }, rich('Every JSON error, from Express and from the Python service, looks like this. `status` is a Google-style name; `message` is written for a person.')),
+      el('p', { class: 'small' }, rich('Every JSON error from the website\'s own API looks like this. `status` is a Google-style name; `message` is written for a person. (The Design Studio\'s own API, behind its passcode, answers with its own `{error: "..."}`.)')),
       el('pre', { class: 'code' }, el('code', { text: api.errorShape || '' }))));
 
     search.addEventListener('input', function () { q.text = search.value.trim().toLowerCase(); apply2(); });
@@ -941,9 +913,11 @@
 
     var q = { text: '', reader: 'all', secret: false };
     var bar = el('div', { class: 'toolbar', role: 'search' });
-    var search = el('input', { type: 'search', id: 'env-search', class: 'input', placeholder: 'Search variables, e.g. SAM, key, port', 'aria-label': 'Search variables' });
+    var search = el('input', { type: 'search', id: 'env-search', class: 'input', placeholder: 'Search variables, e.g. port, studio, host', 'aria-label': 'Search variables' });
     bar.appendChild(el('label', { class: 'field grow' }, el('span', { class: 'sr-only', text: 'Search variables' }), search));
-    bar.appendChild(segmented('Read by', 'env-reader', [['all', 'All'], ['Node', 'Node'], ['Python', 'Python'], ['both', 'Both']], function (v) { q.reader = v; run(); }));
+    // a reader is offered only when some variable has it (today Node reads them all)
+    var readers = [['all', 'All'], ['Node', 'Node']].concat(['Python', 'both'].filter(function (r) { return env.vars.some(function (v) { return v.readBy === r; }); }).map(function (r) { return [r, r === 'both' ? 'Both' : r]; }));
+    bar.appendChild(segmented('Read by', 'env-reader', readers, function (v) { q.reader = v; run(); }));
     var sec = el('label', { class: 'check' }, el('input', { type: 'checkbox', id: 'env-secret' }), el('span', { text: 'Secrets only' }));
     bar.appendChild(sec);
     host.appendChild(bar);
@@ -1337,18 +1311,21 @@
       })));
     host.appendChild(el('div', { class: 'table-scroll' }, table));
 
-    var seam = el('div', { class: 'block seam' }, el('h3', { text: b.seam.title }), el('ul', { class: 'bullets' }, b.seam.points.map(function (p) { return el('li', null, rich(p)); })));
-    host.appendChild(seam);
+    if (b.seam && b.seam.points && b.seam.points.length) {
+      host.appendChild(el('div', { class: 'block seam' }, el('h3', { text: b.seam.title }), el('ul', { class: 'bullets' }, b.seam.points.map(function (p) { return el('li', null, rich(p)); }))));
+    }
 
-    var ft = el('div', { class: 'finetune' });
-    ft.appendChild(el('h3', { text: 'Where fine-tuning plugs into model/' }));
-    ft.appendChild(el('p', { class: 'muted', text: b.finetuning_intro }));
-    ft.appendChild(el('ol', { class: 'plug' }, b.finetuning.map(function (p, i) {
-      return el('li', null, el('span', { class: 'pn', 'aria-hidden': 'true', text: String(i + 1) }), el('div', null,
-        el('b', { text: p.title }), el('p', { class: 'small', text: p.text }),
-        el('button', { type: 'button', class: 'linkish mono small', onclick: function () { revealPath(p.file); } }, p.file), p.fn ? el('code', { class: 'fn', text: p.fn }) : null));
-    })));
-    host.appendChild(ft);
+    if (b.finetuning && b.finetuning.length) {
+      var ft = el('div', { class: 'finetune' });
+      ft.appendChild(el('h3', { text: 'Where fine-tuning plugs into model/' }));
+      ft.appendChild(el('p', { class: 'muted', text: b.finetuning_intro }));
+      ft.appendChild(el('ol', { class: 'plug' }, b.finetuning.map(function (p, i) {
+        return el('li', null, el('span', { class: 'pn', 'aria-hidden': 'true', text: String(i + 1) }), el('div', null,
+          el('b', { text: p.title }), el('p', { class: 'small', text: p.text }),
+          el('button', { type: 'button', class: 'linkish mono small', onclick: function () { revealPath(p.file); } }, p.file), p.fn ? el('code', { class: 'fn', text: p.fn }) : null));
+      })));
+      host.appendChild(ft);
+    }
   }
 
   /* ------------------------------------------------------------------------------------------------ section: tests */
