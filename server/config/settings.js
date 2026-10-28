@@ -1,7 +1,7 @@
 /**
  * Settings, read from .env (and the real environment, which wins): where the server listens, which Host names it
  * answers to, and whether the website wakes the Design Studio's GPU services early. Nothing in here is a secret. The
- * Design Studio's own settings (database, Google key, GPU services, passcode) are in swatchroom/.env.
+ * Design Studio's own settings (database, Google key, GPU services) are in swatchroom/.env.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -29,6 +29,9 @@ function int(value, fallback, lo, hi) {
   return Math.max(lo, Math.min(hi, Math.trunc(Number(text))));
 }
 
+/** Requests per visitor per hour. The per-address limit is `perAddress` times these (a shared address: an office, a phone network). */
+export const LIMIT_DEFAULTS = { ai: 60, vision: 60, pipeline: 40, check: 10, rooms: 600, perAddress: 4 };
+
 /** Plain objects with the defaults; loadSettings fills them in. */
 function emptySettings(envPath) {
   return {
@@ -37,7 +40,16 @@ function emptySettings(envPath) {
     host: '127.0.0.1',
     port: 8080,
     allowedHosts: [],
-    studio: { warmup: true }, // wake the studio's GPU services as soon as the landing page opens
+    // trust proxy: how many proxies sit in front (Render: 1), as in the studio's own TRUST_PROXY. Used for the visitor's address
+    // (rate limits) and for "is this HTTPS" (HSTS, secure cookies).
+    trustProxy: 'loopback',
+    studio: {
+      warmup: true, // wake the studio's GPU services as soon as the landing page opens
+      requirePasscode: false, // ask for swatchroom's STUDIO_PASSCODE (it is switched off here by default)
+      limits: { ...LIMIT_DEFAULTS }, // requests per visitor per hour, per route group (server/lib/studioShield.js)
+    },
+    // PostHog for every page. Blank key: the studio's own POSTHOG_KEY (swatchroom/.env) is used, so both land in one project.
+    analytics: { key: '', host: '', replay: true, onLocalhost: false },
     warnings: [],
   };
 }
@@ -62,6 +74,24 @@ export function loadSettings(envPath, environ, root = ROOT) {
 
   // --- Design Studio
   s.studio.warmup = flag(get('STUDIO_WARMUP'), true);
+  s.studio.requirePasscode = flag(get('STUDIO_REQUIRE_PASSCODE'), false);
+  for (const [name, key] of [['AI', 'ai'], ['VISION', 'vision'], ['PIPELINE', 'pipeline'], ['CHECK', 'check'], ['ROOMS', 'rooms'], ['ADDRESS_FACTOR', 'perAddress']]) {
+    s.studio.limits[key] = int(get(`STUDIO_LIMIT_${name}`), LIMIT_DEFAULTS[key], 1, 1000000);
+  }
+
+  // --- behind a proxy
+  const proxy = get('TRUST_PROXY', 'loopback') || 'loopback';
+  s.trustProxy = /^\d+$/.test(proxy) ? Number(proxy) : proxy;
+
+  // --- analytics (PostHog)
+  const key = get('POSTHOG_KEY');
+  const host = get('POSTHOG_HOST', 'https://us.i.posthog.com') || 'https://us.i.posthog.com';
+  if (key && !/^phc_[A-Za-z0-9]{20,}$/.test(key)) s.warnings.push('POSTHOG_KEY does not look like a PostHog project key (phc_...): analytics stays off.');
+  else s.analytics.key = key;
+  if (/^https:\/\/[A-Za-z0-9.-]+(:\d+)?$/.test(host)) s.analytics.host = host;
+  else s.warnings.push('POSTHOG_HOST must look like https://us.i.posthog.com: analytics stays off.');
+  s.analytics.replay = flag(get('POSTHOG_REPLAY'), true);
+  s.analytics.onLocalhost = flag(get('POSTHOG_ON_LOCALHOST'), false);
   return s;
 }
 
@@ -71,6 +101,9 @@ export function describe(settings) {
     settings.studio.warmup
       ? 'Cold start: the landing page and the studio page wake the studio\'s GPU services (STUDIO_WARMUP=off to stop)'
       : 'Cold start: the studio wakes its GPU services only when a photo is scanned (STUDIO_WARMUP=off)',
+    settings.studio.requirePasscode
+      ? 'Studio passcode: ON (STUDIO_REQUIRE_PASSCODE=on, the passcode is STUDIO_PASSCODE in swatchroom/.env)'
+      : 'Studio passcode: off - the studio is open; each browser only sees its own rooms and every visitor is rate limited (README, "Keeping the open studio safe")',
   ];
 }
 

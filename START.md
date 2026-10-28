@@ -46,7 +46,7 @@ npm run build:site   # rebuild pages/ from pages_original/ and site/patches/
 npm test             # site build check, link check, overview check, JS tests
 npm test -- --e2e    # plus browser tests (needs Chrome; once: cd tests/e2e && npm install)
 
-# try it with no credentials (mock GPU services, no database, passcode "letmein")
+# try it with no credentials (mock GPU services, no database, studio passcode "letmein" switched on for the test)
 node tests/dev/stack.mjs --port 8765 --passcode letmein
 ```
 

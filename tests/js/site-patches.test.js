@@ -427,6 +427,6 @@ test('makeContext defaults: link style from site.json, overridable', () => {
 test('the snippets are plain JavaScript that parses on its own (as a module)', () => {
   const dir = path.join(ROOT, 'site', 'patches', 'snippets');
   const files = fs.readdirSync(dir).filter((f) => f.endsWith('.js'));
-  assert.deepEqual(files.sort(), ['warmup.js']);
+  assert.deepEqual(files.sort(), ['analytics.js', 'warmup.js']);
   for (const f of files) checkSyntax(fs.readFileSync(path.join(dir, f), 'utf8'), f.replace(/\.js$/, '.mjs'), `[${f}] `);
 });

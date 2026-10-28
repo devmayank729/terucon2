@@ -36,7 +36,7 @@ alone.stderr.on('data', (d) => (aloneLog += d));
 
 // mounted
 const { createApp } = await import('../../app.js');
-const app = createApp({ root: project.root, environ: {}, swatchroom: true, log: { info() {}, warn() {}, error() {}, raw() {} } });
+const app = createApp({ root: project.root, environ: { STUDIO_REQUIRE_PASSCODE: 'on' }, swatchroom: true, log: { info() {}, warn() {}, error() {}, raw() {} } });
 const server = http.createServer(app);
 await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 const mountedPort = server.address().port;
@@ -54,7 +54,8 @@ test.after(async () => {
   project.remove();
 });
 
-const IGNORE = new Set(['date', 'set-cookie', 'connection', 'keep-alive']);
+// the anti-framing and HTTPS headers are the website's (server/middleware/headers.js); the studio on its own sends none
+const IGNORE = new Set(['date', 'set-cookie', 'connection', 'keep-alive', 'x-frame-options', 'content-security-policy', 'strict-transport-security']);
 const normal = (r) => ({
   status: r.status,
   headers: Object.fromEntries(Object.entries(r.headers).filter(([k]) => !IGNORE.has(k)).sort(([a], [b]) => a.localeCompare(b))),

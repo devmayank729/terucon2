@@ -6,8 +6,8 @@
  * are usually up before a photo is scanned. The swatchroom does the work (server/lib/swatchroom.js) and skips services that
  * are warm or already starting, so repeated calls cost nothing. It answers at once, with how many services it started.
  *
- * This route is the website's own, not the studio's: the studio's /api/* routes sit behind its passcode, and a visitor who
- * has not signed in yet is exactly who should get the wake-up. STUDIO_WARMUP=off switches it off (a wake-up bills a GPU
+ * This route is the website's own, not the studio's: the studio's /api/* routes belong to the studio (and, with its passcode
+ * on, sit behind it), and a visitor who has not signed in yet is exactly who should get the wake-up. STUDIO_WARMUP=off switches it off (a wake-up bills a GPU
  * for a visitor who may never upload a photo).
  */
 import express from 'express';

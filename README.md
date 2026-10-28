@@ -26,7 +26,7 @@ Landing page  /
   │  hero: [Start a project]  [Try it with your photo →]  [See the work]      (all of it also on a phone)
   │  the moment it opens, the website wakes the studio's GPU services (section "Cold start")
   │
-  ├─► Design Studio  /design-studio   splash → (passcode) → add a room photo → tap a surface → pick a finish → render
+  ├─► Design Studio  /design-studio   splash → add a room photo → tap a surface → pick a finish → render
   │       header, menu and footer lead on to: Materials · My project · Start a project (/#enquire) · the logo (/)
   ├─► Materials  /materials            shop, saved, cart, checkout (a demo)  ─ and on to the Design Studio, My project, home
   ├─► My project  /my-project          the client dashboard (a prototype)    ─ and on to Materials, the Design Studio, home
@@ -47,7 +47,7 @@ cp .env.example .env             # optional: the website's own settings (port, .
 npm start                        # builds any missing page, then serves http://localhost:8080
 ```
 
-The Design Studio reads **its own** settings file, `swatchroom/.env` (copy `swatchroom/.env.example`): the database, the Google key, the GPU services and the studio passcode are there. The website's `.env` only holds where it listens and `STUDIO_WARMUP`.
+The Design Studio reads **its own** settings file, `swatchroom/.env` (copy `swatchroom/.env.example`): the database, the Google key and the GPU services are there. The website's `.env` only holds where it listens and `STUDIO_WARMUP`.
 
 The banner in the terminal says what is running:
 
@@ -88,9 +88,31 @@ Open the pages through the server, not by double-clicking them: the links betwee
 | A Google service-account key with Vertex AI (`GOOGLE_APPLICATION_CREDENTIALS`, key in `swatchroom/keys/`) | the renders and Gemini's outlines | the studio shows "AI off" |
 | The Modal GPU services (`ONEFORMER_URL`, `ANALYZE_URL`, ... and their keys) | the HD scan and the room analysis | the scan runs on the local model only; the room analysis is mocked |
 | The local scan models (Python, below) | the local scan, the Pick tool | scans use Gemini outlines only; the Pick tool does not work |
-| `STUDIO_PASSCODE` | keeping the studio (and your Google bill) closed | anyone who can open the page can use the studio |
+| `STUDIO_REQUIRE_PASSCODE=on` + `STUDIO_PASSCODE` | closing the studio behind a passcode (off by default) | nobody is asked for a passcode; the protections in "Keeping the open studio safe" apply instead |
 
-**The passcode.** With `STUDIO_PASSCODE` set, a first-time visitor meets a "Sign in to the studio" screen after the splash. The landing page invites everybody to "Try it with your photo", so decide on purpose: share the passcode with the people who should use it, or leave `STUDIO_PASSCODE` out of `swatchroom/.env` to open the studio to everyone (anyone can then spend your Google project and Modal GPUs).
+**The passcode is off.** Visitors from the landing page's "Try it with your photo" go straight into the studio. The website switches the studio's own `STUDIO_PASSCODE` (in `swatchroom/.env` or the environment) off before the studio reads its settings, so a passcode left in that file does nothing. To bring it back, set `STUDIO_REQUIRE_PASSCODE=on` in the website's `.env` (and keep `STUDIO_PASSCODE` in `swatchroom/.env`) and restart; the protections below are then not used.
+
+### Keeping the open studio safe
+
+With no passcode, nothing but the website's own checks stands between a stranger and the studio's costs and data. The studio itself keeps every visitor's rooms in one pile and has no rate limit, so `server/lib/studioShield.js` (in the website, in front of the studio; nothing in `swatchroom/` is changed) adds:
+
+- **Rooms belong to the browser that made them.** Each browser gets a private random id in an HttpOnly cookie (`terucon_owner`). The room list shows only your rooms; opening, changing or deleting someone else's room gets the studio's own "That room is not saved here.", so a stranger cannot tell a room exists. The owners are kept in a separate MongoDB collection, `room_owners`; the studio's rooms and photos are not touched. **Rooms saved before this was switched on have no owner and are hidden from everybody** (they are still in the database). A visitor who clears cookies or changes device no longer sees their rooms: rooms are tied to the browser, not to a person.
+- **Rate limits** per browser, per hour, on the routes that cost money or write data: Gemini (60), scans (60), room analysis (40), Settings > Check (10), room saves (600). One network address gets 4 times a browser's allowance, so clearing cookies does not give a new one. A visitor over the limit sees "Please wait a few minutes and try again" (HTTP 429). **These numbers are starting values chosen when this was built, not measured**: change them with `STUDIO_LIMIT_*` (`.env.example`, section 3) if real visitors reach them. They are kept in memory, so a restart clears them and two server instances would not share them.
+- **Behind a proxy (Render) set `TRUST_PROXY=1`** (`render.yaml` does). Without it the site sees the proxy's address for everyone, so the per-address limit is one shared bucket and HTTPS cannot be detected.
+- **Headers**: no other site can show the pages in a frame (`X-Frame-Options`, `frame-ancestors`), and HTTPS responses carry HSTS. There is deliberately no stricter Content-Security-Policy: the pages are Claude Design bundles built from inline scripts, which one would break.
+- At start the banner warns when `/admin` still has its built-in password (`ADMIN_PASSWORD`) or `SESSION_SECRET` is unset.
+
+What this does **not** do: it does not stop one determined person with many addresses from using up Google or GPU spend (put a spending limit on the Google and Modal side), and the room-analysis job routes identify a job or a room by an unguessable id, not by owner.
+
+### Analytics (PostHog)
+
+Every page (home, Materials, Design Studio, My project, Coming soon) and the studio itself send events to PostHog once there is a project key: `POSTHOG_KEY` in the website's `.env`, or, left blank, the studio's own `POSTHOG_KEY` in `swatchroom/.env`, so the pages and the studio land in one project. Each page's script (`site/patches/snippets/analytics.js`) asks `GET /api/analytics` for the key, so no key is written into the pages.
+
+- **Recorded**: page views and leaves, a `cta_click` for every link and button (its words and where it goes; on My project only where it goes), a `form_submit` for every form (never what was typed), page speed, script errors, and the studio's own events. Every event carries `page_type` (home, materials, studio, dashboard, coming-soon) and `visitor_id` (the studio's `swr_vid`, which is also what the studio's server events use, so browser and server events can be joined).
+- **Session replay** (`POSTHOG_REPLAY`, default on) masks every letter and every field and blocks photos, canvases and videos, so a room photo is never recorded. It also has to be switched on in the PostHog project. You may need a cookie notice for it; that is your decision, not something the site shows.
+- A browser that sends Do Not Track or Global Privacy Control is not recorded.
+- **Nothing is sent when the site is opened as `localhost`**, so your own test clicks do not fill the real project. `POSTHOG_ON_LOCALHOST=on` lifts that. The `/admin` page and the project overview are not tracked.
+- The studio's server-side events (`generation`, `generation_failed`) were already sent by the studio itself; they keep working.
 
 **The owner's dashboard** is `/admin` (its own sign-in: `ADMIN_EMAIL` / `ADMIN_PASSWORD` in `swatchroom/.env`; when they are unset the studio uses `admin@terucon.in` / `admin@123`, so set them before the site is online). It shows who is live, the generations and scans, the status of every service and the cold start of each GPU service.
 
@@ -102,7 +124,7 @@ The studio's GPU services (on Modal) scale to zero when nobody uses them, and a 
 2. The server starts the **scan** service (OneFormer) and the **room-analysis** service(s) using the studio's own wake-up code, so the studio's record of what is warm is the one the start-up check reads. A service that is already warm or already starting is skipped, so repeat visits cost nothing.
 3. It answers at once; the wake-up goes on in the server whether or not the visitor stays. The studio's start-up check then finds the services starting ("waking") or warm, and the scan uses them.
 
-This route is the website's own, not behind the studio's passcode, so a visitor who has not signed in yet wakes the services too.
+This route is the website's own, so any visitor wakes the services.
 
 **What it costs.** A started service is billed until it has been idle for about five minutes (`SCALEDOWN_S` in `swatchroom/modalBlueprint.py`), even for a visitor who never uploads a photo. The studio's authors left this out of their own design for that reason (`swatchroom/DEPLOY.md`, "Nothing wakes a GPU because a page opened"); here it is on purpose. Bots and crawlers that run the page's script count as visitors, and because the route has to work for people who have not signed in, anyone who calls it every few minutes can keep the services awake: what it costs is bounded by the services' idle time, not by how often it is called, and it needs a spending limit on the Modal side to be capped. `STUDIO_WARMUP=off` in `.env` restores the studio's own behaviour (wake on scan) without any other change.
 
@@ -183,7 +205,9 @@ The browser tests need their one dependency once: `cd tests/e2e && npm install`.
 | "Could not start on port 8080" | Change `PORT` in `.env`. |
 | `Cannot find module 'mongoose'` (or another package) | `npm install` in the project folder: the Design Studio's packages are installed with the website's. |
 | The banner says `Studio settings: … NOT FOUND` | Copy `swatchroom/.env.example` to `swatchroom/.env` and fill it in. |
-| `/design-studio` asks for a passcode | `STUDIO_PASSCODE` is set in `swatchroom/.env` (see "The passcode" above). |
+| `/design-studio` asks for a passcode | `STUDIO_REQUIRE_PASSCODE=on` is set (see "The passcode is off" above). |
+| A visitor says their saved rooms are gone | Rooms belong to the browser that made them ("Keeping the open studio safe"): a new browser, device or cleared cookies means a new, empty list. Rooms from before the shield have no owner and are hidden. |
+| Visitors get "Please wait a few minutes" | They reached a `STUDIO_LIMIT_*`. Raise it in `.env`; behind a proxy check `TRUST_PROXY` so visitors are not counted as one address. |
 | The studio says **AI off** | No Google key: `GOOGLE_APPLICATION_CREDENTIALS` (or `GOOGLE_SERVICE_ACCOUNT_JSON`) in `swatchroom/.env`. Settings → Check in the studio says what is missing. |
 | The terminal says `MongoDB is not reachable … Retrying` | `MONGODB_URI` in `swatchroom/.env`. With Atlas, allow this machine's address under Network Access. The studio opens meanwhile but cannot save rooms. |
 | `studio  Scan model service at http://127.0.0.1:8001: it is not running` | Start the local models: "The scan models" above. |

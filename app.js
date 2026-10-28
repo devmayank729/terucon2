@@ -17,6 +17,8 @@ import { loadSwatchroom } from './server/lib/swatchroom.js';
 import { errorHandler, notFound } from './server/middleware/errorHandler.js';
 import { guards } from './server/middleware/guards.js';
 import { securityHeaders } from './server/middleware/headers.js';
+import { studioShield } from './server/lib/studioShield.js';
+import { mountAnalytics } from './server/routes/analytics.js';
 import { createApiRegistry, mountApi } from './server/routes/api.js';
 import { mountDocs } from './server/routes/docs.js';
 import { mountMedia } from './server/routes/media.js';
@@ -47,7 +49,7 @@ function resolveEnvFile(envPath, environ, root) {
  * @param {Record<string, string>} [options.environ]
  * @param {{info: Function, warn: Function, error: Function, raw: Function}} [options.log]
  * @param {boolean | {dir?: string}} [options.swatchroom] mount the Design Studio: true for <root>/swatchroom, or {dir}
- * @returns {import('express').Express} with `app.locals.terucon = {settings(), site, studio, studioDir, close()}`
+ * @returns {import('express').Express} with `app.locals.terucon = {settings(), site, studio, studioDir, requirePasscode, close()}`
  */
 export function createApp({ root = ROOT, envPath, environ, log = createLogger(), swatchroom = false } = {}) {
   root = path.resolve(root);
@@ -58,7 +60,10 @@ export function createApp({ root = ROOT, envPath, environ, log = createLogger(),
   const manager = new SettingsManager(envFile, environ, root);
   const site = SiteMap.load(root);
   const studioDir = path.resolve(root, (typeof swatchroom === 'object' && swatchroom.dir) || 'swatchroom');
-  const studio = swatchroom ? loadSwatchroom({ dir: studioDir, log }) : null;
+  // The studio's passcode is off unless STUDIO_REQUIRE_PASSCODE=on; with it off, studioShield (below) stands in front of the studio.
+  // Decided once, here: the studio reads its settings only when it is loaded.
+  const requirePasscode = manager.get().studio.requirePasscode;
+  const studio = swatchroom ? loadSwatchroom({ dir: studioDir, log, requirePasscode }) : null;
 
   const ctx = {
     root,
@@ -71,6 +76,7 @@ export function createApp({ root = ROOT, envPath, environ, log = createLogger(),
 
   const app = express();
   app.disable('x-powered-by');
+  app.set('trust proxy', manager.get().trustProxy);
   // sendFile reads its ETag switch from this setting. A function that makes no tag keeps JSON answers from being hashed
   // for nothing, while files still get validators.
   app.set('etag', () => undefined);
@@ -84,18 +90,34 @@ export function createApp({ root = ROOT, envPath, environ, log = createLogger(),
   mountMedia(app, ctx);
   ctx.api = createApiRegistry(app, (apiPath) => studio?.ownsApi(apiPath) ?? false);
   mountApi(app, ctx);
+  mountAnalytics(app, ctx);
   mountStudioRoutes(app, ctx);
   // The website's own /api answers its own misses (404 / 405 in its error shape); the studio's /api paths pass on to it.
   ctx.api.fallback();
-  // The Design Studio: its /api/* (behind its own passcode), /js, /css, /fonts, /textures, /admin. After the pages and the
+  // The Design Studio: its /api/* (behind studioShield, or its own passcode when STUDIO_REQUIRE_PASSCODE=on), /js, /css, /fonts, /textures, /admin. After the pages and the
   // website's own API, so "/" and every route above stay the website's; before the Coming soon page, so its misses are
   // answered by the studio.
+  let shield = null;
+  if (studio && !requirePasscode) {
+    shield = studioShield({ store: studio.roomStore(), limits: () => ctx.settings().studio.limits, log });
+    app.use(shield);
+  }
   if (studio) app.use(studio.app);
   app.use(comingSoon(ctx));
   app.use(notFound);
   app.use(errorHandler(ctx));
 
-  app.locals.terucon = { settings: ctx.settings, site, studio, studioDir, close: async () => studio?.close() };
+  app.locals.terucon = {
+    settings: ctx.settings,
+    site,
+    studio,
+    studioDir,
+    requirePasscode,
+    close: async () => {
+      shield?.close();
+      await studio?.close();
+    },
+  };
   return app;
 }
 
@@ -157,6 +179,7 @@ function printBanner({ app, port }) {
   }
   for (const line of describe(s)) lines.push('  ' + line);
   for (const warning of s.warnings) lines.push('  ! ' + warning);
+  for (const warning of studio?.securityWarnings() ?? []) lines.push('  ! ' + warning);
   lines.push('  Press Ctrl+C to stop.', '');
   console.log(lines.join('\n'));
 }

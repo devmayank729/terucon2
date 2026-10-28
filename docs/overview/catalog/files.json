@@ -395,7 +395,7 @@
       "tags": [
         "Edit"
       ],
-      "desc": "nosniff and no-referrer on every response."
+      "desc": "nosniff and no-referrer on every response, plus anti-framing (X-Frame-Options, frame-ancestors) and HSTS on HTTPS."
     },
     {
       "match": "server/routes/pages.js",
@@ -951,6 +951,86 @@
         "Dev"
       ],
       "desc": "What git commits and Docker copies, from the outside: nothing in swatchroom/ is ignored except its secrets and caches (an unanchored models/ rule once hid its Mongoose models), secrets are ignored, and the image leaves them out."
+    },
+    {
+      "match": "server/lib/studioShield.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "In front of the studio's API when its passcode is off: each browser (an HttpOnly cookie) can only list, open and delete rooms it made; the costly routes (Gemini, scans, room analysis, room saves) are rate limited per browser and per address."
+    },
+    {
+      "match": "server/lib/roomOwners.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Who made each saved room: a separate MongoDB collection (room_owners) made through the studio's own connection. The studio's rooms and files are never changed."
+    },
+    {
+      "match": "server/lib/rateLimit.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "A small sliding-window counter (per key, per hour) used by the studio shield; in memory."
+    },
+    {
+      "match": "server/routes/analytics.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "GET /api/analytics: the PostHog key and host for the pages (the website's POSTHOG_KEY, else the studio's), or {enabled: false}."
+    },
+    {
+      "match": "site/patches/snippets/analytics.js",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Code every page patch inserts (the Coming soon page carries a copy): loads PostHog, records page views, clicks and forms, masks all text and blocks photos in session replay, and leaves Do Not Track browsers alone."
+    },
+    {
+      "match": "tests/js/server-shield.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The studio shield with an in-memory room store: rooms are private per browser, the limits and their messages, nothing else is touched."
+    },
+    {
+      "match": "tests/js/server-analytics.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "/api/analytics, its key and host rules, the localhost rule, and that every page carries the one snippet and no key."
+    },
+    {
+      "match": "tests/js/server-studio-open.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The website with the studio mounted and the passcode off: the studio's own passcode setting is ignored, the owner cookie, the anti-framing headers and the limits."
+    },
+    {
+      "match": "START.md",
+      "owner": "docs",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Quick start commands (the full guide is docs/HOW_TO_RUN.md, the full reference README.md)."
+    },
+    {
+      "match": "WORK_REPORT.md",
+      "owner": "docs",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "A written account of the Terucon + Swatchroom merge: what was done, how long it took and why."
     }
   ]
 }

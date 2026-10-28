@@ -42,6 +42,13 @@
       "why": "retarget the hidden media pill (no dead link left in the page)",
       "anchor": "<a href=\"Materials%20Media%20Brief.dc.html\"",
       "with": "<a href=\"#\""
+    },
+    {
+      "id": "analytics",
+      "op": "insertBefore",
+      "why": "PostHog analytics: page views, clicks and forms, and (studio page) the studio's own events, which its browser code sends to window.posthog but its server never gives a key for. The script asks GET /api/analytics, so no key is in the page",
+      "anchor": "</helmet>",
+      "insert": ["<script>", {"file": "snippets/analytics.js", "chomp": true}, "</script>\n"]
     }
   ]
 }

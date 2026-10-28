@@ -42,8 +42,13 @@ services:
           type: web
           name: terucon-models
           envVarKey: MODEL_SERVICE_KEY
+      # The studio has no passcode: the website switches STUDIO_PASSCODE off, and server/lib/studioShield.js gives each browser only
+      # its own rooms and rate limits the costly routes (README, "Keeping the open studio safe"). Set this to "on" (and STUDIO_PASSCODE
+      # below) to keep a passcode instead.
+      - key: STUDIO_REQUIRE_PASSCODE
+        value: "off"
       - key: STUDIO_PASSCODE
-        sync: false # set this before sharing the URL: without it anyone can use (and spend) the Google project
+        sync: false # only used when STUDIO_REQUIRE_PASSCODE is "on"
       - key: SESSION_SECRET
         generateValue: true
       - key: SECURE_COOKIES
@@ -56,11 +61,14 @@ services:
         sync: false
       - key: ADMIN_PASSWORD
         sync: false
-      # PostHog analytics - leave POSTHOG_KEY blank to disable analytics entirely.
+      # PostHog analytics for every page and the studio - leave POSTHOG_KEY blank to disable analytics entirely.
       - key: POSTHOG_KEY
         sync: false
       - key: POSTHOG_HOST
         value: https://us.i.posthog.com
+      # Session replay on every page, all text and fields masked and photos blocked. Also switch replay on in the PostHog project.
+      - key: POSTHOG_REPLAY
+        value: "on"
       # The Modal GPU pools (swatchroom/modalBlueprint.py) - optional. Without ONEFORMER_URL the scan runs on the local
       # model only; without ANALYZE_URL the pipeline uses the three separate URLs below.
       - key: ONEFORMER_URL

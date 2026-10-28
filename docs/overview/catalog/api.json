@@ -16,7 +16,12 @@
     {
       "id": "studio",
       "title": "The Design Studio",
-      "blurb": "What the website adds for the studio. The studio's own API (/api/session, /api/rooms, /api/vision, /api/pipeline, /api/ai, /api/admin) is its own, behind its passcode: see swatchroom/README.md."
+      "blurb": "What the website adds for the studio. The studio's own API (/api/session, /api/rooms, /api/vision, /api/pipeline, /api/ai, /api/admin) is its own: see swatchroom/README.md. With STUDIO_REQUIRE_PASSCODE off (the default) it has no passcode; server/lib/studioShield.js gives each browser only its own rooms and rate limits the costly routes."
+    },
+    {
+      "id": "analytics",
+      "title": "Analytics",
+      "blurb": "Where a page sends its PostHog events. Never a secret: the key is a write-only project key."
     }
   ],
   "routes": [
@@ -189,6 +194,26 @@
         }
       ],
       "curl": "curl -s -X POST -H 'Content-Type: application/json' -d '{\"from\":\"landing\"}' http://localhost:8080/api/studio/warmup"
+    },
+    {
+      "method": "GET",
+      "path": "/api/analytics",
+      "owner": "JS",
+      "group": "analytics",
+      "guards": [
+        "Host"
+      ],
+      "tryIt": true,
+      "summary": "Tells a page where to send its PostHog events. Every page asks once (site/patches/snippets/analytics.js), so no key is written into the pages.",
+      "request": "No body.",
+      "response": "{enabled: false} with no key, a malformed key or host, or when the site is opened as localhost. Otherwise {enabled: true, key, host, replay}.",
+      "errors": [
+        {
+          "status": 421,
+          "when": "Unexpected Host header"
+        }
+      ],
+      "curl": "curl -s http://localhost:8080/api/analytics"
     }
   ]
 }

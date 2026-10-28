@@ -14,6 +14,13 @@
       "why": "My design: name the Design Studio link in plain words (the export says \"for advanced users\", which puts non-technical visitors off the one tool made for them)",
       "anchor": ">Open the full design studio (for advanced users)</a>",
       "with": ">Open the Design Studio</a>"
+    },
+    {
+      "id": "analytics",
+      "op": "insertBefore",
+      "why": "PostHog analytics: page views, clicks and forms, and (studio page) the studio's own events, which its browser code sends to window.posthog but its server never gives a key for. The script asks GET /api/analytics, so no key is in the page",
+      "anchor": "</helmet>",
+      "insert": ["<script>", {"file": "snippets/analytics.js", "chomp": true}, "</script>\n"]
     }
   ]
 }

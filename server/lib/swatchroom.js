@@ -15,6 +15,7 @@
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import path from 'node:path';
+import { mongoRoomOwners } from './roomOwners.js';
 
 /**
  * The API routes the swatchroom serves (the mounts in swatchroom/server/index.js). They carry photos, masks and renders as
@@ -51,6 +52,9 @@ function redact(message) {
  * @param {object} options
  * @param {string} options.dir the swatchroom folder
  * @param {{info: Function, warn: Function}} options.log
+ * @param {boolean} [options.requirePasscode] keep the studio's own passcode (its STUDIO_PASSCODE). Left out or false, the passcode
+ *   is switched off before the studio reads its settings: the studio's own config treats a variable that is already set (even to
+ *   nothing) as final, so its .env cannot turn it back on. Protection then comes from server/lib/studioShield.js.
  * @returns {{
  *   app: import('express').Express,
  *   apiPrefixes: string[],
@@ -58,15 +62,19 @@ function redact(message) {
  *   start: () => void,
  *   warm: () => string[],
  *   status: () => {database: boolean},
+ *   analytics: () => {key: string, host: string},
+ *   roomStore: () => import('./studioShield.js').RoomStore,
+ *   securityWarnings: () => string[],
  *   close: () => Promise<void>,
  * }}
  */
-export function loadSwatchroom({ dir, log }) {
+export function loadSwatchroom({ dir, log, requirePasscode = false }) {
   const entry = path.join(path.resolve(dir), 'server', 'index.js');
   if (!fs.existsSync(entry)) throw new Error(`The Design Studio was not found: expected ${entry}`);
   const need = createRequire(entry);
   const here = (...parts) => path.join(path.dirname(entry), ...parts);
 
+  if (!requirePasscode) process.env.STUDIO_PASSCODE = '';
   const app = need(entry);
   // the same module instances the app uses (CommonJS caches by file), so the cold-start record is shared
   const config = need(here('config.js'));
@@ -133,6 +141,20 @@ export function loadSwatchroom({ dir, log }) {
     },
 
     status: () => ({ database: db.status().connected }),
+
+    /** The studio's own PostHog project key and host (its POSTHOG_KEY / POSTHOG_HOST); the key is public by PostHog's design. */
+    analytics: () => ({ key: config.posthog.key, host: config.posthog.host }),
+
+    /** The list of who owns which room, in the studio's database (server/lib/roomOwners.js). */
+    roomStore: () => mongoRoomOwners({ mongoose: need('mongoose'), Room: need(here('models', 'Room.js')) }),
+
+    /** Things in the studio's settings that are unsafe once the site is reachable by others. Plain sentences, no secrets. */
+    securityWarnings() {
+      const warnings = [];
+      if (config.admin.password === 'admin@123') warnings.push('The studio admin (/admin) still has the built-in password: set ADMIN_PASSWORD in swatchroom/.env.');
+      if (!process.env.SESSION_SECRET) warnings.push('SESSION_SECRET is not set in swatchroom/.env: admin sign-ins end at every restart.');
+      return warnings;
+    },
 
     async close() {
       closed = true;

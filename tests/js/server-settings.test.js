@@ -156,3 +156,24 @@ describe('the Design Studio wake-up switch (STUDIO_WARMUP)', () => {
     assert.match(describeSettings(settingsFrom('STUDIO_WARMUP=off\n')).join('\n'), /only when a photo is scanned/);
   });
 });
+
+describe('studio protection and analytics settings', () => {
+  test('defaults: passcode off, the standard limits, trust proxy "loopback", analytics blank with replay on', () => {
+    const s = settingsFrom('');
+    assert.equal(s.studio.requirePasscode, false);
+    assert.deepEqual(s.studio.limits, { ai: 60, vision: 60, pipeline: 40, check: 10, rooms: 600, perAddress: 4 });
+    assert.equal(s.trustProxy, 'loopback');
+    assert.deepEqual(s.analytics, { key: '', host: 'https://us.i.posthog.com', replay: true, onLocalhost: false });
+    assert.deepEqual(s.warnings, []);
+  });
+
+  test('STUDIO_REQUIRE_PASSCODE, STUDIO_LIMIT_* and TRUST_PROXY are read; nonsense falls back', () => {
+    const s = settingsFrom('STUDIO_REQUIRE_PASSCODE=on\nSTUDIO_LIMIT_AI=5\nSTUDIO_LIMIT_ROOMS=lots\nSTUDIO_LIMIT_CHECK=0\nTRUST_PROXY=1\n');
+    assert.equal(s.studio.requirePasscode, true);
+    assert.equal(s.studio.limits.ai, 5);
+    assert.equal(s.studio.limits.rooms, 600, 'not a number: the default');
+    assert.equal(s.studio.limits.check, 1, 'at least one');
+    assert.equal(s.trustProxy, 1);
+    assert.equal(settingsFrom('TRUST_PROXY=10.0.0.0/8').trustProxy, '10.0.0.0/8');
+  });
+});

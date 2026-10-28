@@ -125,7 +125,7 @@ export async function startStack(opts = {}) {
       SESSION_SECRET: 'dev-stack-session-secret',
       ADMIN_PASSWORD: 'dev-stack-admin',
     };
-    if (passcode) env.STUDIO_PASSCODE = passcode;
+    if (passcode) Object.assign(env, { STUDIO_PASSCODE: passcode, STUDIO_REQUIRE_PASSCODE: 'on' });
     site = spawn(process.execPath, [path.join(project, 'app.js')], { cwd: project, env });
     site.stdout.on('data', (d) => (logs += d));
     site.stderr.on('data', (d) => (logs += d));

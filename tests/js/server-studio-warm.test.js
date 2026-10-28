@@ -24,7 +24,7 @@ setStudioEnv({
 const fixture = makeStudioDir();
 const { loadSwatchroom } = await import('../../server/lib/swatchroom.js');
 const log = { info() {}, warn() {} };
-const studio = loadSwatchroom({ dir: fixture.dir, log });
+const studio = loadSwatchroom({ dir: fixture.dir, log, requirePasscode: true });
 const need = createRequire(path.join(fixture.dir, 'server', 'index.js'));
 const warmth = need('./lib/warmth.js');
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

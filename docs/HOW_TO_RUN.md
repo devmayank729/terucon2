@@ -151,7 +151,7 @@ The browser tests need their one dependency once: `cd tests/e2e && npm install`.
 | `Could not start on port 8080` | Another program uses the port. Change `PORT` in `.env` and start again. |
 | `Cannot find module 'mongoose'` | Run `npm install` in the project folder (the studio's packages come with it). |
 | The banner says `Studio settings … NOT FOUND` | Copy `swatchroom/.env.example` to `swatchroom/.env` and fill it in. |
-| `/design-studio` asks for a passcode | `STUDIO_PASSCODE` is set in `swatchroom/.env`. Give people the passcode, or remove it to open the studio to everyone. |
+| `/design-studio` asks for a passcode | `STUDIO_REQUIRE_PASSCODE=on` is set in `.env`. The passcode is off by default (README, "Keeping the open studio safe"). |
 | The studio says "AI off" | No Google key yet: `GOOGLE_APPLICATION_CREDENTIALS` in `swatchroom/.env`. In the studio, Settings → Check says what is missing. |
 | `MongoDB is not reachable … Retrying` | `MONGODB_URI` in `swatchroom/.env` (with Atlas, allow this machine's address). The studio opens, but rooms cannot be saved. |
 | `Scan model service … is not running` | Start the local models (section 3), or ignore it: scans fall back to Gemini outlines. |

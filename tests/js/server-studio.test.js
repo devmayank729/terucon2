@@ -20,6 +20,7 @@ setStudioEnv({
   ANALYZE_URL: `${analyze.url}/v1/analyze`,
   ANALYZE_KEY: 'key-analyze',
   STUDIO_PASSCODE: 'letmein',
+  STUDIO_REQUIRE_PASSCODE: 'on', // the website switches the passcode off unless asked; these tests are about the passcode
 });
 delete process.env.PORT;
 delete process.env.HOST;
