@@ -25,6 +25,7 @@ export function createApiRegistry(app, leaveTo = () => false) {
   return {
     get: (route, ...handlers) => register('GET', route, handlers),
     post: (route, ...handlers) => register('POST', route, handlers),
+    put: (route, ...handlers) => register('PUT', route, handlers),
     /** Mount last among the API routes. */
     fallback() {
       app.use('/api', (req, res, next) => {
@@ -47,7 +48,9 @@ export function mountApi(app, ctx) {
   // saved), so it is shown here but never makes `ok` false.
   api.get('/api/health', (req, res) => {
     const studio = ctx.swatchroom ? { running: true, ...ctx.swatchroom.status() } : { running: false };
-    res.json({ ok: true, version: ctx.version, studio });
+    // `auth` is only whether sign-in works and, if not, coarse reason codes (the sentences are in the start-up banner and the admin API)
+    const st = ctx.auth.status();
+    res.json({ ok: true, version: ctx.version, studio, auth: { ready: st.ready, gate: st.gate, reasons: st.reasons } });
   });
 
   api.get('/api/site', (req, res) => res.json(ctx.site.publicView()));

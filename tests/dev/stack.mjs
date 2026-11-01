@@ -32,13 +32,15 @@ function freePort() {
 }
 
 /** The project as a temp folder: real code and pages, no secrets. Links point back at the big, harmless folders. */
-function copyProject(tmp) {
+function copyProject(tmp, { importer = false } = {}) {
   const project = path.join(tmp, 'project');
   fs.mkdirSync(path.join(project, 'docs'), { recursive: true });
   for (const item of ['app.js', 'package.json', 'server', 'site', 'pages']) fs.cpSync(path.join(ROOT, item), path.join(project, item), { recursive: true });
   fs.copyFileSync(path.join(ROOT, 'docs', 'PROJECT_OVERVIEW.html'), path.join(project, 'docs', 'PROJECT_OVERVIEW.html'));
   fs.symlinkSync(path.join(ROOT, 'media'), path.join(project, 'media'), 'dir');
   fs.symlinkSync(path.join(ROOT, 'node_modules'), path.join(project, 'node_modules'), 'dir');
+  // the inspiration import's own Python (gallery-dl) by link, only when asked for: it reaches real websites
+  if (importer) fs.symlinkSync(path.join(ROOT, 'python'), path.join(project, 'python'), 'dir');
   // the studio: its server code and its package.json (routes/session.js reads the version), its browser files by link;
   // no real .env or keys/, whatever the real swatchroom/ folder holds
   const studio = path.join(project, 'swatchroom');
@@ -56,7 +58,7 @@ function copyProject(tmp) {
 
 function removeProject(tmp) {
   const project = path.join(tmp, 'project');
-  for (const link of ['media', 'node_modules', path.join('swatchroom', 'public')]) {
+  for (const link of ['media', 'node_modules', 'python', path.join('swatchroom', 'public')]) {
     try {
       if (fs.lstatSync(path.join(project, link)).isSymbolicLink()) fs.unlinkSync(path.join(project, link));
     } catch {
@@ -84,11 +86,11 @@ async function waitForHealth(base, exited, ms) {
 }
 
 /**
- * @param {{port?: number, passcode?: string, bootMs?: number, warmup?: 'on' | 'off'}} [opts]
- * @returns {Promise<{base: string, port: number, health: object, pools: {oneformer: object, analyze: object}, stop(): Promise<void>, logs(): string}>}
+ * @param {{port?: number, passcode?: string, bootMs?: number, warmup?: 'on' | 'off', importer?: boolean}} [opts] `importer`: link the project's python/ folder in, so gallery-dl runs (it then reaches real websites: for live checks only)
+ * @returns {Promise<{base: string, port: number, health: object, pools: {oneformer: object, analyze: object}, stop(): Promise<void>, logs(): string, codeFor(who: string, purpose?: string): string | null}>}
  */
 export async function startStack(opts = {}) {
-  const { passcode = '', bootMs = 400, warmup = 'on' } = opts;
+  const { passcode = '', bootMs = 400, warmup = 'on', importer = false } = opts;
   const port = opts.port || (await freePort());
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'terucon-dev-'));
   const pools = { oneformer: await startMockModal({ key: 'key-oneformer', bootMs }), analyze: await startMockModal({ key: 'key-analyze', bootMs }) };
@@ -104,7 +106,7 @@ export async function startStack(opts = {}) {
     removeProject(tmp);
   };
   try {
-    const project = copyProject(tmp);
+    const project = copyProject(tmp, { importer });
     const envFile = path.join(tmp, '.env');
     fs.writeFileSync(envFile, '# throw-away settings for the dev stack\n');
     const env = {
@@ -124,6 +126,12 @@ export async function startStack(opts = {}) {
       ANALYZE_KEY: 'key-analyze',
       SESSION_SECRET: 'dev-stack-session-secret',
       ADMIN_PASSWORD: 'dev-stack-admin',
+      // sign-in (server/auth/): accounts in memory, and the one-time codes printed in the server's window, which is how a test or a
+      // person trying the stack by hand reads them. Allowed only because the stack listens on this computer and is not "production".
+      AUTH_STORE: 'memory',
+      AUTH_EMAIL_PROVIDER: 'console',
+      AUTH_SMS_PROVIDER: 'console',
+      AUTH_SECRET: 'dev-stack-auth-secret-'.padEnd(48, 'x'),
     };
     if (passcode) Object.assign(env, { STUDIO_PASSCODE: passcode, STUDIO_REQUIRE_PASSCODE: 'on' });
     site = spawn(process.execPath, [path.join(project, 'app.js')], { cwd: project, env });
@@ -132,7 +140,9 @@ export async function startStack(opts = {}) {
     site.once('exit', (code) => Object.assign(exited, { done: true, code }));
     const base = `http://127.0.0.1:${port}`;
     const health = await waitForHealth(base, exited, 60000);
-    return { base, port, health, pools, stop, logs: () => logs };
+    // the newest one-time code the console sender printed for an address or number (written as the server normalised it)
+    const codeFor = (who, purpose = 'login') => [...logs.matchAll(/code for (\S+) \(([a-z-]+)\): (\d{6})/g)].filter((m) => m[1] === who && m[2] === purpose).at(-1)?.[3] ?? null;
+    return { base, port, health, pools, stop, logs: () => logs, codeFor };
   } catch (e) {
     const out = logs;
     await stop();

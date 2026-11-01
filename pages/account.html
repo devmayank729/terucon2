@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#E1D4C2">
+<meta name="robots" content="noindex">
+<title>Your account — Terucon India</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<!-- Zodiak and Switzer, the site's fonts (served with the Design Studio); the page reads fine in Georgia / Helvetica without them -->
+<link rel="stylesheet" href="/css/fonts.css">
+<style>
+  :root { --bg:#E1D4C2; --card:#EFE6D8; --ink:#291C0E; --ink2:#6E473B; --line:rgba(41,28,14,.16); --line2:rgba(41,28,14,.34); --bad:#8C2F1B; --good:#3B5B2E; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; padding:0; }
+  html { -webkit-text-size-adjust:100%; -webkit-tap-highlight-color:transparent; }
+  body { min-height:100vh; display:flex; flex-direction:column; background:var(--bg); color:var(--ink); font-family:Switzer, Helvetica, Arial, sans-serif; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  a { color:inherit; }
+  ::selection { background:#6E473B; color:#E1D4C2; }
+  :focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
+  [hidden] { display:none !important; }
+
+  header { min-height:clamp(64px, calc(40px + 3.2vw), 76px); display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px; padding:10px clamp(20px, 5vw, 72px); border-bottom:1px solid var(--line); }
+  .brand { display:flex; align-items:baseline; gap:10px; font:600 15px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.34em; text-decoration:none; }
+  .brand span { font:500 9.5px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.3em; }
+  nav { display:flex; flex-wrap:wrap; align-items:center; gap:8px clamp(14px, 2.2vw, 28px); font:500 13px/1 Switzer, Helvetica, Arial, sans-serif; }
+  nav a { text-decoration:none; transition:opacity .25s; }
+  nav a:hover { opacity:.7; }
+
+  main { flex:1; padding:clamp(28px, 6vh, 72px) clamp(16px, 5vw, 72px); }
+  .wrap { width:100%; max-width:640px; margin:0 auto; display:flex; flex-direction:column; gap:24px; }
+  .eyebrow { display:flex; align-items:center; gap:14px; margin:0; font:500 10.5px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.22em; text-transform:uppercase; color:var(--ink2); }
+  .eyebrow::before { content:""; width:32px; height:1px; background:currentColor; }
+  h1 { margin:0; font:300 clamp(34px, 6vw, 50px)/1.04 Zodiak, Georgia, serif; letter-spacing:-.02em; }
+  h2 { margin:0; font:300 24px/1.2 Zodiak, Georgia, serif; }
+  .lead { margin:0; font:400 16px/1.6 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+
+  .card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:clamp(20px, 4vw, 30px); display:flex; flex-direction:column; gap:16px; }
+  .card.danger { border-color:rgba(140,47,27,.45); }
+  form { display:flex; flex-direction:column; gap:16px; margin:0; }
+  .field { display:flex; flex-direction:column; gap:7px; }
+  label { font:500 13px/1.2 Switzer, Helvetica, Arial, sans-serif; }
+  .hint, .small { margin:0; font:400 13px/1.5 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+  input[type=text], input[type=email], input[type=tel] { width:100%; height:50px; padding:0 16px; border-radius:12px; border:1px solid var(--line2); background:#F7F1E7; color:var(--ink); font:400 16px/1 Switzer, Helvetica, Arial, sans-serif; transition:border-color .2s, box-shadow .2s; }
+  input:focus { outline:none; border-color:var(--ink); box-shadow:0 0 0 3px rgba(41,28,14,.14); }
+  input:disabled { opacity:.5; }
+  input.code { letter-spacing:.55em; text-align:center; font-size:24px; font-variant-numeric:tabular-nums; padding:0 0 0 .55em; max-width:260px; }
+  .check { display:flex; align-items:flex-start; gap:12px; font:400 14px/1.45 Switzer, Helvetica, Arial, sans-serif; cursor:pointer; }
+  .check input { width:20px; height:20px; margin:1px 0 0; accent-color:#291C0E; flex:none; }
+
+  .btn { display:inline-flex; align-items:center; justify-content:center; height:48px; padding:0 24px; border-radius:999px; border:1px solid var(--ink); background:var(--ink); color:var(--bg); font:500 14px/1 Switzer, Helvetica, Arial, sans-serif; cursor:pointer; transition:background .3s, opacity .2s; }
+  .btn:hover { background:var(--ink2); border-color:var(--ink2); }
+  .btn:disabled { opacity:.55; cursor:default; }
+  .btn.ghost { background:transparent; color:var(--ink); border-color:var(--line2); }
+  .btn.ghost:hover { background:rgba(41,28,14,.07); border-color:var(--ink); }
+  .btn.warn { background:var(--bad); border-color:var(--bad); color:#F7F1E7; }
+  .btn.warn:hover { background:#6e2314; border-color:#6e2314; }
+  .actions { display:flex; flex-wrap:wrap; gap:10px; }
+
+  .rowline { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 16px; padding:12px 0; border-top:1px solid var(--line); }
+  .rowline:first-of-type { border-top:0; padding-top:0; }
+  .what { display:flex; flex-direction:column; gap:3px; min-width:0; }
+  .what b { font:500 13px/1.2 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+  .what span { font:400 16px/1.4 Switzer, Helvetica, Arial, sans-serif; overflow-wrap:anywhere; }
+  .badge { font:500 12px/1 Switzer, Helvetica, Arial, sans-serif; padding:6px 10px; border-radius:999px; border:1px solid var(--line2); white-space:nowrap; }
+  .badge.good { color:var(--good); border-color:var(--good); }
+  .link { background:none; border:0; padding:6px 0; color:var(--ink); font:500 14px/1.2 Switzer, Helvetica, Arial, sans-serif; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+  .panel { padding:14px; border:1px dashed var(--line2); border-radius:12px; display:flex; flex-direction:column; gap:12px; }
+
+  .notice { margin:0; padding:12px 14px; border-radius:12px; font:400 14px/1.5 Switzer, Helvetica, Arial, sans-serif; border:1px solid var(--line2); }
+  .notice.bad { border-color:var(--bad); color:var(--bad); background:rgba(140,47,27,.07); }
+  .notice.good { border-color:var(--good); color:var(--good); background:rgba(59,91,46,.08); }
+
+  footer { padding:22px clamp(20px, 5vw, 72px); border-top:1px solid var(--line); font:400 12px/1.5 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+  @media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="/">TERUCON <span>INDIA</span></a>
+  <nav aria-label="Pages">
+    <a href="/">Home</a>
+    <a href="/materials">Materials</a>
+    <a href="/design-studio">Design Studio</a>
+    <a href="/inspiration">Inspiration</a>
+    <a href="/my-project">My project</a>
+  </nav>
+</header>
+
+<main>
+  <div class="wrap">
+    <p class="eyebrow">Your account</p>
+    <h1>Your details</h1>
+    <p class="notice bad" id="alert" role="alert" hidden></p>
+    <p class="notice good" id="status" role="status" hidden></p>
+
+    <section class="card" id="profile-card" hidden aria-labelledby="h-profile">
+      <h2 id="h-profile">About you</h2>
+      <form id="form-profile" novalidate>
+        <div class="field"><label for="name">Your name</label><input id="name" type="text" autocomplete="name" maxlength="80" required><p class="hint" data-error-for="name" hidden></p></div>
+        <div class="field"><label for="firm">Your firm</label><input id="firm" type="text" autocomplete="organization" maxlength="100"><p class="hint" data-error-for="firm" hidden></p></div>
+        <label class="check"><input type="checkbox" id="individual"> <span>I am not part of a firm</span></label>
+        <div class="actions"><button class="btn" id="save" type="submit">Save</button></div>
+      </form>
+    </section>
+
+    <section class="card" id="contact-card" hidden aria-labelledby="h-contact">
+      <h2 id="h-contact">How to reach you</h2>
+      <p class="hint">You can sign in with a confirmed e-mail address or mobile number. To confirm or change one, we send a code to it.</p>
+      <div id="contacts"></div>
+    </section>
+
+    <section class="card" id="session-card" hidden aria-labelledby="h-session">
+      <h2 id="h-session">Signing out</h2>
+      <div class="actions">
+        <button class="btn" id="logout" type="button">Sign out</button>
+        <button class="btn ghost" id="logout-all" type="button">Sign out everywhere</button>
+      </div>
+      <p class="small">“Everywhere” signs you out on every phone and computer where you are signed in.</p>
+    </section>
+
+    <section class="card danger" id="delete-card" hidden aria-labelledby="h-delete">
+      <h2 id="h-delete">Delete my account</h2>
+      <p class="lead" id="delete-explain"></p>
+      <div id="delete-start"><button class="btn ghost" id="delete-begin" type="button">Delete my account…</button></div>
+      <form id="form-delete" class="panel" hidden novalidate>
+        <p class="hint" id="delete-sent"></p>
+        <div class="field"><label for="delete-code">Code</label><input id="delete-code" class="code" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" maxlength="7" placeholder="······"></div>
+        <label class="check"><input type="checkbox" id="delete-confirm"> <span>I understand this cannot be undone.</span></label>
+        <div class="actions"><button class="btn warn" id="delete-go" type="submit">Delete everything</button><button class="btn ghost" id="delete-cancel" type="button">Keep my account</button></div>
+      </form>
+    </section>
+  </div>
+</main>
+
+<footer>Terucon India Private Limited</footer>
+
+<script>
+(function () {
+  'use strict';
+  // Everything that comes from the server (names, addresses, messages) goes on the page with textContent, never as markup.
+  var $ = function (id) { return document.getElementById(id); };
+  var me = null;
+  var config = null;
+  var busy = false;
+
+  function api(path, body) {
+    return fetch(path, {
+      method: body === undefined ? 'GET' : 'POST',
+      credentials: 'same-origin',
+      headers: body === undefined ? { Accept: 'application/json' } : { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body)
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (data) { return { ok: r.ok, status: r.status, data: data }; });
+    }).catch(function () {
+      return { ok: false, status: 0, data: { error: { message: 'We could not reach the server. Please check your connection and try again.' } } };
+    });
+  }
+  function errorOf(r) { var e = (r.data && r.data.error) || {}; return { message: e.message || 'Something went wrong. Please try again.', reason: e.reason || '', field: e.field || '' }; }
+  function say(message, kind) {
+    var bad = $('alert'), good = $('status');
+    bad.hidden = kind === 'good' || !message; good.hidden = kind !== 'good' || !message;
+    (kind === 'good' ? good : bad).textContent = message || '';
+    if (message) window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function fieldError(name, message) {
+    var el = document.querySelector('[data-error-for="' + name + '"]');
+    if (el) { el.textContent = message || ''; el.hidden = !message; el.style.color = message ? 'var(--bad)' : ''; }
+  }
+  function el(tag, props, children) {
+    var node = document.createElement(tag);
+    Object.keys(props || {}).forEach(function (k) {
+      if (k === 'text') node.textContent = props[k];
+      else if (k === 'class') node.className = props[k];
+      else node.setAttribute(k, props[k]);
+    });
+    (children || []).forEach(function (c) { node.appendChild(c); });
+    return node;
+  }
+  function toSignIn(profile) { location.replace('/login?next=' + encodeURIComponent('/account') + (profile ? '&step=profile' : '')); }
+
+  // ---------------------------------------------------------------------------------------------- details
+  function renderProfile() {
+    $('name').value = me.name || '';
+    $('firm').value = me.firm || '';
+    $('individual').checked = Boolean(me.individual);
+    $('firm').disabled = $('individual').checked;
+  }
+  $('individual').addEventListener('change', function () { $('firm').disabled = this.checked; });
+
+  $('form-profile').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (busy) return;
+    say(''); fieldError('name', ''); fieldError('firm', '');
+    var body = { name: $('name').value.trim(), individual: $('individual').checked };
+    if (!body.individual) body.firm = $('firm').value.trim();
+    busy = true; $('save').disabled = true;
+    api('/api/auth/profile', body).then(function (r) {
+      busy = false; $('save').disabled = false;
+      if (!r.ok) { var err = errorOf(r); if (err.field) fieldError(err.field, err.message); else say(err.message); return; }
+      me = r.data.user; renderProfile(); say('Saved.', 'good');
+    });
+  });
+
+  // ---------------------------------------------------------------------------------------------- e-mail and mobile
+  function renderContacts() {
+    var box = $('contacts');
+    box.textContent = '';
+    [['email', 'E-mail address', 'an e-mail address', config.channels.email], ['phone', 'Mobile number', 'a mobile number', config.channels.sms]].forEach(function (c) {
+      var kind = c[0], value = me[kind], verified = me[kind + 'Verified'], available = c[3];
+      var what = el('div', { class: 'what' }, [el('b', { text: c[1] }), el('span', { text: value || 'Not added' })]);
+      var side = el('div', { class: 'actions' });
+      if (value) side.appendChild(el('span', { class: 'badge' + (verified ? ' good' : ''), text: verified ? '✓ Confirmed' : 'Not confirmed' }));
+      var row = el('div', { class: 'rowline' }, [what, side]);
+      var panel = el('div', { class: 'panel', hidden: '' });
+      if (available) {
+        var label = !value ? 'Add' : verified ? 'Change' : 'Confirm';
+        var button = el('button', { class: 'link', type: 'button', text: label });
+        button.addEventListener('click', function () { openContact(kind, c[2], panel, value, verified); });
+        side.appendChild(button);
+      }
+      box.appendChild(row);
+      box.appendChild(panel);
+    });
+  }
+
+  // one small flow: (type the new value) -> a code is sent to it -> type the code
+  function openContact(kind, nice, panel, current, verified) {
+    panel.hidden = false;
+    panel.textContent = '';
+    var input = el('input', { type: kind === 'email' ? 'email' : 'tel', autocomplete: kind === 'email' ? 'email' : 'tel', maxlength: '254', inputmode: kind === 'email' ? 'email' : 'tel' });
+    input.value = verified ? '' : current || '';
+    var inputId = 'c-' + kind;
+    input.id = inputId;
+    var send = el('button', { class: 'btn', type: 'button', text: 'Send a code' });
+    var cancel = el('button', { class: 'btn ghost', type: 'button', text: 'Cancel' });
+    var info = el('p', { class: 'hint', text: verified ? 'Enter the new ' + nice + '. We will send a code to it.' : 'We will send a code to this ' + nice + '.' });
+    panel.appendChild(el('div', { class: 'field' }, [el('label', { for: inputId, text: kind === 'email' ? 'E-mail address' : 'Mobile number' }), input, info]));
+    panel.appendChild(el('div', { class: 'actions' }, [send, cancel]));
+    cancel.addEventListener('click', function () { panel.hidden = true; panel.textContent = ''; });
+    send.addEventListener('click', function () {
+      if (busy) return;
+      say('');
+      var value = input.value.trim();
+      if (!value) { say('Please enter ' + nice + '.'); return; }
+      busy = true; send.disabled = true;
+      api('/api/auth/contact/start', { kind: kind, value: value }).then(function (r) {
+        busy = false; send.disabled = false;
+        if (!r.ok) { say(errorOf(r).message); return; }
+        askCode(panel, r.data, kind);
+      });
+    });
+    input.focus();
+  }
+
+  function askCode(panel, sent, kind) {
+    panel.textContent = '';
+    var code = el('input', { type: 'text', class: 'code', inputmode: 'numeric', pattern: '[0-9]*', autocomplete: 'one-time-code', maxlength: '7', placeholder: '······', id: 'c-code' });
+    var go = el('button', { class: 'btn', type: 'button', text: 'Confirm' });
+    var cancel = el('button', { class: 'btn ghost', type: 'button', text: 'Cancel' });
+    panel.appendChild(el('div', { class: 'field' }, [el('label', { for: 'c-code', text: 'Code' }), code, el('p', { class: 'hint', text: 'We sent a code to ' + sent.to + '.' })]));
+    panel.appendChild(el('div', { class: 'actions' }, [go, cancel]));
+    cancel.addEventListener('click', function () { panel.hidden = true; panel.textContent = ''; });
+    function confirm() {
+      if (busy) return;
+      var digits = code.value.replace(/\D/g, '');
+      if (digits.length !== 6) { say('Please enter the 6-digit code.'); return; }
+      busy = true; go.disabled = true; say('');
+      api('/api/auth/contact/confirm', { challengeId: sent.challengeId, code: digits }).then(function (r) {
+        busy = false; go.disabled = false;
+        if (!r.ok) { say(errorOf(r).message); return; }
+        me = r.data.user; renderContacts(); say('Confirmed. You can now sign in with it.', 'good');
+      });
+    }
+    code.addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 6); if (this.value.length === 6) confirm(); });
+    go.addEventListener('click', confirm);
+    code.focus();
+  }
+
+  // ---------------------------------------------------------------------------------------------- signing out
+  function signedOut() { location.replace('/'); }
+  $('logout').addEventListener('click', function () { api('/api/auth/logout', {}).then(signedOut); });
+  $('logout-all').addEventListener('click', function () { api('/api/auth/logout-all', {}).then(function (r) { if (r.ok) signedOut(); else say(errorOf(r).message); }); });
+
+  // ---------------------------------------------------------------------------------------------- deleting
+  var deleteChallenge = null;
+  $('delete-begin').addEventListener('click', function () {
+    if (busy) return;
+    say('');
+    busy = true; this.disabled = true;
+    var button = this;
+    api('/api/auth/delete/start', {}).then(function (r) {
+      busy = false; button.disabled = false;
+      if (!r.ok) { say(errorOf(r).message); return; }
+      deleteChallenge = r.data.challengeId;
+      $('delete-sent').textContent = 'We sent a code to ' + r.data.to + ' to make sure it is really you.';
+      $('delete-start').hidden = true; $('form-delete').hidden = false; $('delete-code').focus();
+    });
+  });
+  $('delete-cancel').addEventListener('click', function () { deleteChallenge = null; $('form-delete').hidden = true; $('delete-start').hidden = false; $('delete-code').value = ''; $('delete-confirm').checked = false; });
+  $('delete-code').addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 6); });
+  $('form-delete').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (busy || !deleteChallenge) return;
+    var digits = $('delete-code').value.replace(/\D/g, '');
+    if (digits.length !== 6) { say('Please enter the 6-digit code.'); return; }
+    if (!$('delete-confirm').checked) { say('Please tick the box to confirm.'); return; }
+    busy = true; $('delete-go').disabled = true; say('');
+    api('/api/auth/delete/confirm', { challengeId: deleteChallenge, code: digits, confirm: true }).then(function (r) {
+      busy = false; $('delete-go').disabled = false;
+      if (!r.ok) { say(errorOf(r).message); return; }
+      location.replace('/');
+    });
+  });
+
+  // ---------------------------------------------------------------------------------------------- start
+  Promise.all([api('/api/auth/me'), api('/api/auth/config')]).then(function (res) {
+    var who = res[0], cfg = res[1];
+    if (!who.ok || !who.data.authenticated) { toSignIn(false); return; }
+    me = who.data.user;
+    if (!me.profileComplete) { toSignIn(true); return; }
+    config = cfg.ok ? cfg.data : { channels: { email: false, sms: false } };
+    renderProfile(); renderContacts();
+    $('delete-explain').textContent = 'This permanently deletes your account, the rooms and photos you saved in the Design Studio, and every place you are signed in. ' +
+      (config.crmDeletes ? 'The details already passed to our sales team are deleted too.' : 'Details already passed to our sales team stay in their records unless you ask them to remove them.') +
+      ' It cannot be undone.';
+    ['profile-card', 'contact-card', 'session-card', 'delete-card'].forEach(function (id) { $(id).hidden = false; });
+  });
+})();
+</script>
+</body>
+</html>

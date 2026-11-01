@@ -17,9 +17,13 @@ const project = makeProjectRoot();
 fs.writeFileSync(path.join(project.studioDir, '.env'), 'STUDIO_PASSCODE=from-the-studios-own-env-file\n');
 
 const { createApp } = await import('../../app.js');
+const { createAuthDb } = await import('../../server/auth/db.js');
+const { captureProviders, SECRET } = await import('../helpers/authKit.js');
+const { signInVia } = await import('../helpers/signIn.js');
+const capture = captureProviders();
 const lines = [];
 const log = { info: (m) => lines.push(m), warn: (m) => lines.push(m), error: (m) => lines.push(m), raw: (m) => lines.push(m) };
-const app = createApp({ root: project.root, swatchroom: true, log });
+const app = createApp({ root: project.root, swatchroom: true, log, auth: { db: createAuthDb({}), providers: capture.providers, secret: SECRET } });
 const server = http.createServer(app);
 await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 const port = server.address().port;
@@ -31,7 +35,9 @@ test.after(async () => {
   project.remove();
 });
 
-const get = (p, headers = {}) => request(port, { path: p, headers });
+// the studio's passcode is off, but its costly routes need a signed-in account (the website's sign-in): this is that account
+const member = await signInVia((p, o = {}) => request(port, { path: p, ...o }), capture);
+const get = (p, headers = {}) => request(port, { path: p, headers: { ...member.headers, ...headers, Cookie: [member.cookie, headers.Cookie].filter(Boolean).join('; ') } });
 
 test('the studio does not ask for a passcode, whatever its own settings say', async () => {
   assert.equal(app.locals.terucon.requirePasscode, false);
@@ -53,13 +59,30 @@ test('every browser is given a private owner cookie, and the site cannot be show
 });
 
 test('the shield\'s limits come from STUDIO_LIMIT_* and stop a flood on a write route', async () => {
-  const cookie = 'terucon_owner=' + 'c'.repeat(32);
-  const put = () => request(port, { method: 'PUT', path: '/api/rooms/room-test0001', headers: { Cookie: cookie }, body: { name: 'x' } });
+  // the account is the owner now, whatever browser cookie it carries: three writes in a row, the limit is two
+  const put = () => request(port, { method: 'PUT', path: '/api/rooms/room-test0001', headers: member.headers, body: { name: 'x' } });
   assert.notEqual((await put()).status, 429);
   assert.notEqual((await put()).status, 429);
   const blocked = await put();
   assert.equal(blocked.status, 429);
   assert.equal(blocked.json().code, 'rate-limit');
+});
+
+test('the admin can change the studio\'s limits: a saved value wins over STUDIO_LIMIT_* in .env, at once, and a reset goes back to .env', async () => {
+  const auth = app.locals.terucon.auth;
+  const put = () => request(port, { method: 'PUT', path: '/api/rooms/room-test0001', headers: member.headers, body: { name: 'x' } });
+  // the earlier test used up the 2 that .env allows and was refused the third; the admin raises the limit to 5
+  await auth.settings.update({ 'studio.limit.rooms': 5 });
+  const refused = [];
+  for (let i = 0; i < 5; i += 1) refused.push((await put()).status === 429);
+  assert.deepEqual(refused, [false, false, false, true, true], 'three more are let through, then the new limit holds');
+  const described = await auth.settings.describe();
+  assert.equal(described.values['studio.limit.rooms'], 5);
+  assert.equal(described.defaults['studio.limit.rooms'], 2, 'the starting value is what .env says, not the built-in 600');
+  await auth.settings.update({ 'studio.limit.rooms': null });
+  assert.equal((await auth.settings.describe()).values['studio.limit.rooms'], 2);
+  assert.equal((await put()).status, 429, 'back to .env\'s 2: the hour\'s writes are already used up');
+  await assert.rejects(auth.settings.update({ 'studio.limit.rooms': 0 }), /between 1 and/);
 });
 
 test('with no database the rooms list is the studio\'s own answer, not an empty list that hides the problem', async () => {

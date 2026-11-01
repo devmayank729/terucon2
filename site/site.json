@@ -21,7 +21,8 @@
       "source": "pages_original/market_place.html",
       "file": "pages/materials.html",
       "aliases": ["/materials.html", "/market_place_1.html"],
-      "headers": {}
+      "headers": {},
+      "access": "signed-in"
     },
     "studio": {
       "label": "Design Studio",
@@ -33,7 +34,8 @@
       "aliases": ["/design-studio.html", "/Terucon Swatchroom.html", "/studio", "/swatchroom"],
       "headers": {
         "Permissions-Policy": "camera=(self), microphone=(), geolocation=()"
-      }
+      },
+      "access": "signed-in"
     },
     "dashboard": {
       "label": "My project",
@@ -43,7 +45,8 @@
       "source": "pages_original/dashboard.html",
       "file": "pages/dashboard.html",
       "aliases": ["/my-project.html", "/Terucon Client Dashboard v3.html"],
-      "headers": {}
+      "headers": {},
+      "access": "signed-in"
     }
   },
   "connections": {
@@ -74,7 +77,40 @@
       "route": "/coming-soon",
       "file": "pages/coming-soon.html",
       "aliases": []
+    },
+    "login": {
+      "label": "Sign in",
+      "description": "Sign in or create an account: an e-mail address or mobile number and a one-time code, or Google.",
+      "route": "/login",
+      "file": "pages/login.html",
+      "aliases": ["/signin", "/sign-in", "/signup", "/sign-up", "/register", "/login.html"],
+      "access": "public",
+      "csp": "strict+google",
+      "headers": { "Referrer-Policy": "strict-origin-when-cross-origin" }
+    },
+    "account": {
+      "label": "Account",
+      "description": "Your details, sign out, and delete your account.",
+      "route": "/account",
+      "file": "pages/account.html",
+      "aliases": ["/profile", "/account.html"],
+      "access": "signed-in",
+      "csp": "strict"
+    },
+    "inspiration": {
+      "label": "Inspiration",
+      "description": "Paste a link to a photo, a Pinterest pin or board, or a web page; crop the picture; open it in the Design Studio.",
+      "route": "/inspiration",
+      "file": "pages/inspiration.html",
+      "aliases": ["/inspiration.html", "/import"],
+      "access": "signed-in",
+      "csp": "strict+images"
     }
+  },
+  "assets": {
+    "_comment": "The browser modules of the inspiration import (target C3): served from `dir` under `route`, by a fixed list of names (server/routes/inspiration.js). Pages load them with <script type=\"module\" src=\"/inspiration/assets/...\">; tools/check-links.js checks that every such file exists.",
+    "route": "/inspiration/assets",
+    "dir": "site/inspiration"
   },
   "media": {
     "route": "/media",

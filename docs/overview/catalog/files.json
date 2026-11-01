@@ -26,7 +26,12 @@
       "virtual": true,
       "desc": "Optional Python virtual environment (git-ignored)."
     },
-    "swatchroom/": "The Design Studio (Swatchroom 5), copied in unchanged: its Express routes and libraries, the browser code, the Python scan models, the Modal GPU blueprint, and its own tests and guides. The website mounts it; start with swatchroom/README.md."
+    "swatchroom/": "The Design Studio (Swatchroom 5), copied in unchanged: its Express routes and libraries, the browser code, the Python scan models, the Modal GPU blueprint, and its own tests and guides. The website mounts it; start with swatchroom/README.md.",
+    "server/auth/": "Sign-in: accounts, one-time codes, sessions, Google, the firm look-up, the CRM queue, and the settings the admin panel will manage.",
+    "server/auth/providers/": "How a one-time code leaves the server: SMTP, Twilio, a webhook for any SMS gateway.",
+    "python/": "The website's own Python environment (python/.venv, not committed): gallery-dl, run as a separate program by the inspiration import. Not the Design Studio's (swatchroom/python/).",
+    "site/inspiration/": "The browser side of the inspiration import (target C3): the paste question, the crop screen, the hand-over to the Design Studio, and the one list of sites it reads. Served from /inspiration/assets/ by a fixed list of names.",
+    "server/lib/inspiration/": "The server side of the inspiration import: safe fetching of an address a visitor chose, gallery-dl, picture checks, tokens and limits."
   },
   "files": [
     {
@@ -1031,6 +1036,590 @@
         "Edit"
       ],
       "desc": "A written account of the Terucon + Swatchroom merge: what was done, how long it took and why."
+    },
+    {
+      "match": "TARGETS.md",
+      "owner": "docs",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Every target in the quotation Terucon_AI_tool.pdf, one by one: its status, what exists, what is left, and a change log. Read before each task and updated after it (see CLAUDE.md)."
+    },
+    {
+      "match": "CLAUDE.md",
+      "owner": "docs",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The working agreement Claude Code loads in every session: read TARGETS.md before a task, update it after, count only what is real."
+    },
+    {
+      "match": "Terucon_AI_tool.pdf",
+      "owner": "docs",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The target: the quotation TIPL-PROP-02 (Rev. 2, 17 Sep 2026) for the AI Design Visualization Suite. TARGETS.md tracks it."
+    },
+    {
+      "match": "pages/login.html",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The sign-in page, written by hand. One box for an e-mail or mobile number, the code, the sign-up form (firm suggested from a business e-mail), Google One Tap. Served at /login with its own strict Content-Security-Policy."
+    },
+    {
+      "match": "pages/account.html",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The account page, written by hand: edit details, confirm or change e-mail / number with a code, sign out, delete the account. Served at /account, members only."
+    },
+    {
+      "match": "site/patches/snippets/auth.js",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Code every page patch inserts: the header link says Sign in or Account, and an API answer of \"please sign in\" leads to the sign-in page. No camelCase name before an = (the pages' runtime rewrites those)."
+    },
+    {
+      "match": "server/auth/index.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Puts sign-in together and decides whether it is safe to run (fails closed, says why): sessions and cookies, the gate for pages and for the studio's costly API, the admin token."
+    },
+    {
+      "match": "server/auth/config.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "What sign-in reads from .env. Secrets are kept in settings.authSecrets, which does not show up when settings are listed, logged or sent."
+    },
+    {
+      "match": "server/auth/settings.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Every setting the admin panel will manage (rate limits, code rules, sessions, open ways in, SMS countries, firm look-up, Zoho field names) with its type, default and hard bounds. Stored in the database as the difference from the defaults."
+    },
+    {
+      "match": "server/auth/identifiers.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "E-mail, mobile number, name and firm: strict normalisation, the mailbox key limits are counted by (plus-tags, Gmail dots), the firm name guessed from a domain."
+    },
+    {
+      "match": "server/auth/otp.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "One-time codes: asking for one (same answer for members and strangers, wait between codes, caps per address, per network and per day) and using one (five tries counted atomically, spent once, locks across codes)."
+    },
+    {
+      "match": "server/auth/users.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Accounts. Only a verified e-mail, phone or Google id signs anybody in, each at most one account; what a person merely typed is an unproved claim and never a way in."
+    },
+    {
+      "match": "server/auth/sessions.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Sessions: a random token in the cookie, only its hash in the database, ended by idle time, age, sign-out, sign-out everywhere or deleting the account."
+    },
+    {
+      "match": "server/auth/google.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Checks Google's ID token with node:crypto: RS256 only, Google's keys by kid, issuer, audience, expiry, verified e-mail and the one-use nonce."
+    },
+    {
+      "match": "server/auth/firm.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "A firm name for a business e-mail: from the domain, or from the firm's website, read with SSRF protection (public addresses only, checked as the connection is made; https, same domain, size and time limits)."
+    },
+    {
+      "match": "server/auth/crm.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Zoho CRM: the API client (token kept and refreshed once, upsert by e-mail, update, delete), the record builder with the admin's field names, and the retry queue that holds sign-ups until Zoho is connected."
+    },
+    {
+      "match": "server/auth/limits.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Counting for limits: in memory per network address (IPv6 per /64) and in the database per address or number and for the whole site."
+    },
+    {
+      "match": "server/auth/events.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The security log (90 days): what happened, never a code, a token or a full address."
+    },
+    {
+      "match": "server/auth/db.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Where accounts live: the studio's MongoDB connection (collections terucon_*) or memory, behind one calling surface, with the unique indexes that make one verified address one account."
+    },
+    {
+      "match": "server/auth/memoryDb.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "A strict in-memory stand-in for the part of MongoDB's collection API the sign-in uses, so the same code runs in tests and without a database."
+    },
+    {
+      "match": "server/auth/crypto.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Random tokens, hashes, keyed hashes and constant-time comparison: the only place sign-in touches cryptography."
+    },
+    {
+      "match": "server/auth/providers/index.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Chooses the e-mail and SMS senders from .env; one that is not set up properly is not offered, and says what is wrong."
+    },
+    {
+      "match": "server/auth/providers/smtp.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "A small SMTP client: TLS or STARTTLS with certificate checks, no unencrypted login to a remote host, nothing a visitor typed can become a header."
+    },
+    {
+      "match": "server/auth/providers/messages.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The words of the code messages: fixed text plus digits, no links."
+    },
+    {
+      "match": "server/routes/auth.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The sign-in API: /api/auth/* (start, verify, Google, profile, firm hint, contact confirmation, logout, delete)."
+    },
+    {
+      "match": "server/routes/authAdmin.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The sign-in admin API: /api/auth/admin/* (settings, events, status, unlock, CRM queue), behind AUTH_ADMIN_TOKEN."
+    },
+    {
+      "match": "server/lib/csp.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Builds a Content-Security-Policy from a hand-written page (its inline script and style by hash)."
+    },
+    {
+      "match": "server/middleware/canonical.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Only one spelling of /api reaches anything: /API/rooms and the like are 404 (they used to slide past every protection into the studio)."
+    },
+    {
+      "match": "tests/helpers/authKit.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The sign-in services on the in-memory store with a movable clock and senders that keep the codes."
+    },
+    {
+      "match": "tests/helpers/signIn.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "Signs a test visitor in through the real endpoints, so tests walk through the gate instead of switching it off."
+    },
+    {
+      "match": "tests/js/auth-identifiers.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "E-mail, phone, name and firm normalisation and the firm-from-domain guess."
+    },
+    {
+      "match": "tests/js/auth-store-contract.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The database calls sign-in needs, checked on the in-memory store and, with AUTH_TEST_MONGODB_URI set, on a real MongoDB."
+    },
+    {
+      "match": "tests/js/auth-core.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "One-time codes, sessions, accounts and settings: limits, locks, races, expiry, purposes, pre-account takeover."
+    },
+    {
+      "match": "tests/js/auth-routes.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The sign-in API as a browser uses it: sign up, sign in again, cookies, sign out, contacts, deletion, Google through the real verifier, and fail-closed."
+    },
+    {
+      "match": "tests/js/auth-gate.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "Every page but the landing page is for members, whatever way the address is written; the policy of the hand-written pages."
+    },
+    {
+      "match": "tests/js/auth-admin.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The admin API: off without a token, brute-force limit, settings with bounds, events, unlock, CRM controls."
+    },
+    {
+      "match": "tests/js/auth-providers.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The SMTP client against a pretend mail server (TLS, STARTTLS, injection), Twilio, the webhook, and reading .env."
+    },
+    {
+      "match": "tests/js/auth-google.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "Google's token: forgeries (alg none, HS256 with the public key, wrong key, tampered), audience, issuer, expiry, nonce, key rotation."
+    },
+    {
+      "match": "tests/js/auth-firm.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The firm look-up and its SSRF defences: private, loopback and metadata addresses, DNS rebinding, redirects, size and time limits."
+    },
+    {
+      "match": "tests/js/auth-crm.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "Zoho: token handling, the record, the queue (retry, backoff, credentials arriving later, deletion), against a pretend Zoho."
+    },
+    {
+      "match": "tests/js/auth-attacks.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The security pass, kept as tests: every attack that was sent to the running server (case-variant /API paths, brute force, races, CSRF, NoSQL, prototype pollution, SSRF, enumeration, takeover ...)."
+    },
+    {
+      "match": "pages/inspiration.html",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The Inspiration page, written by hand: a box for a link with Paste and Import buttons, upload and drag-and-drop, the sites it reads, recent imports. Served at /inspiration, members only, under a strict Content-Security-Policy (`strict+images`). No inline script or style attribute."
+    },
+    {
+      "match": "python/gallery_resolve.py",
+      "owner": "tooling",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Asks gallery-dl which pictures an address holds (metadata only, nothing downloaded). Runs only the extractor the website names, with the site's own options, and prints one JSON answer. `--find` says which extractor an address reaches, offline."
+    },
+    {
+      "match": "python/pinterest_board.py",
+      "owner": "tooling",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The first, Pinterest-only version of the importer's program. No longer used (python/gallery_resolve.py replaced it); kept until you say it can go."
+    },
+    {
+      "match": "python/requirements.txt",
+      "owner": "tooling",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The one Python package the importer needs, pinned: gallery-dl. Install: python3 -m venv python/.venv && python/.venv/bin/pip install -r python/requirements.txt"
+    },
+    {
+      "match": "server/lib/pinterestImport.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The first, Pinterest-only version of the importer. No longer used (server/lib/inspiration/ replaced it); kept, with its tests, until you say it can go."
+    },
+    {
+      "match": "site/inspiration/sources.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The one list of sites the import reads: their address shapes, the gallery-dl options that give the best picture, the hosts their pictures come from. Used by the browser to ask \"import this photo?\" and by the server, which decides again. No imports, so both can load it."
+    },
+    {
+      "match": "site/inspiration/dom.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Builds page elements from text only (never markup), the icons, and a stylesheet-loaded wait."
+    },
+    {
+      "match": "site/inspiration/api.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The three server calls of the import, with failures turned into plain sentences and a short reason."
+    },
+    {
+      "match": "site/inspiration/geometry.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The arithmetic of the crop screen with no page in it: turn and mirror, the box and its eight handles (with a locked shape), zoom and pan limits, the saved size."
+    },
+    {
+      "match": "site/inspiration/cropper.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The crop screen's picture area and tools: canvas drawing, the box and handles, thirds grid, shapes, turn, mirror, zoom, pan, pinch, keyboard, and cutting the JPEG at full size."
+    },
+    {
+      "match": "site/inspiration/ui.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The dialog and its screens in a shadow root: \"Import this photo?\", progress, choosing one of several, the crop screen, messages. Focus kept in, Escape closes."
+    },
+    {
+      "match": "site/inspiration/handoff.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Keeps the cropped picture in this browser (IndexedDB) and goes to the Design Studio with a one-time code."
+    },
+    {
+      "match": "site/inspiration/feed.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Runs on the Design Studio page: puts a waiting picture into the studio's own photo input, as if the person had chosen the file."
+    },
+    {
+      "match": "site/inspiration/flow.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The whole import as one function: ask, resolve, choose, fetch, crop, hand over. The same for the shop's boxes, the assistant and the Inspiration page."
+    },
+    {
+      "match": "site/inspiration/index.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Listens for a paste (or Enter) in any box marked data-import-urls and starts the import."
+    },
+    {
+      "match": "site/inspiration/page.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The Inspiration page's behaviour: the box, Paste and Import, upload and drop, the sites list and recent imports."
+    },
+    {
+      "match": "site/inspiration/import.css",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The dialog and crop screen styles (inside a shadow root): the site's colours and fonts, a dark stage for the photo, responsive down to a phone."
+    },
+    {
+      "match": "server/lib/inspiration/safeFetch.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Fetching an address a visitor chose without reaching anything of ours: https and port 443 only, no IP addresses or internal names, public addresses only checked as the connection is made, redirects followed by hand and re-checked, size and time limits."
+    },
+    {
+      "match": "server/lib/inspiration/imageBytes.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "What a downloaded file really is, from its first bytes: JPEG, PNG, GIF, WebP or AVIF, its size in pixels, and the limits."
+    },
+    {
+      "match": "server/lib/inspiration/pageImages.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The picture a web page names for itself (og:image, twitter:image, link rel, JSON-LD) from its text."
+    },
+    {
+      "match": "server/lib/inspiration/gallery.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Runs python/gallery_resolve.py without a shell, with limits and a bare environment, and reads its answer as data: only https pictures on the site's own hosts."
+    },
+    {
+      "match": "server/lib/inspiration/importer.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Resolve an address to tokens, fetch a token to a checked picture: limits per account and address, tokens bound to the account, memory of answers."
+    },
+    {
+      "match": "server/routes/inspiration.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The inspiration import routes (status, resolve, file) and the fixed list of browser modules."
+    },
+    {
+      "match": "tests/js/inspiration-sources.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "Which kind of address is what, and its canonical form: every site, look-alikes, internal addresses, sentences, the registry's own examples."
+    },
+    {
+      "match": "tests/js/inspiration-geometry.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The crop arithmetic, including random drags that must never leave the photo or break a locked shape."
+    },
+    {
+      "match": "tests/js/inspiration-bytes.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "Picture recognition from bytes (five formats, sizes, refusals) and a web page's named picture."
+    },
+    {
+      "match": "tests/js/inspiration-fetch.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The safe fetcher against a local HTTPS server: private targets, IP addresses, redirects, endless and slow bodies, wrong types."
+    },
+    {
+      "match": "tests/js/inspiration-importer.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "Tokens, limits, caching, picture hosts, plain error answers, and the gallery-dl runner with a pretend program."
+    },
+    {
+      "match": "tests/js/inspiration-routes.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The import routes through the real server: the sign-in rule, answers, errors, guards, the served browser modules."
+    },
+    {
+      "match": "tests/js/inspiration-gallery-contract.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The registry against the installed gallery-dl, offline: every address shape reaches the intended extractor and every option is one it reads. Skips without python/.venv."
+    },
+    {
+      "match": "tests/js/inspiration-pinterest.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The tests of the first, Pinterest-only importer (server/lib/pinterestImport.js), which is no longer used."
+    },
+    {
+      "match": "tests/js/inspiration-resolver.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "python/gallery_resolve.py against a pretend gallery_dl: the allow list, the one hop of a short link, what is dropped, thumbnails, the options handed to gallery-dl, reasons and the timeout. Offline."
     }
   ]
 }

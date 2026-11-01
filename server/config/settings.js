@@ -6,6 +6,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readAuthEnv } from '../auth/config.js';
+import { describeCatalogue, readCatalogueEnv } from '../catalogue/config.js';
 import { loadEnvFile } from './envfile.js';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -50,6 +52,14 @@ function emptySettings(envPath) {
     },
     // PostHog for every page. Blank key: the studio's own POSTHOG_KEY (swatchroom/.env) is used, so both land in one project.
     analytics: { key: '', host: '', replay: true, onLocalhost: false },
+    // Inspiration import (server/lib/inspiration/): reads a pasted address with gallery-dl (python/gallery_resolve.py, the website's own
+    // Python) or, for a picture link or a web page, directly. `python` and `script` are filled in by loadSettings (relative to the project folder).
+    inspiration: { enabled: true, python: '', script: '', limit: 40, timeoutMs: 60000, maxFileBytes: 25 * 1024 * 1024 },
+    // Sign-in (server/auth/): the non-secret half of what .env says. The secrets are in `authSecrets`, which is not enumerable.
+    auth: {},
+    // Catalogue search (server/catalogue/): the non-secret half of what .env says, filled in by loadSettings. The keys are in `catalogueSecrets`,
+    // which is not enumerable.
+    catalogue: {},
     warnings: [],
   };
 }
@@ -92,6 +102,26 @@ export function loadSettings(envPath, environ, root = ROOT) {
   else s.warnings.push('POSTHOG_HOST must look like https://us.i.posthog.com: analytics stays off.');
   s.analytics.replay = flag(get('POSTHOG_REPLAY'), true);
   s.analytics.onLocalhost = flag(get('POSTHOG_ON_LOCALHOST'), false);
+
+  // --- inspiration import (a pasted address -> a picture to crop)
+  const insp = s.inspiration;
+  insp.enabled = flag(get('INSPIRATION_IMPORT'), true);
+  insp.python = path.resolve(root, get('IMPORTER_PYTHON', 'python/.venv/bin/python') || 'python/.venv/bin/python');
+  insp.script = path.resolve(root, get('IMPORTER_SCRIPT', 'python/gallery_resolve.py') || 'python/gallery_resolve.py');
+  insp.limit = int(get('INSPIRATION_LIMIT'), 40, 1, 100);
+  insp.timeoutMs = int(get('INSPIRATION_TIMEOUT_SECONDS'), 60, 10, 180) * 1000;
+  insp.maxFileBytes = int(get('INSPIRATION_MAX_FILE_MB'), 25, 1, 50) * 1024 * 1024;
+
+  // --- sign-in and the CRM (server/auth/config.js)
+  const auth = readAuthEnv(get, s.warnings);
+  s.auth = auth.pub;
+  Object.defineProperty(s, 'authSecrets', { value: Object.freeze(auth.secrets), enumerable: false });
+
+  // --- catalogue search (server/catalogue/config.js): find materials by photo, colour or text
+  const catalogue = readCatalogueEnv(get, s.warnings, root);
+  s.catalogue = catalogue.pub;
+  Object.defineProperty(s, 'catalogueSecrets', { value: Object.freeze(catalogue.secrets), enumerable: false });
+  s.nodeEnv = get('NODE_ENV');
   return s;
 }
 
@@ -104,6 +134,7 @@ export function describe(settings) {
     settings.studio.requirePasscode
       ? 'Studio passcode: ON (STUDIO_REQUIRE_PASSCODE=on, the passcode is STUDIO_PASSCODE in swatchroom/.env)'
       : 'Studio passcode: off - the studio is open; each browser only sees its own rooms and every visitor is rate limited (README, "Keeping the open studio safe")',
+    ...describeCatalogue(settings),
   ];
 }
 

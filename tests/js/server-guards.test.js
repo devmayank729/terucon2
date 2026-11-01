@@ -122,3 +122,50 @@ describe('JSON and origin guard for POST/PUT/PATCH/DELETE under /api/', () => {
     assert.equal(r.status, passed);
   });
 });
+
+describe('POST /api/catalogue/search is the one write route that carries a photo instead of JSON', () => {
+  let app;
+  before(async () => {
+    app = await startTestApp();
+  });
+  after(() => app.stop());
+
+  // These requests are not signed in, so a request that gets past the guard is answered 401 by the route itself; one that does not is 415 or 403 from the guard.
+  const send = (path, type, { method = 'POST', headers = {} } = {}) => app.request(path, { method, body: Buffer.from([0xff, 0xd8, 0xff, 0xe0]), headers: { ...(type ? { 'Content-Type': type } : {}), ...headers } });
+
+  test('a JPEG, PNG or WebP body gets through the JSON rule (any case, with parameters)', async () => {
+    for (const type of ['image/jpeg', 'image/png', 'image/webp', 'IMAGE/JPEG', 'image/webp; charset=binary', ' image/png ']) {
+      const r = await send('/api/catalogue/search', type);
+      assert.equal(r.status, 401, type);
+      assert.equal(r.json().error.reason, 'unauthorized');
+    }
+  });
+
+  test('no other type does: a GIF, an AVIF, an SVG, text, bytes, a form, or no type at all', async () => {
+    for (const type of ['image/gif', 'image/avif', 'image/svg+xml', 'text/plain', 'application/octet-stream', 'application/x-www-form-urlencoded', 'multipart/form-data', 'image/jpegx', 'image/', null]) {
+      const r = await send('/api/catalogue/search', type);
+      assert.equal(r.status, 415, String(type));
+      assert.deepEqual(r.json(), { error: { code: 415, status: 'INVALID_ARGUMENT', message: 'Send application/json.' } });
+    }
+  });
+
+  test('only POST, and only that exact path; every other write under /api/ is still JSON only', async () => {
+    for (const method of ['PUT', 'PATCH', 'DELETE']) assert.equal((await send('/api/catalogue/search', 'image/jpeg', { method })).status, 415, method);
+    for (const path of ['/api/catalogue/search/', '/api/catalogue/search-text', '/api/catalogue/searches', '/api/catalogue/search/x', '/api/catalogue/warm', '/api/catalogue/admin/uploads', '/api/catalogue/admin/jobs', '/api/inspiration/resolve', '/api/auth/start', '/api/nope', '/api/health']) {
+      assert.equal((await send(path, 'image/jpeg')).status, 415, path);
+    }
+    assert.equal((await send('/api/catalogue/search?x=1', 'image/jpeg')).status, 401, 'a query string does not change the path');
+  });
+
+  test('the Origin rule still applies to it', async () => {
+    assert.equal((await send('/api/catalogue/search', 'image/jpeg', { headers: { Origin: 'https://evil.example.com' } })).status, 403);
+    assert.equal((await send('/api/catalogue/search', 'image/jpeg', { headers: { Origin: 'null' } })).status, 403);
+    assert.equal((await send('/api/catalogue/search', 'image/jpeg', { headers: { Origin: `http://localhost:${app.port}` } })).status, 401);
+  });
+
+  test('JSON still works there too (the route refuses it on its own terms), and the text search is JSON only', async () => {
+    const json = await app.post('/api/catalogue/search', {}, { 'Content-Type': 'application/json' });
+    assert.equal(json.status, 401, 'past the guard; the route wants a signed-in visitor first');
+    assert.equal((await app.post('/api/catalogue/search-text', '{}', { 'Content-Type': 'image/jpeg' })).status, 415);
+  });
+});

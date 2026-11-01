@@ -13,35 +13,96 @@
       "op": "insertAfter",
       "why": "header: Materials link",
       "anchor": "<nav style=\"pointer-events:auto;display:flex;align-items:center;gap:clamp(14px,2vw,28px)\">",
-      "insert": ["\n    ", {"component": "headerLink", "entry": "materials", "mobileHide": true}]
+      "insert": [
+        "\n    ",
+        {
+          "component": "headerLink",
+          "entry": "materials",
+          "mobileHide": true
+        }
+      ]
+    },
+    {
+      "id": "header-inspiration",
+      "op": "insertBefore",
+      "why": "header: Inspiration link",
+      "anchor": "<a href=\"#enquire\" data-navpill=\"\"",
+      "insert": [
+        {
+          "component": "headerLink",
+          "entry": "inspiration",
+          "mobileHide": true
+        }
+      ]
     },
     {
       "id": "header-project",
       "op": "insertBefore",
       "why": "header: My project link",
       "anchor": "<a href=\"#enquire\" data-navpill=\"\"",
-      "insert": [{"component": "headerLink", "entry": "project", "mobileHide": true}, "\n    "]
+      "insert": [
+        {
+          "component": "headerLink",
+          "entry": "project",
+          "mobileHide": true
+        },
+        {
+          "component": "accountLink",
+          "entry": "account",
+          "mobileHide": true
+        },
+        "\n    "
+      ]
     },
     {
       "id": "menu-cards",
       "op": "insertAfter",
       "why": "menu: Materials and My project cards",
       "anchor": "Upload a photo of your space and see it in Terucon materials.</span></a>",
-      "insert": ["\n        ", {"component": "menuCard", "entry": "materials"}, "\n        ", {"component": "menuCard", "entry": "project"}]
+      "insert": [
+        "\n        ",
+        {
+          "component": "menuCard",
+          "entry": "materials"
+        },
+        "\n        ",
+        {
+          "component": "menuCard",
+          "entry": "project"
+        },
+        "\n        ",
+        {
+          "component": "menuCard",
+          "entry": "account"
+        }
+      ]
     },
     {
       "id": "hero-studio",
       "op": "insertBefore",
       "why": "hero: a plain way into the Design Studio that is visible without opening the menu (also on a phone)",
       "anchor": "<a href=\"#work\" style=\"display:inline-flex;align-items:center;gap:10px;font:500 14px/1 Switzer,Helvetica,Arial,sans-serif;color:#E1D4C2;border-bottom:1px solid rgba(225,212,194,.4);padding-bottom:6px\" style-hover=\"color:#E1D4C2;border-bottom-color:#E1D4C2\">See the work</a>",
-      "insert": [{"component": "heroPill", "entry": "studio"}, "\n          "]
+      "insert": [
+        {
+          "component": "heroPill",
+          "entry": "studio"
+        },
+        "\n          "
+      ]
     },
     {
       "id": "studio-warmup",
       "op": "insertBefore",
       "why": "start the Design Studio's cold start as soon as the landing page opens",
       "anchor": "</helmet>",
-      "insert": ["<script>", {"file": "snippets/warmup.js", "chomp": true}, "</script>\n"]
+      "insert": [
+        "<script>",
+        {
+          "file": "snippets/warmup.js",
+          "chomp": true
+        },
+        "</script>\n"
+      ]
     },
     {
       "id": "footer-links",
@@ -49,8 +110,15 @@
       "why": "footer: Shop materials and My project links",
       "anchor": "style-hover=\"background-size:100% 1px;color:#FFFFFF\">Design Studio</a>",
       "insert": [
-        {"component": "footerLinkUnderlined", "entry": "materials", "label": "Shop materials"},
-        {"component": "footerLinkUnderlined", "entry": "project"}
+        {
+          "component": "footerLinkUnderlined",
+          "entry": "materials",
+          "label": "Shop materials"
+        },
+        {
+          "component": "footerLinkUnderlined",
+          "entry": "project"
+        }
       ]
     },
     {
@@ -72,7 +140,28 @@
       "op": "insertBefore",
       "why": "PostHog analytics: page views, clicks and forms, and (studio page) the studio's own events, which its browser code sends to window.posthog but its server never gives a key for. The script asks GET /api/analytics, so no key is in the page",
       "anchor": "</helmet>",
-      "insert": ["<script>", {"file": "snippets/analytics.js", "chomp": true}, "</script>\n"]
+      "insert": [
+        "<script>",
+        {
+          "file": "snippets/analytics.js",
+          "chomp": true
+        },
+        "</script>\n"
+      ]
+    },
+    {
+      "id": "auth",
+      "op": "insertBefore",
+      "why": "sign-in: the header link says Sign in or Account, and a request answered \"please sign in\" (the session ended) leads to the sign-in page. The script asks GET /api/auth/me, so nothing about the visitor is in the page",
+      "anchor": "</helmet>",
+      "insert": [
+        "<script>",
+        {
+          "file": "snippets/auth.js",
+          "chomp": true
+        },
+        "</script>\n"
+      ]
     }
   ]
 }

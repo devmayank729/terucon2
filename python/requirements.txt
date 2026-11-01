@@ -1,0 +1,9 @@
+# The website's own Python (not the Design Studio's: that is swatchroom/python/, a separate project we do not edit).
+# Set up once, from the project folder:
+#   python3 -m venv python/.venv
+#   python/.venv/bin/pip install -r python/requirements.txt
+# gallery-dl reads the pictures of an address on the sites in site/inspiration/sources.js (python/gallery_resolve.py): Pinterest,
+# Unsplash, Pexels, Flickr, Behance, Imgur, Wikimedia Commons. It is licensed GPL-2.0-only; the site only runs it as a separate
+# program and does not copy its code. Pinned, because the sites change and a new release can change what it prints:
+# tests/js/inspiration-gallery-contract.test.js checks the registry against whatever version is installed, so upgrade, run it, then commit.
+gallery-dl==1.32.18

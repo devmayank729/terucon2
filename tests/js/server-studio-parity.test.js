@@ -36,10 +36,18 @@ alone.stderr.on('data', (d) => (aloneLog += d));
 
 // mounted
 const { createApp } = await import('../../app.js');
-const app = createApp({ root: project.root, environ: { STUDIO_REQUIRE_PASSCODE: 'on' }, swatchroom: true, log: { info() {}, warn() {}, error() {}, raw() {} } });
+const { createAuthDb } = await import('../../server/auth/db.js');
+const { captureProviders, SECRET } = await import('../helpers/authKit.js');
+const { signInVia } = await import('../helpers/signIn.js');
+const capture = captureProviders();
+const app = createApp({ root: project.root, environ: { STUDIO_REQUIRE_PASSCODE: 'on' }, swatchroom: true, log: { info() {}, warn() {}, error() {}, raw() {} }, auth: { db: createAuthDb({}), providers: capture.providers, secret: SECRET } });
 const server = http.createServer(app);
 await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 const mountedPort = server.address().port;
+// The website's own sign-in sits in front of the studio's costly routes. This test is about whether the studio behaves the same
+// once a request reaches it, so the mounted side is always asked as a signed-in member (a cookie the standalone studio ignores).
+const account = await signInVia((p, o = {}) => request(mountedPort, { path: p, ...o }), capture);
+const asMember = (options) => ({ ...options, headers: { ...options.headers, Cookie: [options.headers?.Cookie, account.cookie].filter(Boolean).join('; ') } });
 
 for (let i = 0; i < 100; i += 1) {
   try { if ((await request(alonePort, { path: '/api/session' })).status === 200) break; } catch { /* not up yet */ }
@@ -61,7 +69,7 @@ const normal = (r) => ({
   headers: Object.fromEntries(Object.entries(r.headers).filter(([k]) => !IGNORE.has(k)).sort(([a], [b]) => a.localeCompare(b))),
   body: r.buffer.toString('latin1'),
 });
-const both = async (options) => [normal(await request(alonePort, options)), normal(await request(mountedPort, options))];
+const both = async (options) => [normal(await request(alonePort, options)), normal(await request(mountedPort, asMember(options)))];
 const same = async (what, options) => {
   const [a, m] = await both(options);
   assert.deepEqual(m.headers, a.headers, `${what}: headers differ (alone first)`);
@@ -94,7 +102,7 @@ test('the studio\'s API answers the same: the session, the passcode refusals, th
   const [cookieAlone, cookieMounted] = [await signIn(alonePort), await signIn(mountedPort)];
   const withCookie = async (what, options) => {
     const a = normal(await request(alonePort, { ...options, headers: { ...options.headers, Cookie: cookieAlone } }));
-    const m = normal(await request(mountedPort, { ...options, headers: { ...options.headers, Cookie: cookieMounted } }));
+    const m = normal(await request(mountedPort, asMember({ ...options, headers: { ...options.headers, Cookie: cookieMounted } })));
     assert.deepEqual(m.headers, a.headers, `${what}: headers differ (alone first)`);
     assert.equal(m.status, a.status, `${what}: status`);
     assert.equal(m.body, a.body, `${what}: body`);

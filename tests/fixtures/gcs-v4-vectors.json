@@ -1,0 +1,193 @@
+{
+  "_comment": "Written by tests/fixtures/gen-gcs-v4-vectors.py from Google's own SDK; do not edit by hand. tests/js/catalogue-signer.test.js must reproduce every url byte for byte. The key is a throw-away one that protects nothing.",
+  "generator": "tests/fixtures/gen-gcs-v4-vectors.py",
+  "versions": {
+    "google-cloud-storage": "3.17.1",
+    "google-auth": "2.55.2",
+    "cryptography": "50.0.2"
+  },
+  "throwAwayKey": {
+    "pkcs8DerBase64": "MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCVKy7bYWBkLqKI/gsIz+MkmPT6ycZMLDCKHHgAyPrs696jzWEGku7m16mnh1R05COAU7TimomnIEDPQWyrtU0w3MHKn/JrO6u4lDNjCm2OjmOqItAIl9+IIAf/SQ3aGZdgb+cndT6pjVf6qEOfB9YiMMshQq0yxWOnENvlCMqudbr1Ch3sfsD+4k4gHwoR/bB+7yq/nUOfHz+6ERFYOje6lTfVgcy6DIfWBBaA4xjhWtttKtqvTBaTxO94i4flO7VPOY8wM6ZjW2kLA7HsNUsHD6hg6LNARKXv3Jn9/3qMnDLG6ns+srtXX3US30FsuhnBNFzfgafQmoK2eJDWRXepAgMBAAECggEAA9xyKizNNk6kN6ROxA/AfwckCTVNmBVpPLvzqb6KCzWoRchoR2eofiptKmhU+fEZT6YrB5YNM9mgf9TfU5r96GLAc+abu2WYIm8YnOrNTuw13Xao+J34w+DjYBrjnEZ/DfibjMCKyo/9a+As3uoQo4Iskdv0WHz2QUHtFTK671TT7qrxeGM83+lRzwohKC7AYBPc2DxOvXkoKb9b8g+0zFnI0FKI6e89zyG3XItaoLmBvk9L0SRLkLKzmq1nujB6mdkbMwtDidivKw3auljPU/ICFmoawl/efudkCNlP2mas0VNN9KjJm0TTb54PQqCWSRE4tBm3QczN6GyS8DtokQKBgQDJ/VsGD/Ia12+AcqpLKrz0LSjX2OfpCKeACaHbbKNU9UuOYqXL4FD89Vb7cJZFEdBo/3VZOZMeoJT0OTO72iyUJsO+wEiDGNXGM8KzLPy+FwGda+2GW6/nz54y+oiIezQk90Tf3suBl12xgi2ipXDZZitmXesAHPlASXFkLaK8EQKBgQC9Dhzlq/Z0N9Siptgb8ufXQ4jNT+hO+13dsm49AZSbCsTzDsqJngsJCeiVi19YL0Xc+td1z7kzj3iZWA2VIqoNK3J32WQskwUAgEngBnauIxsl7Mi+xPvVdPpewLXJuVigzCN/uc8T3PQ+1FvYqXd7EvSf6STQojWcQiJ0DLF6GQKBgCZFI3bdlJBzWwPqNcuyGETnPYLP7PihFCNVL96EEdop85vRovoi0RVsYoOXTFFf063hINm759z4reAr6lpgNuwHADVm9xYnoXFBI1WRY32cnEi4RzOasZRpKN8dyrqZJUMPunP0IXi3NiBIut7DG8OE8RofF0RZOPxuLda+MsQRAoGAHQpU8Aa5ReLpm86LNcfbSxrJodgbdD5yjcKB4ocin6pI1Jk6DWekhE/sVURicfZZAffaLvOonD32pX98HqODgaBh5f0TwTEYPJp4PpxfkKI94lZ8A6nYkVJ1vyZVBladQZ35+f29zGxNbHVMYnytqM8hmorCp/WyzHzwM+lbPckCgYA3UdObo45jA/6aIHw5epAS0YNP5yyF6j199F4In5v76y3X8DOiyssEHykO0W1H0gtpr4DpZ3eBkISIidgDmLyOg8qKQfDVV1r3SyWVQJ7Bt5zG489GpwjTv14fN4cY63/Fubcu1GuBBadh4/teZR78LSc3V2DxaJLCgSZsrxYTyg==",
+    "clientEmail": "catalogue-signer@terucon-test.iam.gserviceaccount.com"
+  },
+  "bucket": "terucon-test-bucket",
+  "vectors": [
+    {
+      "name": "a thumbnail, one hour",
+      "method": "GET",
+      "objectName": "catalogue/thumbs/superbond-colour/a1b2c3d4e5f6-p0001-i00.jpg",
+      "expiresS": 3600,
+      "nowMs": 1793534400000,
+      "contentType": null,
+      "headers": {},
+      "url": "https://storage.googleapis.com/terucon-test-bucket/catalogue/thumbs/superbond-colour/a1b2c3d4e5f6-p0001-i00.jpg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=catalogue-signer%40terucon-test.iam.gserviceaccount.com%2F20261101%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261101T120000Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=00fae16f5f113893cb59933283f3a8555f144768602ce3f2ebd7052d1de0220d47a29046e62618aff7d3b0691bd79a5fe953d0af7f4e7312fb7377c0b25e7249df844c42475d9e1622deb12ae1822793529cdd6f76f438480446c17baca7ae0160a7ffd8371a9e539d0a24d44411df8df6ed84ea5fdabac4d183c1757c0b4c75150a6a9feca05c7a9002456005fbff97a6adce4004af106b0121150f0b2db2ff34fc030fada96fbbe1fa901a53f5eb113458ded8fe4a8326a1a3084d87dabe12d979741122ec8d47ea895cd09fd2bfee7deabb192d7a3b2c8839456102d4b2f804b1a52f0c85f5d721caddfddef7a9dade515779668f5629a88a9685a5e0d25c"
+    },
+    {
+      "name": "a crop, one hour and a quarter (the window the site signs with)",
+      "method": "GET",
+      "objectName": "catalogue/crops/superbond-colour/a1b2c3d4e5f6-p0001-i00.png",
+      "expiresS": 4500,
+      "nowMs": 1793534400000,
+      "contentType": null,
+      "headers": {},
+      "url": "https://storage.googleapis.com/terucon-test-bucket/catalogue/crops/superbond-colour/a1b2c3d4e5f6-p0001-i00.png?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=catalogue-signer%40terucon-test.iam.gserviceaccount.com%2F20261101%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261101T120000Z&X-Goog-Expires=4500&X-Goog-SignedHeaders=host&X-Goog-Signature=3fb34246ab0f373db81113f80dad214140c0063290838abae8bcc6e92758739203d51a860ebd3d1bdf0018be87dab05ac04160c67260c0bb9550bd991822b494ef2e278eadf7b07e5ded562131c62ae768058bac3a05b488c83caf3b9028a53921184f5c3d240695455ccce1d63f32c726d77fa7eee17cce7cca4157d6024e48f3a0d70307c6b7b44f3c63206799c69838530542cfc967030abe5e2aa4b4795dd024df055fc5e6d6dc8cdd2a164427a4bc51ead1ff0913dd87ee3db313c38e4af314f0f2786a0194bc838dc41344663c58ce8a24b5933b48da54a9e30ef202ed6b9c7d2490cb8c135a180e2923f214353b139b37cfd30e706102d0090138b8fb"
+    },
+    {
+      "name": "the shortest life",
+      "method": "GET",
+      "objectName": "catalogue/thumbs/x/y.jpg",
+      "expiresS": 1,
+      "nowMs": 1793534400000,
+      "contentType": null,
+      "headers": {},
+      "url": "https://storage.googleapis.com/terucon-test-bucket/catalogue/thumbs/x/y.jpg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=catalogue-signer%40terucon-test.iam.gserviceaccount.com%2F20261101%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261101T120000Z&X-Goog-Expires=1&X-Goog-SignedHeaders=host&X-Goog-Signature=325b053df2e9b3ebb75453af5d27d8eef2dd453bd3992300fe8e0429506ee0c9f685c69f73c6994e8d9fc8a663377cde1219a6d61f32bdbdeedbf87d8d65d079eb24e675cb707329c712f6f40477ae419ec7831db89287348d50879ca2921f5647aeda8968ee65f8cc135410ef61b33a1d25822a6ac9340520964708b719fca74eab1e435129b3935bc98294496ddd8af44c466df7f1617271f5e4279d099fa5aaa459734fb6dbe508373f6b65407c1df8716a8f686deab60a23a6216f0426b64d14b540946ac6afe868c4f0b8e2774a634895e717796a1a7cd4319f6431cdc7100f1f18d1550372308550aa9b5b3804941f36d47c7573e87c5d92a493d26f26"
+    },
+    {
+      "name": "the longest life, seven days",
+      "method": "GET",
+      "objectName": "catalogue/thumbs/x/y.jpg",
+      "expiresS": 604800,
+      "nowMs": 1793534400000,
+      "contentType": null,
+      "headers": {},
+      "url": "https://storage.googleapis.com/terucon-test-bucket/catalogue/thumbs/x/y.jpg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=catalogue-signer%40terucon-test.iam.gserviceaccount.com%2F20261101%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261101T120000Z&X-Goog-Expires=604800&X-Goog-SignedHeaders=host&X-Goog-Signature=1e5e72bd2a2071e88c230aa00bd161c32db14be5573155a2a8c60ceca7813ef47b41d97948687821ff2ced38b3ef67681fd6e10cf8426222e5734df87758c82a41f8b4ca4e150d82b4c75418966c417cbd077a708e327288f03cff3a88e52d243872ae74627da71caaaaa75538aac9c660051a124e21248587d88361f53e04992632a6b6616e7154fa983ff8e6099768d4da61ed42abb80c3f5eff4564931a31819cfa155bce05a43cffae2015099c8ba1acf8ca7b649bb11789c5b5cf8d6e1e56fce4d591c3257605895b44b2643056d252ee63c0ed16b9a9da1b94bc009bb73a59f0254c67cd5d736ad3f6440328c910adbed54a7013740da7d01443abd440"
+    },
+    {
+      "name": "a space and brackets",
+      "method": "GET",
+      "objectName": "catalogue/uploads/job-20261101120000-abc123/My File (1).pdf",
+      "expiresS": 3600,
+      "nowMs": 1793534400000,
+      "contentType": null,
+      "headers": {},
+      "url": "https://storage.googleapis.com/terucon-test-bucket/catalogue/uploads/job-20261101120000-abc123/My%20File%20%281%29.pdf?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=catalogue-signer%40terucon-test.iam.gserviceaccount.com%2F20261101%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261101T120000Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=21e9e6fd0f095018c891800ffe768ce5746f81d1ff7903c7a7aa838d129a7c47b7b9c358cbc47962c036d12f5177a0e79f0936ee7e57a1c8a26642c9b22df1c1e7ff0b21ba2fc362b121adb5216714c7ab3be1049a9c25f3248766b0d3c534c7daf9ed61f9761ec98070061660070bf3195de9147880df66f3dc65e29429b2deaa9b8398b3b1ae83bc6a9c0e514ff32aaa89584c82521adcf5bd2a9ae7ff84043248c774d0fe756cf049ebb8af4fe0f57b82fb1effbad77369ada9e23cd4a09eee70d46425b262c2298701d1861b1710919ec0a9767612fb719f32988d2a8241e7de4711dd24c224f44b7d3533e1aede849f60fa7657b75ebbf4206fd4c28f50"
+    },
+    {
+      "name": "the signs Python encodes and encodeURIComponent does not",
+      "method": "GET",
+      "objectName": "catalogue/uploads/j/a!b*c'd(e)f.pdf",
+      "expiresS": 3600,
+      "nowMs": 1793534400000,
+      "contentType": null,
+      "headers": {},
+      "url": "https://storage.googleapis.com/terucon-test-bucket/catalogue/uploads/j/a%21b%2Ac%27d%28e%29f.pdf?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=catalogue-signer%40terucon-test.iam.gserviceaccount.com%2F20261101%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261101T120000Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=7901951a7f79167dd054372a1cfa8559faf33634955f71a8d76084d50c0baf98fd57e65d2889e59345535e65f7be6828b5218f35e366ef2541b731b3fbf578eb6da0a71b0524c6bc5a22561f5ca3660c87552e9417f20b2defe691e0ef3317b57772721d97f426fdb1f6f10b482b514bab6e0a922d61b030ec89b320a8f691b9888ba4ea51623472baf9b2999de027a643b15e369b16da640e725772672f8e6cca51f246b30dc27d59aee109976caf7100bac3cfc4273ae1c45b8ba8a6fae95fbabcca5031f2e6b1f53f4e5747a82d092a3c1c463400c68a5f63919141614c31509c47b0547d273342cbe884b2ba8224f77690310ba39cf1e0e4777928b3f3b7"
+    },
+    {
+      "name": "the signs of a query string and a fragment",
+      "method": "GET",
+      "objectName": "catalogue/uploads/j/a+b&c=d?e#f%g,h;i:j@k$l.pdf",
+      "expiresS": 3600,
+      "nowMs": 1793534400000,
+      "contentType": null,
+      "headers": {},
+      "url": "https://storage.googleapis.com/terucon-test-bucket/catalogue/uploads/j/a%2Bb%26c%3Dd%3Fe%23f%25g%2Ch%3Bi%3Aj%40k%24l.pdf?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=catalogue-signer%40terucon-test.iam.gserviceaccount.com%2F20261101%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261101T120000Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=8dbe7606191a7f0d006493d6624342a93f4baecf2777907bb54c4b05e66d728853a5291064f30c2c023ba66fdf86a733bf47f7987dc5f80039dd207dc136e55ea858345d4b96d16b78af6f61ca8c4a95ce3315db5011d612871d3430385edc5537e7df03c3d343f5c21c9c486eafd7c87542d1639032db9984b2bff6aa69850e382071ba606e335809afd383867c15569afc0cd7d64824559f5572c463ef20d7140dcf083bc55ea1285bc97537082ffaca435c89e2a5b0d9503fb8283da73e14985b2aa6a10203b333bfca5603b27a14aa92f7eda4d0ac3f61549f3ebc58807f435073e668818070692e7dffb1c7cf890671883bf5359afe99ecba0b1cdadcde"
+    },
+    {
+      "name": "unicode and an emoji",
+      "method": "GET",
+      "objectName": "catalogue/uploads/j/Caf\u00e9 \u2013 na\u00efve \u65e5\u672c\u8a9e \ud83e\uddf1.pdf",
+      "expiresS": 3600,
+      "nowMs": 1793534400000,
+      "contentType": null,
+      "headers": {},
+      "url": "https://storage.googleapis.com/terucon-test-bucket/catalogue/uploads/j/Caf%C3%A9%20%E2%80%93%20na%C3%AFve%20%E6%97%A5%E6%9C%AC%E8%AA%9E%20%F0%9F%A7%B1.pdf?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=catalogue-signer%40terucon-test.iam.gserviceaccount.com%2F20261101%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261101T120000Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=518b086c73d9ba72b8dfeee831b2176222406482ed89e4720357dd95e9269d2e3fc66e6ee652854db391bcc321404571f8c7405bd3162fb6291c82581ca7038b1a47e462806e638d888474488f2d985ab2f2938391161866267736af43383b801763bd3b4b75f8b9225facac40ebf1e092830daf7fc9ee9f5f7be121a5a6b42416d1d9d2620e7bec4b71c1bafd4997a88ec7f6f3056d0f77b58b9a349fb2f890ff77321d6d50f1de59e5ad0f68bb6e5fa3201228e02d3cb65dcd1fc0a957c34c9beb0d4706c671a3d9f6572bad6e23dd1e814430d53451b3d13262cf6ddc95f8918373721924bb04358b2e0dd4815e8c2235387a3b855ac3254ddf8e4bcd73d2"
+    },
+    {
+      "name": "a tilde, dots, dashes and underscores",
+      "method": "GET",
+      "objectName": "catalogue/uploads/j/~tilde_and-dash.v1.2.pdf",
+      "expiresS": 3600,
+      "nowMs": 1793534400000,
+      "contentType": null,
+      "headers": {},
+      "url": "https://storage.googleapis.com/terucon-test-bucket/catalogue/uploads/j/~tilde_and-dash.v1.2.pdf?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=catalogue-signer%40terucon-test.iam.gserviceaccount.com%2F20261101%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261101T120000Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=3591bc5ef3891f4784676436bda32eaae63849d9f86cdcea55510fa12a78d2ac27a44b068f1bdc5c95cb373e8e97d775552ab44f732ad1a23fe931140a9b3d208117a432ead46d9fb36e9b215877213be22afc1896348589823fe554c1b3f3bc3b1dab9a1124681743c2e2d2741c3bcb85ac53df3716c9ea54732a69a1d26be1885735641426a6f50e8d89dc499bf69c4b77097ce18c0545ed83d9bd920d292f24166c26837668ac7851f35385018e5f3232551184f648df8911181d3095f9f0972b4864f1d89f30c3589a34102ebd4e2088f709bca08e6c5507cb02056b3a30f1471a9d78ad155c709063ebd3a7bbc96f84a0c778100de20c4c4d88c80943c0"
+    },
+    {
+      "name": "slashes are kept, even doubled",
+      "method": "GET",
+      "objectName": "catalogue/uploads/j//double/../x.pdf",
+      "expiresS": 3600,
+      "nowMs": 1793534400000,
+      "contentType": null,
+      "headers": {},
+      "url": "https://storage.googleapis.com/terucon-test-bucket/catalogue/uploads/j//double/../x.pdf?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=catalogue-signer%40terucon-test.iam.gserviceaccount.com%2F20261101%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261101T120000Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=8f7553f825b35132de2acd0bb7e9a61f7379f5cbdb2c82ffe6adc5a2cf1f35855f281de18f7ee17e2996c70aff0a4d7d039e12378cd04ca10d1e0e32c7628bde52c5e823dfc0c43bfa82c42375b5b0f6772efad76cbab1db80ab514fbd19746161fa35c83c3c60352dbb6cbaec3c698840d07f715720b0cc3d0c1dbb2edcdb691bb34a8b817998eaf8073e3767d09022e4537a1422aec1ceea3d41db5cd515cd327ac4c54f4690f3adb76a1ca03aef77a9f24d79a9fa928b2b4590e8fbe0acdc5196b63f9ef501d6ca73b550436eafc99d6d65efc1b593fa0eee7a13fdb163284903db1f8b4610367baf7c5017d57de84a72445395021f02c84705f4bd1c2884"
+    },
+    {
+      "name": "a long name",
+      "method": "GET",
+      "objectName": "catalogue/uploads/j/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.pdf",
+      "expiresS": 3600,
+      "nowMs": 1793534400000,
+      "contentType": null,
+      "headers": {},
+      "url": "https://storage.googleapis.com/terucon-test-bucket/catalogue/uploads/j/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.pdf?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=catalogue-signer%40terucon-test.iam.gserviceaccount.com%2F20261101%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261101T120000Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=717d4dc2e64f37848986bbb1d3fa24547cf1995be8241803e3540e30e38b45f07fd849bbd90eab97461d172fa366431fdd8a6660edb1eea0538af57211a80b4a4abfe89d1715b51bdd49e20a2358d23f59e3944f7487104852d1016612e88b081dab516a09e0e13b3e5ae34178662927ddc2ed3054f9a7b81bb31dfd896d0907fab79fb31c48539973ca6508e5b987d22467ebd722fb387b913e73fe4d9bdd5c74007a984b673c7ab5d22007c5748f9322835b1f7210be6b7c45b166b16cd877ed3ef7a6884496f03dd80a468bf4070e32b450a762c13bb60170591f2f47431a258ee05341e44d81194a7c5c22f1b4ffcb09994935e1fc9285805336ae5f7950"
+    },
+    {
+      "name": "no prefix at all",
+      "method": "GET",
+      "objectName": "plain.txt",
+      "expiresS": 3600,
+      "nowMs": 1793534400000,
+      "contentType": null,
+      "headers": {},
+      "url": "https://storage.googleapis.com/terucon-test-bucket/plain.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=catalogue-signer%40terucon-test.iam.gserviceaccount.com%2F20261101%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261101T120000Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=5b27c680f7ed76b284cbd06e6728528f99891a9f39e662cf751af925f047b12fc546ec1f1585edb99480456645f5ce5b429e9c2c00c4b5ea464697d98062d7e3b00b2e525aa421cdbfd5d8553084ed8632c87e382f8a9ffa24f370ebb277a11247c25596ac4139065fc2cd6a75a598276332a668b04bed2375270e607448ffa16fde545ae4533e04ca09ca6379c974e059733c0dc4120ab0cead311a3330c0e7cad07d6a03c5dd737cc9c3c7a317fe7691db775f6cb2254afbb05a037fcb7a464a2bd9b43a13e25e5d6455e7c8f930c515acf3eaa096600b053c4ae677093a4901fa1c2e2b5c92112354a67555156a9f39363588bc62f94cac507111ef96510f"
+    },
+    {
+      "name": "a day that rolls over",
+      "method": "GET",
+      "objectName": "catalogue/thumbs/x/y.jpg",
+      "expiresS": 3600,
+      "nowMs": 1798761599000,
+      "contentType": null,
+      "headers": {},
+      "url": "https://storage.googleapis.com/terucon-test-bucket/catalogue/thumbs/x/y.jpg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=catalogue-signer%40terucon-test.iam.gserviceaccount.com%2F20261231%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261231T235959Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=2fec6ad93aee633368f71390735d4559e43ee044eff74692af4b2a31f3cc4d80e92a431b855b01587b646457b73ffefdcb642f5f9716c678a8e68b28401e9dd0ba9b6bd3f51e85ee39f71294aa16e54117eab08072bc4515d3800952e24fc52528c251ed2c8a1a104f3262807640715ca7010f7c853d4d580e90e04b497b652559fd4a056b708bd08c12682d985953810a4fde832ddd3abc447e632b630ad069bae4898e6cc6e29710d4f1cc5fa0966ec22f5819fe60f88f2ebe30e59520375d0a85aa226f6524d7836784b0f3b4cd08c7c65cf4f79599e58481fc47a42e77cc3e04147de1d847d869ed22a33da53194d26ed3ad3e29f595e0645b3bd41bdf21"
+    },
+    {
+      "name": "a PDF upload, content type and size range",
+      "method": "PUT",
+      "objectName": "catalogue/uploads/job-20261101120000-abc123/catalogue.pdf",
+      "expiresS": 7200,
+      "nowMs": 1793534400000,
+      "contentType": "application/pdf",
+      "headers": {
+        "x-goog-content-length-range": "0,314572800"
+      },
+      "url": "https://storage.googleapis.com/terucon-test-bucket/catalogue/uploads/job-20261101120000-abc123/catalogue.pdf?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=catalogue-signer%40terucon-test.iam.gserviceaccount.com%2F20261101%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261101T120000Z&X-Goog-Expires=7200&X-Goog-SignedHeaders=content-type%3Bhost%3Bx-goog-content-length-range&X-Goog-Signature=7ff1dc165ad9f206f77d83d392c3502d3720f0ddcc89af69fd905ae44ec2d202b776197afaaa808f3e0e1107245ec56f51244af93ed8d2c508860a01815536ad0413cd9940d8281f105527f848f887eee1aa7526c2a7ae84d9b2356af3e67f08d4d51f0385f5ad99a691c0a5e1ab8d4cadcbff028d2ae986175d798ef4979c7e34edb08119b137d783e706d4b56f4487d7818cda63c012e17e5d536a6c5486301d3ff1c1be41f38b4f9eab572e08878f7e91b58941b01ddcdd59081452e74bfbdc882afe5358137d927d68a8e3c1e5676cd9264bdcede4d1de08aa60e1c7baa2bee91e978743b57723ae24fd12f481a710831ae238ef338ea08a87dbad2ac007"
+    },
+    {
+      "name": "a photo upload with a space in its name",
+      "method": "PUT",
+      "objectName": "catalogue/uploads/job-20261101120000-abc123/living room 2.jpg",
+      "expiresS": 7200,
+      "nowMs": 1793534400000,
+      "contentType": "image/jpeg",
+      "headers": {
+        "x-goog-content-length-range": "0,26214400"
+      },
+      "url": "https://storage.googleapis.com/terucon-test-bucket/catalogue/uploads/job-20261101120000-abc123/living%20room%202.jpg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=catalogue-signer%40terucon-test.iam.gserviceaccount.com%2F20261101%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261101T120000Z&X-Goog-Expires=7200&X-Goog-SignedHeaders=content-type%3Bhost%3Bx-goog-content-length-range&X-Goog-Signature=25deb903510320e5afd3398af9ca7432648fb7cda3a75f8abdde64e5f1e4b5d7198285384882cd395f7e513977cd75327dc0f31d02d27ff35937d91367675a36d406a42b404e06fa5bf7dfda2a714c34e6f9913e088f608b91ebf076056a4e442ec57108d2bcb8b7e43ceb6823ca606187e7da7e389e3f06ad4e1fcb78e608506f1463a2562bfe556d43ff777026177b04edde1b3eee1b93f2fdb96755cef41cce1bf8d57803bea84e29cf8d06ecdda950d9ff1a53565caf4ef7c9a7ee15d3a446f3af6d49f08d23fe9d1f28ad9fef354c2ce15d8cf68bdb489ee26e4d440a7f3ee9ec5ee1c87793a3bf4593f0e52c50deac5e6719cafa52350e8aa06a9a11b7"
+    },
+    {
+      "name": "an upload with a content type only",
+      "method": "PUT",
+      "objectName": "catalogue/uploads/j/a.webp",
+      "expiresS": 600,
+      "nowMs": 1793534400000,
+      "contentType": "image/webp",
+      "headers": {},
+      "url": "https://storage.googleapis.com/terucon-test-bucket/catalogue/uploads/j/a.webp?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=catalogue-signer%40terucon-test.iam.gserviceaccount.com%2F20261101%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261101T120000Z&X-Goog-Expires=600&X-Goog-SignedHeaders=content-type%3Bhost&X-Goog-Signature=1608654014843c0f36bc8897ed5eaa2da93ad028fbf7d34e7ba2ba0f402759ee7d711cdde2005c804266292880f8126c4201b0f0bcef55b0c80ea622939e9c72cfea6d33bc42b0bf2165bba30c0b8c88ced0c1b9d0a65c8d1c7c4d2841a6592e469335f18785d23086bc07c4437ea8e8c3cc6b800299f68055a42f6611fdd244eae70c57d408334eaee1e2efb4799fe05056248bf7022273a84846031a08fbf5ead17ce725259ccb59d5940a9ac8e33a9725adab7c2db13af330fb291601a0c46a266ead850ad697f0a4dcd00d6a4da6d5d5a399c7b50d5cf9532afefd5de25fb98271307a93c3516af534099a90cbb8407e5f48838d9f7fc9789ef9213625df"
+    },
+    {
+      "name": "header names in capitals and values with extra spaces",
+      "method": "PUT",
+      "objectName": "catalogue/uploads/j/b.png",
+      "expiresS": 600,
+      "nowMs": 1793534400000,
+      "contentType": "image/png",
+      "headers": {
+        "X-Goog-Meta-Note": "  two   spaces\t here ",
+        "x-goog-content-length-range": "0,100"
+      },
+      "url": "https://storage.googleapis.com/terucon-test-bucket/catalogue/uploads/j/b.png?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=catalogue-signer%40terucon-test.iam.gserviceaccount.com%2F20261101%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261101T120000Z&X-Goog-Expires=600&X-Goog-SignedHeaders=content-type%3Bhost%3Bx-goog-content-length-range%3Bx-goog-meta-note&X-Goog-Signature=5f30757dc5dcfca554e6b3e55cd3ce460e9e89466ffcbf32efa906a0fa905880f74f306adebe0d6ac8d02da636371717427a2dd275bac8ca3fcd10b3abad181cbf36986fa491e2fe2a516b999d55e727d57b002a4d31c72b2627728c1fcdc91226e9cda3afde0f130001a32e6be94c715eda9e0dd2754e34c00ea8e3f11b7a9df174564b18c14fb6df7251b2394b886d171ce9d6aee4aa726de5013cc618ce47d799b5c87f5b7d79660ab819fbe3ad1d4b66315457373a81c11c45d8a3a14feb35e96cbbf8107d94cdce23a178dba0ef1e889ec4dbc3989e313089aad06583a03cec08c019d1f89aad18f20c527d82fb29f28cf10f0bf00891bf136129db0323"
+    }
+  ]
+}

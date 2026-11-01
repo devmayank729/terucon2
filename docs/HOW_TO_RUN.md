@@ -18,6 +18,12 @@ Four web pages that work as one site, an Express server behind them, and the Des
 | Design Studio | `/design-studio` | `swatchroom/terucon/Swatchroom.html` |
 | My project (client dashboard) | `/my-project` | `pages_original/dashboard.html` |
 | Coming soon (any address that is no page) | `/coming-soon` | `pages/coming-soon.html` |
+| Sign in / create an account | `/login` (also `/signup`) | `pages/login.html` |
+| Your account (details, sign out, delete) | `/account` | `pages/account.html` |
+
+Every page but the landing page, the sign-in page and the Coming soon page needs a signed-in account. On your own computer the
+one-time codes are printed in the terminal; if no MongoDB is running add `AUTH_STORE=memory` to `.env` (see `START.md` and the
+README's "Sign-in, accounts and the CRM").
 
 * **JavaScript (Express) runs the website.** It serves the pages and photos, and loads the Design Studio into the same process.
 * **The Design Studio is its own project, kept in `swatchroom/`** exactly as it was built. It has its own settings file
@@ -40,8 +46,9 @@ Terucon/
 ├─ server/                 ← Express modules (JavaScript)
 │   ├─ config/                .env reader and settings
 │   ├─ lib/                   site map, errors, logging, and swatchroom.js (loads the Design Studio)
-│   ├─ middleware/            host / origin / content-type guards, headers
-│   └─ routes/                pages (and Coming soon), /media, /api/*, the studio wake-up
+│   ├─ middleware/            host / origin / content-type guards, headers, one spelling of /api
+│   ├─ routes/                pages (and Coming soon), /media, /api/*, the studio wake-up, sign-in (/api/auth) and its admin API
+│   └─ auth/                  sign-in: accounts, one-time codes, sessions, Google, the firm look-up, the Zoho queue, the admin's settings
 │
 ├─ site/                   ← the website as JSON
 │   ├─ site.json              pages, routes, aliases, connections between pages
@@ -118,6 +125,16 @@ cd ../.. && npm run models                                                      
 ```
 
 Without them the studio still scans (Gemini outlines, OneFormer on Modal when set up); the Pick tool needs them.
+
+### Inspiration import (optional, once)
+
+Paste a link to a photo into the Materials search box or the shop assistant, or open **/inspiration**: a popup asks "Import this photo?", then a crop screen, then the photo opens in the Design Studio. Picture links and ordinary web pages work as they are. For Pinterest, Unsplash, Pexels, Flickr, Behance, Imgur and Wikimedia Commons the site uses gallery-dl, which needs its own small Python environment (Python 3.9 or newer):
+
+```bash
+python3 -m venv python/.venv && python/.venv/bin/pip install -r python/requirements.txt    # once, from the project folder; then restart npm start
+```
+
+Without it those sites say "not set up" (`/api/inspiration/status` shows which). The settings are in section 7 of `.env.example`.
 
 ### Try it without credentials
 

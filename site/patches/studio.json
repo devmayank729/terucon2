@@ -13,21 +13,87 @@
       "op": "insertAfter",
       "why": "header: My project link",
       "anchor": "Saved<span style=\"font:400 12px/1 Switzer,sans-serif;opacity:.7\">{{ savedN }}</span></a>",
-      "insert": ["\n      ", {"component": "headerLink", "entry": "project"}]
+      "insert": [
+        "\n      ",
+        "\n      ",
+        {
+          "component": "headerLink",
+          "entry": "project"
+        },
+        "\n      ",
+        {
+          "component": "accountLink",
+          "entry": "account"
+        }
+      ]
     },
     {
       "id": "menu-project",
       "op": "insertAfter",
       "why": "menu: My project card",
       "anchor": "Sheets, stone, terracotta and finishes, priced per unit.</span></a>",
-      "insert": ["\n        ", {"component": "menuCard", "entry": "project"}]
+      "insert": [
+        "\n        ",
+        {
+          "component": "menuCard",
+          "entry": "project"
+        },
+        "\n        ",
+        {
+          "component": "menuCard",
+          "entry": "account"
+        }
+      ]
     },
     {
       "id": "footer-project",
       "op": "insertAfter",
       "why": "footer: My project link",
       "anchor": "style-hover=\"color:#FFFFFF\">Design Studio</a>",
-      "insert": [{"component": "footerLink", "entry": "project"}]
+      "insert": [
+        {
+          "component": "footerLink",
+          "entry": "project"
+        }
+      ]
+    },
+    {
+      "id": "header-inspiration",
+      "op": "insertAfter",
+      "why": "header: Inspiration link",
+      "anchor": "Saved<span style=\"font:400 12px/1 Switzer,sans-serif;opacity:.7\">{{ savedN }}</span></a>",
+      "insert": [
+        "\n      ",
+        {
+          "component": "headerLink",
+          "entry": "inspiration"
+        }
+      ]
+    },
+    {
+      "id": "menu-inspiration",
+      "op": "insertAfter",
+      "why": "menu: Inspiration card",
+      "anchor": "Sheets, stone, terracotta and finishes, priced per unit.</span></a>",
+      "insert": [
+        "\n        ",
+        {
+          "component": "menuCard",
+          "entry": "inspiration"
+        }
+      ]
+    },
+    {
+      "id": "footer-inspiration",
+      "op": "insertAfter",
+      "why": "footer: Inspiration link",
+      "anchor": "style-hover=\"color:#FFFFFF\">Design Studio</a>",
+      "insert": [
+        {
+          "component": "footerLink",
+          "entry": "inspiration"
+        }
+      ]
     },
     {
       "id": "footer-wording",
@@ -41,14 +107,51 @@
       "op": "insertBefore",
       "why": "start the studio's cold start as soon as this page opens (the landing page already started it; this covers a visit that skipped it or came after the services went idle)",
       "anchor": "</helmet>",
-      "insert": ["<script>", {"file": "snippets/warmup.js", "chomp": true}, "</script>\n"]
+      "insert": [
+        "<script>",
+        {
+          "file": "snippets/warmup.js",
+          "chomp": true
+        },
+        "</script>\n"
+      ]
     },
     {
       "id": "analytics",
       "op": "insertBefore",
       "why": "PostHog analytics: page views, clicks and forms, and (studio page) the studio's own events, which its browser code sends to window.posthog but its server never gives a key for. The script asks GET /api/analytics, so no key is in the page",
       "anchor": "</helmet>",
-      "insert": ["<script>", {"file": "snippets/analytics.js", "chomp": true}, "</script>\n"]
+      "insert": [
+        "<script>",
+        {
+          "file": "snippets/analytics.js",
+          "chomp": true
+        },
+        "</script>\n"
+      ]
+    },
+    {
+      "id": "auth",
+      "op": "insertBefore",
+      "why": "sign-in: the header link says Sign in or Account, and a request answered \"please sign in\" (the session ended) leads to the sign-in page. The script asks GET /api/auth/me, so nothing about the visitor is in the page",
+      "anchor": "</helmet>",
+      "insert": [
+        "<script>",
+        {
+          "file": "snippets/auth.js",
+          "chomp": true
+        },
+        "</script>\n"
+      ]
+    },
+    {
+      "id": "import-feed",
+      "op": "insertBefore",
+      "why": "a photo cropped on the Inspiration page waits in this browser (?import=<code>); this puts it into the studio's own photo input, as if the person had chosen the file, and the studio does the rest (target C3). A module served from /inspiration/assets/, so the studio page is not edited beyond this tag",
+      "anchor": "</helmet>",
+      "insert": [
+        "<script type=\"module\" src=\"/inspiration/assets/feed.js\"></script>\n"
+      ]
     }
   ]
 }

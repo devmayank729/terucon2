@@ -36,3 +36,9 @@ coverage/
 
 # The Flask version of the site that the Express + Python-model split replaced, kept until you delete it
 _legacy_python_site/
+
+# Catalogue engine (catalogue/): its own virtual environment, compute work folders and local credentials
+catalogue/.venv/
+catalogue/work/
+catalogue/.env
+catalogue/.env.*

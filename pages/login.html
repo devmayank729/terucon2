@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#E1D4C2">
+<meta name="robots" content="noindex">
+<title>Sign in — Terucon India</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<!-- Zodiak and Switzer, the site's fonts (served with the Design Studio); the page reads fine in Georgia / Helvetica without them -->
+<link rel="stylesheet" href="/css/fonts.css">
+<style>
+  :root { --bg:#E1D4C2; --card:#EFE6D8; --ink:#291C0E; --ink2:#6E473B; --line:rgba(41,28,14,.16); --line2:rgba(41,28,14,.34); --bad:#8C2F1B; --good:#3B5B2E; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; padding:0; }
+  html { -webkit-text-size-adjust:100%; -webkit-tap-highlight-color:transparent; }
+  body { min-height:100vh; display:flex; flex-direction:column; background:var(--bg); color:var(--ink); font-family:Switzer, Helvetica, Arial, sans-serif; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  a { color:inherit; }
+  ::selection { background:#6E473B; color:#E1D4C2; }
+  :focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
+  [hidden] { display:none !important; }
+
+  header { height:clamp(64px, calc(40px + 3.2vw), 76px); display:flex; align-items:center; justify-content:space-between; gap:16px; padding:0 clamp(20px, 5vw, 72px); border-bottom:1px solid var(--line); }
+  .brand { display:flex; align-items:baseline; gap:10px; font:600 15px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.34em; text-decoration:none; }
+  .brand span { font:500 9.5px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.3em; }
+  .back { font:500 13px/1 Switzer, Helvetica, Arial, sans-serif; text-decoration:none; opacity:1; transition:opacity .25s; }
+  .back:hover { opacity:.7; }
+
+  main { flex:1; display:flex; align-items:center; justify-content:center; padding:clamp(28px, 6vh, 72px) clamp(16px, 5vw, 72px); }
+  .panel { width:100%; max-width:480px; display:flex; flex-direction:column; gap:22px; }
+  .eyebrow { display:flex; align-items:center; gap:14px; margin:0; font:500 10.5px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.22em; text-transform:uppercase; color:var(--ink2); }
+  .eyebrow::before { content:""; width:32px; height:1px; background:currentColor; }
+  h1 { margin:0; font:300 clamp(34px, 6.2vw, 52px)/1.04 Zodiak, Georgia, serif; letter-spacing:-.02em; text-wrap:balance; }
+  h1 em { font-style:italic; color:var(--ink2); }
+  .lead { margin:0; font:400 16px/1.6 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); text-wrap:pretty; }
+  .lead strong { color:var(--ink); font-weight:600; }
+
+  .card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:clamp(20px, 4vw, 30px); display:flex; flex-direction:column; gap:18px; }
+  form { display:flex; flex-direction:column; gap:16px; margin:0; }
+  .field { display:flex; flex-direction:column; gap:7px; }
+  label, .label { font:500 13px/1.2 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.01em; }
+  .hint { margin:0; font:400 13px/1.5 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+  input[type=text], input[type=email], input[type=tel], input[type=search] { width:100%; height:52px; padding:0 16px; border-radius:12px; border:1px solid var(--line2); background:#F7F1E7; color:var(--ink); font:400 17px/1 Switzer, Helvetica, Arial, sans-serif; transition:border-color .2s, box-shadow .2s; }
+  input:focus { outline:none; border-color:var(--ink); box-shadow:0 0 0 3px rgba(41,28,14,.14); }
+  input[readonly] { background:transparent; color:var(--ink2); }
+  input.code { letter-spacing:.55em; text-align:center; font-size:26px; font-variant-numeric:tabular-nums; padding:0 0 0 .55em; }
+  input[aria-invalid=true] { border-color:var(--bad); }
+  .check { display:flex; align-items:flex-start; gap:12px; font:400 14px/1.45 Switzer, Helvetica, Arial, sans-serif; cursor:pointer; }
+  .check input { width:20px; height:20px; margin:1px 0 0; accent-color:#291C0E; flex:none; }
+
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:10px; height:52px; padding:0 26px; border-radius:999px; border:1px solid var(--ink); background:var(--ink); color:var(--bg); font:500 15px/1 Switzer, Helvetica, Arial, sans-serif; cursor:pointer; transition:background .3s, color .3s, opacity .2s; }
+  .btn:hover { background:var(--ink2); border-color:var(--ink2); }
+  .btn:disabled { opacity:.55; cursor:default; }
+  .btn.ghost { background:transparent; color:var(--ink); border-color:var(--line2); }
+  .btn.ghost:hover { background:rgba(41,28,14,.07); border-color:var(--ink); }
+  .link { background:none; border:0; padding:6px 0; margin:0; color:var(--ink); font:500 14px/1.2 Switzer, Helvetica, Arial, sans-serif; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+  .link:disabled { color:var(--ink2); text-decoration:none; cursor:default; }
+  .row { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px 16px; }
+
+  .divider { display:flex; align-items:center; gap:14px; margin:0; font:500 12px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.14em; text-transform:uppercase; color:var(--ink2); }
+  .divider::before, .divider::after { content:""; flex:1; height:1px; background:var(--line2); }
+  #google { display:flex; flex-direction:column; align-items:center; gap:14px; min-height:44px; }
+
+  .notice { margin:0; padding:12px 14px; border-radius:12px; font:400 14px/1.5 Switzer, Helvetica, Arial, sans-serif; border:1px solid var(--line2); }
+  .notice.bad { border-color:var(--bad); color:var(--bad); background:rgba(140,47,27,.07); }
+  .notice.good { border-color:var(--good); color:var(--good); background:rgba(59,91,46,.08); }
+  .verified { display:inline-flex; align-items:center; gap:8px; font:500 14px/1.3 Switzer, Helvetica, Arial, sans-serif; color:var(--good); }
+  .small { font:400 12.5px/1.55 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); margin:0; }
+
+  footer { padding:22px clamp(20px, 5vw, 72px); border-top:1px solid var(--line); font:400 12px/1.5 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+  @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="/">TERUCON <span>INDIA</span></a>
+  <a class="back" href="/">← Back to the home page</a>
+</header>
+
+<main>
+  <div class="panel">
+    <p class="eyebrow" id="eyebrow">Welcome</p>
+    <h1 id="title">Sign in or <em>create your account</em></h1>
+    <p class="lead" id="lead">Use your e-mail address or mobile number. We will send you a one-time code, so there is no password to remember.</p>
+
+    <div class="card">
+      <p class="notice bad" id="alert" role="alert" hidden></p>
+
+      <!-- The sign-in is not available (nothing set up yet, or the database is down) -->
+      <section id="step-unavailable" hidden>
+        <p class="lead">Sign-in is not available just now. Please try again in a few minutes, or call us on the number on the home page.</p>
+      </section>
+
+      <!-- Step 1: who are you? -->
+      <section id="step-start" hidden>
+        <div id="google" hidden>
+          <div id="google-button"></div>
+          <p class="divider" id="google-divider">or</p>
+        </div>
+        <form id="form-start" novalidate>
+          <div class="field">
+            <label for="identifier" id="identifier-label">E-mail or mobile number</label>
+            <input id="identifier" name="identifier" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required maxlength="320">
+            <p class="hint" id="identifier-hint">If you already have an account we will sign you in. If not, we will make one.</p>
+          </div>
+          <button class="btn" id="send" type="submit">Send me a code</button>
+        </form>
+      </section>
+
+      <!-- Step 2: the code -->
+      <section id="step-code" hidden>
+        <form id="form-code" novalidate>
+          <div class="field">
+            <label for="code">Enter the code</label>
+            <input id="code" name="code" class="code" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" maxlength="7" placeholder="······" required>
+            <p class="hint" id="code-hint"></p>
+          </div>
+          <button class="btn" id="verify" type="submit">Continue</button>
+          <div class="row">
+            <button class="link" id="resend" type="button" disabled>Send a new code</button>
+            <button class="link" id="change" type="button">Use a different e-mail or number</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Step 3: a few details (new accounts, and Google sign-ups) -->
+      <section id="step-profile" hidden>
+        <form id="form-profile" novalidate>
+          <p class="verified" id="verified-line" hidden></p>
+          <div class="field">
+            <label for="name">Your name</label>
+            <input id="name" name="name" type="text" autocomplete="name" required maxlength="80">
+            <p class="hint" data-error-for="name" hidden></p>
+          </div>
+          <div class="field" id="field-phone">
+            <label for="phone">Mobile number</label>
+            <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="40" required>
+            <p class="hint" data-note-for="phone" hidden></p>
+            <p class="hint" data-error-for="phone" hidden></p>
+          </div>
+          <div class="field" id="field-email" hidden>
+            <label for="email">E-mail address</label>
+            <input id="email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254">
+            <p class="hint" data-note-for="email" hidden></p>
+            <p class="hint" data-error-for="email" hidden></p>
+          </div>
+          <div class="field" id="field-firm">
+            <label for="firm">Your firm</label>
+            <input id="firm" name="firm" type="text" autocomplete="organization" maxlength="100">
+            <p class="hint" id="firm-hint">The company, studio or practice you work for.</p>
+            <p class="hint" data-error-for="firm" hidden></p>
+          </div>
+          <label class="check"><input type="checkbox" id="individual"> <span>I am not part of a firm (I am signing up as an individual)</span></label>
+          <button class="btn" id="save" type="submit">Create my account</button>
+          <p class="small" id="consent">By creating an account you agree that Terucon keeps these details and its team may contact you about your project.</p>
+        </form>
+      </section>
+      <!-- Step 3b: confirm the second contact detail with a code, so either one can sign the person in later -->
+      <section id="step-confirm" hidden>
+        <form id="form-confirm" novalidate>
+          <div class="field">
+            <label for="confirm-code">Enter the code</label>
+            <input id="confirm-code" name="confirm-code" class="code" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" maxlength="7" placeholder="······" required>
+            <p class="hint" id="confirm-hint"></p>
+          </div>
+          <button class="btn" id="confirm-go" type="submit">Confirm and continue</button>
+          <div class="row">
+            <button class="link" id="confirm-resend" type="button" disabled>Send a new code</button>
+            <button class="link" id="confirm-change" type="button">Change it</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer>Terucon India Private Limited</footer>
+
+<script>
+(function () {
+  'use strict';
+  // Everything the page shows that did not come from this file (names, addresses, messages from the server) is put on the page
+  // with textContent, never as markup.
+  var $ = function (id) { return document.getElementById(id); };
+  var params = new URLSearchParams(location.search);
+  var wantedNext = params.get('next') || '/';
+  var forceProfile = params.get('step') === 'profile';
+  var config = null;
+  var challenge = null; // {id, to, expiresAt, resendAt}
+  var identifierTyped = '';
+  var me = null;
+  var timer = null;
+  var busy = false;
+
+  var store = {
+    get: function (k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} },
+    del: function (k) { try { sessionStorage.removeItem(k); } catch (e) {} }
+  };
+
+  function show(step) {
+    ['unavailable', 'start', 'code', 'profile', 'confirm'].forEach(function (s) { $('step-' + s).hidden = s !== step; });
+    var copy = {
+      start: ['Welcome', 'Sign in or <em>create your account</em>', 'Use your e-mail address or mobile number. We will send you a one-time code, so there is no password to remember.'],
+      code: ['Check your messages', 'Enter your <em>code</em>', ''],
+      profile: ['One last step', 'Tell us <em>about you</em>', 'This helps our team look after your project.'],
+      confirm: ['Almost there', 'One more <em>code</em>', 'We confirm this so that you can sign in with either one later.'],
+      unavailable: ['Sign in', 'Not <em>available</em> just now', '']
+    }[step];
+    $('eyebrow').textContent = copy[0];
+    // the headings are fixed text written in this file (not data), with one <em>; split it rather than parse markup
+    var parts = copy[1].split(/<\/?em>/);
+    var h = $('title');
+    h.textContent = '';
+    h.appendChild(document.createTextNode(parts[0]));
+    if (parts[1]) { var em = document.createElement('em'); em.textContent = parts[1]; h.appendChild(em); }
+    $('lead').textContent = copy[2];
+    $('lead').hidden = !copy[2];
+    var first = { start: 'identifier', code: 'code', profile: 'name', confirm: 'confirm-code' }[step];
+    // put the cursor in the first field, unless the person has already started typing somewhere in the card (never steal focus)
+    if (first) setTimeout(function () {
+      var el = $(first), now = document.activeElement;
+      var busyElsewhere = now && now !== document.body && now.closest && now.closest('.card');
+      if (el && !el.readOnly && !busyElsewhere) el.focus({ preventScroll: true });
+    }, 30);
+  }
+
+  function say(message, kind) {
+    var el = $('alert');
+    el.textContent = message || '';
+    el.className = 'notice ' + (kind || 'bad');
+    el.hidden = !message;
+    el.setAttribute('role', kind === 'good' ? 'status' : 'alert');
+  }
+
+  function fieldError(name, message) {
+    var el = document.querySelector('[data-error-for="' + name + '"]');
+    var input = $(name);
+    if (el) { el.textContent = message || ''; el.hidden = !message; el.style.color = message ? 'var(--bad)' : ''; }
+    if (input) input.setAttribute('aria-invalid', message ? 'true' : 'false');
+  }
+
+  function setBusy(on) {
+    busy = on;
+    ['send', 'verify', 'save', 'confirm-go'].forEach(function (id) { $(id).disabled = on; });
+  }
+
+  function api(path, body) {
+    return fetch(path, {
+      method: body === undefined ? 'GET' : 'POST',
+      credentials: 'same-origin',
+      headers: body === undefined ? { Accept: 'application/json' } : { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body)
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (data) { return { ok: r.ok, status: r.status, data: data }; });
+    }).catch(function () {
+      return { ok: false, status: 0, data: { error: { message: 'We could not reach the server. Please check your connection and try again.', reason: 'network' } } };
+    });
+  }
+
+  function errorOf(result) {
+    var e = (result.data && result.data.error) || {};
+    return { message: e.message || 'Something went wrong. Please try again.', reason: e.reason || '', field: e.field || '', retryAfter: e.retryAfter || 0 };
+  }
+
+  function goNext(target) {
+    var routes = (config && config.routes) || ['/'];
+    var to = routes.indexOf(target) !== -1 ? target : (routes.indexOf(wantedNext) !== -1 ? wantedNext : '/');
+    store.del('terucon.otp');
+    location.replace(to);
+  }
+
+  // ------------------------------------------------------------------------------------------------ step 1
+  function describeChannels() {
+    var email = config.channels.email, sms = config.channels.sms;
+    var input = $('identifier');
+    if (email && sms) { $('identifier-label').textContent = 'E-mail or mobile number'; input.setAttribute('inputmode', 'email'); }
+    else if (email) { $('identifier-label').textContent = 'E-mail address'; input.setAttribute('inputmode', 'email'); input.setAttribute('autocomplete', 'email'); }
+    else { $('identifier-label').textContent = 'Mobile number'; input.setAttribute('inputmode', 'tel'); input.setAttribute('autocomplete', 'tel'); }
+    $('google').hidden = !config.channels.google;
+    $('google-divider').hidden = !(email || sms);
+    $('form-start').hidden = !(email || sms);
+  }
+
+  $('form-start').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (busy) return;
+    say('');
+    var value = $('identifier').value.trim();
+    if (!value) { say('Please enter your e-mail address or mobile number.'); return; }
+    identifierTyped = value;
+    requestCode(value);
+  });
+
+  function requestCode(value) {
+    setBusy(true);
+    api('/api/auth/start', { identifier: value }).then(function (r) {
+      setBusy(false);
+      if (!r.ok) {
+        var e = errorOf(r);
+        if (e.reason === 'cooldown' && challenge) { show('code'); say(e.message, 'good'); return; }
+        say(e.message);
+        return;
+      }
+      var d = r.data;
+      challenge = { id: d.challengeId, to: d.to, channel: d.channel, resendAt: Date.now() + d.resendIn * 1000, expiresAt: Date.now() + d.expiresIn * 1000, length: d.codeLength || 6 };
+      store.set('terucon.otp', JSON.stringify({ challenge: challenge, identifier: identifierTyped }));
+      showCodeStep();
+    });
+  }
+
+  // ------------------------------------------------------------------------------------------------ step 2
+  function showCodeStep() {
+    show('code');
+    $('code').value = '';
+    $('code-hint').textContent = 'We sent a ' + challenge.length + '-digit code to ' + challenge.to + (challenge.channel === 'sms' ? ' by text message.' : ' by e-mail. Check your spam folder if it does not arrive.');
+    tick();
+    clearInterval(timer);
+    timer = setInterval(tick, 500);
+  }
+
+  function tick() {
+    if (!challenge) return;
+    var left = Math.ceil((challenge.resendAt - Date.now()) / 1000);
+    var button = $('resend');
+    if (left > 0) { button.disabled = true; button.textContent = 'Send a new code in ' + left + 's'; }
+    else { button.disabled = false; button.textContent = 'Send a new code'; }
+  }
+
+  $('resend').addEventListener('click', function () { if (!busy && identifierTyped) { say(''); requestCode(identifierTyped); } });
+  $('change').addEventListener('click', function () {
+    clearInterval(timer);
+    challenge = null;
+    store.del('terucon.otp');
+    say('');
+    show('start');
+    $('identifier').value = identifierTyped;
+  });
+
+  $('code').addEventListener('input', function () {
+    var digits = this.value.replace(/\D/g, '').slice(0, 6);
+    this.value = digits;
+    if (digits.length === 6) submitCode();
+  });
+  $('form-code').addEventListener('submit', function (e) { e.preventDefault(); submitCode(); });
+
+  function submitCode() {
+    if (busy || !challenge) return;
+    var code = $('code').value.replace(/\D/g, '');
+    if (code.length !== 6) { say('Please enter the 6-digit code.'); return; }
+    say('');
+    setBusy(true);
+    api('/api/auth/verify', { challengeId: challenge.id, code: code, next: wantedNext }).then(function (r) {
+      setBusy(false);
+      if (!r.ok) {
+        var e = errorOf(r);
+        say(e.message);
+        if (e.reason === 'wrong-code') { $('code').value = ''; $('code').focus(); }
+        if (['expired', 'too-many-attempts', 'invalid-code', 'locked'].indexOf(e.reason) !== -1) $('code').value = '';
+        return;
+      }
+      afterSignIn(r.data);
+    });
+  }
+
+  function afterSignIn(data) {
+    clearInterval(timer);
+    store.del('terucon.otp');
+    me = data.user;
+    if (data.needsProfile) { startProfile(); return; }
+    goNext(data.redirectTo);
+  }
+
+  // ------------------------------------------------------------------------------------------------ step 3
+  function startProfile() {
+    show('profile');
+    var u = me || {};
+    $('name').value = u.name || '';
+    $('firm').value = u.firm || '';
+    $('individual').checked = Boolean(u.individual);
+    $('phone').value = u.phone || '';
+    $('email').value = u.email || '';
+    // whichever of e-mail / mobile was just proved is shown as done; the other one is asked for
+    var line = $('verified-line');
+    var proved = u.emailVerified ? 'e-mail address ' + u.email : u.phoneVerified ? 'mobile number ' + u.phone : '';
+    line.hidden = !proved;
+    line.textContent = proved ? '✓ Your ' + proved + ' is confirmed' : '';
+    $('field-email').hidden = Boolean(u.emailVerified);
+    $('field-phone').hidden = Boolean(u.phoneVerified);
+    $('email').required = !u.emailVerified;
+    $('phone').required = !u.phoneVerified;
+    syncIndividual();
+    if (config.requireFirm === false) $('firm-hint').textContent = 'The company, studio or practice you work for (optional).';
+    secondContactNotes(u);
+    suggestFirm(u.emailVerified ? '' : null);
+  }
+
+  // what happens to the second contact detail: confirmed with a code now (so either one can sign in later), or only saved
+  function secondContactNotes(u) {
+    var kind = u.emailVerified ? 'phone' : 'email';
+    var field = kind === 'phone' ? 'phone' : 'email';
+    var willConfirm = Boolean(config.confirm && config.confirm[kind]);
+    var hint = document.querySelector('[data-note-for="' + field + '"]');
+    if (hint) {
+      hint.hidden = false;
+      hint.textContent = willConfirm
+        ? 'Next we send a code to this ' + (kind === 'phone' ? 'number' : 'address') + ' to confirm it, so that you can sign in with it too.'
+        : 'We cannot send codes to this ' + (kind === 'phone' ? 'number' : 'address') + ' yet, so for now you sign in with your ' + (kind === 'phone' ? 'e-mail address' : 'mobile number') + '. You can confirm it later on your account page.';
+    }
+    $('save').textContent = willConfirm ? 'Continue' : 'Create my account';
+  }
+
+  function syncIndividual() {
+    var on = $('individual').checked;
+    $('firm').disabled = on;
+    $('field-firm').style.opacity = on ? '.5' : '1';
+  }
+  $('individual').addEventListener('change', syncIndividual);
+
+  var hinted = {};
+  // A business e-mail address gives a name to start from. It is a suggestion the person can change, and is labelled as one.
+  function suggestFirm(typedEmail) {
+    if ($('firm').value.trim()) return;
+    var key = typedEmail === '' ? 'verified' : typedEmail;
+    if (typedEmail === null || hinted[key]) return;
+    hinted[key] = true;
+    api('/api/auth/firm-hint', typedEmail ? { email: typedEmail } : {}).then(function (r) {
+      if (!r.ok || !r.data || !r.data.name || $('firm').value.trim()) return;
+      $('firm').value = r.data.name;
+      $('firm-hint').textContent = 'We suggest “' + r.data.name + '” from your work e-mail address. Please change it if that is not right.';
+    });
+  }
+  $('email').addEventListener('change', function () {
+    var v = this.value.trim();
+    if (v && v.indexOf('@') > 0) suggestFirm(v);
+  });
+
+  $('form-profile').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (busy) return;
+    say('');
+    ['name', 'phone', 'email', 'firm'].forEach(function (f) { fieldError(f, ''); });
+    var body = { name: $('name').value.trim(), individual: $('individual').checked };
+    if (!body.individual) body.firm = $('firm').value.trim();
+    if (!$('field-phone').hidden) body.phone = $('phone').value.trim();
+    if (!$('field-email').hidden) body.email = $('email').value.trim();
+    if (!body.name) { fieldError('name', 'Please enter your name.'); $('name').focus(); return; }
+    if (!$('field-phone').hidden && !body.phone) { fieldError('phone', 'Please enter your mobile number.'); $('phone').focus(); return; }
+    if (!$('field-email').hidden && !body.email) { fieldError('email', 'Please enter your e-mail address.'); $('email').focus(); return; }
+    if (!body.individual && config.requireFirm !== false && !body.firm) { fieldError('firm', 'Please enter your firm, or tick the box if you are not part of one.'); $('firm').focus(); return; }
+    setBusy(true);
+    api('/api/auth/profile', body).then(function (r) {
+      setBusy(false);
+      if (!r.ok) {
+        var err = errorOf(r);
+        if (err.reason === 'auth-required') { location.replace('/login?next=' + encodeURIComponent(wantedNext)); return; }
+        if (err.field && $(err.field)) { fieldError(err.field, err.message); $(err.field).focus(); } else say(err.message);
+        return;
+      }
+      afterProfile(r.data.user);
+    });
+  });
+
+  // finished, or the second contact detail still has to be confirmed with a code, or something is missing
+  function afterProfile(user) {
+    me = user;
+    if (me.profileComplete) { goNext(wantedNext); return; }
+    var needs = me.needs || [];
+    var kind = needs.indexOf('phone-confirm') !== -1 ? 'phone' : needs.indexOf('email-confirm') !== -1 ? 'email' : '';
+    if (kind) { startConfirm(kind); return; }
+    say('Some details are still missing: ' + needs.join(', ') + '.');
+  }
+
+  // ------------------------------------------------------------------------------------------------ step 3b
+  var pending = null; // {kind, id, to, resendAt, expiresAt, length}: the code that was sent to the second contact detail
+  var confirmTimer = null;
+
+  function startConfirm(kind) {
+    say('');
+    setBusy(true);
+    api('/api/auth/contact/start', { kind: kind, value: me[kind] }).then(function (r) {
+      setBusy(false);
+      if (!r.ok) {
+        var e = errorOf(r);
+        if (e.reason === 'cooldown' && pending && pending.kind === kind) { showConfirm(); say(e.message, 'good'); return; }
+        startProfile();
+        say(e.message);
+        return;
+      }
+      pending = { kind: kind, id: r.data.challengeId, to: r.data.to, channel: r.data.channel, resendAt: Date.now() + r.data.resendIn * 1000, expiresAt: Date.now() + r.data.expiresIn * 1000, length: r.data.codeLength || 6 };
+      store.set('terucon.confirm', JSON.stringify(pending));
+      showConfirm();
+    });
+  }
+
+  function showConfirm() {
+    show('confirm');
+    var what = pending.kind === 'phone' ? 'mobile number' : 'e-mail address';
+    $('eyebrow').textContent = 'Confirm your ' + what;
+    $('confirm-code').value = '';
+    $('confirm-hint').textContent = 'We sent a ' + pending.length + '-digit code to ' + pending.to + (pending.channel === 'sms' ? ' by text message.' : ' by e-mail. Check your spam folder if it does not arrive.');
+    confirmTick();
+    clearInterval(confirmTimer);
+    confirmTimer = setInterval(confirmTick, 500);
+  }
+
+  function confirmTick() {
+    if (!pending) return;
+    var left = Math.ceil((pending.resendAt - Date.now()) / 1000);
+    var button = $('confirm-resend');
+    if (left > 0) { button.disabled = true; button.textContent = 'Send a new code in ' + left + 's'; }
+    else { button.disabled = false; button.textContent = 'Send a new code'; }
+  }
+
+  $('confirm-resend').addEventListener('click', function () { if (!busy && pending) startConfirm(pending.kind); });
+  $('confirm-change').addEventListener('click', function () {
+    clearInterval(confirmTimer);
+    pending = null;
+    store.del('terucon.confirm');
+    say('');
+    startProfile();
+  });
+  $('confirm-code').addEventListener('input', function () {
+    var digits = this.value.replace(/\D/g, '').slice(0, 6);
+    this.value = digits;
+    if (digits.length === 6) submitConfirm();
+  });
+  $('form-confirm').addEventListener('submit', function (e) { e.preventDefault(); submitConfirm(); });
+
+  function submitConfirm() {
+    if (busy || !pending) return;
+    var code = $('confirm-code').value.replace(/\D/g, '');
+    if (code.length !== 6) { say('Please enter the 6-digit code.'); return; }
+    say('');
+    setBusy(true);
+    api('/api/auth/contact/confirm', { challengeId: pending.id, code: code }).then(function (r) {
+      setBusy(false);
+      if (!r.ok) {
+        var e = errorOf(r);
+        if (e.reason === 'contact-taken') { clearInterval(confirmTimer); pending = null; store.del('terucon.confirm'); startProfile(); say(e.message); return; }
+        say(e.message);
+        $('confirm-code').value = '';
+        return;
+      }
+      clearInterval(confirmTimer);
+      pending = null;
+      store.del('terucon.confirm');
+      afterProfile(r.data.user);
+    });
+  }
+
+  // ------------------------------------------------------------------------------------------------ Google
+  function startGoogle() {
+    if (!config.channels.google || !config.googleClientId) return;
+    var script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onerror = function () { $('google').hidden = true; };
+    script.onload = function () { armGoogle(); };
+    document.head.appendChild(script);
+  }
+
+  function armGoogle() {
+    // a one-use value, tied to this browser by a cookie, that Google puts inside the token it hands back
+    api('/api/auth/google/nonce', {}).then(function (n) {
+      if (!n.ok || !window.google || !google.accounts) { $('google').hidden = true; return; }
+      google.accounts.id.initialize({
+        client_id: config.googleClientId,
+        callback: onGoogle,
+        nonce: n.data.nonce,
+        auto_select: false,
+        cancel_on_tap_outside: false,
+        context: 'signin',
+        itp_support: true
+      });
+      var box = $('google-button');
+      box.textContent = '';
+      google.accounts.id.renderButton(box, { type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', shape: 'pill', logo_alignment: 'left', width: Math.min(360, Math.max(240, $('google').clientWidth || 320)) });
+      google.accounts.id.prompt();
+    });
+  }
+
+  function onGoogle(response) {
+    if (busy) return;
+    say('');
+    setBusy(true);
+    api('/api/auth/google', { credential: response.credential, next: wantedNext }).then(function (r) {
+      setBusy(false);
+      if (!r.ok) {
+        say(errorOf(r).message);
+        armGoogle(); // the one-use value is spent: get a new one so the next try can work
+        return;
+      }
+      if (window.google && google.accounts) google.accounts.id.cancel();
+      afterSignIn(r.data);
+    });
+  }
+
+  // ------------------------------------------------------------------------------------------------ start
+  Promise.all([api('/api/auth/config'), api('/api/auth/me')]).then(function (results) {
+    var cfg = results[0], who = results[1];
+    if (!cfg.ok) { show('unavailable'); return; }
+    config = cfg.data;
+    if (who.ok && who.data.authenticated) {
+      me = who.data.user;
+      if (me.profileComplete && !forceProfile) { goNext(wantedNext); return; }
+      if (!me.profileComplete) {
+        var saved = store.get('terucon.confirm');
+        if (saved) {
+          try {
+            var p = JSON.parse(saved);
+            if (p.expiresAt > Date.now() && (me.needs || []).indexOf(p.kind + '-confirm') !== -1) { pending = p; showConfirm(); return; }
+          } catch (e) {}
+          store.del('terucon.confirm');
+        }
+        startProfile();
+        return;
+      }
+    }
+    if (!config.ready) { show('unavailable'); return; }
+    describeChannels();
+    if (!config.signupOpen) $('identifier-hint').textContent = 'Enter the e-mail address or mobile number of your account. We are not opening new accounts at the moment.';
+    var saved = store.get('terucon.otp');
+    if (saved) {
+      try {
+        var s = JSON.parse(saved);
+        if (s.challenge && s.challenge.expiresAt > Date.now()) { challenge = s.challenge; identifierTyped = s.identifier || ''; showCodeStep(); startGoogle(); return; }
+      } catch (e) {}
+      store.del('terucon.otp');
+    }
+    show('start');
+    startGoogle();
+  });
+})();
+</script>
+</body>
+</html>

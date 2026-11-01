@@ -56,7 +56,7 @@ export function pyQuote(s) {
 export function makeHref(site, style, linkNames = {}) {
   if (!LINK_STYLES.includes(style)) throw new PatchError(`unknown link style ${JSON.stringify(style)} (expected ${LINK_STYLES.join(' or ')})`);
   return (key, fragment = '') => {
-    const page = site.pages[key];
+    const page = site.pages[key] ?? site.docs?.[key]; // the hand-written pages of site.json `docs` (account, login) can be linked to too
     if (!page) throw new PatchError(`unknown page ${JSON.stringify(key)} (site.json pages: ${Object.keys(site.pages).join(', ')})`);
     return style === 'route' ? page.route + fragment : pyQuote(linkNames[key] ?? path.posix.basename(page.file)) + fragment;
   };

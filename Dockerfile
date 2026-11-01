@@ -9,6 +9,15 @@ COPY package.json package-lock.json ./
 COPY swatchroom/package.json swatchroom/package.json
 RUN npm ci --omit=dev
 
+# Python for the inspiration import (gallery-dl, python/requirements.txt), in the virtual environment the website looks for
+# (python/.venv; .dockerignore keeps a local one out of the image). Before the code is copied, so it is cached until the
+# requirements change. Without it the import still answers, with "not set up", for the sites that need gallery-dl.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends python3 python3-venv ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+COPY python/requirements.txt python/requirements.txt
+RUN python3 -m venv python/.venv && python/.venv/bin/pip install --no-cache-dir -r python/requirements.txt
+
 COPY . .
 
 # Render sets PORT; HOST must be 0.0.0.0 for its router to reach us.

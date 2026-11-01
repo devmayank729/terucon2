@@ -16,12 +16,27 @@
     {
       "id": "studio",
       "title": "The Design Studio",
-      "blurb": "What the website adds for the studio. The studio's own API (/api/session, /api/rooms, /api/vision, /api/pipeline, /api/ai, /api/admin) is its own: see swatchroom/README.md. With STUDIO_REQUIRE_PASSCODE off (the default) it has no passcode; server/lib/studioShield.js gives each browser only its own rooms and rate limits the costly routes."
+      "blurb": "What the website adds for the studio. The studio's own API (/api/session, /api/rooms, /api/vision, /api/pipeline, /api/ai, /api/admin) is its own: see swatchroom/README.md. With STUDIO_REQUIRE_PASSCODE off (the default) it has no passcode; its costly and private routes (/api/ai, /api/rooms, /api/vision, /api/pipeline, /api/check) need a signed-in, finished account (server/auth/index.js apiGate), and server/lib/studioShield.js gives each account only its own rooms and rate limits those routes. Any other capital letters in /api (/API/rooms) are 404 (server/middleware/canonical.js)."
     },
     {
       "id": "analytics",
       "title": "Analytics",
       "blurb": "Where a page sends its PostHog events. Never a secret: the key is a write-only project key."
+    },
+    {
+      "id": "auth",
+      "title": "Sign-in and accounts",
+      "blurb": "Everything the sign-in page and the account page call (server/routes/auth.js). Same-site JSON only, never cached, every route counted against a per-address ceiling. A one-time code goes to an e-mail address or a mobile number; the answer to asking for one is the same for a member and a stranger. See README, \"Sign-in, accounts and the CRM\"."
+    },
+    {
+      "id": "authAdmin",
+      "title": "Sign-in admin API",
+      "blurb": "What the admin panel (not built yet) will call to manage rate limits and the sign-in settings, read the security log and look after the CRM queue (server/routes/authAdmin.js). Needs Authorization: Bearer <AUTH_ADMIN_TOKEN>; with no token set every route answers 404 as if it did not exist."
+    },
+    {
+      "id": "inspiration",
+      "title": "Inspiration import",
+      "blurb": "Paste an address, get a picture to crop, send it to the Design Studio (target C3). The address is read by gallery-dl for the sites in site/inspiration/sources.js, directly for a picture link, and by the page's own named picture for any other web page, always through public addresses only (server/lib/inspiration/safeFetch.js). The browser never names a picture address: it gets one-use tokens. All three API routes need a signed-in, finished account (or, with sign-in switched off, are limited by address)."
     }
   ],
   "routes": [
@@ -37,7 +52,7 @@
       ],
       "summary": "The pages, from site/site.json.",
       "request": "No body. The route list comes from site/site.json (`pages.<key>.route`).",
-      "response": "200 text/html, Cache-Control: no-cache, conditional requests, plus the headers the page lists in site/site.json (`pages.<key>.headers`).",
+      "response": "200 text/html, Cache-Control: no-cache, conditional requests, plus the headers the page lists in site/site.json (`pages.<key>.headers`). Every page but the landing page (`access: \"signed-in\"` in site.json) needs a signed-in, finished account: a visitor without one gets 302 to /login?next=<the route>, whatever way the address was written (aliases, capitals, encoded letters); the private pages are `Cache-Control: private, no-cache` with `Vary: Cookie`.",
       "errors": [
         {
           "status": 421,
@@ -46,6 +61,14 @@
         {
           "status": 404,
           "when": "The built page is missing (run npm run build:site)"
+        },
+        {
+          "status": 302,
+          "when": "Not signed in (or the sign-up form is not finished): to /login"
+        },
+        {
+          "status": 503,
+          "when": "The account database is down: nothing is let through"
         }
       ],
       "curl": "curl -i http://localhost:8080/materials"
@@ -142,7 +165,7 @@
       "tryIt": true,
       "summary": "Is the server up, which version, and is the Design Studio running?",
       "request": "No body.",
-      "response": "{ok:true, version, studio:{running, database}}. studio.database is whether the studio's MongoDB is connected; the studio opens without it, so it never makes ok false.",
+      "response": "{ok:true, version, studio:{running, database}, auth:{ready, gate, reasons}}. studio.database is whether the studio's MongoDB is connected; the studio opens without it, so it never makes ok false. auth.reasons are coarse codes (no-secret, no-channel, no-database) saying why sign-in cannot work; the sentences are in the start-up banner and the admin API.",
       "errors": [
         {
           "status": 421,
@@ -214,6 +237,988 @@
         }
       ],
       "curl": "curl -s http://localhost:8080/api/analytics"
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/config",
+      "owner": "JS",
+      "group": "auth",
+      "guards": [
+        "Host"
+      ],
+      "tryIt": true,
+      "summary": "What the sign-in page may offer: which ways in are open, the Google client id, how long a code works.",
+      "request": "No body.",
+      "response": "{ready, channels:{email,sms,google}, googleClientId, codeLength, resendSeconds, signupOpen, requireFirm, confirm:{email,phone}, smsCountryCodes, routes, crmDeletes}. `confirm` says for which of e-mail / phone the second contact detail is confirmed with a code at sign-up. `routes` are the only places a person may be sent after signing in. Nothing secret.",
+      "errors": [
+        {
+          "status": 421,
+          "when": "Unexpected Host header"
+        },
+        {
+          "status": 429,
+          "when": "Too many requests from this address (reason rate-limited)"
+        }
+      ],
+      "curl": "curl -s http://localhost:8080/api/auth/config"
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/me",
+      "owner": "JS",
+      "group": "auth",
+      "guards": [
+        "Host"
+      ],
+      "tryIt": true,
+      "summary": "Who is signed in (this browser's cookie).",
+      "request": "No body.",
+      "response": "{authenticated:false} or {authenticated:true, user:{name, firm, individual, email, emailVerified, phone, phoneVerified, googleLinked, profileComplete, needs}}. `needs` lists what is missing: name, email, phone, firm, and email-confirm / phone-confirm (typed but not yet confirmed with a code). Never an internal id.",
+      "errors": [
+        {
+          "status": 421,
+          "when": "Unexpected Host header"
+        },
+        {
+          "status": 429,
+          "when": "Too many requests from this address (reason rate-limited)"
+        },
+        {
+          "status": 503,
+          "when": "Sign-in is not set up or its database is down (reason not-ready / unavailable)"
+        }
+      ],
+      "curl": "curl -s http://localhost:8080/api/auth/me"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/start",
+      "owner": "JS",
+      "group": "auth",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "Send a one-time code to an e-mail address or mobile number. The one box on the sign-in page: it works out which it is. The answer is the same whether or not there is an account.",
+      "request": "{identifier}: an e-mail address or a mobile number (10 digits, or +country).",
+      "response": "{ok, challengeId, channel:'email'|'sms', to (masked), resendIn, expiresIn, codeLength}. The code is never in the answer.",
+      "errors": [
+        {
+          "status": 415,
+          "when": "Not application/json"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site (reason cross-site)"
+        },
+        {
+          "status": 421,
+          "when": "Unexpected Host header"
+        },
+        {
+          "status": 400,
+          "when": "Not an e-mail or mobile number (reason invalid-identifier); a throw-away address or a country not on the list"
+        },
+        {
+          "status": 429,
+          "when": "Too many requests from this address (reason rate-limited)"
+        },
+        {
+          "status": 429,
+          "when": "Wait between codes (cooldown), too many codes to that address (rate-limited), too many wrong codes (locked)"
+        },
+        {
+          "status": 503,
+          "when": "No sender for that way in, or the site's daily ceiling is reached"
+        },
+        {
+          "status": 502,
+          "when": "The sender failed (send-failed)"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -d '{\"identifier\":\"you@example.com\"}' http://localhost:8080/api/auth/start"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/verify",
+      "owner": "JS",
+      "group": "auth",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "Check the code. Right: signs in (and makes the account the first time) by setting the session cookie. A wrong code costs one of five tries.",
+      "request": "{challengeId, code, next?}. `next` is only used if it is exactly one of the site's routes.",
+      "response": "{ok, created, needsProfile, redirectTo, user}. redirectTo is always a route of this site. The cookie is HttpOnly, SameSite=Lax; __Host- and Secure on HTTPS.",
+      "errors": [
+        {
+          "status": 415,
+          "when": "Not application/json"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site (reason cross-site)"
+        },
+        {
+          "status": 400,
+          "when": "Wrong, expired or used code (reasons wrong-code, expired, too-many-attempts, invalid-code), with attemptsLeft"
+        },
+        {
+          "status": 403,
+          "when": "New accounts are closed (signup-closed)"
+        },
+        {
+          "status": 429,
+          "when": "Too many requests from this address (reason rate-limited)"
+        },
+        {
+          "status": 503,
+          "when": "Sign-in is not set up or its database is down (reason not-ready / unavailable)"
+        }
+      ],
+      "curl": "curl -si -X POST -H 'Content-Type: application/json' -d '{\"challengeId\":\"...\",\"code\":\"123456\"}' http://localhost:8080/api/auth/verify"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/google/nonce",
+      "owner": "JS",
+      "group": "auth",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "A one-use value for Google's token, tied to this browser by an HttpOnly cookie (terucon_gn), so a token cannot be replayed or used from another browser.",
+      "request": "{}",
+      "response": "{nonce}: pass it to Google's initialize(). The cookie holds the secret it was made from.",
+      "errors": [
+        {
+          "status": 415,
+          "when": "Not application/json"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site (reason cross-site)"
+        },
+        {
+          "status": 429,
+          "when": "Too many requests from this address (reason rate-limited)"
+        },
+        {
+          "status": 503,
+          "when": "Google sign-in is not set up (AUTH_GOOGLE_CLIENT_ID)"
+        }
+      ],
+      "curl": "curl -si -X POST -H 'Content-Type: application/json' -d '{}' http://localhost:8080/api/auth/google/nonce"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/google",
+      "owner": "JS",
+      "group": "auth",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "Sign in with a Google ID token (One Tap / the button). The token's signature, issuer, audience, expiry, verified e-mail and nonce are all checked on the server.",
+      "request": "{credential, next?}",
+      "response": "As /api/auth/verify. A new Google account is made at once from Google's name and verified e-mail; phone and firm are asked for next (needsProfile).",
+      "errors": [
+        {
+          "status": 415,
+          "when": "Not application/json"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site (reason cross-site)"
+        },
+        {
+          "status": 401,
+          "when": "Token not good (reason google-wrong-audience, google-expired, google-email-unverified, google-wrong-nonce ...)"
+        },
+        {
+          "status": 409,
+          "when": "That e-mail is linked to a different Google account (google-conflict)"
+        },
+        {
+          "status": 403,
+          "when": "New accounts are closed"
+        },
+        {
+          "status": 429,
+          "when": "Too many requests from this address (reason rate-limited)"
+        },
+        {
+          "status": 503,
+          "when": "Google sign-in is not set up"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -d '{\"credential\":\"<ID token>\"}' http://localhost:8080/api/auth/google"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/profile",
+      "owner": "JS",
+      "group": "auth",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "Save the sign-up form or the profile page: name, firm (or \"individual\"), and the e-mail / mobile number that was not yet proved. A confirmed one is not changed by typing.",
+      "request": "{name?, firm?, individual?, email?, phone?}. Text only; HTML, link-like text and values starting = + - @ are refused.",
+      "response": "{ok, user}. The sign-up is finished (user.profileComplete) only when nothing is missing, which includes confirming the typed e-mail / number with a code (/api/auth/contact/start and /confirm) where that way of sending is available. A finished sign-up is queued for the CRM.",
+      "errors": [
+        {
+          "status": 401,
+          "when": "Not signed in (reason auth-required)"
+        },
+        {
+          "status": 415,
+          "when": "Not application/json"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site (reason cross-site)"
+        },
+        {
+          "status": 400,
+          "when": "A field is not acceptable (reason invalid-profile, with field)"
+        },
+        {
+          "status": 429,
+          "when": "Too many requests from this address (reason rate-limited)"
+        },
+        {
+          "status": 503,
+          "when": "Sign-in is not set up or its database is down (reason not-ready / unavailable)"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -b 'terucon_session=...' -d '{\"name\":\"Priya Sharma\",\"phone\":\"9876543210\",\"firm\":\"AB Constructions\"}' http://localhost:8080/api/auth/profile"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/firm-hint",
+      "owner": "JS",
+      "group": "auth",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "A firm name to suggest for a business e-mail address: from the domain, or (setting firm.lookup = website) from the firm's own website, read with SSRF protection. Only for somebody who has already proved an address or number.",
+      "request": "{email?}: a typed address; otherwise the account's own confirmed address or Google workspace domain.",
+      "response": "{name, source:'domain'|'website', domain} or all null (a free mailbox, nothing found, switched off).",
+      "errors": [
+        {
+          "status": 401,
+          "when": "Not signed in (reason auth-required)"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site (reason cross-site)"
+        },
+        {
+          "status": 429,
+          "when": "Too many requests from this address (reason rate-limited)"
+        },
+        {
+          "status": 503,
+          "when": "Sign-in is not set up or its database is down (reason not-ready / unavailable)"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -b 'terucon_session=...' -d '{}' http://localhost:8080/api/auth/firm-hint"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/contact/start",
+      "owner": "JS",
+      "group": "auth",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "Send a code to an e-mail address or number to add it to the account or replace the confirmed one. The answer is the same whether or not it belongs to somebody else.",
+      "request": "{kind:'email'|'phone', value}",
+      "response": "As /api/auth/start.",
+      "errors": [
+        {
+          "status": 401,
+          "when": "Not signed in (reason auth-required)"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site (reason cross-site)"
+        },
+        {
+          "status": 400,
+          "when": "Not that kind of address (invalid-identifier)"
+        },
+        {
+          "status": 429,
+          "when": "Too many requests from this address (reason rate-limited)"
+        },
+        {
+          "status": 503,
+          "when": "Sign-in is not set up or its database is down (reason not-ready / unavailable)"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -b 'terucon_session=...' -d '{\"kind\":\"phone\",\"value\":\"9876543210\"}' http://localhost:8080/api/auth/contact/start"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/contact/confirm",
+      "owner": "JS",
+      "group": "auth",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "Enter that code: the address or number becomes a confirmed way to sign in to this account.",
+      "request": "{challengeId, code}",
+      "response": "{ok, user}",
+      "errors": [
+        {
+          "status": 401,
+          "when": "Not signed in (reason auth-required)"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site (reason cross-site)"
+        },
+        {
+          "status": 400,
+          "when": "Wrong, expired or used code"
+        },
+        {
+          "status": 409,
+          "when": "Another account already has it confirmed (contact-taken)"
+        },
+        {
+          "status": 429,
+          "when": "Too many requests from this address (reason rate-limited)"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -b 'terucon_session=...' -d '{\"challengeId\":\"...\",\"code\":\"123456\"}' http://localhost:8080/api/auth/contact/confirm"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "owner": "JS",
+      "group": "auth",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "End this browser's session on the server and clear the cookie. Harmless when not signed in.",
+      "request": "{}",
+      "response": "{ok}",
+      "errors": [
+        {
+          "status": 415,
+          "when": "Not application/json"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site (reason cross-site)"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -b 'terucon_session=...' -d '{}' http://localhost:8080/api/auth/logout"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout-all",
+      "owner": "JS",
+      "group": "auth",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "End every session of the account, on every device.",
+      "request": "{}",
+      "response": "{ok}",
+      "errors": [
+        {
+          "status": 401,
+          "when": "Not signed in (reason auth-required)"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site (reason cross-site)"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -b 'terucon_session=...' -d '{}' http://localhost:8080/api/auth/logout-all"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/delete/start",
+      "owner": "JS",
+      "group": "auth",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "Send a code to the account's confirmed address (e-mail first) to confirm deleting the account. A stolen session cannot delete it: the code goes to the owner.",
+      "request": "{}",
+      "response": "{ok, challengeId, to (masked), ...}",
+      "errors": [
+        {
+          "status": 401,
+          "when": "Not signed in (reason auth-required)"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site (reason cross-site)"
+        },
+        {
+          "status": 409,
+          "when": "No confirmed e-mail address or number (no-verified-contact)"
+        },
+        {
+          "status": 429,
+          "when": "Too many requests from this address (reason rate-limited)"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -b 'terucon_session=...' -d '{}' http://localhost:8080/api/auth/delete/start"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/delete/confirm",
+      "owner": "JS",
+      "group": "auth",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "Delete the account: its Design Studio rooms and photos first (if that fails the account stays), what waits in the CRM queue, every session and code, then the account.",
+      "request": "{challengeId, code, confirm: true}",
+      "response": "{ok}. The cookie is cleared.",
+      "errors": [
+        {
+          "status": 401,
+          "when": "Not signed in (reason auth-required)"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site (reason cross-site)"
+        },
+        {
+          "status": 400,
+          "when": "No confirm, or a wrong code"
+        },
+        {
+          "status": 500,
+          "when": "The saved rooms could not be deleted: the account is kept (delete-failed)"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -b 'terucon_session=...' -d '{\"challengeId\":\"...\",\"code\":\"123456\",\"confirm\":true}' http://localhost:8080/api/auth/delete/confirm"
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/admin/settings",
+      "owner": "JS",
+      "group": "authAdmin",
+      "guards": [
+        "Host",
+        "Admin token"
+      ],
+      "summary": "Every sign-in setting with its value, default, bounds, unit and a label: enough to draw a form.",
+      "request": "No body.",
+      "response": "{values, defaults, changed, version, updatedAt, schema:[{key, group, label, help, type, default, min, max, unit, options}]}",
+      "errors": [
+        {
+          "status": 404,
+          "when": "No AUTH_ADMIN_TOKEN is set: the admin API is off"
+        },
+        {
+          "status": 401,
+          "when": "A valid admin token is needed (reason unauthorized)"
+        },
+        {
+          "status": 429,
+          "when": "Twenty wrong tokens an hour from this address"
+        }
+      ],
+      "curl": "curl -s -H 'Authorization: Bearer $AUTH_ADMIN_TOKEN' http://localhost:8080/api/auth/admin/settings"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/auth/admin/settings",
+      "owner": "JS",
+      "group": "authAdmin",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin",
+        "Admin token"
+      ],
+      "summary": "Change settings: rate limits (sign-in and the Design Studio's own), code rules, session lifetimes, which ways in are open, the countries allowed for text messages, whether the second contact is confirmed at sign-up, firm look-up, the Zoho field names. Every value has hard bounds; a bad save changes nothing.",
+      "request": "{settings: {\"limits.otpStartPerIpPerHour\": 20, \"crm.module\": null}}. null puts a setting back to its default.",
+      "response": "The same as GET, after the save. Effective on the next request.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "A value is out of bounds, of the wrong type, or not a setting (reason invalid-settings, problems[])"
+        },
+        {
+          "status": 409,
+          "when": "Somebody else saved a moment ago: reload and try again"
+        },
+        {
+          "status": 415,
+          "when": "Not application/json"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site (reason cross-site)"
+        },
+        {
+          "status": 404,
+          "when": "No AUTH_ADMIN_TOKEN is set: the admin API is off"
+        },
+        {
+          "status": 401,
+          "when": "A valid admin token is needed (reason unauthorized)"
+        },
+        {
+          "status": 429,
+          "when": "Twenty wrong tokens an hour from this address"
+        }
+      ],
+      "curl": "curl -s -X PUT -H 'Content-Type: application/json' -H 'Authorization: Bearer $AUTH_ADMIN_TOKEN' -d '{\"settings\":{\"limits.otpStartPerIpPerHour\":20}}' http://localhost:8080/api/auth/admin/settings"
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/admin/events",
+      "owner": "JS",
+      "group": "authAdmin",
+      "guards": [
+        "Host",
+        "Admin token"
+      ],
+      "summary": "The security log, newest first: codes sent and refused, wrong guesses, locks, sign-ins, deletions, settings changes. Never a code, a token or a full address.",
+      "request": "?limit=100&before=<ms>",
+      "response": "{events:[{id, t, type, userId?, ip?, who?, detail?}]}",
+      "errors": [
+        {
+          "status": 404,
+          "when": "No AUTH_ADMIN_TOKEN is set: the admin API is off"
+        },
+        {
+          "status": 401,
+          "when": "A valid admin token is needed (reason unauthorized)"
+        },
+        {
+          "status": 429,
+          "when": "Twenty wrong tokens an hour from this address"
+        }
+      ],
+      "curl": "curl -s -H 'Authorization: Bearer $AUTH_ADMIN_TOKEN' 'http://localhost:8080/api/auth/admin/events?limit=20'"
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/admin/status",
+      "owner": "JS",
+      "group": "authAdmin",
+      "guards": [
+        "Host",
+        "Admin token"
+      ],
+      "summary": "Is sign-in ready, what is missing, how many accounts and sessions, what the CRM queue holds.",
+      "request": "No body.",
+      "response": "{ready, gate, store, channels, reasons, problems, adminApi, crm:{mode, credentials, problem}, accounts:{total, unfinished}, sessions, crmQueue:{pending, sending, failed, sent}}",
+      "errors": [
+        {
+          "status": 404,
+          "when": "No AUTH_ADMIN_TOKEN is set: the admin API is off"
+        },
+        {
+          "status": 401,
+          "when": "A valid admin token is needed (reason unauthorized)"
+        },
+        {
+          "status": 429,
+          "when": "Twenty wrong tokens an hour from this address"
+        }
+      ],
+      "curl": "curl -s -H 'Authorization: Bearer $AUTH_ADMIN_TOKEN' http://localhost:8080/api/auth/admin/status"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/admin/unlock",
+      "owner": "JS",
+      "group": "authAdmin",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin",
+        "Admin token"
+      ],
+      "summary": "Lift the lock (and the wait between codes) on an e-mail address or number.",
+      "request": "{identifier}",
+      "response": "{ok}",
+      "errors": [
+        {
+          "status": 400,
+          "when": "Not an e-mail or number"
+        },
+        {
+          "status": 415,
+          "when": "Not application/json"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site (reason cross-site)"
+        },
+        {
+          "status": 404,
+          "when": "No AUTH_ADMIN_TOKEN is set: the admin API is off"
+        },
+        {
+          "status": 401,
+          "when": "A valid admin token is needed (reason unauthorized)"
+        },
+        {
+          "status": 429,
+          "when": "Twenty wrong tokens an hour from this address"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer $AUTH_ADMIN_TOKEN' -d '{\"identifier\":\"you@example.com\"}' http://localhost:8080/api/auth/admin/unlock"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/admin/crm/flush",
+      "owner": "JS",
+      "group": "authAdmin",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin",
+        "Admin token"
+      ],
+      "summary": "Deliver what is waiting to Zoho now (otherwise a background loop does, every 30 seconds).",
+      "request": "{}",
+      "response": "{sent, waiting?, queue}. waiting:true means the Zoho credentials are not in .env yet.",
+      "errors": [
+        {
+          "status": 415,
+          "when": "Not application/json"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site (reason cross-site)"
+        },
+        {
+          "status": 404,
+          "when": "No AUTH_ADMIN_TOKEN is set: the admin API is off"
+        },
+        {
+          "status": 401,
+          "when": "A valid admin token is needed (reason unauthorized)"
+        },
+        {
+          "status": 429,
+          "when": "Twenty wrong tokens an hour from this address"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer $AUTH_ADMIN_TOKEN' -d '{}' http://localhost:8080/api/auth/admin/crm/flush"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/admin/crm/retry",
+      "owner": "JS",
+      "group": "authAdmin",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin",
+        "Admin token"
+      ],
+      "summary": "Put failed CRM jobs back in the queue (after the cause, e.g. a wrong field name, was fixed).",
+      "request": "{}",
+      "response": "{requeued}",
+      "errors": [
+        {
+          "status": 415,
+          "when": "Not application/json"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site (reason cross-site)"
+        },
+        {
+          "status": 404,
+          "when": "No AUTH_ADMIN_TOKEN is set: the admin API is off"
+        },
+        {
+          "status": 401,
+          "when": "A valid admin token is needed (reason unauthorized)"
+        },
+        {
+          "status": 429,
+          "when": "Twenty wrong tokens an hour from this address"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer $AUTH_ADMIN_TOKEN' -d '{}' http://localhost:8080/api/auth/admin/crm/retry"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/admin/crm/backfill",
+      "owner": "JS",
+      "group": "authAdmin",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin",
+        "Admin token"
+      ],
+      "summary": "Queue finished accounts that were never sent (sign-ups made before the CRM was switched on).",
+      "request": "{}",
+      "response": "{queued}",
+      "errors": [
+        {
+          "status": 415,
+          "when": "Not application/json"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site (reason cross-site)"
+        },
+        {
+          "status": 404,
+          "when": "No AUTH_ADMIN_TOKEN is set: the admin API is off"
+        },
+        {
+          "status": 401,
+          "when": "A valid admin token is needed (reason unauthorized)"
+        },
+        {
+          "status": 429,
+          "when": "Twenty wrong tokens an hour from this address"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer $AUTH_ADMIN_TOKEN' -d '{}' http://localhost:8080/api/auth/admin/crm/backfill"
+    },
+    {
+      "method": "GET",
+      "path": "/login",
+      "owner": "JS",
+      "group": "site",
+      "guards": [
+        "Host"
+      ],
+      "derived": true,
+      "siteRef": "docs.login.route",
+      "summary": "The sign-in page: one box for an e-mail address or mobile number, the code, the \"tell us about you\" form (with a firm name suggested from a business e-mail), and Google One Tap. Aliases: /signin, /sign-in, /signup, /sign-up, /register.",
+      "request": "No body. ?next=/materials names where to go afterwards (only a route of the site is used).",
+      "response": "200 text/html with its own Content-Security-Policy built from the page (its one script and style by hash; Google's sign-in script only from the addresses Google documents) and Referrer-Policy strict-origin-when-cross-origin.",
+      "errors": [],
+      "curl": "curl -sI http://localhost:8080/login | head -5"
+    },
+    {
+      "method": "GET",
+      "path": "/account",
+      "owner": "JS",
+      "group": "site",
+      "guards": [
+        "Host"
+      ],
+      "derived": true,
+      "siteRef": "docs.account.route",
+      "summary": "Your details: edit name and firm, confirm or change an e-mail or number, sign out (here or everywhere), delete the account.",
+      "request": "No body.",
+      "response": "200 text/html with a strict Content-Security-Policy. Members only (302 to /login otherwise).",
+      "errors": [
+        {
+          "status": 302,
+          "when": "Not signed in"
+        }
+      ],
+      "curl": "curl -sI http://localhost:8080/account | head -3"
+    },
+    {
+      "method": "GET",
+      "path": "/inspiration/assets/:name",
+      "owner": "JS",
+      "group": "inspiration",
+      "guards": [
+        "Host"
+      ],
+      "summary": "The browser modules and stylesheet of the import (site/inspiration/): a fixed list of names, nothing else in the folder.",
+      "request": "No body. The names are `ASSETS` in server/routes/inspiration.js; a test checks the list against the folder.",
+      "response": "200 text/javascript or text/css, Cache-Control: no-cache, X-Content-Type-Options: nosniff. Public: it is code, with no secrets and no data.",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Any other name, a dot-segment, other capitals"
+        }
+      ],
+      "curl": "curl -sI http://localhost:8080/inspiration/assets/index.js | head -5"
+    },
+    {
+      "method": "GET",
+      "path": "/api/inspiration/status",
+      "owner": "JS",
+      "group": "inspiration",
+      "guards": [
+        "Host"
+      ],
+      "summary": "Whether importing from links works on this server, the sites it reads, and the biggest picture it takes.",
+      "request": "No body.",
+      "response": "{enabled, ready, sites: [{id, label, kinds}], maxFileMb}. `ready` is false when gallery-dl (python/.venv) is not installed; picture links and web pages still work then.",
+      "errors": [
+        {
+          "status": 401,
+          "when": "Not signed in"
+        },
+        {
+          "status": 403,
+          "when": "The sign-up form is not finished, or a foreign Origin"
+        },
+        {
+          "status": 503,
+          "when": "Sign-in is not available, or importing is switched off (INSPIRATION_IMPORT=off) or not set up (reason off / not-set-up)"
+        }
+      ],
+      "curl": "curl -s -b 'terucon_session=...' http://localhost:8080/api/inspiration/status"
+    },
+    {
+      "method": "POST",
+      "path": "/api/inspiration/resolve",
+      "owner": "JS",
+      "group": "inspiration",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "What an address is, and the pictures it holds. A Pinterest pin or board, an Unsplash, Pexels, Flickr, Behance, Imgur or Wikimedia Commons page (read by gallery-dl with that site's own options), a link to a picture file, or any other web page (its own named main picture).",
+      "request": "{input}: what was pasted or typed; the first usable address in it is used.",
+      "response": "{type: 'source'|'direct'|'page', kind: 'photo'|'collection', source: {id, label}, shape, title, approximate, items: [{token, preview, width, height, title}]}. Tokens belong to the account, last 15 minutes and stand for an address the server worked out itself; the picture addresses are never sent. Answers are remembered 10 minutes per address.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "No usable address (reason bad-address)"
+        },
+        {
+          "status": 401,
+          "when": "Not signed in"
+        },
+        {
+          "status": 403,
+          "when": "The sign-up form is not finished, or a foreign Origin"
+        },
+        {
+          "status": 404,
+          "when": "Not found, or nothing usable there (reason not-found / empty)"
+        },
+        {
+          "status": 422,
+          "when": "Instagram, Facebook or X (reason login: the message says to upload), a profile or other page of a known site (unsupported), or something private (private)"
+        },
+        {
+          "status": 429,
+          "when": "30 new addresses an hour per account, 90 per network address; Retry-After says when (reason rate)"
+        },
+        {
+          "status": 502,
+          "when": "The other site did not answer or refused (reason blocked / failed)"
+        },
+        {
+          "status": 503,
+          "when": "Three imports are already running (busy), or off / not set up"
+        },
+        {
+          "status": 504,
+          "when": "The other site took too long (reason timeout)"
+        },
+        {
+          "status": 415,
+          "when": "Not application/json"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -b 'terucon_session=...' -d '{\"input\":\"https://www.pinterest.com/pin/123456789/\"}' http://localhost:8080/api/inspiration/resolve"
+    },
+    {
+      "method": "GET",
+      "path": "/api/inspiration/file/:token",
+      "owner": "JS",
+      "group": "inspiration",
+      "guards": [
+        "Host"
+      ],
+      "summary": "One of the pictures a resolve gave, checked, from this site's own address so the browser may crop it.",
+      "request": "No body. The token is from /api/inspiration/resolve, for the same account.",
+      "response": "200 with the picture's bytes (JPEG, PNG, WebP, GIF or AVIF, decided from the bytes, not from what the other site said), X-Picture-Size, Cache-Control: private, no-store, X-Content-Type-Options: nosniff. At most 25 MB (INSPIRATION_MAX_FILE_MB) and 64 million pixels; fetched through public addresses only, at most 3 redirects, each checked again.",
+      "errors": [
+        {
+          "status": 401,
+          "when": "Not signed in"
+        },
+        {
+          "status": 403,
+          "when": "The sign-up form is not finished, or a foreign Origin"
+        },
+        {
+          "status": 410,
+          "when": "Unknown, expired or someone else's token (reason expired)"
+        },
+        {
+          "status": 413,
+          "when": "Too big in bytes or pixels (reason too-big)"
+        },
+        {
+          "status": 415,
+          "when": "Not a picture we take: HTML, SVG, HEIC ... (reason not-an-image)"
+        },
+        {
+          "status": 422,
+          "when": "The site said private / needs a sign-in, or the address is not a public website (reason private / blocked)"
+        },
+        {
+          "status": 429,
+          "when": "90 downloads an hour per account (reason rate)"
+        },
+        {
+          "status": 502,
+          "when": "The site would not give the picture (reason status / network)"
+        }
+      ],
+      "curl": "curl -s -b 'terucon_session=...' -o picture.jpg http://localhost:8080/api/inspiration/file/<token>"
+    },
+    {
+      "method": "GET",
+      "path": "/inspiration",
+      "owner": "JS",
+      "group": "site",
+      "guards": [
+        "Host"
+      ],
+      "derived": true,
+      "summary": "The Inspiration page: a box for a link, Paste and Import buttons, upload and drag-and-drop, the sites it reads, and the pictures imported lately in this browser.",
+      "request": "No body. Also /inspiration.html and /import (redirect, 301).",
+      "response": "200 text/html with a strict Content-Security-Policy built from the page (server/lib/csp.js, `strict+images`): its own script and style only, `blob:` pictures and the picture hosts of the sites it reads. Private: Cache-Control: private, no-cache, Vary: Cookie.",
+      "errors": [
+        {
+          "status": 302,
+          "when": "Not signed in (or the sign-up form is not finished): to /login"
+        },
+        {
+          "status": 421,
+          "when": "Unexpected Host header"
+        }
+      ],
+      "curl": "curl -i http://localhost:8080/inspiration",
+      "siteRef": "docs.inspiration.route"
     }
   ]
 }

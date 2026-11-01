@@ -63,6 +63,7 @@ function redact(message) {
  *   warm: () => string[],
  *   status: () => {database: boolean},
  *   analytics: () => {key: string, host: string},
+ *   mongoose: () => import('mongoose').Mongoose,
  *   roomStore: () => import('./studioShield.js').RoomStore,
  *   securityWarnings: () => string[],
  *   close: () => Promise<void>,
@@ -144,6 +145,9 @@ export function loadSwatchroom({ dir, log, requirePasscode = false }) {
 
     /** The studio's own PostHog project key and host (its POSTHOG_KEY / POSTHOG_HOST); the key is public by PostHog's design. */
     analytics: () => ({ key: config.posthog.key, host: config.posthog.host }),
+
+    /** The studio's own mongoose, which holds the one database connection: the sign-in keeps its accounts there (server/auth/db.js). */
+    mongoose: () => need('mongoose'),
 
     /** The list of who owns which room, in the studio's database (server/lib/roomOwners.js). */
     roomStore: () => mongoRoomOwners({ mongoose: need('mongoose'), Room: need(here('models', 'Room.js')) }),

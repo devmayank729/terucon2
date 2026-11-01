@@ -17,6 +17,11 @@ Open http://localhost:8080 (not the HTML files directly). Stop with `Ctrl+C`.
 The root `.env` is optional (the defaults work): `cp .env.example .env`.
 The studio's settings live in `swatchroom/.env` (copy `swatchroom/.env.example` if missing).
 
+**Signing in on your own computer.** Every page but the landing page asks you to sign in. On your computer that needs nothing set up: the one-time codes are printed in the terminal where `npm start` runs (look for `[development] e-mail code for you@example.com (login): 123456`). Two things can still get in the way:
+* **No local MongoDB running?** Accounts are kept in the studio's MongoDB, so every page says sign-in is not available. Add `AUTH_STORE=memory` to `.env` (accounts then disappear when you stop the server), or start MongoDB.
+* The banner when the server starts says what is missing (`Sign-in: ...`).
+To send real e-mails or texts, to use Google, or to connect Zoho, see `README.md` ("Sign-in, accounts and the CRM") and sections 5 and 6 of `.env.example`.
+
 ## 2. Local scan models (terminal 2, optional)
 
 Needed for the studio's Pick tool. Without them, scans fall back to Gemini outlines.
@@ -28,6 +33,17 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu  
 pip install -r requirements.txt                                                    # once
 cd ../.. && npm run models                                                         # every time, venv active
 ```
+
+## 2b. Inspiration import: paste a link, crop, send to the studio (optional, once)
+
+Needs Python 3.9+ for gallery-dl, which reads Pinterest, Unsplash, Pexels, Flickr, Behance, Imgur and Wikimedia Commons. Picture links and ordinary web pages work without it; the sites above then say "not set up".
+
+```bash
+cd /Users/mayank/XTRA/terucon
+python3 -m venv python/.venv && python/.venv/bin/pip install -r python/requirements.txt    # once; then restart npm start
+```
+
+Try it: open http://localhost:8080/inspiration, or paste a link into the Materials search box. To check one address by hand: `python/.venv/bin/python -m gallery_dl --config-ignore -j <address>`. See `README.md` ("Inspiration import").
 
 ## 3. Pages
 

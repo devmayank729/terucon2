@@ -11,6 +11,11 @@
 # MongoDB is NOT created here - Render has no managed MongoDB. MONGODB_URI is left blank
 # (sync: false) for you to paste in after the blueprint deploys (MongoDB Atlas or your own).
 #
+# Sign-in (README, "Sign-in, accounts and the CRM"): every page but the landing page needs an account. AUTH_SECRET and AUTH_ADMIN_TOKEN are made
+# for you (read the admin token from the service's Environment tab to use the admin API). Without a way to send a code (the AUTH_* provider
+# variables below, or AUTH_GOOGLE_CLIENT_ID) nobody can sign in, and the sign-in page and /api/health say so: fail closed. TRUST_PROXY=1 below
+# matters: without it every visitor looks like the same address and shares one rate limit.
+#
 # These settings were carried over from swatchroom/render.yaml (the studio's own blueprint) and have not been
 # deployed from this repo yet: after the first deploy open /api/health, then /design-studio > Settings > Check.
 services:
@@ -97,6 +102,55 @@ services:
       # "off" wakes them only when a photo is scanned, which is what the studio does on its own.
       - key: STUDIO_WARMUP
         value: "on"
+      # --- sign-in and accounts. Accounts are kept in the same MongoDB as the studio's rooms (MONGODB_URI above).
+      - key: AUTH_REQUIRED
+        value: "on"
+      - key: AUTH_SECRET
+        generateValue: true # keys the one-time codes; 32+ characters
+      - key: AUTH_ADMIN_TOKEN
+        generateValue: true # the bearer token for /api/auth/admin/* (rate limits and settings, the security log, the CRM queue)
+      # e-mail codes: AUTH_EMAIL_PROVIDER=smtp with the five below (Zoho Mail, SES, Brevo ... any SMTP service)
+      - key: AUTH_EMAIL_PROVIDER
+        sync: false
+      - key: AUTH_EMAIL_FROM
+        sync: false # Terucon <no-reply@your-domain>
+      - key: AUTH_SMTP_HOST
+        sync: false
+      - key: AUTH_SMTP_PORT
+        sync: false
+      - key: AUTH_SMTP_USER
+        sync: false
+      - key: AUTH_SMTP_PASS
+        sync: false
+      # text-message codes: AUTH_SMS_PROVIDER=twilio (below) or webhook (your own URL for MSG91 and the like)
+      - key: AUTH_SMS_PROVIDER
+        sync: false
+      - key: AUTH_SMS_TEMPLATE
+        sync: false
+      - key: AUTH_TWILIO_ACCOUNT_SID
+        sync: false
+      - key: AUTH_TWILIO_AUTH_TOKEN
+        sync: false
+      - key: AUTH_TWILIO_FROM
+        sync: false
+      - key: AUTH_SMS_WEBHOOK_URL
+        sync: false
+      - key: AUTH_SMS_WEBHOOK_TOKEN
+        sync: false
+      # Google One Tap: the OAuth client id (not secret); add this site's address under "Authorised JavaScript origins"
+      - key: AUTH_GOOGLE_CLIENT_ID
+        sync: false
+      # CRM: sign-ups wait in a queue and are sent to Zoho once these are filled in
+      - key: AUTH_CRM
+        value: zoho
+      - key: ZOHO_DC
+        sync: false # in (India), com, eu, com.au, jp, ca, com.cn
+      - key: ZOHO_CLIENT_ID
+        sync: false
+      - key: ZOHO_CLIENT_SECRET
+        sync: false
+      - key: ZOHO_REFRESH_TOKEN
+        sync: false
 
   - type: web
     name: terucon-models

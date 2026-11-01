@@ -10,17 +10,23 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createAuth } from './server/auth/index.js';
 import { describe, ROOT, SettingsManager } from './server/config/settings.js';
 import { createLogger } from './server/lib/log.js';
 import { SiteMap } from './server/lib/siteMap.js';
 import { loadSwatchroom } from './server/lib/swatchroom.js';
 import { errorHandler, notFound } from './server/middleware/errorHandler.js';
+import { canonicalApiPath } from './server/middleware/canonical.js';
 import { guards } from './server/middleware/guards.js';
 import { securityHeaders } from './server/middleware/headers.js';
 import { studioShield } from './server/lib/studioShield.js';
 import { mountAnalytics } from './server/routes/analytics.js';
 import { createApiRegistry, mountApi } from './server/routes/api.js';
+import { mountAuthRoutes } from './server/routes/auth.js';
+import { mountAuthAdmin } from './server/routes/authAdmin.js';
+import { mountCatalogue } from './server/routes/catalogue.js';
 import { mountDocs } from './server/routes/docs.js';
+import { mountInspiration } from './server/routes/inspiration.js';
 import { mountMedia } from './server/routes/media.js';
 import { comingSoon, mountPages } from './server/routes/pages.js';
 import { mountStudioRoutes } from './server/routes/studio.js';
@@ -49,9 +55,12 @@ function resolveEnvFile(envPath, environ, root) {
  * @param {Record<string, string>} [options.environ]
  * @param {{info: Function, warn: Function, error: Function, raw: Function}} [options.log]
  * @param {boolean | {dir?: string}} [options.swatchroom] mount the Design Studio: true for <root>/swatchroom, or {dir}
- * @returns {import('express').Express} with `app.locals.terucon = {settings(), site, studio, studioDir, requirePasscode, close()}`
+ * @param {object} [options.auth] sign-in overrides for tests (server/auth/index.js: db, providers, google, firm, zoho, secret)
+ * @param {object} [options.inspiration] inspiration-import overrides for tests (server/routes/inspiration.js: fetcher, gallery)
+ * @param {object} [options.catalogue] catalogue-search overrides for tests (server/catalogue/index.js: modal, db, signer, now), all optional
+ * @returns {import('express').Express} with `app.locals.terucon = {settings(), site, studio, studioDir, requirePasscode, auth, close()}`
  */
-export function createApp({ root = ROOT, envPath, environ, log = createLogger(), swatchroom = false } = {}) {
+export function createApp({ root = ROOT, envPath, environ, log = createLogger(), swatchroom = false, auth: authOverrides = {}, inspiration: inspirationOverrides = {}, catalogue: catalogueOverrides = {} } = {}) {
   root = path.resolve(root);
   // The studio reads swatchroom/.env into process.env when it is loaded (that is how it is configured). Take this server's
   // view of the environment first, so the studio's PORT, HOST, ... can never become this server's own.
@@ -72,7 +81,18 @@ export function createApp({ root = ROOT, envPath, environ, log = createLogger(),
     version: VERSION,
     settings: () => manager.get(),
     swatchroom: studio,
+    inspirationOverrides,
+    catalogueOverrides,
   };
+  // Sign-in: accounts live in the studio's MongoDB when the studio is mounted, else in memory (AUTH_STORE). The routes a person may be
+  // sent to after signing in are exactly the pages of the site map.
+  ctx.auth = createAuth({
+    settings: ctx.settings,
+    mongoose: studio?.mongoose() ?? null,
+    nextRoutes: [...Object.values(site.pages).map((p) => p.route), ...Object.values(site.docs).filter((d) => d.access === 'signed-in').map((d) => d.route)],
+    log,
+    overrides: authOverrides,
+  });
 
   const app = express();
   app.disable('x-powered-by');
@@ -84,6 +104,7 @@ export function createApp({ root = ROOT, envPath, environ, log = createLogger(),
   app.set('strict routing', true);
 
   app.use(securityHeaders);
+  app.use(canonicalApiPath); // before anything that looks for "/api/": see the file
   app.use(guards(ctx));
   mountPages(app, ctx);
   mountDocs(app, ctx);
@@ -92,14 +113,20 @@ export function createApp({ root = ROOT, envPath, environ, log = createLogger(),
   mountApi(app, ctx);
   mountAnalytics(app, ctx);
   mountStudioRoutes(app, ctx);
+  mountAuthRoutes(app, ctx);
+  mountAuthAdmin(app, ctx);
+  mountInspiration(app, ctx);
+  mountCatalogue(app, ctx);
   // The website's own /api answers its own misses (404 / 405 in its error shape); the studio's /api paths pass on to it.
   ctx.api.fallback();
   // The Design Studio: its /api/* (behind studioShield, or its own passcode when STUDIO_REQUIRE_PASSCODE=on), /js, /css, /fonts, /textures, /admin. After the pages and the
   // website's own API, so "/" and every route above stay the website's; before the Coming soon page, so its misses are
   // answered by the studio.
   let shield = null;
+  // The costly and private studio routes need a signed-in account first (and put it on the request, for the shield to scope rooms by)
+  if (studio) app.use(ctx.auth.apiGate);
   if (studio && !requirePasscode) {
-    shield = studioShield({ store: studio.roomStore(), limits: () => ctx.settings().studio.limits, log });
+    shield = studioShield({ store: studio.roomStore(), limits: () => ctx.auth.studioLimits(), log, identify: (req) => req.terucon?.user?.ownerId ?? null });
     app.use(shield);
   }
   if (studio) app.use(studio.app);
@@ -113,8 +140,13 @@ export function createApp({ root = ROOT, envPath, environ, log = createLogger(),
     studio,
     studioDir,
     requirePasscode,
+    auth: ctx.auth,
+    catalogue: ctx.catalogue,
     close: async () => {
       shield?.close();
+      ctx.inspiration.close();
+      ctx.catalogue.close();
+      ctx.auth.close();
       await studio?.close();
     },
   };
@@ -142,6 +174,7 @@ export async function startServer({ port, host, startStudio = true, ...appOption
     });
   });
   if (startStudio) app.locals.terucon.studio?.start();
+  app.locals.terucon.auth.start();
 
   let closing = null;
   const close = () => {
@@ -178,6 +211,15 @@ function printBanner({ app, port }) {
     lines.push(`  Studio settings:   ${studioEnv}  (${fs.existsSync(studioEnv) ? 'found' : 'NOT FOUND - copy swatchroom/.env.example to swatchroom/.env'})`);
   }
   for (const line of describe(s)) lines.push('  ' + line);
+  const auth = app.locals.terucon.auth.status();
+  const ways = [auth.channels.email && 'e-mail codes', auth.channels.sms && 'text-message codes', auth.channels.google && 'Google'].filter(Boolean);
+  lines.push(`  Sign-in:           ${auth.ready ? `ready (${ways.join(', ')})` : 'NOT READY - nobody can sign in'}; ${auth.gate ? 'every page but the landing page needs it' : 'GATE OFF (AUTH_REQUIRED=off): every page is open'}; accounts kept ${auth.store === 'mongo' ? 'in MongoDB' : 'in memory only (lost at restart)'}`);
+  lines.push(`  CRM:               ${auth.crm.mode === 'off' ? 'off (AUTH_CRM=off)' : auth.crm.credentials ? 'Zoho connected' : 'Zoho credentials not in .env yet - new sign-ups wait in a queue and are sent once they are'}`);
+  for (const problem of auth.problems) lines.push('  ! ' + problem);
+  if (auth.developmentCodes) lines.push('  ! One-time codes are printed in this window instead of being sent (development only: this computer, not production). To send real ones set AUTH_EMAIL_PROVIDER / AUTH_SMS_PROVIDER in .env.');
+  if (auth.developmentSecret) lines.push('  ! AUTH_SECRET is not set: a temporary one is used (development only), so sign-ins end at every restart.');
+  if (!auth.adminApi) lines.push('  ! AUTH_ADMIN_TOKEN is not set: the sign-in admin API (rate limits and settings) is off.');
+  if (s.nodeEnv === 'production' && s.trustProxy === 'loopback' && s.host !== '127.0.0.1') lines.push('  ! TRUST_PROXY is not set: behind Render or another proxy every visitor looks like the same address, so the per-address limits would block everybody. Set TRUST_PROXY=1.');
   for (const warning of s.warnings) lines.push('  ! ' + warning);
   for (const warning of studio?.securityWarnings() ?? []) lines.push('  ! ' + warning);
   lines.push('  Press Ctrl+C to stop.', '');

@@ -427,6 +427,18 @@ test('makeContext defaults: link style from site.json, overridable', () => {
 test('the snippets are plain JavaScript that parses on its own (as a module)', () => {
   const dir = path.join(ROOT, 'site', 'patches', 'snippets');
   const files = fs.readdirSync(dir).filter((f) => f.endsWith('.js'));
-  assert.deepEqual(files.sort(), ['analytics.js', 'warmup.js']);
+  assert.deepEqual(files.sort(), ['analytics.js', 'auth.js', 'warmup.js']);
   for (const f of files) checkSyntax(fs.readFileSync(path.join(dir, f), 'utf8'), f.replace(/\.js$/, '.mjs'), `[${f}] `);
+});
+
+test('no snippet has a camelCase name straight before an "=": the exported pages\' runtime rewrites those inside inline scripts', () => {
+  // The runtime (the bundle's encodeCamelAttrs) turns ` viewBox=` into ` sc-camel-view-box=` anywhere in the page text, inline
+  // scripts included, so `var realFetch = window.fetch;` arrives in the browser as `var sc-camel-real-fetch = ...` and the script
+  // dies with "Unexpected token '-'". A name after a dot (`nav.doNotTrack === '1'`) is not touched.
+  const dir = path.join(ROOT, 'site', 'patches', 'snippets');
+  const hazard = /(\s)([a-z]+[A-Z][A-Za-z0-9]*)(\s*=)/g;
+  for (const f of fs.readdirSync(dir).filter((name) => name.endsWith('.js'))) {
+    const code = fs.readFileSync(path.join(dir, f), 'utf8').split('\n').filter((line) => !/^\s*\/\//.test(line)).join('\n'); // comments are text, not code
+    assert.deepEqual([...code.matchAll(hazard)].map((m) => m[2]), [], `${f}: rename these to all-lowercase names`);
+  }
 });

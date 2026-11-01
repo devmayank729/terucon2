@@ -13,6 +13,10 @@
  * The limits are per hour and in the settings (STUDIO_LIMIT_*). In memory, so a restart clears them. Requests that are not the
  * studio's API are never touched.
  *
+ * With sign-in on, the owner is the signed-in account (`identify`), not the browser: rooms follow the person to another device,
+ * a second person on a shared computer sees nothing of the first, and deleting the account can delete its rooms. The browser
+ * cookie is only the owner for requests that have no account (sign-in switched off).
+ *
  * @typedef {object} RoomStore
  * @property {() => boolean} ready whether the database is connected (when it is not, the studio cannot list or save rooms either)
  * @property {(id: string) => Promise<string | null>} ownerOf
@@ -20,6 +24,7 @@
  * @property {(id: string, owner: string) => Promise<boolean>} claim true when `owner` now owns it, false when somebody else got there first
  * @property {(id: string) => Promise<void>} release
  * @property {(owner: string) => Promise<object[]>} listOwned the summaries the studio's list route would give, for this owner's rooms
+ * @property {(owner: string) => Promise<number>} deleteAllOf delete every room of this owner, with its files (the account was deleted)
  */
 import crypto from 'node:crypto';
 import { RateLimiter } from './rateLimit.js';
@@ -62,8 +67,9 @@ function cookieValue(req, name) {
  * @param {() => {ai: number, vision: number, pipeline: number, check: number, rooms: number, perAddress: number}} options.limits
  * @param {{warn: Function}} [options.log]
  * @param {() => number} [options.now]
+ * @param {(req: object) => string | null} [options.identify] the signed-in account's owner id for this request, if any
  */
-export function studioShield({ store, limits, log, now = Date.now }) {
+export function studioShield({ store, limits, log, now = Date.now, identify = () => null }) {
   const limiter = new RateLimiter({ windowMs: 3600000, now });
   const owners = new Map(); // room id -> owner, only what the database has confirmed (an owner never changes until the room is deleted)
   const logged = new Map();
@@ -137,10 +143,13 @@ export function studioShield({ store, limits, log, now = Date.now }) {
 
   const middleware = (req, res, next) => {
     if (!req.path.startsWith('/api/')) return next();
-    let owner = cookieValue(req, OWNER_COOKIE);
-    if (!OWNER_ID.test(owner)) {
-      owner = crypto.randomBytes(16).toString('hex');
-      res.cookie(OWNER_COOKIE, owner, { httpOnly: true, sameSite: 'lax', secure: req.secure, maxAge: COOKIE_DAYS * 86400000, path: '/' });
+    let owner = identify(req);
+    if (!owner) {
+      owner = cookieValue(req, OWNER_COOKIE);
+      if (!OWNER_ID.test(owner)) {
+        owner = crypto.randomBytes(16).toString('hex');
+        res.cookie(OWNER_COOKIE, owner, { httpOnly: true, sameSite: 'lax', secure: req.secure, maxAge: COOKIE_DAYS * 86400000, path: '/' });
+      }
     }
     const group = limitGroup(req.method, req.path);
     if (group && !allow(req, res, group, owner)) return;

@@ -16,11 +16,39 @@
       "with": ">Open the Design Studio</a>"
     },
     {
+      "id": "account-menu",
+      "op": "replace",
+      "why": "the profile menu's demo \"Sign out\" item only went to the home page; it is renamed and marked so that snippets/auth.js can send it to the account page, where signing out and deleting the account are (an anchor on the end of the tag, because the start of it differs between link styles)",
+      "anchor": "style-hover=\"background:var(--soft);color:var(--ink)\">Sign out</a>",
+      "with": "style-hover=\"background:var(--soft);color:var(--ink)\" data-terucon-account-menu=\"\">Account and sign out</a>"
+    },
+    {
       "id": "analytics",
       "op": "insertBefore",
       "why": "PostHog analytics: page views, clicks and forms, and (studio page) the studio's own events, which its browser code sends to window.posthog but its server never gives a key for. The script asks GET /api/analytics, so no key is in the page",
       "anchor": "</helmet>",
-      "insert": ["<script>", {"file": "snippets/analytics.js", "chomp": true}, "</script>\n"]
+      "insert": [
+        "<script>",
+        {
+          "file": "snippets/analytics.js",
+          "chomp": true
+        },
+        "</script>\n"
+      ]
+    },
+    {
+      "id": "auth",
+      "op": "insertBefore",
+      "why": "sign-in: the header link says Sign in or Account, and a request answered \"please sign in\" (the session ended) leads to the sign-in page. The script asks GET /api/auth/me, so nothing about the visitor is in the page",
+      "anchor": "</helmet>",
+      "insert": [
+        "<script>",
+        {
+          "file": "snippets/auth.js",
+          "chomp": true
+        },
+        "</script>\n"
+      ]
     }
   ]
 }

@@ -14,25 +14,27 @@ const pages = Object.entries(site.pages);
 
 describe('pages, aliases and redirects', () => {
   let app;
+  let member; // somebody signed in: every page but the landing page is for members only (tests/js/auth-gate.test.js proves the other half)
   before(async () => {
     app = await startTestApp();
+    member = await app.signIn();
   });
   after(() => app.stop());
 
   for (const [key, spec] of pages) {
     test(`${spec.route} serves the ${key} page`, async () => {
-      const r = await app.get(spec.route);
+      const r = await app.get(spec.route, member.headers);
       assert.equal(r.status, 200);
       assert.match(r.headers['content-type'], /^text\/html/);
       assert.equal(r.text, app.page(key));
-      assert.equal(r.headers['cache-control'], 'no-cache');
+      assert.equal(r.headers['cache-control'], spec.access === 'signed-in' ? 'private, no-cache' : 'no-cache');
       assert.equal(r.headers['x-content-type-options'], 'nosniff');
       assert.equal(r.headers['referrer-policy'], 'no-referrer');
       assert.equal(r.headers['x-powered-by'], undefined);
     });
 
     test(`${key}: only the headers site.json lists are added`, async () => {
-      const r = await app.get(spec.route);
+      const r = await app.get(spec.route, member.headers);
       for (const [name, value] of Object.entries(spec.headers)) assert.equal(r.headers[name.toLowerCase()], value, name);
       if (!Object.keys(spec.headers).length) {
         assert.equal(r.headers['cross-origin-opener-policy'], undefined);
@@ -50,16 +52,16 @@ describe('pages, aliases and redirects', () => {
   }
 
   test('conditional requests: ETag and Last-Modified give 304', async () => {
-    const first = await app.get('/materials');
+    const first = await app.get('/materials', member.headers);
     assert.ok(first.headers.etag && first.headers['last-modified']);
-    const byTag = await app.get('/materials', { 'If-None-Match': first.headers.etag });
+    const byTag = await app.get('/materials', { ...member.headers, 'If-None-Match': first.headers.etag });
     assert.equal(byTag.status, 304);
-    const byDate = await app.get('/materials', { 'If-Modified-Since': first.headers['last-modified'] });
+    const byDate = await app.get('/materials', { ...member.headers, 'If-Modified-Since': first.headers['last-modified'] });
     assert.equal(byDate.status, 304);
   });
 
   test('HEAD works for pages', async () => {
-    const r = await app.request('/materials', { method: 'HEAD' });
+    const r = await app.request('/materials', { method: 'HEAD', headers: member.headers });
     assert.equal(r.status, 200);
     assert.equal(r.text, '');
     assert.ok(Number(r.headers['content-length']) > 0);
@@ -166,8 +168,9 @@ describe('a page whose file has not been built yet', () => {
   test('answers 404 and says how to build it, the rest of the site is fine', async () => {
     const app = await startTestApp();
     try {
+      const member = await app.signIn();
       fs.rmSync(path.join(app.root, site.pages.materials.file));
-      const r = await app.get('/materials');
+      const r = await app.get('/materials', member.headers);
       assert.equal(r.status, 404);
       assert.equal(r.json().error.status, 'NOT_FOUND');
       assert.match(r.json().error.message, /npm run build:site/);
@@ -321,7 +324,8 @@ describe('/api: JSON 404 and 405, no-store, and the small endpoints', () => {
   test('/api/health says it is up and which version', async () => {
     const r = await app.get('/api/health');
     assert.equal(r.status, 200);
-    assert.deepEqual(r.json(), { ok: true, version: JSON.parse(fs.readFileSync(path.join(PROJECT_ROOT, 'package.json'), 'utf8')).version, studio: { running: false } });
+    // `auth` is only whether sign-in works (and coarse reason codes), never settings or secrets
+    assert.deepEqual(r.json(), { ok: true, version: JSON.parse(fs.readFileSync(path.join(PROJECT_ROOT, 'package.json'), 'utf8')).version, studio: { running: false }, auth: { ready: true, gate: true, reasons: [] } });
   });
 
   test('/api/site is the public view: no files, no headers, no private keys', async () => {

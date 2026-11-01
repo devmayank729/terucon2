@@ -31,9 +31,13 @@ const project = makeProjectRoot();
 fs.writeFileSync(path.join(project.studioDir, '.env'), 'PORT=3999\nHOST=0.0.0.0\n');
 
 const { createApp } = await import('../../app.js');
+const { createAuthDb } = await import('../../server/auth/db.js');
+const { captureProviders, SECRET } = await import('../helpers/authKit.js');
+const { signInVia } = await import('../helpers/signIn.js');
+const capture = captureProviders();
 const lines = [];
 const log = { info: (m) => lines.push(m), warn: (m) => lines.push(m), error: (m) => lines.push(m), raw: (m) => lines.push(m) };
-const app = createApp({ root: project.root, swatchroom: true, log }); // no `environ`: the website takes its own snapshot
+const app = createApp({ root: project.root, swatchroom: true, log, auth: { db: createAuthDb({}), providers: capture.providers, secret: SECRET } }); // no `environ`: the website takes its own snapshot
 const server = http.createServer(app);
 await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 const port = server.address().port;
@@ -54,10 +58,16 @@ test.after(async () => {
 const get = (path_, headers = {}) => request(port, { path: path_, headers });
 const cookieOf = (r) => (r.headers['set-cookie'] ?? []).map((c) => c.split(';')[0]).join('; ');
 
+// The website's own sign-in comes first (every page but the landing page, and the studio's costly API, need an account);
+// the studio's passcode, which these tests turn back on, comes after it.
+let account;
+const member = async () => (account ??= await signInVia((p, o = {}) => request(port, { path: p, ...o }), capture)).cookie;
+
 async function signIn() {
-  const r = await request(port, { method: 'POST', path: '/api/session', body: { passcode: 'letmein' } });
+  const accountCookie = await member();
+  const r = await request(port, { method: 'POST', path: '/api/session', body: { passcode: 'letmein' }, headers: { Cookie: accountCookie } });
   assert.equal(r.status, 200, r.text);
-  return [cookieOf(r)].filter(Boolean).join('; ');
+  return [accountCookie, cookieOf(r)].filter(Boolean).join('; ');
 }
 
 test('the studio\'s .env never becomes the website\'s settings', () => {
@@ -70,8 +80,9 @@ test('the studio\'s .env never becomes the website\'s settings', () => {
 
 test('the website keeps its own pages; /studio and /swatchroom lead to the studio page', async () => {
   assert.match((await get('/')).text, /<title>home<\/title>/, 'the landing page, not the studio\'s own page');
-  assert.match((await get('/design-studio')).text, /<title>studio<\/title>/);
-  assert.match((await get('/materials')).text, /<title>materials<\/title>/);
+  const inside = { Cookie: await member() };
+  assert.match((await get('/design-studio', inside)).text, /<title>studio<\/title>/);
+  assert.match((await get('/materials', inside)).text, /<title>materials<\/title>/);
   for (const from of ['/studio', '/swatchroom', '/index.html']) {
     const r = await get(from);
     assert.equal(r.status, 301, from);
@@ -100,9 +111,12 @@ test('the studio\'s API answers, behind its own passcode', async () => {
   const session = (await get('/api/session')).json();
   assert.equal(session.passcodeRequired, true);
   assert.equal(session.signedIn, false);
-  const blocked = await get('/api/vision/warmup');
+  const anonymous = await get('/api/vision/warmup');
+  assert.equal(anonymous.status, 401);
+  assert.equal(anonymous.json().code, 'auth-required', 'no account: the website\'s sign-in answers before the studio\'s passcode does');
+  const blocked = await get('/api/vision/warmup', { Cookie: await member() });
   assert.equal(blocked.status, 401);
-  assert.equal(blocked.json().code, 'passcode');
+  assert.equal(blocked.json().code, 'passcode', 'an account but no passcode: the studio\'s own refusal');
   const cookie = await signIn();
   const status = await get('/api/vision/warmup', { Cookie: cookie });
   assert.equal(status.status, 200);

@@ -19,3 +19,6 @@ data/
 # Local test output of the Design Studio's browser walk-throughs
 swatchroom/tests/shots-*
 swatchroom/tests/sa.json
+# The catalogue engine (catalogue/) runs on Modal or on your own computer, never in the website's image; the notebook it came from does not belong in it either
+catalogue/
+**/*.ipynb

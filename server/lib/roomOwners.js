@@ -40,6 +40,28 @@ export function mongoRoomOwners({ mongoose, Room }) {
     async release(id) {
       await Owner.deleteOne({ _id: id });
     },
+    /**
+     * Delete every room of an owner, photos and renders included: the same two steps as the studio's own DELETE /api/rooms/:id
+     * (the files of the room in GridFS, then the record), then the ownership record. Rooms are removed one at a time, so if it
+     * stops half way the rest are still owned and the call can simply be repeated.
+     */
+    async deleteAllOf(owner) {
+      const ids = (await Owner.find({ owner }).select('_id').lean()).map((entry) => entry._id);
+      if (!ids.length) return 0;
+      const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: 'files' });
+      for (const id of ids) {
+        for (const file of await bucket.find({ 'metadata.roomId': id }).toArray()) {
+          try {
+            await bucket.delete(file._id);
+          } catch {
+            // already gone
+          }
+        }
+        await Room.deleteOne({ _id: id });
+        await Owner.deleteOne({ _id: id });
+      }
+      return ids.length;
+    },
     async listOwned(owner) {
       const ids = (await Owner.find({ owner }).select('_id').limit(1000).lean()).map((entry) => entry._id);
       if (!ids.length) return [];

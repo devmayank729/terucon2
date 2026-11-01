@@ -19,7 +19,11 @@
         "Only the pages in site.json and allowed media are served; traversal, hidden files and every secret path are 404",
         "Body-parser errors become readable JSON answers (400, 413, 415) and an unexpected error shows no detail",
         "The site build applies each patch exactly the expected number of times; an untouched bundle round-trips byte for byte",
-        "This overview is complete, deterministic and safe to embed; its page works in Chrome (that file skips without Chrome)"
+        "This overview is complete, deterministic and safe to embed; its page works in Chrome (that file skips without Chrome)",
+        "Sign-in: a code goes only to the address asked for, works once, is stored only as a keyed hash, and five wrong guesses (counted atomically) kill it; wrong guesses are counted across codes and lock the address",
+        "Every page but the landing page, and the studio's costly API, need a finished account, however the address is spelled (capitals, encoded letters, aliases); /API/rooms is 404",
+        "The attack suite: brute force, races, CSRF, NoSQL and prototype-pollution payloads, SSRF in the firm look-up, Google token forgeries, enumeration, pre-account takeover, header and log injection",
+        "The SMTP client against a pretend mail server (TLS and STARTTLS checked), Twilio and the SMS webhook, and the Zoho queue against a pretend Zoho"
       ]
     },
     {
@@ -37,7 +41,8 @@
         "Every page loads cleanly and links to the pages the site map requires; every same-site link resolves",
         "Old addresses redirect: file names with 301, design-time names with 302",
         "Secrets and source code are never served; the API never contains a secret",
-        "The project overview opens and shows the live server"
+        "The project overview opens and shows the live server",
+        "Leaving the landing page shows the sign-in page; a wrong code is refused, the right one leads through the form to the page asked for; the account page signs out and the gate closes again"
       ]
     }
   ],

@@ -22,6 +22,20 @@ function route(value, what) {
   return value;
 }
 
+/** Who may open a page: everybody ("public", the default) or only somebody signed in ("signed-in"). */
+function access(value, what) {
+  if (value === undefined || value === 'public') return 'public';
+  if (value === 'signed-in') return 'signed-in';
+  return fail(`${what} must be "public" or "signed-in", got ${JSON.stringify(value)}`);
+}
+
+/** A page we write by hand may ask for a strict Content-Security-Policy built from its own inline script and style (server/lib/csp.js). */
+function csp(value, what) {
+  if (value === undefined || value === null) return null;
+  if (value === 'strict' || value === 'strict+google' || value === 'strict+images') return value;
+  return fail(`${what} must be "strict", "strict+google" or "strict+images", got ${JSON.stringify(value)}`);
+}
+
 export class SiteMap {
   /** Read and validate `<root>/site/site.json`. */
   static load(root) {
@@ -51,6 +65,8 @@ export class SiteMap {
         file: relativeFile(p.file, `pages.${key}.file`),
         aliases: (p.aliases ?? []).map((a) => route(a, `pages.${key}.aliases`)),
         headers: { ...(p.headers ?? {}) },
+        access: access(p.access, `pages.${key}.access`),
+        csp: null,
         legacy: [],
       };
     }
@@ -67,7 +83,9 @@ export class SiteMap {
         route: route(d.route, `docs.${key}.route`),
         file: relativeFile(d.file, `docs.${key}.file`),
         aliases: (d.aliases ?? []).map((a) => route(a, `docs.${key}.aliases`)),
-        headers: {},
+        headers: { ...(d.headers ?? {}) },
+        access: access(d.access, `docs.${key}.access`),
+        csp: csp(d.csp, `docs.${key}.csp`),
         legacy: [],
       };
     }
@@ -94,7 +112,7 @@ export class SiteMap {
       table.set(key, action);
     };
     for (const entry of Object.values(this[kind])) {
-      add(entry.route, { file: entry.file, headers: entry.headers });
+      add(entry.route, { file: entry.file, headers: entry.headers, access: entry.access, route: entry.route, csp: entry.csp });
       for (const alias of entry.aliases) add(alias, { redirect: entry.route, status: 301 });
       for (const name of entry.legacy) add('/' + name, { redirect: entry.route, status: 302 });
     }
