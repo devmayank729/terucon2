@@ -25,7 +25,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 
-const HOST = 'storage.googleapis.com';
+export const HOST = 'storage.googleapis.com';
 const ALGORITHM = 'GOOG4-RSA-SHA256';
 export const MAX_EXPIRES_S = 7 * 24 * 60 * 60;
 const RECHECK_MS = 30 * 1000;

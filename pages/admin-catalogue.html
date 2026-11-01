@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#E1D4C2">
+<meta name="robots" content="noindex">
+<title>Catalogue admin — Terucon India</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<!-- Zodiak and Switzer, the site's fonts (served with the Design Studio); the page reads fine in Georgia / Helvetica without them -->
+<link rel="stylesheet" href="/css/fonts.css">
+<link rel="stylesheet" href="/catalogue-ui/assets/catalogue-ui.css">
+<style>
+  :root { --bg:#E1D4C2; --card:#EFE6D8; --ink:#291C0E; --ink2:#6E473B; --sand:#A78D78; --line:rgba(41,28,14,.16); --line2:rgba(41,28,14,.34); --bad:#8C2F1B; --good:#3B5B2E; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; padding:0; }
+  html { -webkit-text-size-adjust:100%; -webkit-tap-highlight-color:transparent; }
+  body { min-height:100vh; display:flex; flex-direction:column; background:var(--bg); color:var(--ink); font-family:Switzer, Helvetica, Arial, sans-serif; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  a { color:inherit; }
+  ::selection { background:#6E473B; color:#E1D4C2; }
+  :focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
+  [hidden] { display:none !important; }
+
+  header { min-height:clamp(64px, calc(40px + 3.2vw), 76px); display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px; padding:10px clamp(20px, 5vw, 72px); border-bottom:1px solid var(--line); }
+  .brand { display:flex; align-items:baseline; gap:10px; font:600 15px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.34em; text-decoration:none; }
+  .brand span { font:500 9.5px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.3em; }
+  nav { display:flex; flex-wrap:wrap; align-items:center; gap:8px clamp(14px, 2.2vw, 28px); font:500 13px/1 Switzer, Helvetica, Arial, sans-serif; }
+  nav a { text-decoration:none; transition:opacity .25s; }
+  nav a:hover { opacity:.7; }
+  nav a[aria-current="page"] { text-decoration:underline; text-underline-offset:6px; text-decoration-thickness:1px; }
+
+  main { flex:1; padding:clamp(28px, 6vh, 72px) clamp(16px, 5vw, 72px) clamp(40px, 8vh, 96px); }
+  .wrap { width:100%; max-width:860px; margin:0 auto; display:flex; flex-direction:column; gap:22px; }
+  .eyebrow { display:flex; align-items:center; gap:14px; margin:0; font:500 10.5px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.22em; text-transform:uppercase; color:var(--ink2); }
+  .eyebrow::before { content:""; width:32px; height:1px; background:currentColor; }
+  h1 { margin:0 0 4px; font:300 clamp(32px, 6vw, 48px)/1.08 Zodiak, Georgia, serif; letter-spacing:-.02em; }
+  h2 { margin:0; font:300 22px/1.2 Zodiak, Georgia, serif; letter-spacing:-.01em; }
+  .lead { margin:0; font:400 15px/1.6 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); max-width:640px; }
+
+  .card { background:var(--card); border:1px solid var(--line); border-radius:24px; padding:22px clamp(18px, 3vw, 28px); display:flex; flex-direction:column; gap:16px; box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 20px 50px -32px rgba(41,28,14,.4); }
+  .card-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .card.danger { border-color:var(--bad); }
+
+  label.l { display:flex; flex-direction:column; gap:6px; font:500 12.5px/1 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+  .l input, .l select, .l textarea { height:44px; padding:0 14px; border-radius:12px; background:#F9F4EA; border:1px solid var(--line2); color:var(--ink); font:400 15px/1 Switzer, Helvetica, Arial, sans-serif; }
+  .l textarea { height:auto; padding:10px 14px; font:400 14px/1.5 Switzer, Helvetica, Arial, sans-serif; resize:vertical; }
+  .l input:focus, .l select:focus, .l textarea:focus { outline:none; border-color:var(--ink); box-shadow:0 0 0 3px rgba(41,28,14,.1); }
+  .grid2 { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; }
+  .checks { display:flex; gap:16px; flex-wrap:wrap; font:400 13.5px/1 Switzer, Helvetica, Arial, sans-serif; }
+  .checks label { display:flex; align-items:center; gap:7px; }
+
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; height:42px; padding:0 20px; border-radius:999px; border:1px solid var(--ink); background:var(--ink); color:var(--bg); font:500 13.5px/1 Switzer, Helvetica, Arial, sans-serif; cursor:pointer; white-space:nowrap; transition:background .3s, opacity .2s; }
+  .btn:hover { background:var(--ink2); border-color:var(--ink2); }
+  .btn:disabled { opacity:.5; cursor:default; }
+  .btn.ghost { background:transparent; color:var(--ink); border-color:var(--line2); }
+  .btn.ghost:hover { background:rgba(41,28,14,.07); }
+  .btn.bad { background:var(--bad); border-color:var(--bad); }
+  .btn.small { height:34px; padding:0 14px; font-size:12.5px; }
+  .btn input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; }
+  .btn { position:relative; overflow:hidden; }
+  .actions-row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+  .notice { margin:0; padding:11px 15px; border-radius:12px; font:400 13.5px/1.5 Switzer, Helvetica, Arial, sans-serif; border:1px solid var(--line2); }
+  .notice.bad { border-color:var(--bad); color:var(--bad); background:rgba(140,47,27,.07); }
+  .notice.good { border-color:var(--good); color:var(--good); background:rgba(59,91,46,.08); }
+  .notice.info { color:var(--ink2); background:rgba(255,255,255,.4); }
+
+  .small { margin:0; font:400 12.5px/1.5 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+  .empty { padding:18px; text-align:center; color:var(--ink2); font-size:13.5px; }
+  footer { padding:22px clamp(20px, 5vw, 72px); border-top:1px solid var(--line); font:400 12px/1.5 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="/">TERUCON <span>INDIA</span></a>
+  <nav aria-label="Pages">
+    <a href="/">Home</a>
+    <a href="/materials">Materials</a>
+    <a href="/design-studio">Design Studio</a>
+    <a href="/finder">Finder</a>
+    <a href="/account">Account</a>
+    <a href="/admin/catalogue" aria-current="page">Catalogue admin</a>
+  </nav>
+</header>
+
+<main>
+  <div class="wrap">
+    <p class="eyebrow">Catalogue admin</p>
+    <h1>Upload and manage the catalogue</h1>
+    <p class="lead">Target D1. Create a catalogue, send a PDF or photos, watch the processing, fix a label or code, and choose which release clients see. Needs the admin token (<code>AUTH_ADMIN_TOKEN</code>), not your sign-in.</p>
+
+    <!-- 1. the token: everything below is hidden until it answers GET /overview -->
+    <section class="card" id="token-card" aria-labelledby="h-token">
+      <h2 id="h-token">Admin token</h2>
+      <p class="notice bad" id="token-status" role="alert" hidden></p>
+      <div class="grid2">
+        <label class="l" style="grid-column:1/-1">Bearer token
+          <input id="token-input" type="password" autocomplete="off" placeholder="Pasted here only, kept for this tab alone">
+        </label>
+      </div>
+      <div class="actions-row">
+        <button class="btn" id="token-connect" type="button">Connect</button>
+        <button class="btn ghost" id="token-forget" type="button" hidden>Forget token</button>
+        <span class="small" id="token-connected" hidden></span>
+      </div>
+    </section>
+
+    <div id="admin-sections" hidden style="display:flex; flex-direction:column; gap:22px;">
+
+      <!-- 2. overview -->
+      <section class="card" id="overview-card" aria-labelledby="h-overview">
+        <div class="card-head">
+          <h2 id="h-overview">Overview</h2>
+          <button class="btn ghost small" id="run-check" type="button">Run the check</button>
+        </div>
+        <p class="small">"Run the check" wakes the Modal apps that are set up and is billed like any other start — the overview itself never calls Modal.</p>
+        <div id="overview-configured" class="checks"></div>
+        <p class="notice" id="check-result" hidden></p>
+        <div id="catalogues-list" class="table-list"></div>
+      </section>
+
+      <!-- 3. create a catalogue -->
+      <section class="card" id="create-card" aria-labelledby="h-create">
+        <h2 id="h-create">New catalogue</h2>
+        <div class="grid2">
+          <label class="l">Id (a slug)<input id="new-id" type="text" placeholder="superbond-colour"></label>
+          <label class="l">Name<input id="new-name" type="text" placeholder="Superbond colour range"></label>
+          <label class="l">Kind
+            <select id="new-kind">
+              <option value="materials">materials</option>
+              <option value="paint">paint</option>
+              <option value="exterior">exterior</option>
+              <option value="other">other</option>
+            </select>
+          </label>
+          <label class="l">Note (optional)<input id="new-note" type="text"></label>
+        </div>
+        <div class="actions-row">
+          <button class="btn" id="create-go" type="button">Create</button>
+          <p class="notice bad" id="create-status" hidden style="flex:1;min-width:200px;"></p>
+        </div>
+      </section>
+
+      <!-- 4. upload -->
+      <section class="card" id="upload-card" aria-labelledby="h-upload">
+        <h2 id="h-upload">Upload a PDF or photos</h2>
+        <div class="grid2">
+          <label class="l">Catalogue<select id="upload-catalogue"></select></label>
+          <label class="l">Kind
+            <select id="upload-kind">
+              <option value="pdf">PDF (one catalogue document)</option>
+              <option value="photos">Photos (up to 200)</option>
+            </select>
+          </label>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" id="opt-captions" checked> AI captions (category, finish, description)</label>
+          <label><input type="checkbox" id="opt-segment"> Segment each photo into several materials</label>
+          <label><input type="checkbox" id="opt-activate"> Make the result live automatically when it finishes</label>
+        </div>
+        <div class="actions-row">
+          <label class="btn ghost">Choose files<input id="upload-files" type="file" multiple accept="application/pdf,image/jpeg,image/png,image/webp"></label>
+          <span class="small" id="upload-chosen"></span>
+        </div>
+        <div id="upload-list" class="table-list" hidden></div>
+        <div class="actions-row">
+          <button class="btn" id="upload-go" type="button" disabled>Sign and upload</button>
+          <button class="btn ghost" id="upload-start-job" type="button" hidden>Start processing</button>
+        </div>
+        <p class="notice bad" id="upload-status" hidden></p>
+      </section>
+
+      <!-- 5. jobs -->
+      <section class="card" id="jobs-card" aria-labelledby="h-jobs">
+        <div class="card-head">
+          <h2 id="h-jobs">Jobs</h2>
+          <button class="btn ghost small" id="jobs-refresh" type="button">Refresh</button>
+        </div>
+        <div id="jobs-list" class="table-list"></div>
+      </section>
+
+      <!-- 6. items -->
+      <section class="card" id="items-card" aria-labelledby="h-items">
+        <h2 id="h-items">Items</h2>
+        <div class="grid2">
+          <label class="l">Catalogue<select id="items-catalogue"></select></label>
+          <label class="l">Find<input id="items-q" type="text" placeholder="label, product code or description"></label>
+        </div>
+        <div id="items-list" class="table-list"></div>
+        <div class="actions-row">
+          <button class="btn ghost small" id="items-more" type="button" hidden>Show more</button>
+        </div>
+        <div class="card" id="item-edit" hidden style="background:#F9F4EA;">
+          <h2 id="h-item-edit" style="font-size:17px;">Edit item</h2>
+          <div class="grid2">
+            <label class="l">Label<input id="edit-label" type="text"></label>
+            <label class="l">Product code<input id="edit-productId" type="text"></label>
+          </div>
+          <label class="l">Attributes (JSON object, e.g. {"Colour":"oak"})<textarea id="edit-attributes" rows="3"></textarea></label>
+          <div class="actions-row">
+            <button class="btn small" id="edit-save" type="button">Save</button>
+            <button class="btn ghost small" id="edit-hide" type="button">Hide from clients</button>
+            <button class="btn ghost small" id="edit-show" type="button">Show to clients</button>
+            <button class="btn ghost small" id="edit-cancel" type="button">Close</button>
+          </div>
+          <p class="notice bad" id="edit-status" hidden></p>
+        </div>
+      </section>
+
+      <!-- 7. releases -->
+      <section class="card" id="releases-card" aria-labelledby="h-releases">
+        <h2 id="h-releases">Releases</h2>
+        <div class="grid2">
+          <label class="l">Catalogue<select id="releases-catalogue"></select></label>
+        </div>
+        <div id="releases-list" class="table-list"></div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<footer>Terucon India Private Limited — admin only</footer>
+
+<noscript><p class="notice bad">This page needs JavaScript.</p></noscript>
+<script type="module" src="/catalogue-ui/assets/admin.js"></script>
+</body>
+</html>

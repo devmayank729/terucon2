@@ -52,7 +52,8 @@ test('the page is in the site map for members only, with the picture policy, and
   assert.ok(table.get('/import'));
   // the link checker reads this from site.json; the route (server/routes/inspiration.js) serves the same place
   const raw = JSON.parse(fs.readFileSync(path.join(ROOT, 'site', 'site.json'), 'utf8'));
-  assert.deepEqual([raw.assets.route, raw.assets.dir], ['/inspiration/assets', 'site/inspiration']);
+  const assets = raw.assets.find((a) => a.route === '/inspiration/assets');
+  assert.deepEqual([assets?.route, assets?.dir], ['/inspiration/assets', 'site/inspiration']);
 });
 
 test('every module the page and the other pages load is a file in the folder, and no module imports one that is not', () => {

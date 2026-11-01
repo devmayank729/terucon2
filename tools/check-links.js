@@ -74,8 +74,7 @@ export function makeResolver(site, root = ROOT, linkStyle = site.linkStyle || 'r
   }
   const mediaDir = site.media?.dir || 'media';
   const mediaRoute = stripSlash(site.media?.route || '/media');
-  const assetsRoute = site.assets?.route ? stripSlash(site.assets.route) : null;
-  const assetsDir = site.assets?.dir;
+  const assetGroups = (site.assets ?? []).map((a) => ({ route: stripSlash(a.route), dir: a.dir }));
   const homeKeys = Object.entries(site.pages).filter(([, s]) => s.route === '/').map(([k]) => k);
 
   return function resolve(target) {
@@ -91,8 +90,9 @@ export function makeResolver(site, root = ROOT, linkStyle = site.linkStyle || 'r
         return inside && fs.existsSync(abs) ? { kind: 'media' } : { kind: 'missing-media', detail: `${mediaDir}/${rel}` };
       }
     }
-    // the browser modules of the inspiration import: each file a page names must exist in their folder
-    if (assetsRoute && t.startsWith(`${assetsRoute}/`)) {
+    // the browser modules of a feature (inspiration import, the catalogue UI): each file a page names must exist in its folder
+    for (const { route: assetsRoute, dir: assetsDir } of assetGroups) {
+      if (!t.startsWith(`${assetsRoute}/`)) continue;
       const rel = t.slice(assetsRoute.length + 1);
       const abs = path.resolve(root, assetsDir, rel);
       return abs.startsWith(path.resolve(root, assetsDir) + path.sep) && fs.existsSync(abs) ? { kind: 'asset' } : { kind: 'missing-media', detail: `${assetsDir}/${rel}` };

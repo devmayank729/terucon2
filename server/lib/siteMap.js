@@ -30,10 +30,11 @@ function access(value, what) {
 }
 
 /** A page we write by hand may ask for a strict Content-Security-Policy built from its own inline script and style (server/lib/csp.js). */
+const CSP_VALUES = ['strict', 'strict+google', 'strict+images', 'strict+catalogue', 'strict+catalogue-admin'];
 function csp(value, what) {
   if (value === undefined || value === null) return null;
-  if (value === 'strict' || value === 'strict+google' || value === 'strict+images') return value;
-  return fail(`${what} must be "strict", "strict+google" or "strict+images", got ${JSON.stringify(value)}`);
+  if (CSP_VALUES.includes(value)) return value;
+  return fail(`${what} must be one of ${CSP_VALUES.map((v) => `"${v}"`).join(', ')}, got ${JSON.stringify(value)}`);
 }
 
 export class SiteMap {

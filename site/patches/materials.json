@@ -71,6 +71,19 @@
       ]
     },
     {
+      "id": "header-finder",
+      "op": "insertAfter",
+      "why": "header: Finder link",
+      "anchor": "Saved<span style=\"font:400 12px/1 Switzer,sans-serif;opacity:.7\">{{ savedN }}</span></a>",
+      "insert": [
+        "\n      ",
+        {
+          "component": "headerLink",
+          "entry": "finder"
+        }
+      ]
+    },
+    {
       "id": "menu-inspiration",
       "op": "insertAfter",
       "why": "menu: Inspiration card",
@@ -84,6 +97,19 @@
       ]
     },
     {
+      "id": "menu-finder",
+      "op": "insertAfter",
+      "why": "menu: Finder card",
+      "anchor": "Upload a photo of your space and see it in Terucon materials.</span></a>",
+      "insert": [
+        "\n        ",
+        {
+          "component": "menuCard",
+          "entry": "finder"
+        }
+      ]
+    },
+    {
       "id": "footer-inspiration",
       "op": "insertAfter",
       "why": "footer: Inspiration link",
@@ -92,6 +118,18 @@
         {
           "component": "footerLink",
           "entry": "inspiration"
+        }
+      ]
+    },
+    {
+      "id": "footer-finder",
+      "op": "insertAfter",
+      "why": "footer: Finder link",
+      "anchor": "style-hover=\"color:#FFFFFF\">Design Studio</a>",
+      "insert": [
+        {
+          "component": "footerLink",
+          "entry": "finder"
         }
       ]
     },
@@ -159,6 +197,15 @@
       "why": "the shop assistant's box takes a pasted photo address (data-import-urls, see import-script)",
       "anchor": "<input ref=\"{{ va.inRef }}\"",
       "with": "<input data-import-urls=\"\" ref=\"{{ va.inRef }}\""
+    },
+    {
+      "id": "photo-match-finder-banner",
+      "op": "insertAfter",
+      "why": "the shop's own photo-match card is a frontend preview (TARGETS.md A1/C4); this points to the Finder, which actually searches the real catalogue (target C4)",
+      "anchor": "<div style=\"flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:22px 24px\">",
+      "insert": [
+        "\n    <div style=\"display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:14px 18px;margin-bottom:18px;border-radius:16px;border:1px solid var(--line2);background:rgba(167,141,120,.14)\"><span style=\"font:400 13.5px/1.5 Switzer,sans-serif;color:var(--ink2)\">This is a preview. For a real match against our catalogue, open the Finder.</span><a href=\"/finder\" style=\"flex:none;height:40px;padding:0 18px;border-radius:999px;border:1px solid var(--ink);background:var(--ink);color:#E1D4C2;font:500 13px/1 Switzer,sans-serif;text-decoration:none;display:inline-flex;align-items:center;white-space:nowrap\">Open the Finder</a></div>\n    "
+      ]
     }
   ]
 }
