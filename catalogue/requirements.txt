@@ -1,0 +1,25 @@
+# Runtime dependencies of terucon_catalogue (catalogue/ARCHITECTURE.md section 1 and 8; modal_app.py bakes the same
+# versions into the Modal images). Python >= 3.11.
+#
+# torch and torchvision need a CUDA wheel on a GPU host:
+#   pip install torch==2.11.0 torchvision==0.26.0 --index-url https://download.pytorch.org/whl/cu128
+# On a CPU-only machine (publishing, tests, the ingest web endpoint) plain PyPI wheels are enough:
+#   pip install torch==2.11.0 torchvision==0.26.0
+torch==2.11.0
+torchvision==0.26.0
+transformers==5.16.1
+pymupdf==2.0
+opencv-python-headless==4.14.0.94
+google-genai==2.12.1
+google-cloud-storage
+pymongo
+fastapi
+numpy
+scipy
+pillow
+pydantic
+tenacity
+google-auth
+huggingface_hub
+safetensors
+requests

@@ -231,7 +231,7 @@ export function parseItemPatch(body) {
 
 /** A name for a file that is safe in an object key: no path, no odd characters. Returns the stem and the extension separately. */
 export function safeNameParts(raw) {
-  const name = String(raw ?? '').normalize('NFKC').split(/[\\/]/).pop().replace(/[\p{Cc}\p{Cf}]/gu, '');
+  const name = String(raw ?? '').normalize('NFKD').replace(/\p{M}/gu, '').normalize('NFKC').split(/[\\/]/).pop().replace(/[\p{Cc}\p{Cf}]/gu, '');
   const dot = name.lastIndexOf('.');
   const stem = (dot > 0 ? name.slice(0, dot) : name).replace(/[^A-Za-z0-9._-]+/g, '_').replace(/^[._-]+/, '').replace(/_{2,}/g, '_').slice(0, 80).replace(/[._-]+$/, '');
   const ext = dot > 0 ? name.slice(dot + 1).toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) : '';

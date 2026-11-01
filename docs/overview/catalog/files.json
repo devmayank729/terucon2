@@ -31,7 +31,9 @@
     "server/auth/providers/": "How a one-time code leaves the server: SMTP, Twilio, a webhook for any SMS gateway.",
     "python/": "The website's own Python environment (python/.venv, not committed): gallery-dl, run as a separate program by the inspiration import. Not the Design Studio's (swatchroom/python/).",
     "site/inspiration/": "The browser side of the inspiration import (target C3): the paste question, the crop screen, the hand-over to the Design Studio, and the one list of sites it reads. Served from /inspiration/assets/ by a fixed list of names.",
-    "server/lib/inspiration/": "The server side of the inspiration import: safe fetching of an address a visitor chose, gallery-dl, picture checks, tokens and limits."
+    "server/lib/inspiration/": "The server side of the inspiration import: safe fetching of an address a visitor chose, gallery-dl, picture checks, tokens and limits.",
+    "server/catalogue/": "The website's catalogue gateway (targets C3, C4, C5, C7, D1): client and admin routes, the Modal client, the GCS signer, validation and settings. Mints signed URLs and forwards small requests; never does model work itself. See catalogue/ARCHITECTURE.md section 7.",
+    "catalogue/": "The real-catalogue retrieval engine (Python), ported from terucon-cat-1.ipynb: extraction, encoders, the Vertex/Gemini captions, the publisher (MongoDB + GCS + a Modal cache), the search service and the Modal app. Not shipped in the website's Docker image. Start with catalogue/ARCHITECTURE.md."
   },
   "files": [
     {
@@ -844,6 +846,22 @@
         "Edit"
       ],
       "desc": "A file of the Design Studio (Swatchroom 5). It is kept exactly as built; the website only mounts it. See swatchroom/README.md."
+    },
+    {
+      "match": "catalogue/**",
+      "owner": "catalogue",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "A file of the catalogue retrieval engine (Python package terucon_catalogue, the Modal app, and its tests), owned and run on its own (not in the website's Docker image). See catalogue/ARCHITECTURE.md."
+    },
+    {
+      "match": "terucon-cat-1.ipynb",
+      "owner": "docs",
+      "tags": [
+        "Source"
+      ],
+      "desc": "The prototype notebook: the compute, search and publish logic in catalogue/ is a verbatim port of this, oracle-tested against its own definitions (catalogue/tests/nb_oracle.py). See catalogue/ARCHITECTURE.md section 1."
     },
     {
       "match": "pages/coming-soon.html",

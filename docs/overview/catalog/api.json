@@ -37,6 +37,11 @@
       "id": "inspiration",
       "title": "Inspiration import",
       "blurb": "Paste an address, get a picture to crop, send it to the Design Studio (target C3). The address is read by gallery-dl for the sites in site/inspiration/sources.js, directly for a picture link, and by the page's own named picture for any other web page, always through public addresses only (server/lib/inspiration/safeFetch.js). The browser never names a picture address: it gets one-use tokens. All three API routes need a signed-in, finished account (or, with sign-in switched off, are limited by address)."
+    },
+    {
+      "id": "catalogue",
+      "title": "Catalogue search",
+      "blurb": "Find real catalogue materials by photo, colour or words (targets C3, C4, C5, C7), and the admin side of uploading a catalogue and choosing what is live (D1, server/catalogue/, catalogue/ARCHITECTURE.md). A gateway only: the website mints signed GCS URLs and forwards small requests to Modal; it never parses a PDF or touches a vector itself. With CATALOGUE=off or nothing configured, every route but status answers 503 catalogue-off and the rest of the site is untouched."
     }
   ],
   "routes": [
@@ -1219,6 +1224,544 @@
       ],
       "curl": "curl -i http://localhost:8080/inspiration",
       "siteRef": "docs.inspiration.route"
+    },
+    {
+      "method": "GET",
+      "path": "/api/catalogue/status",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host"
+      ],
+      "summary": "Whether the catalogue search works here, the live catalogues, and the limits. Cheap: remembered 10 seconds (3 when the database just failed).",
+      "request": "No body.",
+      "response": "{enabled, ready, reasons: [\"off\"|\"modal-not-configured\"|\"storage-not-configured\"|\"database-unavailable\"|\"no-live-catalogue\"], default: id|null, catalogues: [{id, name, kind, items}] (live ones only), limits: {maxPhotoBytes: 6291456, maxSide: 1024}, profile}.",
+      "errors": [],
+      "curl": "curl -s http://localhost:8080/api/catalogue/status"
+    },
+    {
+      "method": "POST",
+      "path": "/api/catalogue/warm",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host",
+        "Same origin",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "Wakes the search service ahead of a photo or text search. Fire and forget: nobody waits for the answer.",
+      "request": "No body.",
+      "response": "202 {ok: true}.",
+      "errors": [
+        {
+          "status": 401,
+          "when": "Not signed in (reason unauthorized)"
+        },
+        {
+          "status": 403,
+          "when": "The sign-up form is not finished, or a foreign Origin (reason unauthorized / cross-site)"
+        },
+        {
+          "status": 429,
+          "when": "Too many warms from this account or address in the last hour (reason rate-limited)"
+        },
+        {
+          "status": 503,
+          "when": "The feature is off or not set up (reason catalogue-off)"
+        }
+      ],
+      "curl": "curl -s -X POST -b 'terucon_session=...' http://localhost:8080/api/catalogue/warm"
+    },
+    {
+      "method": "POST",
+      "path": "/api/catalogue/search",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host",
+        "Same origin",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "Point-to-find or colour-match: find the catalogue materials closest to a photo (targets C3/C4/C7). The exempt route of the JSON rule (guards.js): the body is the photo itself.",
+      "request": "The raw photo bytes, Content-Type image/jpeg, image/png or image/webp, at most 6 MB. Query: catalogue?, release?, mode=look|colour, k=1..20 (default 8), point=x,y (0..1) with radius? (default 0.12) or box=x0,y0,x1,y1, category?, finish? (comma lists).",
+      "response": "{ok: true, catalogue, release, mode, items: [ResultItem], query: {preprocessing, dominantHex, profile, signals: [..], timingsMs: {total}}, warnings: [..]}. ResultItem: {rank, itemId, catalogue, title, titleSource, productId, productIdSource, category, finish, subtype, dominantHex, source: {name, page}, image: {thumbUrl, fullUrl, width, height} (signed GCS GET URLs, valid 1 hour), scores: {final, signals} (final is relative: never a percentage), attributes}.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "A bad query parameter, or a photo too small/corrupt to decode (reason bad-request / bad-image)"
+        },
+        {
+          "status": 401,
+          "when": "Not signed in"
+        },
+        {
+          "status": 403,
+          "when": "The sign-up form is not finished, or a foreign Origin"
+        },
+        {
+          "status": 413,
+          "when": "The photo is over 6 MB (reason too-large)"
+        },
+        {
+          "status": 415,
+          "when": "The body is not image/jpeg, image/png or image/webp"
+        },
+        {
+          "status": 429,
+          "when": "Too many searches from this account or address in the last hour (reason rate-limited)"
+        },
+        {
+          "status": 503,
+          "when": "The feature is off (catalogue-off), pictures cannot be signed (not-ready), no catalogue is live (no-live-catalogue), or at most 6 searches may be in flight at once (busy, with Retry-After)"
+        }
+      ],
+      "curl": "curl -s -X POST -b 'terucon_session=...' -H 'Content-Type: image/jpeg' --data-binary @photo.jpg 'http://localhost:8080/api/catalogue/search?k=6'"
+    },
+    {
+      "method": "POST",
+      "path": "/api/catalogue/search-text",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host",
+        "Same origin",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "Find catalogue materials by a word or phrase (target C5, a building block of the brief parser).",
+      "request": "{text (<=300 chars), catalogue?, k? (1..20), category?, finish?}.",
+      "response": "Same shape as POST /api/catalogue/search.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "No text, text over 300 characters, or a bad field"
+        },
+        {
+          "status": 401,
+          "when": "Not signed in"
+        },
+        {
+          "status": 403,
+          "when": "The sign-up form is not finished, or a foreign Origin"
+        },
+        {
+          "status": 429,
+          "when": "Too many text searches from this account or address in the last hour"
+        },
+        {
+          "status": 503,
+          "when": "The feature is off, not ready, no live catalogue, or busy (Retry-After)"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -b 'terucon_session=...' -d '{\"text\":\"teak veneer\"}' http://localhost:8080/api/catalogue/search-text"
+    },
+    {
+      "method": "GET",
+      "path": "/api/catalogue/admin/overview",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host",
+        "Admin token"
+      ],
+      "summary": "Every catalogue, the last 20 jobs (without their logs) and what is set up. Never calls Modal.",
+      "request": "No body.",
+      "response": "{catalogues: [{...doc, id, live}], jobs: [...up to 20, newest first], configured: {modal, modalSearch, modalIngest, gcs, database}}. Still 200 when the database is down (catalogues and jobs empty, configured.database false).",
+      "errors": [
+        {
+          "status": 401,
+          "when": "A wrong or missing admin token (reason unauthorized)"
+        },
+        {
+          "status": 404,
+          "when": "No AUTH_ADMIN_TOKEN is configured: every admin route answers as if it did not exist"
+        },
+        {
+          "status": 429,
+          "when": "Twenty wrong tokens from one address in the sign-in admin's shared counter"
+        }
+      ],
+      "curl": "curl -s -H 'Authorization: Bearer <AUTH_ADMIN_TOKEN>' http://localhost:8080/api/catalogue/admin/overview"
+    },
+    {
+      "method": "POST",
+      "path": "/api/catalogue/admin/check",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host",
+        "Admin token",
+        "Same origin"
+      ],
+      "summary": "Pings both Modal apps, the database and the GCS signing key. WAKES the Modal apps that are set up: billed like any other start.",
+      "request": "No body (or {}).",
+      "response": "{database, gcsSigning, modalSearch, modalIngest: {ok, ms, detail}, billed: true, note}. Each part fails on its own; an app that is not set up is not called at all.",
+      "errors": [
+        {
+          "status": 401,
+          "when": "A wrong or missing admin token"
+        },
+        {
+          "status": 404,
+          "when": "No admin token configured"
+        },
+        {
+          "status": 403,
+          "when": "Cross-site"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Authorization: Bearer <AUTH_ADMIN_TOKEN>' http://localhost:8080/api/catalogue/admin/check"
+    },
+    {
+      "method": "POST",
+      "path": "/api/catalogue/admin/catalogues",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host",
+        "Admin token",
+        "Same origin",
+        "JSON only"
+      ],
+      "summary": "Creates a catalogue (kind materials, paint, exterior or other). It starts with nothing live, so clients never see it until a release is activated.",
+      "request": "{id (a slug, 2-39 chars), name (1-80 chars), kind, note? (<=300 chars)}.",
+      "response": "201 {id, name, kind, note, activeRelease: null, previousRelease: null, live: false, counts: {items: 0, hidden: 0}, createdAt}.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "A bad id, name, kind or note"
+        },
+        {
+          "status": 401,
+          "when": "A wrong or missing admin token"
+        },
+        {
+          "status": 403,
+          "when": "Cross-site"
+        },
+        {
+          "status": 404,
+          "when": "No admin token configured"
+        },
+        {
+          "status": 409,
+          "when": "A catalogue with that id already exists (reason exists)"
+        },
+        {
+          "status": 415,
+          "when": "Not application/json"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Authorization: Bearer <AUTH_ADMIN_TOKEN>' -H 'Content-Type: application/json' -d '{\"id\":\"exterior-2026\",\"name\":\"Exterior finishes\",\"kind\":\"exterior\"}' http://localhost:8080/api/catalogue/admin/catalogues"
+    },
+    {
+      "method": "POST",
+      "path": "/api/catalogue/admin/uploads",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host",
+        "Admin token",
+        "Same origin",
+        "JSON only"
+      ],
+      "summary": "Starts a draft job for a PDF or a set of photos and signs one GCS PUT address per file; the browser sends each file straight to Cloud Storage (the website never touches a PDF or a photo's bytes). The website never calls Modal here.",
+      "request": "{catalogue, kind: \"pdf\"|\"photos\", options?: {segmentPhotos, captions, activate}, files: [{name, size, type}]}. pdf: at most 5 files, 300 MB each. photos: at most 200 files, 25 MB each (jpeg/png/webp).",
+      "response": "201 {jobId, expiresAt, uploads: [{name, safeName, key, url, method: \"PUT\", headers}]}. A job document (status draft) is created first.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "A bad catalogue, kind, option, or file (type, name, size, count); reason bad-request"
+        },
+        {
+          "status": 401,
+          "when": "A wrong or missing admin token"
+        },
+        {
+          "status": 403,
+          "when": "Cross-site"
+        },
+        {
+          "status": 404,
+          "when": "The catalogue does not exist, or no admin token configured"
+        },
+        {
+          "status": 413,
+          "when": "The request body itself is too large"
+        },
+        {
+          "status": 415,
+          "when": "Not application/json"
+        },
+        {
+          "status": 503,
+          "when": "The GCS signing key is not usable (reason storage-not-configured; run the admin check), or the database is down"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Authorization: Bearer <AUTH_ADMIN_TOKEN>' -H 'Content-Type: application/json' -d '{\"catalogue\":\"superbond-colour\",\"kind\":\"pdf\",\"files\":[{\"name\":\"Superbond colour image.pdf\",\"size\":175898624,\"type\":\"application/pdf\"}]}' http://localhost:8080/api/catalogue/admin/uploads"
+    },
+    {
+      "method": "POST",
+      "path": "/api/catalogue/admin/jobs",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host",
+        "Admin token",
+        "Same origin",
+        "JSON only"
+      ],
+      "summary": "Starts a draft job (or resumes a failed one, which does not repeat paid work already done): tells the ingest app on Modal to run it. Only one job may be queued or running at a time; an older heartbeat than 10 minutes means the job that held it is dead and is marked failed.",
+      "request": "{jobId}.",
+      "response": "202 {ok: true, job}.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "jobId missing or not a job id"
+        },
+        {
+          "status": 401,
+          "when": "A wrong or missing admin token"
+        },
+        {
+          "status": 403,
+          "when": "Cross-site"
+        },
+        {
+          "status": 404,
+          "when": "No such job, or no admin token configured"
+        },
+        {
+          "status": 409,
+          "when": "The job is not draft/failed (bad-state), or another job is already queued or running (busy)"
+        },
+        {
+          "status": 503,
+          "when": "The ingest app is not set up (modal-not-configured), or it could not be reached (modal-unavailable / warming / busy): the job goes back to what it was"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Authorization: Bearer <AUTH_ADMIN_TOKEN>' -H 'Content-Type: application/json' -d '{\"jobId\":\"job-20261101120000-abc123\"}' http://localhost:8080/api/catalogue/admin/jobs"
+    },
+    {
+      "method": "GET",
+      "path": "/api/catalogue/admin/jobs",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host",
+        "Admin token"
+      ],
+      "summary": "Jobs newest first, without their logs.",
+      "request": "Query: status?, catalogue?, limit? (1-100, default 20).",
+      "response": "{jobs: [...]}.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "A bad status, catalogue or limit"
+        },
+        {
+          "status": 401,
+          "when": "A wrong or missing admin token"
+        },
+        {
+          "status": 404,
+          "when": "No admin token configured"
+        }
+      ],
+      "curl": "curl -s -H 'Authorization: Bearer <AUTH_ADMIN_TOKEN>' 'http://localhost:8080/api/catalogue/admin/jobs?status=failed&limit=5'"
+    },
+    {
+      "method": "GET",
+      "path": "/api/catalogue/admin/jobs/:id",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host",
+        "Admin token"
+      ],
+      "summary": "One job, with its log and sources.",
+      "request": "No body.",
+      "response": "The job document (including log and sources).",
+      "errors": [
+        {
+          "status": 400,
+          "when": "Not a job id"
+        },
+        {
+          "status": 401,
+          "when": "A wrong or missing admin token"
+        },
+        {
+          "status": 404,
+          "when": "No such job, or no admin token configured"
+        }
+      ],
+      "curl": "curl -s -H 'Authorization: Bearer <AUTH_ADMIN_TOKEN>' http://localhost:8080/api/catalogue/admin/jobs/job-20261101120000-abc123"
+    },
+    {
+      "method": "POST",
+      "path": "/api/catalogue/admin/jobs/:id/cancel",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host",
+        "Admin token",
+        "Same origin",
+        "JSON only"
+      ],
+      "summary": "A draft job is simply cancelled; a queued or running one is asked to stop (the request is recorded on the job even when Modal cannot be told); a finished job cannot be cancelled.",
+      "request": "No body (or {}).",
+      "response": "200 {ok: true, notified, job}.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "Not a job id"
+        },
+        {
+          "status": 401,
+          "when": "A wrong or missing admin token"
+        },
+        {
+          "status": 403,
+          "when": "Cross-site"
+        },
+        {
+          "status": 404,
+          "when": "No such job, or no admin token configured"
+        },
+        {
+          "status": 409,
+          "when": "The job is already finished or cancelled"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Authorization: Bearer <AUTH_ADMIN_TOKEN>' http://localhost:8080/api/catalogue/admin/jobs/job-20261101120000-abc123/cancel"
+    },
+    {
+      "method": "GET",
+      "path": "/api/catalogue/admin/catalogues/:id/items",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host",
+        "Admin token"
+      ],
+      "summary": "Items of a catalogue, page by page, with the thumbnail signed. The text filter (q) finds the start of the label, product code or subtype, or of a word in it; it is escaped, so it can only ever mean itself.",
+      "request": "Query: status? (ok|hidden), q? (<=60 chars), limit? (1-100, default 50), after? (an item id from the previous page).",
+      "response": "{items: [{...doc, id, thumbUrl}], next: itemId|null}.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "A bad status, q, limit or after, or a bad catalogue slug"
+        },
+        {
+          "status": 401,
+          "when": "A wrong or missing admin token"
+        },
+        {
+          "status": 404,
+          "when": "No such catalogue, or no admin token configured"
+        }
+      ],
+      "curl": "curl -s -H 'Authorization: Bearer <AUTH_ADMIN_TOKEN>' 'http://localhost:8080/api/catalogue/admin/catalogues/superbond-colour/items?limit=20'"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/catalogue/admin/catalogues/:id/items/:itemId",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host",
+        "Admin token",
+        "Same origin",
+        "JSON only"
+      ],
+      "summary": "Edits an item's label, product code, visibility or free-form attributes; clients see the change at once. Clearing an admin product code brings back the one read from the PDF's text, if there was one; nothing here is ever invented. Not registered in the API registry (it is the one PATCH route, and the path has parameters), so a wrong method here is Express's own 404, not the site's 405.",
+      "request": "{label?: string|null, productId?: string|null, status?: \"ok\"|\"hidden\", attributes?: object} (at least one field; no other field is allowed).",
+      "response": "200 {...doc, id, thumbUrl}.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "A bad field, an unknown field, an empty patch, or a bad item id"
+        },
+        {
+          "status": 401,
+          "when": "A wrong or missing admin token"
+        },
+        {
+          "status": 403,
+          "when": "Cross-site"
+        },
+        {
+          "status": 404,
+          "when": "No such catalogue or item, or no admin token configured"
+        },
+        {
+          "status": 415,
+          "when": "Not application/json"
+        }
+      ],
+      "curl": "curl -s -X PATCH -H 'Authorization: Bearer <AUTH_ADMIN_TOKEN>' -H 'Content-Type: application/json' -d '{\"label\":\"Teak veneer\"}' http://localhost:8080/api/catalogue/admin/catalogues/superbond-colour/items/a1b2c3d4e5f6-p0004-i00"
+    },
+    {
+      "method": "GET",
+      "path": "/api/catalogue/admin/catalogues/:id/releases",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host",
+        "Admin token"
+      ],
+      "summary": "Releases of a catalogue, newest first, with the live one and the one before it marked.",
+      "request": "No body.",
+      "response": "{releases: [{...doc, id, active, previous}], activeRelease: id|null, previousRelease: id|null}.",
+      "errors": [
+        {
+          "status": 401,
+          "when": "A wrong or missing admin token"
+        },
+        {
+          "status": 404,
+          "when": "No such catalogue, or no admin token configured"
+        }
+      ],
+      "curl": "curl -s -H 'Authorization: Bearer <AUTH_ADMIN_TOKEN>' http://localhost:8080/api/catalogue/admin/catalogues/superbond-colour/releases"
+    },
+    {
+      "method": "POST",
+      "path": "/api/catalogue/admin/catalogues/:id/releases/:releaseId/activate",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host",
+        "Admin token",
+        "Same origin",
+        "JSON only"
+      ],
+      "summary": "Makes a release live (clients search it at once) and remembers the previous one, so activating that one again is the rollback. A release of another catalogue, or one with no search vectors, cannot be made live.",
+      "request": "No body (or {}).",
+      "response": "200 {ok: true, changed: boolean, catalogue}. changed is false when the release asked for is already live.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "Not a release id"
+        },
+        {
+          "status": 401,
+          "when": "A wrong or missing admin token"
+        },
+        {
+          "status": 403,
+          "when": "Cross-site"
+        },
+        {
+          "status": 404,
+          "when": "No such catalogue, or no such release in it, or no admin token configured"
+        },
+        {
+          "status": 409,
+          "when": "The release has no pillars (no-pillars), or it was changed by someone else a moment ago (conflict)"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Authorization: Bearer <AUTH_ADMIN_TOKEN>' http://localhost:8080/api/catalogue/admin/catalogues/superbond-colour/releases/rel-20261102120000-def456/activate"
     }
   ]
 }
