@@ -1762,6 +1762,25 @@
         }
       ],
       "curl": "curl -s -X POST -H 'Authorization: Bearer <AUTH_ADMIN_TOKEN>' http://localhost:8080/api/catalogue/admin/catalogues/superbond-colour/releases/rel-20261102120000-def456/activate"
+    },
+    {
+      "method": "GET",
+      "path": "/catalogue-ui/assets/:name",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host"
+      ],
+      "summary": "The browser modules and stylesheet of the Finder page and the catalogue admin screen (site/catalogue-ui/): a fixed list of names, nothing else in the folder.",
+      "request": "No body. The names are ASSETS in server/routes/catalogueUi.js.",
+      "response": "200 text/javascript or text/css, Cache-Control: no-cache, X-Content-Type-Options: nosniff. Public: it is code, with no secrets and no data.",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Any other name, a dot-segment, other capitals"
+        }
+      ],
+      "curl": "curl -sI http://localhost:8080/catalogue-ui/assets/client.js | head -5"
     }
   ]
 }

@@ -33,6 +33,7 @@
     "site/inspiration/": "The browser side of the inspiration import (target C3): the paste question, the crop screen, the hand-over to the Design Studio, and the one list of sites it reads. Served from /inspiration/assets/ by a fixed list of names.",
     "server/lib/inspiration/": "The server side of the inspiration import: safe fetching of an address a visitor chose, gallery-dl, picture checks, tokens and limits.",
     "server/catalogue/": "The website's catalogue gateway (targets C3, C4, C5, C7, D1): client and admin routes, the Modal client, the GCS signer, validation and settings. Mints signed URLs and forwards small requests; never does model work itself. See catalogue/ARCHITECTURE.md section 7.",
+    "site/catalogue-ui/": "The browser side of the Finder page and the catalogue admin screen (targets C3, C4, C5, C7, D1): client.js (the shared API client, camera and photo-resize helpers), finder.js, admin.js, catalogue-ui.css. Served from /catalogue-ui/assets/ by a fixed list of names (server/routes/catalogueUi.js), the same pattern as site/inspiration/.",
     "catalogue/": "The real-catalogue retrieval engine (Python), ported from terucon-cat-1.ipynb: extraction, encoders, the Vertex/Gemini captions, the publisher (MongoDB + GCS + a Modal cache), the search service and the Modal app. Not shipped in the website's Docker image. Start with catalogue/ARCHITECTURE.md."
   },
   "files": [
@@ -856,6 +857,14 @@
       "desc": "A file of the catalogue retrieval engine (Python package terucon_catalogue, the Modal app, and its tests), owned and run on its own (not in the website's Docker image). See catalogue/ARCHITECTURE.md."
     },
     {
+      "match": "site/catalogue-ui/**",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "A browser file of the Finder page or the catalogue admin screen (targets C3, C4, C5, C7, D1): served from /catalogue-ui/assets/ (server/routes/catalogueUi.js). No inline script or style attribute on the pages that load these."
+    },
+    {
       "match": "terucon-cat-1.ipynb",
       "owner": "docs",
       "tags": [
@@ -1390,6 +1399,22 @@
         "Edit"
       ],
       "desc": "The Inspiration page, written by hand: a box for a link with Paste and Import buttons, upload and drag-and-drop, the sites it reads, recent imports. Served at /inspiration, members only, under a strict Content-Security-Policy (`strict+images`). No inline script or style attribute."
+    },
+    {
+      "match": "pages/finder.html",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The Finder page, written by hand, same theme as pages/inspiration.html: point a camera (or upload a photo, or type) to find the closest match in the real catalogue — the whole photo, one spot (point-to-find), or colour alone (targets C4, C5, C7). Served at /finder, members only, under a strict Content-Security-Policy (`strict+catalogue`). No inline script or style attribute; behaviour is site/catalogue-ui/finder.js."
+    },
+    {
+      "match": "pages/admin-catalogue.html",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The catalogue admin screen, written by hand, same theme as pages/inspiration.html: enter the admin token, create a catalogue, upload a PDF or photos, watch the job, edit an item, activate a release (target D1). Served at /admin/catalogue, members only, under a strict Content-Security-Policy (`strict+catalogue-admin`, which also allows the direct-to-GCS upload PUT). No inline script or style attribute; behaviour is site/catalogue-ui/admin.js."
     },
     {
       "match": "python/gallery_resolve.py",
