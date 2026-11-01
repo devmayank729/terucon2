@@ -38,9 +38,10 @@ Every way of getting a catalogue in produces the same artifact and goes through 
 ```
  (a) admin uploads a PDF / photos ──► Modal `ingest_job` ──┐
  (b) owner computes on Kaggle / locally (`compute`) ───────┼─►  BUNDLE  ──►  publish_bundle() ──►  MongoDB   items, jobs, releases, active pointer
- (c) the finished Kaggle run (state.sqlite + crops/) ──────┘  (a work_dir:      │               GCS       sources, crops, thumbs, state snapshot, RELEASES
-     as it is today                                            state.sqlite     │               Modal     read-through cache of the active release
-                                                               + crops/)        └─ validates BEFORE it writes anything
+ (c) the finished Kaggle run (state.sqlite + crops/) ──────┤  (a work_dir:      │               GCS       sources, crops, thumbs, state snapshot, RELEASES
+     as it is today                                            │   state.sqlite     │               Modal     read-through cache of the active release
+ (d) the same folder, uploaded by the owner to the bucket ─────┘   + crops/)        └─ validates BEFORE it writes anything
+     under imports/..., read by Modal `import_bundle_fn`
 ```
 
 * **Bundle** = the notebook's `work_dir`: `state.sqlite` (the notebook's schema, unchanged: `StateStore.SCHEMA`) and `crops/<pdfstem>_<sha8>/<item_id>.png`.
@@ -50,6 +51,11 @@ Every way of getting a catalogue in produces the same artifact and goes through 
   This is the owner's "store the data directly to the respective places, saving the compute" option: compute elsewhere, then `publish`.
 * **Release** = an immutable snapshot a search service loads. Publishing builds a new release = the parent release's vectors + the bundle's.
   Making it live is a separate, explicit step (flip `catalogues.activeRelease`), so an admin can review first and roll back.
+* **(d) A bundle that already sits in the bucket** (`bucket_import.py`, the Modal function `import_bundle_fn`, `modal run modal_app.py::import_bundle`): the
+  owner uploads the notebook's output folder to `imports/<catalogue>/<name>/` themselves; nothing in this package fetches anything from Kaggle. The Modal
+  function copies `state.sqlite` and the pictures into a temporary folder next to the bucket, runs the same `publish_bundle`, and then puts the new release
+  on the Modal volume (`load_release` into `/cache`, then `volume.commit`). A catalogue is never created by accident: the catalogue must exist, or the
+  command says `--create "<name>"`. The same seeding runs after an admin-upload job (`ingest_job_fn`) and on demand (`prime_fn`, `modal run modal_app.py::prime`).
 
 ## 3. Where each thing lives
 
@@ -59,9 +65,10 @@ Every way of getting a catalogue in produces the same artifact and goes through 
 | Crops (full size PNG), thumbnails (480 px JPEG) | GCS `crops/…`, `thumbs/…` | the browser loads them straight from GCS with signed URLs, never through the website |
 | Release (vectors + compact item list) | GCS `releases/<catalogue>/<releaseId>/…` (**the durable copy**) | immutable, versioned, rollback is a pointer flip |
 | Items, labels, hidden flags, jobs, releases, the active pointer | MongoDB (`terucon_` collections) | an admin edit shows at once: **search returns item ids, the website enriches them from MongoDB** |
-| Release cache | Modal Volume `terucon-catalogue-cache` mounted at `/cache` | read-through cache of releases so a cold container does not download them; **never the only copy** |
+| Release cache | Modal Volume `terucon-catalogue-cache` mounted at `/cache` | read-through cache of **releases only** (not pictures: the browser loads those from GCS), filled ahead of time by `import_bundle_fn`, `ingest_job_fn` and `prime_fn` and otherwise by the first search that needs a release; a cold container reads it and downloads nothing; **never the only copy** |
 | Model weights | baked into the Modal image (like `swatchroom/modalBlueprint.py`) | fastest cold start; `HF_HUB_OFFLINE=1` at run time |
 | Compute checkpoint | GCS `bundles/<catalogue>/<jobId>/state.sqlite` | a failed job can resume; SQLite never runs on a Volume |
+| A finished bundle the owner uploaded | GCS `imports/<catalogue>/<name>/` | the input of `import_bundle_fn`; left in place after the import (a re-run changes nothing) |
 
 The website host does no model work, no PDF parsing, never touches vectors, and never proxies images.
 
@@ -81,6 +88,8 @@ sources/<sha256>/<safeName>                      the original PDF or photo, kept
 crops/<catalogue>/<itemId>.png                   the crop exactly as the extractor wrote it (its sha256 is items.sha256_hash)
 thumbs/<catalogue>/<itemId>.jpg                  longest side 480 px, JPEG quality 82, metadata stripped, deterministic
 bundles/<catalogue>/<jobId>/state.sqlite         checkpoint / audit copy of the compute state
+imports/<catalogue>/<name>/state.sqlite          a finished bundle the owner uploaded (the notebook's work_dir as it is: state.sqlite[-wal/-shm] and crops/**);
+imports/<catalogue>/<name>/crops/**.png          folder names may contain spaces; only state files and pictures (and, with --with-pdf, PDFs) are read
 releases/<catalogue>/<releaseId>/manifest.json
 releases/<catalogue>/<releaseId>/items.json
 releases/<catalogue>/<releaseId>/pillars/<pillar>.npy        float16, shape (n, dim), C order, rows L2-normalised
@@ -223,9 +232,13 @@ The browser downsizes every query photo to at most 1024 px on the long side, app
 
 ## 8. Environment
 
+The step-by-step set-up (bucket, CORS, two service accounts, MongoDB, Modal secrets, deploy, the website's `.env`) is `../docs/CATALOGUE_SETUP.md`; the website's variables are
+`.env.example` section 8. Two traps worth repeating here: `MONGODB_DB` in the Modal secret **wins over** a database named in the URI and must be the database the
+website's (the studio's) MongoDB connection uses; and `sentencepiece` is a runtime dependency (the SigLIP tokenizer), declared in `requirements.txt` and the image.
+
 **Website `.env`** (all optional; with none of them the feature is off and the shop keeps its colour demo):
 `CATALOGUE` (`on`|`off`, default `on`), `CATALOGUE_MODAL_SEARCH_URL`, `CATALOGUE_MODAL_INGEST_URL`, `CATALOGUE_MODAL_KEY`, `CATALOGUE_MODAL_PROXY_KEY`, `CATALOGUE_MODAL_PROXY_SECRET`,
-`CATALOGUE_MODAL_TIMEOUT_MS` (60000: a cold start takes tens of seconds), `CATALOGUE_GCS_BUCKET`, `CATALOGUE_GCS_PREFIX` (`catalogue/`), `CATALOGUE_GCS_KEY_FILE` (path to a service-account JSON used **only to sign URLs**; use a
+`CATALOGUE_MODAL_TIMEOUT_MS` (60000: a cold start takes tens of seconds), `CATALOGUE_GCS_BUCKET`, `CATALOGUE_GCS_PREFIX` (`catalogue/`), `CATALOGUE_GCS_KEY_JSON` (the text of a service-account JSON key, used **only to sign URLs**: single-quoted in `.env`, or base64; `CATALOGUE_GCS_KEY_FILE`, a path to such a file, is the alternative and loses if both are set; use a
 separate, least-privilege account: object read + create on the one bucket), `CATALOGUE_SEARCH_PROFILE` (`fast`).
 **Python / Modal**: `MONGODB_URI` (+ `MONGODB_DB` when the URI has no database), `CATALOGUE_GCS_BUCKET`, `CATALOGUE_GCS_PREFIX`, `GCP_SERVICE_ACCOUNT_JSON` (or `GOOGLE_APPLICATION_CREDENTIALS`), `CATALOGUE_CACHE_DIR`,
 `CATALOGUE_SEARCH_PROFILE`, plus the operational overrides in `config.load_config`. Modal secrets: `terucon-catalogue-keys` (`API_KEYS`), `terucon-catalogue-gcp` (`GCP_SERVICE_ACCOUNT_JSON`, `CATALOGUE_GCS_BUCKET`, `CATALOGUE_GCS_PREFIX`),
@@ -238,6 +251,7 @@ separate, least-privilege account: object read + create on the one bucket), `CAT
 | `util.py` `schema.py` `config.py` `state.py` `credentials.py` | **done** (verbatim from the notebook, parity-tested) | helpers, prompts + `MaterialProfile`, `PipelineConfig` + feature versions + `check_feature_versions`, `StateStore`, service-account loading. **Do not edit; report a needed change.** |
 | `extract.py` `photos.py` `features.py` `encoders.py` `vertex.py` `captions.py` `pipeline.py` | **PY-A compute** | cell 3, cell 4, cell 2 `VertexGenAIManager`, cell 5, and `run_compute` |
 | `search.py` `release_reader.py` `service.py` `http_app.py`, `../modal_app.py` | **PY-B search + Modal** | cell 6, the release reader, the service object, the FastAPI apps, the Modal definitions |
+| `bucket_import.py` | **added 2026-11-01** | fetch a bundle from `imports/`, publish it, put the release on the volume (`fetch_bundle`, `run_bucket_import`, `seed_release_cache`, `seed_after_ingest`, `prime_volume`); logic only, `../modal_app.py` is the wiring; tested against fakes |
 | `objectstore.py` `mongo.py` `bundle.py` `publish.py` `release_writer.py` `cli.py` `__main__.py`, `../requirements*.txt`, `../pyproject.toml` | **PY-C stores + publish + CLI** | GCS and local object stores, the MongoDB layer, bundle reading/validation, the publisher, the CLI |
 
 Pinned interfaces (so the three owners can work at once; bodies are theirs):

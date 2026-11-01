@@ -55,9 +55,9 @@ def test_the_app_the_classes_and_the_functions(modal_app):
         app = modal_app.app
         assert app.name == "terucon-catalogue"
         assert sorted(app.registered_classes) == ["Ingest", "Search"]
-        assert sorted(app.registered_functions) == ["Ingest.*", "Search.*", "ingest_job_fn", "selftest_fn"]
+        assert sorted(app.registered_functions) == ["Ingest.*", "Search.*", "import_bundle_fn", "ingest_job_fn", "prime_fn", "selftest_fn"]
         assert sorted(app.registered_web_endpoints) == ["Ingest.api", "Search.api"]
-        assert sorted(app.registered_entrypoints) == ["selftest"]
+        assert sorted(app.registered_entrypoints) == ["import_bundle", "prime", "selftest"]
 
 
 def test_names_labels_and_secrets_match_the_contract(modal_app):
@@ -94,7 +94,8 @@ def test_secrets_volume_and_image_are_wired(modal_app):
     assert [ast.unparse(c.args[0]) for c in calls_named("modal.Volume.from_name")] == ["CACHE_VOLUME"]
     # which secrets each service gets: keys + gcp for search (no MongoDB), keys + mongo for the ingest endpoint, gcp + mongo for the job
     wanted = {"Search": ("app.cls", ["keys_secret", "gcp_secret"]), "Ingest": ("app.cls", ["keys_secret", "mongo_secret"]),
-              "ingest_job_fn": ("app.function", ["gcp_secret", "mongo_secret"])}
+              "ingest_job_fn": ("app.function", ["gcp_secret", "mongo_secret"]), "import_bundle_fn": ("app.function", ["gcp_secret", "mongo_secret"]),
+              "prime_fn": ("app.function", ["gcp_secret", "mongo_secret"])}
     for node in ast.walk(TREE):
         if isinstance(node, (ast.ClassDef, ast.FunctionDef)) and node.name in wanted:
             decorator = next(d for d in node.decorator_list if isinstance(d, ast.Call) and ast.unparse(d.func) == wanted[node.name][0])
@@ -149,7 +150,8 @@ def test_environment_variables_change_the_deployment_and_bad_values_are_refused(
 def test_the_docstring_carries_the_deploy_commands_and_the_atlas_caveat():
     doc = ast.get_docstring(TREE)
     for text in ("modal secret create terucon-catalogue-keys", "modal secret create terucon-catalogue-gcp", "modal secret create terucon-catalogue-mongo",
-                 "modal run    modal_app.py::selftest", "modal deploy modal_app.py", "MONGODB ATLAS NETWORK ACCESS", "0.0.0.0/0", "modal.Proxy"):
+                 "modal run    modal_app.py::selftest", "modal deploy modal_app.py", "MONGODB ATLAS NETWORK ACCESS", "0.0.0.0/0", "modal.Proxy",
+                 "modal run modal_app.py::import_bundle", "modal run modal_app.py::prime", "gcloud storage cp -r", "the SAME database", "WINS over a database"):
         assert text in doc, text
 
 
@@ -172,10 +174,124 @@ def test_the_bake_function_asks_for_exactly_the_two_models(modal_app, monkeypatc
         calls.append((repo, kwargs))
         return str(folder)
 
+    tokenized = []
+    fake_tokenizer = SimpleNamespace(from_pretrained=lambda repo: tokenized.append(repo) or (lambda text: {"input_ids": [1, 2, 3]}))
     monkeypatch.setitem(sys.modules, "huggingface_hub", SimpleNamespace(snapshot_download=snapshot_download))
+    monkeypatch.setitem(sys.modules, "transformers", SimpleNamespace(AutoTokenizer=fake_tokenizer))
     modal_app._bake_models()
     assert [c[0] for c in calls] == ["facebook/dinov2-large", "google/siglip-so400m-patch14-384"]
     assert all(c[1]["allow_patterns"] == ["*.json", "*.safetensors", "*.txt", "*.model"] for c in calls)
+    assert tokenized == ["google/siglip-so400m-patch14-384"]                       # the build also proves the SigLIP tokenizer can be made
     (folder / "model.safetensors").unlink()
     with pytest.raises(RuntimeError, match="missing its weights"):
         modal_app._bake_models()
+
+
+def test_the_image_build_fails_when_the_siglip_tokenizer_cannot_be_made(modal_app, monkeypatch, tmp_path):
+    """The 2026-11-01 finding: without the sentencepiece library the real tokenizer cannot be built. That must stop the BUILD, not the first request."""
+    folder = tmp_path / "snap"
+    folder.mkdir()
+    (folder / "config.json").write_text("{}")
+    (folder / "model.safetensors").write_bytes(b"x")
+
+    def no_sentencepiece(repo):
+        raise ImportError("SiglipTokenizer requires the SentencePiece library but it was not found in your environment.")
+
+    def empty(repo):
+        return lambda text: {"input_ids": []}
+
+    monkeypatch.setitem(sys.modules, "huggingface_hub", SimpleNamespace(snapshot_download=lambda repo, **kw: str(folder)))
+    monkeypatch.setitem(sys.modules, "transformers", SimpleNamespace(AutoTokenizer=SimpleNamespace(from_pretrained=no_sentencepiece)))
+    with pytest.raises(ImportError, match="SentencePiece"):
+        modal_app._bake_models()
+    monkeypatch.setitem(sys.modules, "transformers", SimpleNamespace(AutoTokenizer=SimpleNamespace(from_pretrained=empty)))
+    with pytest.raises(RuntimeError, match="produced no tokens"):
+        modal_app._bake_models()
+
+
+def test_sentencepiece_is_declared_everywhere_the_real_models_run():
+    """The tests inject a tiny fake tokenizer, so only this keeps the dependency from silently going missing again."""
+    requirements = [line.split("#")[0].strip() for line in (CATALOGUE_DIR / "requirements.txt").read_text().splitlines()]
+    assert "sentencepiece" in requirements
+    image_packages = [node.value for node in ast.walk(TREE) if isinstance(node, ast.Constant) and isinstance(node.value, str)]
+    assert "sentencepiece" in image_packages
+    dev = (CATALOGUE_DIR / "requirements-dev.txt").read_text().split()
+    assert "pandas" in dev and "-r" in dev                                          # the notebook-parity search tests need it; without it 23 skip silently
+
+
+# ------------------------------------------------------------------------------------------------------------------------ the owner's files and the volume
+def test_the_new_functions_are_cpu_only_one_at_a_time_and_see_the_volume(modal_app):
+    for name in ("import_bundle_fn", "prime_fn"):
+        kwargs = decorator_kwargs(name, "app.function", modal_app)
+        assert "gpu" not in kwargs and kwargs["max_containers"] == 1, name
+        node = next(n for n in ast.walk(TREE) if isinstance(n, ast.FunctionDef) and n.name == name)
+        decorator = next(d for d in node.decorator_list if isinstance(d, ast.Call) and ast.unparse(d.func) == "app.function")
+        assert [ast.unparse(kw.value) for kw in decorator.keywords if kw.arg == "volumes"] == ["{CACHE_DIR: cache_volume}"], name
+    assert decorator_kwargs("import_bundle_fn", "app.function", modal_app)["timeout"] == 2 * 3600
+    # the GPU ingest job now puts what it publishes on the volume too
+    job = next(n for n in ast.walk(TREE) if isinstance(n, ast.FunctionDef) and n.name == "ingest_job_fn")
+    decorator = next(d for d in job.decorator_list if isinstance(d, ast.Call) and ast.unparse(d.func) == "app.function")
+    assert [ast.unparse(kw.value) for kw in decorator.keywords if kw.arg == "volumes"] == ["{CACHE_DIR: cache_volume}"]
+
+
+def test_the_entrypoint_arguments_are_what_the_docs_promise(modal_app):
+    import inspect
+
+    import_sig = inspect.signature(modal_app.import_bundle.info.raw_f)               # Modal wraps an entrypoint; raw_f is the function `modal run` parses flags from
+    assert list(import_sig.parameters) == ["catalogue", "key", "activate", "create", "with_pdf"]
+    assert list(inspect.signature(modal_app.prime.info.raw_f).parameters) == ["catalogue", "release"]
+    assert import_sig.parameters["activate"].default is False and import_sig.parameters["activate"].annotation is bool
+
+
+@pytest.fixture
+def wired(modal_app, monkeypatch, tmp_path):
+    """The Modal functions' own glue, run on this computer: the real publish and loader, a local folder as the bucket, an in-memory database,
+    and the volume as a plain folder (its commit/reload cannot run outside a container; the loader ignores a failing hook, as in production)."""
+    from factories import make_bundle, new_environment
+    import terucon_catalogue.mongo as mongo_module
+    import terucon_catalogue.objectstore as objectstore_module
+
+    store, db = new_environment(tmp_path)
+    info = make_bundle(tmp_path / "kaggle-output", 3, legacy_kaggle_paths=True)
+    for path in sorted(info.path.rglob("*")):
+        if path.is_file():
+            store.put_file("imports/superbond-colour/run1/" + path.relative_to(info.path).as_posix(), path)
+    monkeypatch.setenv("MONGODB_URI", "mongodb://localhost/never-used")
+    monkeypatch.delenv("MONGODB_DB", raising=False)
+    monkeypatch.setattr(mongo_module, "MongoCatalogueDb", lambda uri, db_name=None, **kw: db)
+    monkeypatch.setattr(objectstore_module, "object_store_from_env", lambda environ=None: store)
+    monkeypatch.setattr(modal_app, "CACHE_DIR", str(tmp_path / "volume"))
+    return SimpleNamespace(store=store, db=db, info=info, volume=tmp_path / "volume")
+
+
+def test_import_bundle_fn_runs_end_to_end_on_this_computer(modal_app, wired, capsys):
+    report = modal_app.import_bundle_fn.local("superbond-colour", "imports/superbond-colour/run1", True, "", False)
+    assert report["ok"] and report["items"] == 3 and report["activated"] and report["seeded"]["source"] == "download"
+    assert wired.db.get_catalogue("superbond-colour")["activeRelease"] == report["releaseId"]
+    assert (wired.volume / "superbond-colour" / report["releaseId"] / "manifest.json").is_file()
+    assert "[fetch]" in capsys.readouterr().out                                    # progress reaches the Modal log
+
+
+def test_prime_fn_copies_the_live_release_to_the_volume(modal_app, wired):
+    first = modal_app.import_bundle_fn.local("superbond-colour", "imports/superbond-colour/run1", True, "", False)
+    import shutil
+    shutil.rmtree(wired.volume)                                                    # an empty volume, as after the volume was recreated
+    seeded = modal_app.prime_fn.local("superbond-colour", "")
+    assert [(item["releaseId"], item["items"], item["source"]) for item in seeded] == [(first["releaseId"], 3, "download")]
+
+
+def test_ingest_job_fn_seeds_the_volume_after_a_good_job_and_leaves_a_failed_one_alone(modal_app, wired, monkeypatch):
+    pytest.importorskip("torch")                                                   # the function imports the real encoders at call time
+    import terucon_catalogue.ingest_job as ingest_module
+
+    published = modal_app.import_bundle_fn.local("superbond-colour", "imports/superbond-colour/run1", False, "", False)
+    wired.db.insert_job({"_id": "job-20261101120000-abc123", "catalogue": "superbond-colour", "status": "succeeded"})
+    import shutil
+    shutil.rmtree(wired.volume)
+    monkeypatch.setattr(ingest_module, "run_ingest_job", lambda job_id, **kw: {"ok": True, "status": "succeeded", "jobId": job_id, "releaseId": published["releaseId"], "error": None})
+    good = modal_app.ingest_job_fn.local("job-20261101120000-abc123")
+    assert good["ok"] and good["seeded"]["releaseId"] == published["releaseId"] and good["seeded"]["source"] == "download"
+    shutil.rmtree(wired.volume)
+    monkeypatch.setattr(ingest_module, "run_ingest_job", lambda job_id, **kw: {"ok": False, "status": "failed", "jobId": job_id, "releaseId": None, "error": "boom"})
+    bad = modal_app.ingest_job_fn.local("job-20261101120000-abc123")
+    assert bad["ok"] is False and "seeded" not in bad and not wired.volume.exists()

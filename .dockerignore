@@ -3,6 +3,8 @@
 **/.env.*
 !**/.env.example
 **/service-account*.json
+**/catalogue-signer*.json
+**/modal-service-account*.json
 **/*-key.json
 **/credentials/
 **/keys/

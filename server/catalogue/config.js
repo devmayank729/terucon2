@@ -3,7 +3,8 @@
  * .env edits like every other setting) and turned into the one flat shape the rest of server/catalogue/ uses. The contract is
  * catalogue/ARCHITECTURE.md, sections 7 and 8.
  *
- * Secrets (CATALOGUE_MODAL_KEY and the optional Modal proxy key and secret) are kept in `settings.catalogueSecrets`, a property that
+ * Secrets (CATALOGUE_MODAL_KEY, the optional Modal proxy key and secret, and the text of the Google signing key,
+ * CATALOGUE_GCS_KEY_JSON) are kept in `settings.catalogueSecrets`, a property that
  * does not show up when settings are listed, spread, printed or turned into JSON, exactly like the sign-in's secrets, so they cannot
  * end up in the banner, a log line or a response by accident. The non-secret half is `settings.catalogue`.
  *
@@ -14,6 +15,7 @@
  * in the database (server/auth/settings.js, `catalogue.*`), changed through the admin API.
  */
 import path from 'node:path';
+import { decodeKeyText } from './gcsSigner.js';
 
 const TRUE = new Set(['1', 'true', 'yes', 'on', 'y']);
 const FALSE = new Set(['0', 'false', 'no', 'off', 'n']);
@@ -32,6 +34,8 @@ const BUCKET = /^[a-z0-9][a-z0-9._-]{1,220}[a-z0-9]$/;
 const PREFIX = /^[A-Za-z0-9][A-Za-z0-9._\-/]{0,98}$/;
 // visible ASCII only: a key with a space or a line break in it would be a header-injection hole
 const SECRET = /^[\x21-\x7e]{8,512}$/;
+/** A Google service-account key is about 2.4 KB (about 3.3 KB as base64); anything this long is not one. */
+const KEY_JSON_MAX = 16 * 1024;
 
 function flag(value, fallback) {
   const v = String(value ?? '').trim().toLowerCase();
@@ -116,6 +120,16 @@ export function readCatalogueEnv(get, warnings, root) {
     gcsProblem ||= 'prefix';
   }
   const keyFile = get('CATALOGUE_GCS_KEY_FILE') ? path.resolve(root, get('CATALOGUE_GCS_KEY_FILE')) : '';
+  // The signing key as text. Not run through secret(): it has spaces and is thousands of characters. A bad paste is named, never echoed.
+  let keyJson = get('CATALOGUE_GCS_KEY_JSON');
+  if (keyJson.length > KEY_JSON_MAX) {
+    warnings.push('CATALOGUE_GCS_KEY_JSON is far longer than a service-account key: it is not used.');
+    keyJson = '';
+  } else if (keyJson) {
+    const decoded = decodeKeyText(keyJson);
+    if (decoded.problem) warnings.push(decoded.problem);
+    if (keyFile) warnings.push('CATALOGUE_GCS_KEY_JSON and CATALOGUE_GCS_KEY_FILE are both set: CATALOGUE_GCS_KEY_JSON is used.');
+  }
 
   const profileRaw = get('CATALOGUE_SEARCH_PROFILE').toLowerCase();
   if (profileRaw && !SEARCH_PROFILES.includes(profileRaw)) warnings.push(`CATALOGUE_SEARCH_PROFILE=${profileRaw.slice(0, 20)} is not one of ${SEARCH_PROFILES.join(', ')}: fast is used.`);
@@ -133,7 +147,7 @@ export function readCatalogueEnv(get, warnings, root) {
       gcs: { bucket, prefix: prefix ?? DEFAULT_PREFIX, keyFile, problem: gcsProblem },
       profile: SEARCH_PROFILES.includes(profileRaw) ? profileRaw : 'fast',
     },
-    secrets: { modalKey, proxyKey: proxyKey && proxySecret ? proxyKey : '', proxySecret: proxyKey && proxySecret ? proxySecret : '' },
+    secrets: { modalKey, proxyKey: proxyKey && proxySecret ? proxyKey : '', proxySecret: proxyKey && proxySecret ? proxySecret : '', gcsKeyJson: keyJson },
   };
 }
 
@@ -154,6 +168,7 @@ export function catalogueConfig(settings) {
     bucket: g.bucket ?? '',
     prefix: g.prefix ?? DEFAULT_PREFIX,
     keyFile: g.keyFile ?? '',
+    keyJson: s.gcsKeyJson ?? '',
     gcsProblem: g.problem ?? '',
     profile: c.profile ?? 'fast',
   };
@@ -163,7 +178,7 @@ export function catalogueConfig(settings) {
 export function configured(cfg) {
   const modalSearch = Boolean(cfg.searchUrl && cfg.key);
   const modalIngest = Boolean(cfg.ingestUrl && cfg.key);
-  const gcs = Boolean(cfg.bucket && cfg.keyFile && !cfg.gcsProblem);
+  const gcs = Boolean(cfg.bucket && (cfg.keyJson || cfg.keyFile) && !cfg.gcsProblem);
   return { switchedOn: cfg.switchedOn, modalSearch, modalIngest, gcs, enabled: cfg.switchedOn && modalSearch };
 }
 
@@ -173,7 +188,7 @@ export function missingForSearch(cfg) {
   if (!cfg.searchUrl) missing.push('CATALOGUE_MODAL_SEARCH_URL');
   if (!cfg.key) missing.push('CATALOGUE_MODAL_KEY');
   if (!cfg.bucket) missing.push('CATALOGUE_GCS_BUCKET');
-  if (!cfg.keyFile) missing.push('CATALOGUE_GCS_KEY_FILE');
+  if (!cfg.keyJson && !cfg.keyFile) missing.push('CATALOGUE_GCS_KEY_JSON');
   return missing;
 }
 

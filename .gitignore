@@ -10,6 +10,10 @@
 *-key.json
 service-account*.json
 credentials/
+# the key files docs/CATALOGUE_SETUP.md names (Google's own download name is "<project>-<hex>.json": rename it to one of these, or delete it after pasting)
+catalogue-signer*.json
+modal-service-account*.json
+/keys/
 
 # Python / local runtime
 __pycache__/

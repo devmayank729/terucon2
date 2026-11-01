@@ -44,14 +44,14 @@ test('the studio\'s source folders that older rules of this repo would have hidd
 });
 
 test('secrets are ignored by git: the website\'s .env, the studio\'s .env and its keys', { skip }, () => {
-  for (const file of ['.env', 'swatchroom/.env', 'swatchroom/keys/swatchroom-key.json', 'swatchroom/keys/any-name.json', 'service-account.json']) {
+  for (const file of ['.env', 'swatchroom/.env', 'swatchroom/keys/swatchroom-key.json', 'swatchroom/keys/any-name.json', 'service-account.json', 'catalogue-signer.json', 'keys/catalogue-signer.json', 'catalogue/modal-service-account.json']) {
     assert.equal(git('check-ignore', '-q', file).status, 0, `${file} is NOT ignored: it could be committed`);
   }
 });
 
 test('the Docker image leaves the studio\'s secrets out as well as the website\'s', () => {
   const lines = fs.readFileSync(path.join(ROOT, '.dockerignore'), 'utf8').split('\n').map((l) => l.trim());
-  for (const rule of ['**/.env', '**/.env.*', '!**/.env.example', '**/*-key.json', '**/keys/', '**/node_modules', '**/.venv']) {
+  for (const rule of ['**/.env', '**/.env.*', '!**/.env.example', '**/*-key.json', '**/catalogue-signer*.json', '**/modal-service-account*.json', '**/keys/', '**/node_modules', '**/.venv']) {
     assert.ok(lines.includes(rule), `.dockerignore lacks ${rule}: root-relative patterns do not cover swatchroom/`);
   }
 });

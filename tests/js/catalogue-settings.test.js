@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test, { after, before, describe } from 'node:test';
-import { catalogueConfig, describeCatalogue } from '../../server/catalogue/config.js';
+import { catalogueConfig, configured, describeCatalogue, missingForSearch } from '../../server/catalogue/config.js';
+import { createGcsSigner } from '../../server/catalogue/gcsSigner.js';
 import { describe as describeSettings, loadSettings, SettingsManager } from '../../server/config/settings.js';
 import { startTestApp } from '../helpers/app.js';
 
@@ -45,7 +47,7 @@ describe('what is read', () => {
     assert.equal(s.catalogue.profile, 'fast');
     const lines = describeSettings(s).filter((l) => l.startsWith('Catalogue search'));
     assert.equal(lines.length, 1);
-    assert.match(lines[0], /not set up.*colour demo.*CATALOGUE_MODAL_SEARCH_URL, CATALOGUE_MODAL_KEY, CATALOGUE_GCS_BUCKET, CATALOGUE_GCS_KEY_FILE/);
+    assert.match(lines[0], /not set up.*colour demo.*CATALOGUE_MODAL_SEARCH_URL, CATALOGUE_MODAL_KEY, CATALOGUE_GCS_BUCKET, CATALOGUE_GCS_KEY_JSON/);
   });
 
   test('everything set: normalised values, and the banner names hosts and the bucket but no secret', () => {
@@ -70,7 +72,7 @@ describe('what is read', () => {
 
   test('half set up is "not ready" and lists exactly what is missing; off is off', () => {
     const half = describeCatalogue(settingsFrom(`CATALOGUE_MODAL_SEARCH_URL=https://a.modal.run\nCATALOGUE_MODAL_KEY=${KEY}\n`)).join('\n');
-    assert.match(half, /NOT READY.*missing in \.env: CATALOGUE_GCS_BUCKET, CATALOGUE_GCS_KEY_FILE\)/);
+    assert.match(half, /NOT READY.*missing in \.env: CATALOGUE_GCS_BUCKET, CATALOGUE_GCS_KEY_JSON\)/);
     assert.equal(half.includes('CATALOGUE_MODAL_KEY,'), false);
     const noIngest = describeCatalogue(settingsFrom(`${FULL.replace(/CATALOGUE_MODAL_INGEST_URL=.*\n/, '')}`)).join('\n');
     assert.match(noIngest, /ingest app NOT SET \(admin uploads need CATALOGUE_MODAL_INGEST_URL\)/);
@@ -151,6 +153,86 @@ describe('what is refused', () => {
     assert.equal(next.catalogue.modal.searchUrl, 'https://two.modal.run');
     assert.equal(catalogueConfig(next).key, `${KEY}x`);
     assert.equal(next.catalogue.profile, 'full', 'a variable set in the real environment wins');
+  });
+});
+
+// The Google signing key typed straight into .env (or the host's settings) instead of kept as a file on the server.
+describe('the signing key as text (CATALOGUE_GCS_KEY_JSON)', () => {
+  const pem = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 }).privateKey.export({ type: 'pkcs8', format: 'pem' });
+  const EMAIL = 'signer@terucon-test.iam.gserviceaccount.com';
+  const keyObject = { type: 'service_account', project_id: 'terucon-test', private_key_id: 'abc123', private_key: pem, client_email: EMAIL };
+  const oneLine = JSON.stringify(keyObject); // the private key's line breaks are the two characters \ n, as in the downloaded file
+  const pretty = JSON.stringify(keyObject, null, 2);
+  const BASE = 'CATALOGUE_GCS_BUCKET=terucon-catalogue-prod\n';
+  const signerFor = (s) => createGcsSigner({ config: () => catalogueConfig(s) });
+
+  test('single quotes around the pasted file: the file\'s text arrives untouched and signing works, whether pasted on one line or as downloaded', () => {
+    for (const [what, text] of [['one line', oneLine], ['many lines, as downloaded', pretty]]) {
+      const s = settingsFrom(`${BASE}CATALOGUE_GCS_KEY_JSON='${text}'\n`);
+      assert.deepEqual(s.warnings, [], what);
+      assert.equal(catalogueConfig(s).keyJson, text, what);
+      assert.equal(configured(catalogueConfig(s)).gcs, true, what);
+      assert.deepEqual(signerFor(s).ready(), { ok: true, problem: '', clientEmail: EMAIL }, what);
+      assert.match(signerFor(s).signGet('thumbs/c/a.jpg'), /^https:\/\/storage\.googleapis\.com\/terucon-catalogue-prod\/catalogue\/thumbs\/c\/a\.jpg\?.*X-Goog-Signature=[0-9a-f]{512}$/, what);
+    }
+  });
+
+  test('base64 with no quotes at all, and a host that sets the variable directly (Render): both work', () => {
+    const b64 = Buffer.from(pretty).toString('base64');
+    assert.equal(signerFor(settingsFrom(`${BASE}CATALOGUE_GCS_KEY_JSON=${b64}\n`)).ready().ok, true);
+    const fromHost = settingsFrom(BASE, { CATALOGUE_GCS_KEY_JSON: pretty });
+    assert.deepEqual(fromHost.warnings, []);
+    assert.equal(signerFor(fromHost).ready().ok, true);
+    const fromHostB64 = settingsFrom(BASE, { CATALOGUE_GCS_KEY_JSON: b64 });
+    assert.equal(signerFor(fromHostB64).ready().ok, true);
+  });
+
+  test('it is a secret: not in the settings listing, the JSON of the settings, the banner or a warning; the public gcs settings are unchanged', () => {
+    const s = settingsFrom(`${BASE}CATALOGUE_MODAL_SEARCH_URL=https://a.modal.run\nCATALOGUE_MODAL_KEY=${KEY}\nCATALOGUE_GCS_KEY_JSON='${oneLine}'\n`);
+    assert.deepEqual(s.catalogue.gcs, { bucket: 'terucon-catalogue-prod', prefix: 'catalogue/', keyFile: '', problem: '' });
+    const everything = [JSON.stringify(s), JSON.stringify({ ...s }), JSON.stringify(s.catalogue), describeSettings(s).join('\n'), s.warnings.join('\n')].join('\n');
+    for (const piece of ['BEGIN PRIVATE', 'MII', pem.split('\n')[1], 'abc123', EMAIL]) assert.equal(everything.includes(piece), false, piece);
+    assert.equal(Object.keys(s).includes('catalogueSecrets'), false);
+  });
+
+  test('either the text or the file counts as "set"; with neither, the banner asks for CATALOGUE_GCS_KEY_JSON; the text wins if both are given, with one warning', () => {
+    const cfgOf = (text) => catalogueConfig(settingsFrom(text));
+    const base = `CATALOGUE_MODAL_SEARCH_URL=https://a.modal.run\nCATALOGUE_MODAL_KEY=${KEY}\n${BASE}`;
+    assert.deepEqual(missingForSearch(cfgOf(base)), ['CATALOGUE_GCS_KEY_JSON']);
+    assert.deepEqual(missingForSearch(cfgOf(`${base}CATALOGUE_GCS_KEY_JSON='${oneLine}'\n`)), []);
+    assert.deepEqual(missingForSearch(cfgOf(`${base}CATALOGUE_GCS_KEY_FILE=keys/signer.json\n`)), [], 'the file still works');
+    assert.equal(configured(cfgOf(`${base}CATALOGUE_GCS_KEY_FILE=keys/signer.json\n`)).gcs, true);
+    assert.match(describeCatalogue(settingsFrom(`${base}CATALOGUE_GCS_KEY_JSON='${oneLine}'\n`)).join(), /Catalogue search: on;/);
+    const both = settingsFrom(`${base}CATALOGUE_GCS_KEY_JSON='${oneLine}'\nCATALOGUE_GCS_KEY_FILE=keys/signer.json\n`);
+    assert.deepEqual(both.warnings, ['CATALOGUE_GCS_KEY_JSON and CATALOGUE_GCS_KEY_FILE are both set: CATALOGUE_GCS_KEY_JSON is used.']);
+    assert.equal(signerFor(both).ready().clientEmail, EMAIL);
+  });
+
+  test('a bad paste is named with the fix (single quotes), never repeated, and does not stop the rest from loading', () => {
+    // double quotes: the .env reader ends the value at the first inner quote, which is the classic mistake
+    const doubled = settingsFrom(`${BASE}CATALOGUE_GCS_KEY_JSON="${oneLine}"\nCATALOGUE_SEARCH_PROFILE=full\n`);
+    assert.equal(doubled.warnings.length, 1);
+    assert.match(doubled.warnings[0], /^CATALOGUE_GCS_KEY_JSON is not the service-account JSON.*single quotes.*base64/);
+    assert.equal(doubled.catalogue.profile, 'full');
+    assert.equal(signerFor(doubled).ready().ok, false);
+    const junk = settingsFrom(`${BASE}CATALOGUE_GCS_KEY_JSON=this-is-not-it!\n`);
+    assert.match(junk.warnings[0], /single quotes/);
+    assert.equal(junk.warnings.join().includes('this-is-not-it'), false);
+    const huge = settingsFrom(`${BASE}CATALOGUE_GCS_KEY_JSON='${'x'.repeat(17000)}'\n`);
+    assert.deepEqual(huge.warnings, ['CATALOGUE_GCS_KEY_JSON is far longer than a service-account key: it is not used.']);
+    assert.equal(catalogueConfig(huge).keyJson, '');
+  });
+
+  test('a changed .env is picked up without a restart (the signer follows the new text)', () => {
+    const file = path.join(dir, 'rotate.env');
+    fs.writeFileSync(file, `${BASE}CATALOGUE_GCS_KEY_JSON='${oneLine}'\n`);
+    const manager = new SettingsManager(file, {}, dir);
+    const signer = createGcsSigner({ config: () => catalogueConfig(manager.get()) });
+    assert.equal(signer.ready().clientEmail, EMAIL);
+    fs.writeFileSync(file, `${BASE}CATALOGUE_GCS_KEY_JSON='${JSON.stringify({ ...keyObject, client_email: 'new@terucon-test.iam.gserviceaccount.com' })}'\n`);
+    const later = new Date(Date.now() + 5000);
+    fs.utimesSync(file, later, later);
+    assert.equal(signer.ready().clientEmail, 'new@terucon-test.iam.gserviceaccount.com');
   });
 });
 

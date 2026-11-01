@@ -190,7 +190,7 @@ describe('the key file', () => {
   test('not configured: the bucket and the key file are named, a bad bucket or prefix is refused', () => {
     const problem = (config) => createGcsSigner({ config: () => ({ bucket: '', prefix: PREFIX, keyFile: '', gcsProblem: '', ...config }) }).ready().problem;
     assert.match(problem({}), /CATALOGUE_GCS_BUCKET is not set/);
-    assert.match(problem({ bucket: 'b' }), /CATALOGUE_GCS_KEY_FILE is not set/);
+    assert.match(problem({ bucket: 'b' }), /CATALOGUE_GCS_KEY_JSON is not set \(nor CATALOGUE_GCS_KEY_FILE\)/);
     assert.match(problem({ bucket: 'b', keyFile, gcsProblem: 'bucket' }), /not a bucket name/);
     assert.match(problem({ bucket: 'b', keyFile, gcsProblem: 'prefix' }), /CATALOGUE_GCS_PREFIX is not usable/);
   });
@@ -199,5 +199,96 @@ describe('the key file', () => {
     const result = signerAt(Date.UTC(2026, 10, 1, 12)).selfTest();
     assert.equal(result.ok, true);
     assert.match(result.detail, new RegExp(`${clientEmail.replace(/[.]/g, '\\.')}.*Google accepts the signature was not tested`));
+  });
+});
+
+// The key given as text, in .env or in the host's settings (CATALOGUE_GCS_KEY_JSON), instead of as a file on the server.
+describe('the key as text (CATALOGUE_GCS_KEY_JSON)', () => {
+  const NOW = Date.UTC(2026, 10, 1, 12);
+  const pem = privateKey.export({ type: 'pkcs8', format: 'pem' });
+  const keyObject = { type: 'service_account', project_id: 'terucon-test', private_key_id: 'throwaway', private_key: pem, client_email: clientEmail };
+  const oneLine = JSON.stringify(keyObject);
+  const pretty = JSON.stringify(keyObject, null, 2);
+  const textSigner = (keyJson, extra = {}) => createGcsSigner({ config: () => ({ bucket: fixture.bucket, prefix: PREFIX, keyFile: '', keyJson, gcsProblem: '', ...extra.config }), now: () => NOW, log: extra.log, readFile: extra.readFile, stat: extra.stat });
+  const reference = signerAt(NOW).signGet('thumbs/c/a.jpg', { expiresS: 600 });
+
+  test('every way of writing the key gives the same URLs as the file does, byte for byte', () => {
+    const wrapped76 = Buffer.from(pretty).toString('base64').replace(/(.{76})/g, '$1\n');
+    const forms = {
+      'the JSON on one line': oneLine,
+      'the JSON as downloaded (many lines)': pretty,
+      'the JSON with blanks around it': `\n  ${oneLine}  \n`,
+      'base64': Buffer.from(oneLine).toString('base64'),
+      'base64 broken into lines (what the base64 command prints)': wrapped76,
+      'URL-safe base64 without padding': Buffer.from(oneLine).toString('base64url'),
+    };
+    for (const [what, text] of Object.entries(forms)) {
+      const signer = textSigner(text);
+      assert.deepEqual(signer.ready(), { ok: true, problem: '', clientEmail }, what);
+      assert.equal(signer.signGet('thumbs/c/a.jpg', { expiresS: 600 }), reference, what);
+      assert.equal(signer.selfTest().ok, true, what);
+    }
+  });
+
+  test('no file is read or looked at when the key is given as text', () => {
+    const boom = () => { throw new Error('the disk was used'); };
+    const signer = textSigner(oneLine, { readFile: boom, stat: boom });
+    assert.equal(signer.ready().ok, true);
+    assert.equal(signer.signGet('thumbs/c/a.jpg', { expiresS: 600 }), reference);
+  });
+
+  test('the text wins over a file that is also set', () => {
+    const other = path.join(dir, 'other.json');
+    fs.writeFileSync(other, JSON.stringify({ type: 'service_account', client_email: 'file@terucon-test.iam.gserviceaccount.com', private_key: crypto.generateKeyPairSync('rsa', { modulusLength: 2048 }).privateKey.export({ type: 'pkcs8', format: 'pem' }) }));
+    assert.equal(textSigner(oneLine, { config: { keyFile: other } }).ready().clientEmail, clientEmail);
+  });
+
+  test('an edited key is used at once, with no restart and no waiting; a bad one never serves the old key', () => {
+    let text = oneLine;
+    const signer = createGcsSigner({ config: () => ({ bucket: 'b', prefix: PREFIX, keyFile: '', keyJson: text, gcsProblem: '' }), now: () => NOW });
+    assert.equal(signer.ready().clientEmail, clientEmail);
+    text = JSON.stringify({ ...keyObject, client_email: 'rotated@terucon-test.iam.gserviceaccount.com' });
+    assert.equal(signer.ready().clientEmail, 'rotated@terucon-test.iam.gserviceaccount.com');
+    text = '{"type":"service_account",';
+    assert.equal(signer.ready().ok, false);
+    assert.throws(() => signer.signGet('thumbs/c/a.jpg'), /single quotes/);
+    text = oneLine;
+    assert.equal(signer.ready().ok, true, 'a repaired paste works again');
+  });
+
+  test('every wrong paste is named, tells a person what to do, and nothing from it is in a message or a log', () => {
+    const bad = {
+      'a cut-off paste (what double quotes in .env leave behind)': '{',
+      'a paste that stops after the first field': '{"type":"service_account",',
+      'plain words': 'this is not a key',
+      'a JSON list': '[1, 2]',
+      'base64 of something that is not JSON': Buffer.from('hello there').toString('base64'),
+      'base64 of an empty object': Buffer.from('{}').toString('base64'),
+      'no client_email': JSON.stringify({ type: 'service_account', private_key: pem }),
+      'a user credential, not a service account': JSON.stringify({ ...keyObject, type: 'authorized_user' }),
+      'no private key': JSON.stringify({ type: 'service_account', client_email: clientEmail }),
+      'a broken private key': JSON.stringify({ ...keyObject, private_key: '-----BEGIN PRIVATE KEY-----\nAAAA\n-----END PRIVATE KEY-----\n' }),
+      'an elliptic-curve key': JSON.stringify({ ...keyObject, private_key: crypto.generateKeyPairSync('ec', { namedCurve: 'P-256' }).privateKey.export({ type: 'pkcs8', format: 'pem' }) }),
+    };
+    for (const [what, text] of Object.entries(bad)) {
+      const lines = [];
+      const signer = textSigner(text, { log: { warn: (m) => lines.push(m) } });
+      const ready = signer.ready();
+      assert.equal(ready.ok, false, what);
+      assert.ok(ready.problem.length > 20, what);
+      assert.match(ready.problem, /CATALOGUE_GCS_KEY_JSON|signing key/, what);
+      assert.throws(() => signer.signGet('thumbs/c/a.jpg'), (error) => error.message === ready.problem, what);
+      assert.equal(signer.selfTest().ok, false, what);
+      signer.ready();
+      assert.equal(lines.length, 1, `${what}: one log line per distinct paste, not one per request`);
+      for (const text2 of [ready.problem, ...lines]) {
+        assert.equal(/BEGIN|MII|AAAA|private_key|hello there|this is not/.test(text2), false, what);
+        assert.equal(text2.includes(clientEmail), false, what);
+      }
+    }
+  });
+
+  test('without a bucket the bucket is named first, even when the key text is fine', () => {
+    assert.match(textSigner(oneLine, { config: { bucket: '' } }).ready().problem, /CATALOGUE_GCS_BUCKET is not set/);
   });
 });

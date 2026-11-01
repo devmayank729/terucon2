@@ -4,3 +4,5 @@ pytest
 mongomock
 httpx
 modal
+# tests/test_search_parity.py runs the notebook's own retrieval code, which uses pandas; without it 23 of those tests skip silently.
+pandas

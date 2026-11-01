@@ -9,7 +9,10 @@ Every decorator argument below was checked against the installed SDK (modal 1.6.
 DEPLOY (run from this folder, `catalogue/`; needs your Modal login and the three secrets)
     modal secret create terucon-catalogue-keys  API_KEYS="$(openssl rand -hex 32),$(openssl rand -hex 32)"   # two keys = rotate one at a time
     modal secret create terucon-catalogue-gcp   GCP_SERVICE_ACCOUNT_JSON="$(cat service-account.json)" CATALOGUE_GCS_BUCKET=<bucket> CATALOGUE_GCS_PREFIX=catalogue/
-    modal secret create terucon-catalogue-mongo MONGODB_URI='mongodb+srv://USER:PASSWORD@CLUSTER/?retryWrites=true&w=majority' MONGODB_DB=terucon
+    modal secret create terucon-catalogue-mongo MONGODB_URI='mongodb+srv://USER:PASSWORD@CLUSTER/?retryWrites=true&w=majority' MONGODB_DB=<the database named in swatchroom/.env>
+        # MONGODB_DB MUST be the SAME database the website uses: the website reads the catalogue through the studio's MongoDB connection, i.e. the
+        # database in swatchroom/.env MONGODB_URI (its default is "swatchroom"). MONGODB_DB here WINS over a database named inside the URI. If the two differ,
+        # an import succeeds and the site never sees the items.
     modal run    modal_app.py::selftest     # one GPU container: loads DINOv2 + SigLIP, encodes a generated image, checks the vector sizes
                                             # (dino 3072, siglip 1152, colour 396) and unit norms, prints PASS or FAIL (a few GPU minutes)
     modal deploy modal_app.py               # prints the two URLs: put them in the website .env as CATALOGUE_MODAL_SEARCH_URL / CATALOGUE_MODAL_INGEST_URL,
@@ -23,9 +26,19 @@ DEPLOY (run from this folder, `catalogue/`; needs your Modal login and the three
 SERVICES
     terucon-catalogue-search   (GPU, class Search)   GET /healthz   POST /v1/search   POST /v1/search-text        ARCHITECTURE.md section 6
     terucon-catalogue-ingest   (CPU, class Ingest)   GET /healthz   POST /v1/ingest   POST /v1/ingest/cancel
-    ingest_job_fn              (GPU function, max_containers=1)  spawned by POST /v1/ingest; reads the job from MongoDB, fetch -> compute -> publish
-    Volume terucon-catalogue-cache at /cache: a read-through cache of releases (never the only copy; GCS holds them). Committed after a release is
-    downloaded, reloaded before a release this container has not seen is looked up.
+    ingest_job_fn              (GPU function, max_containers=1)  spawned by POST /v1/ingest; reads the job from MongoDB, fetch -> compute -> publish, then
+                               puts the new release on the volume
+    import_bundle_fn           (CPU function)  the notebook's output folder, uploaded to the bucket by YOU (nothing is fetched from Kaggle): copies it
+                               next to the bucket, publishes it, puts the release on the volume.   modal run modal_app.py::import_bundle --help
+    prime_fn                   (CPU function)  copies releases that are already in the bucket onto the volume.   modal run modal_app.py::prime --help
+    Volume terucon-catalogue-cache at /cache: a read-through cache of RELEASES (vectors + item list; never the only copy; GCS holds them). It is filled
+    by import_bundle_fn, by ingest_job_fn and by prime_fn ahead of time, and by the first search that needs a release it lacks. A search container
+    reloads it before looking, so a release put there while the container ran is found. The pictures are NOT on the volume (the browser loads them from
+    GCS with signed URLs) and neither are the model weights (they are baked into the image layers, which is already "nothing downloaded at run time").
+
+BRINGING IN YOUR OWN FILES (the notebook's output folder: state.sqlite + crops/), already uploaded by you
+    gcloud storage cp -r "<output folder>/*" "gs://<bucket>/<CATALOGUE_GCS_PREFIX, default catalogue/>imports/<catalogue>/<name>/"
+    modal run modal_app.py::import_bundle --catalogue <catalogue> --key imports/<catalogue>/<name> --activate [--create "<name people see>"]
 
 MONGODB ATLAS NETWORK ACCESS (not verified from here)
     Atlas only accepts connections from addresses on its Network Access list, and Modal containers do not have fixed outbound addresses. Only the Ingest
@@ -108,6 +121,13 @@ def _bake_models():
         if not any(name.endswith(".safetensors") for name in files) or "config.json" not in files:
             raise RuntimeError(f"{repo}: the download is missing its weights or config ({files})")
         print(f"[bake] {repo}: {files}")
+    # Fail the image BUILD, not the first request, if the SigLIP tokenizer cannot be made (it needs the sentencepiece library and the baked spiece.model).
+    from transformers import AutoTokenizer
+
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_REPOS[1])
+    if not tokenizer("polished black marble")["input_ids"]:
+        raise RuntimeError(f"{MODEL_REPOS[1]}: the tokenizer loaded but produced no tokens")
+    print(f"[bake] {MODEL_REPOS[1]}: tokenizer ok")
 
 
 # CUDA userspace comes with the torch wheel; Modal's hosts provide the driver. Versions are the ones the notebook ran with (ARCHITECTURE.md 1).
@@ -118,6 +138,7 @@ _base = (
         "transformers==5.16.1", "pymupdf==2.0", "opencv-python-headless==4.14.0.94", "google-genai==2.12.1",
         "google-cloud-storage", "pymongo", "fastapi", "numpy", "scipy", "pillow", "pydantic", "tenacity", "google-auth",
         "huggingface_hub", "safetensors", "requests",
+        "sentencepiece",     # the SigLIP tokenizer is a sentencepiece model; without it transformers refuses to build it (found 2026-11-01 by running the real EncoderBank)
     )
 )
 
@@ -234,15 +255,17 @@ class Ingest:
 
 
 @app.function(
-    image=search_image, gpu=GPU_TIERS[GPU_TIER], secrets=[gcp_secret, mongo_secret],
+    image=search_image, gpu=GPU_TIERS[GPU_TIER], secrets=[gcp_secret, mongo_secret], volumes={CACHE_DIR: cache_volume},
     cpu=CPU_CORES, memory=MEMORY_MIB, timeout=INGEST_TIMEOUT_S, startup_timeout=STARTUP_TIMEOUT_S, max_containers=1,
 )
 def ingest_job_fn(job_id: str) -> dict:
-    """fetch -> compute -> publish for one job document. All the logic is terucon_catalogue.ingest_job.run_ingest_job (tested with fakes)."""
+    """fetch -> compute -> publish for one job document, then put the new release on the volume. The logic is terucon_catalogue.ingest_job.run_ingest_job and
+    bucket_import.seed_after_ingest (both tested with fakes); a failure to seed the volume never changes the job's result."""
     _configure_logging()
     import tempfile
     from pathlib import Path
 
+    from terucon_catalogue.bucket_import import seed_after_ingest
     from terucon_catalogue.config import load_config
     from terucon_catalogue.credentials import load_service_account_info
     from terucon_catalogue.encoders import EncoderBank
@@ -257,10 +280,65 @@ def ingest_job_fn(job_id: str) -> dict:
     db = MongoCatalogueDb(os.environ["MONGODB_URI"], os.environ.get("MONGODB_DB") or None)
     store = object_store_from_env()
     with tempfile.TemporaryDirectory(prefix="ingest-") as work:
-        return run_ingest_job(
+        outcome = run_ingest_job(
             job_id, db=db, store=store, cfg=cfg, compute=run_compute, publish=publish_bundle,
             manager_factory=lambda: VertexGenAIManager(cfg, load_service_account_info()),
             encoders_factory=lambda: EncoderBank(cfg), workdir=Path(work))
+    seeded = seed_after_ingest(outcome, db=db, store=store, cfg=cfg, cache_dir=CACHE_DIR, commit_cache=cache_volume.commit, reload_cache=cache_volume.reload)
+    if seeded is not None:
+        outcome["seeded"] = seeded
+    return outcome
+
+
+# =====================================================================================
+# 5b. THE OWNER'S OWN FILES: IMPORT A BUNDLE THAT SITS IN THE BUCKET, AND PUT RELEASES ON THE VOLUME (CPU, no GPU, no models)
+# =====================================================================================
+IMPORT_TIMEOUT_S = max(1, min(6, _env_int("CATALOGUE_IMPORT_TIMEOUT_H", 2))) * 3600
+
+
+@app.function(
+    image=search_image, secrets=[gcp_secret, mongo_secret], volumes={CACHE_DIR: cache_volume},
+    cpu=2.0, memory=4096, timeout=IMPORT_TIMEOUT_S, max_containers=1,
+)
+def import_bundle_fn(catalogue: str, key: str, activate: bool = False, create_name: str = "", include_pdfs: bool = False) -> dict:
+    """The notebook's output folder, already uploaded to the bucket under `key` (imports/<catalogue>/<name>): copy it next door, publish it (the same
+    publish_bundle every path uses), put the release on the volume. All the logic is terucon_catalogue.bucket_import.run_bucket_import (tested with fakes)."""
+    _configure_logging()
+    import tempfile
+    from pathlib import Path
+
+    from terucon_catalogue.bucket_import import run_bucket_import
+    from terucon_catalogue.config import load_config
+    from terucon_catalogue.mongo import MongoCatalogueDb
+    from terucon_catalogue.objectstore import object_store_from_env
+
+    def show(stage, done, total, message):
+        print(f"[{stage}] {message}", flush=True)
+
+    with tempfile.TemporaryDirectory(prefix="import-") as work:
+        outcome = run_bucket_import(
+            db=MongoCatalogueDb(os.environ["MONGODB_URI"], os.environ.get("MONGODB_DB") or None), store=object_store_from_env(), cfg=load_config(),
+            catalogue=catalogue, prefix=key, workdir=Path(work), activate=activate, create_name=create_name or None, include_pdfs=include_pdfs,
+            cache_dir=CACHE_DIR, commit_cache=cache_volume.commit, reload_cache=cache_volume.reload, progress=show)
+    return outcome.as_dict()
+
+
+@app.function(
+    image=search_image, secrets=[gcp_secret, mongo_secret], volumes={CACHE_DIR: cache_volume},
+    cpu=2.0, memory=4096, timeout=1800, max_containers=1,
+)
+def prime_fn(catalogue: str, release: str = "") -> list:
+    """Copy releases that are already in the bucket onto the volume: the live one and the one before it, or just `release`. For after a publish from the
+    command line (the volume is only filled by an import or an admin upload through Modal). terucon_catalogue.bucket_import.prime_volume."""
+    _configure_logging()
+    from terucon_catalogue.bucket_import import prime_volume
+    from terucon_catalogue.config import load_config
+    from terucon_catalogue.mongo import MongoCatalogueDb
+    from terucon_catalogue.objectstore import object_store_from_env
+
+    seeded = prime_volume(db=MongoCatalogueDb(os.environ["MONGODB_URI"], os.environ.get("MONGODB_DB") or None), store=object_store_from_env(), cfg=load_config(),
+                          catalogue=catalogue, cache_dir=CACHE_DIR, release=release or None, commit_cache=cache_volume.commit, reload_cache=cache_volume.reload)
+    return [item.as_dict() for item in seeded]
 
 
 # =====================================================================================
@@ -320,6 +398,31 @@ def selftest():
     print("PASS" if report["ok"] else "FAIL")
     if not report["ok"]:
         sys.exit(1)
+
+
+@app.local_entrypoint()
+def import_bundle(catalogue: str, key: str, activate: bool = False, create: str = "", with_pdf: bool = False):
+    """modal run modal_app.py::import_bundle --catalogue superbond-colour --key imports/superbond-colour/run1 [--activate] [--create "Superbond colours"] [--with-pdf]"""
+    report = import_bundle_fn.remote(catalogue, key, activate, create, with_pdf)
+    seeded = report.get("seeded")
+    print(f"catalogue {report['catalogue']}: release {report['releaseId']} with {report['items']} items"
+          + (" (created the catalogue)" if report.get("createdCatalogue") else "") + (", now live" if report["activated"] else ", stored but NOT live yet"))
+    print(f"copied from the bucket: {report['fetched'].get('images')} pictures, {report['fetched'].get('bytes', 0) / 1e6:.1f} MB")
+    if seeded:
+        print(f"on the Modal volume: yes ({seeded['source']})")
+    else:
+        print(f"on the Modal volume: NO ({report.get('seedError')}); the release works from the bucket, run `modal run modal_app.py::prime --catalogue {catalogue}` to retry")
+    for warning in report.get("warnings", [])[:10]:
+        print(f"  note: {warning}")
+    if not report["activated"] and report.get("releaseId"):
+        print(f"to make it live: python -m terucon_catalogue activate --catalogue {catalogue} --release {report['releaseId']}   (or the admin screen)")
+
+
+@app.local_entrypoint()
+def prime(catalogue: str, release: str = ""):
+    """modal run modal_app.py::prime --catalogue superbond-colour [--release rel-...]   (default: the live release and the one before it)"""
+    for item in prime_fn.remote(catalogue, release):
+        print(f"on the Modal volume: {item['catalogue']} {item['releaseId']} ({item['items']} items, {item['source']})")
 
 
 if __name__ == "__main__":

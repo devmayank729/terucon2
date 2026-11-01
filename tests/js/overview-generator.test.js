@@ -82,9 +82,9 @@ describe('the scanner', () => {
   });
 
   test('isIgnoredName mirrors .gitignore', () => {
-    for (const n of ['.env', '.env.production', 'a.pem', 'x-key.json', 'service-account.json', 'a.pyc', '.DS_Store']) assert.equal(isIgnoredName(n, false), true, n);
+    for (const n of ['.env', '.env.production', 'a.pem', 'x-key.json', 'service-account.json', 'catalogue-signer.json', 'modal-service-account.json', 'a.pyc', '.DS_Store']) assert.equal(isIgnoredName(n, false), true, n);
     for (const n of ['.env.example', 'app.js', 'README.md', 'envfile.js']) assert.equal(isIgnoredName(n, false), false, n);
-    for (const n of ['node_modules', '.git', '__pycache__', '.venv', 'models', 'data']) assert.equal(isIgnoredName(n, true), true, n);
+    for (const n of ['node_modules', '.git', '__pycache__', '.venv', 'models', 'data', 'keys']) assert.equal(isIgnoredName(n, true), true, n);
     assert.equal(isIgnoredName('model', true), false, 'only models/ is ignored, not model/');
   });
 

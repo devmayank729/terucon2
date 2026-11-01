@@ -15,8 +15,10 @@
  * The encoding is Python's urllib.parse.quote: everything except letters, digits and _ . - ~ is %XX (upper-case) over the UTF-8 bytes,
  * and an object name keeps its slashes. It is NOT encodeURIComponent, which leaves ! * ' ( ) alone.
  *
- * The service account's JSON key (CATALOGUE_GCS_KEY_FILE) is read once, on first use, and kept parsed. The key is only ever used to
- * sign: it is never logged, printed or sent. Use a separate account that can read and create objects on the one bucket and nothing else.
+ * The service account's JSON key comes from CATALOGUE_GCS_KEY_JSON (the key's text, straight in .env or in the host's settings: the JSON
+ * itself, or the JSON in base64) or, as an alternative, CATALOGUE_GCS_KEY_FILE (a path to the downloaded file); the text wins if both
+ * are set. It is read once, on first use, and kept parsed. The key is only ever used to sign: it is never logged, printed or sent. Use a
+ * separate account that can read and create objects on the one bucket and nothing else.
  *
  * `x-goog-content-length-range` is signed into the upload URL so that Cloud Storage itself refuses a body outside the range. That Google
  * accepts the header in a signed PUT is NOT verified here (nothing in this repo talks to Google); the size check Modal makes when it
@@ -102,7 +104,7 @@ export function signUrlV4({ privateKey, clientEmail, bucket, objectName, method 
 
 /**
  * @param {object} options
- * @param {() => {bucket: string, prefix: string, keyFile: string, gcsProblem?: string}} options.config read on every use, so .env edits apply
+ * @param {() => {bucket: string, prefix: string, keyFile: string, keyJson?: string, gcsProblem?: string}} options.config read on every use, so .env edits apply
  * @param {() => number} [options.now]
  * @param {{warn: Function}} [options.log]
  * @param {(file: string, encoding: string) => string} [options.readFile]
@@ -112,11 +114,22 @@ export function createGcsSigner({ config, now = Date.now, log, readFile = fs.rea
   /** @type {{file: string, stamp: string, checkedAt: number, key: object | null, problem: string}} */
   let cache = null;
 
+  /** The key given as text (CATALOGUE_GCS_KEY_JSON). The same text always gives the same answer, so it is remembered by its hash; an .env edit is a new text. */
+  function loadFromText(text) {
+    const id = `env:${crypto.createHash('sha256').update(text).digest('hex').slice(0, 16)}`;
+    if (cache && cache.file === id) return cache;
+    const decoded = decodeKeyText(text);
+    cache = { file: id, stamp: '', checkedAt: now(), ...(decoded.problem ? { key: null, problem: decoded.problem } : keyFromJson(decoded.json, FROM_TEXT)) };
+    if (!cache.key) log?.warn(`catalogue  ${cache.problem}`);
+    return cache;
+  }
+
   function load() {
     const cfg = config();
     if (cfg.gcsProblem) return { key: null, problem: cfg.gcsProblem === 'prefix' ? 'CATALOGUE_GCS_PREFIX is not usable.' : 'CATALOGUE_GCS_BUCKET is not a bucket name.' };
     if (!cfg.bucket) return { key: null, problem: 'CATALOGUE_GCS_BUCKET is not set.' };
-    if (!cfg.keyFile) return { key: null, problem: 'CATALOGUE_GCS_KEY_FILE is not set.' };
+    if (cfg.keyJson) return loadFromText(cfg.keyJson);
+    if (!cfg.keyFile) return { key: null, problem: 'CATALOGUE_GCS_KEY_JSON is not set (nor CATALOGUE_GCS_KEY_FILE).' };
     const t = now();
     if (cache && cache.file === cfg.keyFile && t - cache.checkedAt < (cache.key ? RECHECK_MS : FAILURE_MS)) return cache;
     let stamp = '';
@@ -186,6 +199,46 @@ export function createGcsSigner({ config, now = Date.now, log, readFile = fs.rea
   };
 }
 
+/** How a problem names where the key came from. */
+const FROM_FILE = { whole: 'The signing key file', inside: 'the signing key file' };
+const FROM_TEXT = { whole: 'CATALOGUE_GCS_KEY_JSON', inside: 'CATALOGUE_GCS_KEY_JSON' };
+
+/** What a person is told when the text is neither the JSON nor its base64. It never contains any of the text. */
+export const KEY_TEXT_PROBLEM = "CATALOGUE_GCS_KEY_JSON is not the service-account JSON. Put the whole downloaded file between single quotes (CATALOGUE_GCS_KEY_JSON='{...}', not double quotes), or give it as base64.";
+
+/**
+ * Turn the text of CATALOGUE_GCS_KEY_JSON into the parsed JSON: the JSON itself (as downloaded, one line or many), or that JSON in base64
+ * (plain or URL-safe). Only decodes; whether it is a usable key is `keyFromJson`'s job. Never returns or throws any of the text.
+ * @returns {{json: object, problem?: undefined} | {problem: string, json?: undefined}}
+ */
+export function decodeKeyText(raw) {
+  let text = String(raw ?? '').trim();
+  if (text && !text.startsWith('{')) {
+    const compact = text.replace(/\s+/g, '');
+    if (!/^[A-Za-z0-9+/_-]+={0,2}$/.test(compact)) return { problem: KEY_TEXT_PROBLEM };
+    text = Buffer.from(compact, 'base64').toString('utf8').trim();
+  }
+  try {
+    const json = JSON.parse(text);
+    return json && typeof json === 'object' && !Array.isArray(json) ? { json } : { problem: KEY_TEXT_PROBLEM };
+  } catch {
+    return { problem: KEY_TEXT_PROBLEM };
+  }
+}
+
+/** Check a parsed service-account key and make the signing key from it. Never returns or throws the key's contents. */
+function keyFromJson(json, from) {
+  const email = typeof json?.client_email === 'string' ? json.client_email.trim() : '';
+  if ((json?.type && json.type !== 'service_account') || !/^[^\s@]{1,100}@[^\s@]{1,100}$/.test(email)) return { key: null, problem: `${from.whole} is not a service-account key (no client_email).` };
+  try {
+    const privateKey = crypto.createPrivateKey(String(json.private_key ?? ''));
+    if (privateKey.asymmetricKeyType !== 'rsa') return { key: null, problem: 'The signing key is not an RSA key.' };
+    return { key: { privateKey, clientEmail: email }, problem: '' };
+  } catch {
+    return { key: null, problem: `The private key in ${from.inside} could not be read.` };
+  }
+}
+
 /** Read and check a service-account JSON file. Never returns or throws the file's contents. */
 function parseKeyFile(readFile, file) {
   let json;
@@ -194,13 +247,5 @@ function parseKeyFile(readFile, file) {
   } catch {
     return { key: null, problem: 'The signing key file is not a readable JSON file (CATALOGUE_GCS_KEY_FILE).' };
   }
-  const email = typeof json?.client_email === 'string' ? json.client_email.trim() : '';
-  if ((json?.type && json.type !== 'service_account') || !/^[^\s@]{1,100}@[^\s@]{1,100}$/.test(email)) return { key: null, problem: 'The signing key file is not a service-account key (no client_email).' };
-  try {
-    const privateKey = crypto.createPrivateKey(String(json.private_key ?? ''));
-    if (privateKey.asymmetricKeyType !== 'rsa') return { key: null, problem: 'The signing key is not an RSA key.' };
-    return { key: { privateKey, clientEmail: email }, problem: '' };
-  } catch {
-    return { key: null, problem: 'The private key in the signing key file could not be read.' };
-  }
+  return keyFromJson(json, FROM_FILE);
 }

@@ -15,6 +15,8 @@ Four pages that work as one site, an **Express** server that runs them, and the 
 | Design Studio ("Swatchroom") | `/design-studio` (also `/studio`, `/swatchroom`) | `swatchroom/terucon/Swatchroom.html` |
 | My project (client dashboard) | `/my-project` | `pages_original/dashboard.html` |
 | Project overview (what every part does, live status) | `/project-overview` | `docs/PROJECT_OVERVIEW.html` |
+| Finder (find a material from a photo, a spot on it, a colour or words) | `/finder` | `pages/finder.html` (written by hand), `site/catalogue-ui/finder.js` |
+| Catalogue admin (upload, processing, labels, live release) | `/admin/catalogue` | `pages/admin-catalogue.html` (written by hand), `site/catalogue-ui/admin.js` |
 | Coming soon | `/coming-soon`, and any address that is no page | `pages/coming-soon.html` (written by hand) |
 
 ---
@@ -176,6 +178,14 @@ Target C3 of the quotation. A visitor pastes the address of a photo, a Pinterest
 **How it is kept safe** (the visitor chooses the address, so the server fetches what a stranger names): the browser never names a picture address, only one-use **tokens** that belong to the account, last 15 minutes and stand for an address the server worked out itself; every fetch (`server/lib/inspiration/safeFetch.js`) is https on port 443 to a **public** address only, the name resolved once inside the connection (no DNS rebinding), IP addresses and internal names refused, redirects followed by hand and checked again at every hop, with size and time limits and an honest user agent; gallery-dl runs without a shell, with a bare environment, and only the one extractor the registry names (it also has extractors that fetch whatever they are given: those are refused); what comes back is judged by its first bytes (JPEG, PNG, WebP, GIF, AVIF; HTML, SVG and HEIC are refused whatever they are called) and its size in pixels, and only pictures on each site's own hosts are taken. 30 new addresses an hour per account (90 per network address), three at a time. All three API routes need a signed-in, finished account. `tests/js/inspiration-*.test.js` hold the attacks and the contract with the installed gallery-dl (`inspiration-gallery-contract.test.js`: every address shape reaches the intended extractor and every option is one the extractor reads; it runs offline and skips without `python/.venv`).
 
 **Not verified here:** no live Pinterest (its addresses and metadata are covered from gallery-dl's own code, not from a real pin: run `python/.venv/bin/python python/gallery_resolve.py '{"url":"<a real pin>","allow":["pinterest:pin"],"options":{"videos":false,"stories":false},"limit":3,"seconds":40}'` to check one); Unsplash, Pexels, Flickr, Behance and Imgur likewise only against gallery-dl's code. Wikimedia Commons, a plain picture link and an ordinary web page were run live through the real server and Chrome. The `Dockerfile`'s Python step has not been built. HEIC photos cannot be opened by most browsers (the upload path says so). The first, Pinterest-only importer (`server/lib/pinterestImport.js`, `python/pinterest_board.py`) is no longer used and was left in place, with its tests, for you to remove.
+
+## Catalogue: find a material from a photo (Finder, catalogue admin)
+
+Targets C3, C4, C5, C7 and D1. A visitor points the camera at a material (or uploads a photo, taps a spot, picks colour only, or types words) on `/finder` and gets the closest designs in the catalogue, with pictures. The catalogue is made from the owner's PDF or photos: the models (DINOv2, SigLIP) run on **Modal**, the pictures and the releases (vectors) live in a **Google Cloud bucket**, the items in the studio's **MongoDB**, and the releases are also kept on a **Modal volume** so a search container downloads nothing. The website only forwards small requests and signs picture links; it does no model work. The contract is `catalogue/ARCHITECTURE.md`.
+
+**It is off until you set it up.** Everything, step by step (bucket, CORS, two service accounts, MongoDB, the Modal secrets, deploy, the `.env` settings, how to bring in your own files that you uploaded to the bucket, and how to check it): **`docs/CATALOGUE_SETUP.md`**. The settings are `.env.example` section 8 (in the root `.env`, not `swatchroom/.env`). No extra server to run: the Modal app is deployed once.
+
+**Tested against fakes only** (a local folder as the bucket, an in-memory database, a fake Modal), plus one run of the real DINOv2 and SigLIP weights on a Mac's CPU over a synthetic six-page PDF. **Never run** on a live Modal account, bucket or MongoDB, nor on the real catalogue.
 
 ## Settings
 

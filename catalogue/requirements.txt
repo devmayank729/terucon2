@@ -23,3 +23,6 @@ google-auth
 huggingface_hub
 safetensors
 requests
+# The SigLIP tokenizer (google/siglip-so400m-patch14-384) is a sentencepiece model: transformers refuses to build it without this library.
+# The tests inject a tiny fake tokenizer, so only a real EncoderBank run shows the gap (found 2026-11-01).
+sentencepiece

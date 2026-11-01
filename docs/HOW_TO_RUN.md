@@ -148,6 +148,12 @@ there, so it never reads your `.env` files or reaches your services. It is a tes
 
 ---
 
+### The catalogue (Finder and catalogue admin) - optional, set up once
+
+It needs a Modal app, a Google Cloud bucket and the studio's MongoDB, and adds **no** server to run. It is off until it is set up (`/finder` says so). The whole guide is `docs/CATALOGUE_SETUP.md`; the settings are `.env.example` section 8.
+
+---
+
 ## 4. Tests
 
 ```bash

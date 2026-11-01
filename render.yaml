@@ -98,6 +98,24 @@ services:
         sync: false
       - key: MARIGOLD_KEY
         sync: false
+      # --- the catalogue (Finder, catalogue admin): docs/CATALOGUE_SETUP.md. All optional; with none of them the catalogue is simply off.
+      # The two addresses `modal deploy modal_app.py` prints (run it from catalogue/), and ONE of its API_KEYS.
+      - key: CATALOGUE_MODAL_SEARCH_URL
+        sync: false
+      - key: CATALOGUE_MODAL_INGEST_URL
+        sync: false
+      - key: CATALOGUE_MODAL_KEY
+        sync: false
+      # The bucket and the folder in it: the same values as in the Modal secret terucon-catalogue-gcp.
+      - key: CATALOGUE_GCS_BUCKET
+        sync: false
+      - key: CATALOGUE_GCS_PREFIX
+        value: catalogue/
+      # The website signer's JSON key, as text: in the dashboard paste the downloaded file's text (or the same text as base64) as the value, with
+      # no quotes. No file is needed on the server. (CATALOGUE_GCS_KEY_FILE still works if you prefer a Secret File, but do not set both.)
+      # AUTH_ADMIN_TOKEN (above) is also the catalogue admin page's token.
+      - key: CATALOGUE_GCS_KEY_JSON
+        sync: false
       # The website wakes the studio's GPU services as soon as the landing page opens (see README, "Cold start").
       # "off" wakes them only when a photo is scanned, which is what the studio does on its own.
       - key: STUDIO_WARMUP

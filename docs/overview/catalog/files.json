@@ -1049,6 +1049,30 @@
       "desc": "The website with the studio mounted and the passcode off: the studio's own passcode setting is ignored, the owner cookie, the anti-framing headers and the limits."
     },
     {
+      "match": "docs/CATALOGUE_SETUP.md",
+      "owner": "docs",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Setting up the catalogue (Finder, catalogue admin) step by step: the Google Cloud bucket, two service accounts and the CORS rule, MongoDB, the three Modal secrets, deploy, the website settings, three ways to bring a catalogue in, how to check it, and what is not verified."
+    },
+    {
+      "match": "SESSION_OVERVIEW.md",
+      "owner": "docs",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "What one working session did: what was asked, found, changed, checked and left open (2026-11-01: the catalogue engine verified, two missing dependencies fixed, made ready for a bucket you host and the Modal volume)."
+    },
+    {
+      "match": "visionstack.py",
+      "owner": "swatchroom",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The owner's own copy of the Modal vision stack (MoGe-2, Marigold, SAM 3, OneFormer) to deploy with modal deploy. Put here by the owner; not read by the website. Empty when this entry was written (2026-11-01): after filling it run node tools/build-overview.js."
+    },
+    {
       "match": "START.md",
       "owner": "docs",
       "tags": [

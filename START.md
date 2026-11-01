@@ -45,6 +45,10 @@ python3 -m venv python/.venv && python/.venv/bin/pip install -r python/requireme
 
 Try it: open http://localhost:8080/inspiration, or paste a link into the Materials search box. To check one address by hand: `python/.venv/bin/python -m gallery_dl --config-ignore -j <address>`. See `README.md` ("Inspiration import").
 
+## 2c. Catalogue: Finder and catalogue admin (optional, set up once; nothing to keep running)
+
+The Finder (`/finder`) and the catalogue admin (`/admin/catalogue`) need a Modal app, a Google Cloud bucket and the studio's MongoDB. No extra terminal: the Modal app is deployed once and sleeps when idle. Until it is set up `/finder` says the catalogue is not switched on. Step by step: `docs/CATALOGUE_SETUP.md`; the settings: `.env.example` section 8. To bring in the notebook's output you uploaded to the bucket yourself: `cd catalogue && modal run modal_app.py::import_bundle --catalogue <id> --key imports/<id>/<name> --activate --create "<name>"`.
+
 ## 3. Pages
 
 | Page | Address |
