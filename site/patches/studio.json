@@ -71,6 +71,19 @@
       ]
     },
     {
+      "id": "header-finder",
+      "op": "insertAfter",
+      "why": "header: Finder link",
+      "anchor": "Saved<span style=\"font:400 12px/1 Switzer,sans-serif;opacity:.7\">{{ savedN }}</span></a>",
+      "insert": [
+        "\n      ",
+        {
+          "component": "headerLink",
+          "entry": "finder"
+        }
+      ]
+    },
+    {
       "id": "menu-inspiration",
       "op": "insertAfter",
       "why": "menu: Inspiration card",
@@ -84,6 +97,19 @@
       ]
     },
     {
+      "id": "menu-finder",
+      "op": "insertAfter",
+      "why": "menu: Finder card",
+      "anchor": "Sheets, stone, terracotta and finishes, priced per unit.</span></a>",
+      "insert": [
+        "\n        ",
+        {
+          "component": "menuCard",
+          "entry": "finder"
+        }
+      ]
+    },
+    {
       "id": "footer-inspiration",
       "op": "insertAfter",
       "why": "footer: Inspiration link",
@@ -92,6 +118,18 @@
         {
           "component": "footerLink",
           "entry": "inspiration"
+        }
+      ]
+    },
+    {
+      "id": "footer-finder",
+      "op": "insertAfter",
+      "why": "footer: Finder link",
+      "anchor": "style-hover=\"color:#FFFFFF\">Design Studio</a>",
+      "insert": [
+        {
+          "component": "footerLink",
+          "entry": "finder"
         }
       ]
     },

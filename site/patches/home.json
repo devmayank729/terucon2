@@ -36,6 +36,19 @@
       ]
     },
     {
+      "id": "header-finder",
+      "op": "insertBefore",
+      "why": "header: Finder link",
+      "anchor": "<a href=\"#enquire\" data-navpill=\"\"",
+      "insert": [
+        {
+          "component": "headerLink",
+          "entry": "finder",
+          "mobileHide": true
+        }
+      ]
+    },
+    {
       "id": "header-project",
       "op": "insertBefore",
       "why": "header: My project link",

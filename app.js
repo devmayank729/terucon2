@@ -25,6 +25,7 @@ import { createApiRegistry, mountApi } from './server/routes/api.js';
 import { mountAuthRoutes } from './server/routes/auth.js';
 import { mountAuthAdmin } from './server/routes/authAdmin.js';
 import { mountCatalogue } from './server/routes/catalogue.js';
+import { mountCatalogueUi } from './server/routes/catalogueUi.js';
 import { mountDocs } from './server/routes/docs.js';
 import { mountInspiration } from './server/routes/inspiration.js';
 import { mountMedia } from './server/routes/media.js';
@@ -117,6 +118,7 @@ export function createApp({ root = ROOT, envPath, environ, log = createLogger(),
   mountAuthAdmin(app, ctx);
   mountInspiration(app, ctx);
   mountCatalogue(app, ctx);
+  mountCatalogueUi(app, ctx);
   // The website's own /api answers its own misses (404 / 405 in its error shape); the studio's /api paths pass on to it.
   ctx.api.fallback();
   // The Design Studio: its /api/* (behind studioShield, or its own passcode when STUDIO_REQUIRE_PASSCODE=on), /js, /css, /fonts, /textures, /admin. After the pages and the

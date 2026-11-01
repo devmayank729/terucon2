@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#E1D4C2">
+<meta name="robots" content="noindex">
+<title>Finder — Terucon India</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<!-- Zodiak and Switzer, the site's fonts (served with the Design Studio); the page reads fine in Georgia / Helvetica without them -->
+<link rel="stylesheet" href="/css/fonts.css">
+<link rel="stylesheet" href="/catalogue-ui/assets/catalogue-ui.css">
+<style>
+  :root { --bg:#E1D4C2; --card:#EFE6D8; --ink:#291C0E; --ink2:#6E473B; --sand:#A78D78; --line:rgba(41,28,14,.16); --line2:rgba(41,28,14,.34); --bad:#8C2F1B; --good:#3B5B2E; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; padding:0; }
+  html { -webkit-text-size-adjust:100%; -webkit-tap-highlight-color:transparent; }
+  body { min-height:100vh; display:flex; flex-direction:column; background:var(--bg); color:var(--ink); font-family:Switzer, Helvetica, Arial, sans-serif; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  a { color:inherit; }
+  ::selection { background:#6E473B; color:#E1D4C2; }
+  :focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
+  [hidden] { display:none !important; }
+  svg { flex:none; }
+
+  header { min-height:clamp(64px, calc(40px + 3.2vw), 76px); display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px; padding:10px clamp(20px, 5vw, 72px); border-bottom:1px solid var(--line); }
+  .brand { display:flex; align-items:baseline; gap:10px; font:600 15px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.34em; text-decoration:none; }
+  .brand span { font:500 9.5px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.3em; }
+  nav { display:flex; flex-wrap:wrap; align-items:center; gap:8px clamp(14px, 2.2vw, 28px); font:500 13px/1 Switzer, Helvetica, Arial, sans-serif; }
+  nav a { text-decoration:none; transition:opacity .25s; }
+  nav a:hover { opacity:.7; }
+  nav a[aria-current="page"] { text-decoration:underline; text-underline-offset:6px; text-decoration-thickness:1px; }
+
+  main { flex:1; padding:clamp(32px, 7vh, 84px) clamp(16px, 5vw, 72px) clamp(40px, 8vh, 96px); }
+  .wrap { width:100%; max-width:940px; margin:0 auto; display:flex; flex-direction:column; gap:clamp(28px, 5vh, 52px); }
+  .hero { display:flex; flex-direction:column; gap:20px; max-width:720px; animation:rise .6s cubic-bezier(.2,.8,.2,1) both; }
+  .eyebrow { display:flex; align-items:center; gap:14px; margin:0; font:500 10.5px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.22em; text-transform:uppercase; color:var(--ink2); }
+  .eyebrow::before { content:""; width:32px; height:1px; background:currentColor; }
+  h1 { margin:0; font:300 clamp(38px, 7vw, 66px)/1.02 Zodiak, Georgia, serif; letter-spacing:-.025em; }
+  h1 em { font-style:italic; color:var(--ink2); }
+  h2 { margin:0; font:300 26px/1.2 Zodiak, Georgia, serif; letter-spacing:-.01em; }
+  .lead { margin:0; font:400 clamp(16px, 2vw, 18px)/1.6 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+
+  .card { background:var(--card); border:1px solid var(--line); border-radius:28px; padding:clamp(20px, 4vw, 34px); display:flex; flex-direction:column; gap:20px; box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 24px 60px -34px rgba(41,28,14,.4); animation:rise .6s .08s cubic-bezier(.2,.8,.2,1) both; }
+  .field { display:flex; align-items:center; gap:12px; min-height:68px; padding:6px 8px 6px 22px; border-radius:999px; background:#F9F4EA; border:1px solid var(--line2); transition:border-color .2s, box-shadow .2s; }
+  .field:focus-within { border-color:var(--ink); box-shadow:0 0 0 4px rgba(41,28,14,.12); }
+  .field input { flex:1; min-width:0; height:52px; border:0; outline:none; background:transparent; color:var(--ink); font:400 17px/1 Switzer, Helvetica, Arial, sans-serif; }
+  .field input::placeholder { color:#8d7767; }
+  .field .actions { display:flex; align-items:center; gap:6px; }
+
+  .btn { position:relative; overflow:hidden; display:inline-flex; align-items:center; justify-content:center; gap:9px; height:52px; padding:0 24px; border-radius:999px; border:1px solid var(--ink); background:var(--ink); color:var(--bg); font:500 14.5px/1 Switzer, Helvetica, Arial, sans-serif; cursor:pointer; white-space:nowrap; transition:background .3s, opacity .2s, transform .12s; }
+  .btn:hover { background:var(--ink2); border-color:var(--ink2); }
+  .btn:active { transform:scale(.97); }
+  .btn:disabled { opacity:.55; cursor:default; }
+  .btn.ghost { background:transparent; color:var(--ink); border-color:var(--line2); }
+  .btn.ghost:hover { background:rgba(41,28,14,.07); border-color:var(--ink); }
+  .btn input[type=file] { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; font-size:0; }
+  .btn:focus-within { outline:2px solid var(--ink); outline-offset:3px; }
+  .actions-row { display:flex; gap:10px; flex-wrap:wrap; }
+
+  .notice { margin:0; padding:12px 16px; border-radius:14px; font:400 14px/1.5 Switzer, Helvetica, Arial, sans-serif; border:1px solid var(--line2); }
+  .notice.bad { border-color:var(--bad); color:var(--bad); background:rgba(140,47,27,.07); }
+  .notice.info { border-color:var(--line2); color:var(--ink2); background:rgba(255,255,255,.4); }
+
+  .or { display:flex; align-items:center; gap:14px; margin:0; font:500 11px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--ink2); }
+  .or::before, .or::after { content:""; flex:1; height:1px; background:var(--line); }
+  .drop { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px 20px; padding:18px 20px; border:1.5px dashed var(--line2); border-radius:20px; color:var(--ink2); font:400 15px/1.5 Switzer, Helvetica, Arial, sans-serif; }
+  .drop p { margin:0; display:flex; align-items:center; gap:12px; }
+
+  .block { display:flex; flex-direction:column; gap:16px; }
+  .block .small { margin:0; font:400 13.5px/1.55 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); max-width:640px; }
+
+  .steps { display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:16px; margin:0; padding:0; list-style:none; counter-reset:step; }
+  .steps li { counter-increment:step; display:flex; flex-direction:column; gap:10px; padding:22px; border-top:1px solid var(--line2); }
+  .steps li::before { content:"0" counter(step); font:300 30px/1 Zodiak, Georgia, serif; color:var(--sand); }
+  .steps b { font:500 16px/1.3 Switzer, Helvetica, Arial, sans-serif; }
+  .steps p { margin:0; font:400 14.5px/1.6 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+
+  footer { padding:22px clamp(20px, 5vw, 72px); border-top:1px solid var(--line); font:400 12px/1.5 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+  @keyframes rise { from { opacity:0; transform:translateY(14px); } }
+  @media (max-width: 620px) {
+    .field { flex-wrap:wrap; padding:14px; border-radius:26px; min-height:0; }
+    .field input { flex:1 1 100%; height:44px; }
+    .field .actions { width:100%; }
+    .field .actions .btn { flex:1; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="/">TERUCON <span>INDIA</span></a>
+  <nav aria-label="Pages">
+    <a href="/">Home</a>
+    <a href="/materials">Materials</a>
+    <a href="/design-studio">Design Studio</a>
+    <a href="/inspiration">Inspiration</a>
+    <a href="/finder" aria-current="page">Finder</a>
+    <a href="/my-project">My project</a>
+    <a href="/account">Account</a>
+  </nav>
+</header>
+
+<main>
+  <div class="wrap">
+    <section class="hero" aria-labelledby="h-title">
+      <p class="eyebrow">Finder</p>
+      <h1 id="h-title">Point, snap, <em>find the material</em></h1>
+      <p class="lead">Aim your camera at a material, upload a photo, or just describe it. We match it against the real catalogue — by shape, by one spot you pick, or by colour alone.</p>
+    </section>
+
+    <section class="card" id="card" aria-label="Find a material">
+      <p class="notice bad" id="status" role="status" hidden></p>
+
+      <div class="modes" role="tablist" aria-label="Search by">
+        <button type="button" role="tab" id="mode-photo" aria-pressed="true">Photo</button>
+        <button type="button" role="tab" id="mode-colour" aria-pressed="false">Colour</button>
+        <button type="button" role="tab" id="mode-words" aria-pressed="false">Words</button>
+      </div>
+
+      <div id="photo-panel">
+        <div class="viewfinder" id="viewfinder" hidden>
+          <video id="video" autoplay muted playsinline></video>
+          <img class="still" id="still" alt="" hidden>
+          <div class="reticle" id="reticle" hidden role="slider" aria-label="The spot to search (drag to move)" tabindex="0"></div>
+          <p class="hint" id="hint">Drag the box onto one material, or search the whole photo</p>
+        </div>
+
+        <div class="drop" id="drop">
+          <p>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.5"/></svg>
+            <span>Use your camera, or choose a photo of a material.</span>
+          </p>
+          <div class="actions-row">
+            <button class="btn" id="start-camera" type="button">Use camera</button>
+            <label class="btn ghost">
+              Upload a photo
+              <input id="file" type="file" accept="image/jpeg,image/png,image/webp">
+            </label>
+          </div>
+        </div>
+
+        <div class="actions-row" id="photo-actions" hidden>
+          <button class="btn" id="go-photo" type="button">Find it</button>
+          <button class="btn ghost" id="whole-photo" type="button">Search the whole photo</button>
+          <button class="btn ghost" id="retake" type="button">Retake</button>
+        </div>
+      </div>
+
+      <div id="words-panel" hidden>
+        <div class="field">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 20.5 20.5"/></svg>
+          <input id="word-input" type="text" autocomplete="off" placeholder="e.g. teak veneer, grey stone, matte laminate…" aria-label="Describe the material">
+          <div class="actions">
+            <button class="btn" id="go-words" type="button">Search</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="results-block" aria-labelledby="h-results" hidden>
+      <h2 id="h-results">Results</h2>
+      <p class="small" id="results-meta"></p>
+      <ul class="results" id="results"></ul>
+    </section>
+
+    <section class="block" aria-labelledby="h-how">
+      <h2 id="h-how">How it works</h2>
+      <ol class="steps">
+        <li><b>Show it a material</b><p>Point your camera, upload a photo, or describe it in words.</p></li>
+        <li><b>Pick a spot, or not</b><p>Drag the box onto one material in a busy photo, or search the whole frame.</p></li>
+        <li><b>See the closest matches</b><p>Real items from the catalogue, nearest first — never shown as a percentage.</p></li>
+      </ol>
+    </section>
+  </div>
+</main>
+
+<footer>Terucon India Private Limited</footer>
+
+<noscript><p class="notice bad">This page needs JavaScript to search the catalogue.</p></noscript>
+<script type="module" src="/catalogue-ui/assets/finder.js"></script>
+</body>
+</html>

@@ -105,13 +105,39 @@
       "aliases": ["/inspiration.html", "/import"],
       "access": "signed-in",
       "csp": "strict+images"
+    },
+    "finder": {
+      "label": "Finder",
+      "description": "Point your camera (or upload a photo) at a material and find its closest match in the real catalogue: the whole photo, one spot on it, or colour alone. Also a plain word search. Targets C4 (point-and-identify), C7 (colour match) and C5 (text search).",
+      "route": "/finder",
+      "file": "pages/finder.html",
+      "aliases": ["/finder.html", "/point-to-find"],
+      "headers": { "Permissions-Policy": "camera=(self), microphone=(), geolocation=()" },
+      "access": "signed-in",
+      "csp": "strict+catalogue"
+    },
+    "catalogueAdmin": {
+      "label": "Catalogue admin",
+      "description": "Upload a catalogue PDF or photos, watch the processing, edit an item's label or code, and choose which release clients see (target D1). Needs the admin token, entered on the page itself; the site's own sign-in only gates the shell.",
+      "route": "/admin/catalogue",
+      "file": "pages/admin-catalogue.html",
+      "aliases": ["/admin/catalogue.html"],
+      "access": "signed-in",
+      "csp": "strict+catalogue-admin"
     }
   },
-  "assets": {
-    "_comment": "The browser modules of the inspiration import (target C3): served from `dir` under `route`, by a fixed list of names (server/routes/inspiration.js). Pages load them with <script type=\"module\" src=\"/inspiration/assets/...\">; tools/check-links.js checks that every such file exists.",
-    "route": "/inspiration/assets",
-    "dir": "site/inspiration"
-  },
+  "assets": [
+    {
+      "_comment": "The browser modules of the inspiration import (target C3): served from `dir` under `route`, by a fixed list of names (server/routes/inspiration.js). Pages load them with <script type=\"module\" src=\"/inspiration/assets/...\">; tools/check-links.js checks that every such file exists.",
+      "route": "/inspiration/assets",
+      "dir": "site/inspiration"
+    },
+    {
+      "_comment": "The browser code of the finder page, the shop's search overlay, the inspiration hand-off's matching hook, and the admin catalogue screen (targets C3/C4/C5/C7/D1): served from `dir` under `route`, by a fixed list of names (server/routes/catalogueUi.js).",
+      "route": "/catalogue-ui/assets",
+      "dir": "site/catalogue-ui"
+    }
+  ],
   "media": {
     "route": "/media",
     "dir": "media",

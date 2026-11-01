@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "terucon_catalogue"
+version = "0.1.0"
+description = "Catalogue retrieval engine ported from terucon-cat-1.ipynb: compute, bundle, publish, search. See ARCHITECTURE.md."
+requires-python = ">=3.11"
+
+[project.scripts]
+terucon-catalogue = "terucon_catalogue.cli:main"
+
+[tool.setuptools]
+packages = ["terucon_catalogue"]
+
+# pytest's own config stays in pytest.ini (testpaths, pythonpath); nothing duplicated here.

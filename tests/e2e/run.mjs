@@ -43,7 +43,7 @@ const until = async (check, what, ms = 8000) => {
 const stack = await startStack({ port: 0, passcode: PASSCODE, bootMs: 300 });
 const base = stack.base;
 console.log(`stack up at ${base}; the studio: ${JSON.stringify(stack.health.studio)}\n`);
-const browser = await puppeteer.launch({ executablePath: chrome, headless: 'new', args: ['--no-sandbox'], defaultViewport: { width: 1440, height: 900 } });
+const browser = await puppeteer.launch({ executablePath: chrome, headless: 'new', args: ['--no-sandbox', '--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'], defaultViewport: { width: 1440, height: 900 } });
 
 // Every page we open records what a visitor would notice going wrong: script errors, console errors, same-origin 4xx/5xx.
 // KNOWN_GAPS are reported, not failed. They come from the Claude Design exports themselves:
@@ -55,7 +55,9 @@ const KNOWN_GAPS = [/\/%7B%7B(%20|\+| )[^/]*%7D%7D$/, /\/media\/materials\/fx-mi
 // What the studio asks its server for that this stack refuses on purpose, as the real one does: the start-up check is
 // answered 401 until someone has signed in (the passcode is on), the local scan service is not running (503), and there is
 // no database (500). The studio copes with all three; they are reported as notes.
-const BY_DESIGN = [[401, /\/api\/vision\/warmup$/], [503, /\/api\/vision\/warmup$/], [500, /\/api\/rooms(\/|$)/]];
+// ...and what the Finder page's warm-up asks for that this stack refuses on purpose: the dev stack sets no CATALOGUE_*
+// settings, so the catalogue is off, and client.warm() (fire-and-forget; finder.js calls it on every load) gets a 503.
+const BY_DESIGN = [[401, /\/api\/vision\/warmup$/], [503, /\/api\/vision\/warmup$/], [500, /\/api\/rooms(\/|$)/], [503, /^\/api\/catalogue\/warm$/]];
 let signIns = 0;
 /**
  * Sign this window in the way a visitor does: ask for a code, read it (the stack prints it in its window), enter it, fill in the
@@ -684,6 +686,132 @@ await test('on a phone the page does not scroll sideways and the crop screen fit
     assert(handle.w >= 44 && handle.h >= 44, 'the handles are too small for a finger: ' + handle.w);
   } finally {
     fs.rmSync(file, { force: true });
+    await page.close();
+  }
+});
+
+// ---- the Finder page (target C4 point-and-identify, plus C7 colour match / C5 word search): no inline script at all
+// (its own CSP is "strict+catalogue"); its browser behaviour lives entirely in site/catalogue-ui/finder.js. The dev stack
+// has no CATALOGUE_* settings, so the catalogue is off by default here (tests/dev/stack.mjs) — the page must say so
+// plainly rather than pretend to work. A live end-to-end search needs a real Modal/GCS/MongoDB this repo has no
+// credentials for (server/catalogue/'s own test suite, tests/js/catalogue-*.test.js, proves the server side against fakes).
+
+await test('Finder page: opens under its own strict+catalogue policy with no violations; the mode tabs toggle aria-pressed and show the right panel', async () => {
+  const page = await newPage();
+  const response = await page.goto(base + '/finder', { waitUntil: 'networkidle2' });
+  assert(response.status() === 200, '/finder -> ' + response.status());
+  const csp = response.headers()['content-security-policy'] || '';
+  assert(/script-src 'self'(?!.*unsafe)(?!.*accounts\.google)/.test(csp), 'the page does not carry its own strict script policy (and no Google sign-in belongs on this page): ' + csp);
+  assert(/img-src 'self' data: blob: https:\/\/storage\.googleapis\.com/.test(csp), "the policy does not allow the catalogue's own picture host: " + csp);
+  await sleep(400);
+  // this stack's catalogue is off by default, which correctly disables the three tabs (checked on its own below, where
+  // clicking a disabled button must do nothing); re-enable them here, exactly as the page would once a catalogue is
+  // live, so this test can check the tab-switching behaviour itself
+  await page.evaluate(() => { for (const id of ['mode-photo', 'mode-colour', 'mode-words']) document.getElementById(id).disabled = false; });
+  const tabState = () => page.evaluate(() => ({
+    photo: document.getElementById('mode-photo').getAttribute('aria-pressed'),
+    colour: document.getElementById('mode-colour').getAttribute('aria-pressed'),
+    words: document.getElementById('mode-words').getAttribute('aria-pressed'),
+    photoPanelHidden: document.getElementById('photo-panel').hidden,
+    wordsPanelHidden: document.getElementById('words-panel').hidden,
+  }));
+  let s = await tabState();
+  assert(s.photo === 'true' && s.colour === 'false' && s.words === 'false' && !s.photoPanelHidden && s.wordsPanelHidden, 'the page does not start on the Photo tab: ' + JSON.stringify(s));
+  await page.click('#mode-words');
+  s = await tabState();
+  assert(s.words === 'true' && s.photo === 'false' && s.colour === 'false' && s.photoPanelHidden && !s.wordsPanelHidden, 'clicking Words did not switch tabs and panels correctly: ' + JSON.stringify(s));
+  await page.click('#mode-colour');
+  s = await tabState();
+  assert(s.colour === 'true' && s.photo === 'false' && s.words === 'false' && !s.photoPanelHidden && s.wordsPanelHidden, 'clicking Colour did not switch to the photo panel: ' + JSON.stringify(s));
+  await page.click('#mode-photo');
+  s = await tabState();
+  assert(s.photo === 'true' && s.colour === 'false' && s.words === 'false', 'clicking Photo did not switch back: ' + JSON.stringify(s));
+  noProblems(page, 'the Finder page (CSP violations show up here)');
+  await page.close();
+});
+
+await test('Finder page: with no catalogue switched on (this stack\'s default) it says so plainly and disables the mode and search buttons, instead of pretending to work', async () => {
+  const page = await newPage();
+  await page.goto(base + '/finder', { waitUntil: 'networkidle2' });
+  await until(() => page.evaluate(() => !document.getElementById('status').hidden), 'the status notice to appear', 5000);
+  const text = await page.evaluate(() => document.getElementById('status').textContent.trim());
+  assert(text === 'Catalogue search is not switched on here yet.', 'the notice is not the plain, honest sentence for a catalogue with no Modal search app configured: ' + JSON.stringify(text));
+  const disabled = await page.evaluate(() => ['mode-photo', 'mode-colour', 'mode-words', 'go-photo', 'go-words'].map((id) => document.getElementById(id).disabled));
+  assert(disabled.every(Boolean), 'not every mode/search button is disabled while the catalogue is off: ' + JSON.stringify(disabled));
+  noProblems(page, 'the Finder page with the catalogue off');
+  await page.close();
+});
+
+await test('Finder page: upload a photo, drag the reticle, and "Search the whole photo" / "Retake" behave as the drop zone says', async () => {
+  const page = await newPage();
+  await page.goto(base + '/finder', { waitUntil: 'networkidle2' });
+  const file = path.join(os.tmpdir(), `terucon-e2e-finder-${Date.now()}.jpg`);
+  fs.writeFileSync(file, await makeJpeg(page, 1200, 900));
+  try {
+    await (await page.$('#file')).uploadFile(file);
+    await until(() => page.evaluate(() => !document.getElementById('viewfinder').hidden && !document.getElementById('still').hidden), 'the uploaded photo to show in the viewfinder', 8000);
+    assert(await page.evaluate(() => document.getElementById('drop').hidden && !document.getElementById('photo-actions').hidden && !document.getElementById('reticle').hidden), 'the drop zone / photo actions / reticle are not in the right state after an upload');
+    // drag the reticle: its centre (as a fraction of the viewfinder) should move
+    const before = await page.evaluate(() => { const r = document.getElementById('reticle').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+    await page.mouse.move(before.x, before.y);
+    await page.mouse.down();
+    await page.mouse.move(before.x - 60, before.y - 40, { steps: 6 });
+    await page.mouse.up();
+    const after = await page.evaluate(() => { const r = document.getElementById('reticle').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+    assert(Math.abs(after.x - before.x) > 20 || Math.abs(after.y - before.y) > 20, 'dragging the reticle did not move it: ' + JSON.stringify({ before, after }));
+    // "Search the whole photo" hides the reticle; clicking the frame again brings it back
+    await page.click('#whole-photo');
+    assert(await page.evaluate(() => document.getElementById('reticle').hidden), 'the reticle did not hide after "Search the whole photo"');
+    await page.evaluate(() => { const r = document.getElementById('viewfinder').getBoundingClientRect(); document.getElementById('viewfinder').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: r.x + r.width / 2, clientY: r.y + r.height / 2 })); });
+    assert(await page.evaluate(() => !document.getElementById('reticle').hidden), 'clicking the viewfinder again did not bring the reticle back');
+    // "Retake" goes back to the drop zone and clears the still photo
+    await page.click('#retake');
+    assert(await page.evaluate(() => document.getElementById('viewfinder').hidden && !document.getElementById('drop').hidden && document.getElementById('photo-actions').hidden), '"Retake" did not return to the empty drop-zone state');
+  } finally {
+    fs.rmSync(file, { force: true });
+    await page.close();
+  }
+});
+
+await test('Finder page: "Use camera" shows a live video stream, the reticle, and the photo actions (Puppeteer\'s fake camera device)', async () => {
+  const page = await newPage();
+  await page.goto(base + '/finder', { waitUntil: 'networkidle2' });
+  await page.click('#start-camera');
+  const ok = await until(() => page.evaluate(() => {
+    const v = document.getElementById('video');
+    return !document.getElementById('viewfinder').hidden && !v.hidden && v.srcObject instanceof MediaStream && v.videoWidth > 0 && v.videoHeight > 0;
+  }), 'the fake camera to produce a playable video stream', 10000).catch(() => false);
+  if (!ok) {
+    console.log('        note: Puppeteer\'s fake camera device did not produce a playable stream in this environment; skipping the rest of this check (see the --use-fake-device-for-media-stream / --use-fake-ui-for-media-stream launch args).');
+    await page.close();
+    return;
+  }
+  assert(await page.evaluate(() => !document.getElementById('reticle').hidden && !document.getElementById('photo-actions').hidden), 'the reticle / photo actions did not appear once the camera opened');
+  await page.close();
+});
+
+// ---- catalogue admin (target D1): the token gate. The dev stack sets no AUTH_ADMIN_TOKEN at all (there is no catalogue
+// backend here either), so every /api/catalogue/admin/* route answers 404 "as if it did not exist" (server/catalogue/
+// adminRoutes.js) whatever token is typed. That is still real behaviour worth checking in a real browser: the page must
+// say plainly that no admin token is configured (not "wrong token"), never reveal the admin sections, and never keep a
+// token that was not accepted. Connecting with a real token against a live catalogue backend is not something this dev
+// stack can set up (see the admin.js task's own note on that), so it is not tested here.
+await test('Catalogue admin: with no AUTH_ADMIN_TOKEN configured, any token says so plainly and the admin sections stay hidden', async () => {
+  const page = await newPage();
+  try {
+    const response = await page.goto(base + '/admin/catalogue', { waitUntil: 'networkidle2' });
+    const csp = response.headers()['content-security-policy'] || '';
+    assert(/script-src 'self'(?!.*unsafe)/.test(csp), 'the page does not carry its strict script policy: ' + csp);
+    assert(/connect-src 'self' https:\/\/storage\.googleapis\.com/.test(csp), 'the page is missing its signed-upload connect allowance: ' + csp);
+    assert(await page.evaluate(() => document.getElementById('admin-sections').hidden), 'the admin sections must start hidden');
+    await page.type('#token-input', 'some-made-up-admin-token');
+    await page.click('#token-connect');
+    await until(() => page.evaluate(() => !document.getElementById('token-status').hidden), 'the token-status message to appear', 6000);
+    const message = await page.evaluate(() => document.getElementById('token-status').textContent);
+    assert(/AUTH_ADMIN_TOKEN/.test(message) && !/wrong token/i.test(message), 'a 404 (no admin token set up at all) must not be read as "wrong token": ' + message);
+    assert(await page.evaluate(() => document.getElementById('admin-sections').hidden), 'a failed connect must never reveal the admin sections');
+    assert(await page.evaluate(() => sessionStorage.getItem('catalogueAdminToken')) === null, 'a token that was not accepted must not be remembered');
+  } finally {
     await page.close();
   }
 });

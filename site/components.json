@@ -40,6 +40,13 @@
       "eyebrow": "Inspiration",
       "title": "Bring in a look you love →",
       "blurb": "Paste a link to any photo and crop it for the Design Studio."
+    },
+    "finder": {
+      "page": "finder",
+      "label": "Finder",
+      "eyebrow": "Finder",
+      "title": "Point, snap, find it →",
+      "blurb": "Match a material against the real catalogue, by photo, a spot, or colour."
     }
   }
 }

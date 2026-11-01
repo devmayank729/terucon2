@@ -10,6 +10,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { allCdnHosts } from '../../site/inspiration/sources.js';
+import { HOST as GCS_HOST } from '../catalogue/gcsSigner.js';
 import { pageCsp } from '../lib/csp.js';
 import { sendError } from '../lib/errors.js';
 
@@ -44,7 +45,12 @@ export function htmlHandler(root, table, buildHint, { gate } = {}) {
       const { mtimeMs } = fs.statSync(file);
       const known = policies.get(file);
       if (known?.mtimeMs === mtimeMs) return known.value;
-      const value = pageCsp(fs.readFileSync(file, 'utf8'), { google: action.csp === 'strict+google', images: action.csp === 'strict+images' ? allCdnHosts() : [] });
+      const isCatalogue = action.csp === 'strict+catalogue' || action.csp === 'strict+catalogue-admin';
+      const value = pageCsp(fs.readFileSync(file, 'utf8'), {
+        google: action.csp === 'strict+google',
+        images: action.csp === 'strict+images' ? allCdnHosts() : isCatalogue ? [GCS_HOST] : [],
+        connect: action.csp === 'strict+catalogue-admin' ? [GCS_HOST] : [],
+      });
       policies.set(file, { mtimeMs, value });
       return value;
     } catch {

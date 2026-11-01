@@ -157,7 +157,7 @@ export function createAdmin({ db, modal, signer, service, auth, log, now = Date.
     if (body.kind !== 'pdf' && body.kind !== 'photos') throw bad('"kind" must be pdf or photos.');
     const options = checkOptions(body.options);
     const files = checkFiles(body.kind, body.files);
-    if (!signer.ready().ok) throw new CatalogueError(503, 'storage-not-configured', `Uploads cannot be signed yet: ${signer.ready().problem}`);
+    if (!signer.ready().ok) throw new CatalogueError(503, 'storage-not-configured', `Uploads cannot be signed yet: ${signer.ready().problem} Run the admin check.`);
     await guarded(() => requireCatalogue(body.catalogue));
     const t = now();
     const jobId = stampedId('job', t, crypto.randomBytes(3).toString('hex'));

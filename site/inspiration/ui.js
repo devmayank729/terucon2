@@ -239,10 +239,11 @@ export function createUI({ styleHref }) {
     },
 
     /**
-     * The crop screen. -> {action: 'use' | 'download', blob, width, height} | null (the picture is released either way)
-     * @param {{picture: object, source: string, canDownload?: boolean, useLabel?: string}} options
+     * The crop screen. -> {action: 'use' | 'download' | 'find', blob, width, height} | null (the picture is released either way)
+     * @param {{picture: object, source: string, canDownload?: boolean, useLabel?: string, findLabel?: string}} options
+     *   `findLabel` (e.g. "Find similar materials") adds a third, ghost action next to Download; left out, there is none (target C3)
      */
-    crop({ picture, source, canDownload = true, useLabel = 'Use in Design Studio' }) {
+    crop({ picture, source, canDownload = true, useLabel = 'Use in Design Studio', findLabel = null }) {
       const phone = isPhone();
       return screen(
         'tc-crop-screen',
@@ -290,6 +291,7 @@ export function createUI({ styleHref }) {
                 { class: 'tc-actions' },
                 h('button', { type: 'button', class: 'tc-btn tc-ghost', onclick: () => leave(null) }, 'Cancel'),
                 canDownload ? h('button', { type: 'button', class: 'tc-btn tc-ghost', onclick: () => go('download') }, icon('download', 18), h('span', { text: 'Download' })) : null,
+                findLabel ? h('button', { type: 'button', class: 'tc-btn tc-ghost', onclick: () => go('find') }, icon('search', 18), h('span', { text: findLabel })) : null,
                 h('button', { type: 'button', class: 'tc-btn tc-primary', 'data-autofocus': '', onclick: () => go('use') }, icon('check', 18), h('span', { text: useLabel })),
               ),
             ),

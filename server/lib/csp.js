@@ -11,7 +11,12 @@
  *
  * `images: [...]` (the Inspiration page, "strict+images") also lets the page show a picture it has just made or opened in the browser
  * (`blob:`) and pictures from exactly the hosts listed ("*.pinimg.com" -> https://*.pinimg.com): the picture hosts of the sites in
- * site/inspiration/sources.js, for the thumbnails of a board. Nothing else; scripts, styles and connections stay as strict as before.
+ * site/inspiration/sources.js, for the thumbnails of a board. Nothing else; scripts and styles stay as strict as before.
+ *
+ * `connect: [...]` (the catalogue admin page, "strict+catalogue-admin") additionally lets the page's own script make a
+ * cross-origin fetch to exactly the hosts listed: the signed GCS PUT upload of a catalogue PDF or photo goes straight from the
+ * browser to Cloud Storage (catalogue/ARCHITECTURE.md section 7), never through the website. A page that only shows catalogue
+ * pictures but uploads nothing ("strict+catalogue") gets `images` but not `connect`.
  */
 import { createHash } from 'node:crypto';
 
@@ -24,7 +29,7 @@ export function inlineBlocks(html) {
   return { scripts, styles };
 }
 
-export function pageCsp(html, { google = false, images = [] } = {}) {
+export function pageCsp(html, { google = false, images = [], connect = [] } = {}) {
   const { scripts, styles } = inlineBlocks(html);
   const script = ["'self'", ...scripts.map(hash), ...(google ? ['https://accounts.google.com/gsi/client'] : [])];
   const style = ["'self'", ...styles.map(hash), ...(google ? ['https://accounts.google.com/gsi/style'] : [])];
@@ -37,7 +42,7 @@ export function pageCsp(html, { google = false, images = [] } = {}) {
     `style-src ${style.join(' ')}`,
     `img-src 'self' data:${images.length ? ' blob:' : ''}${images.map((host) => ` https://${host}`).join('')}`,
     "font-src 'self'",
-    `connect-src 'self'${google ? ' https://accounts.google.com/gsi/' : ''}`,
+    `connect-src 'self'${google ? ' https://accounts.google.com/gsi/' : ''}${connect.map((host) => ` https://${host}`).join('')}`,
     ...(google ? ['frame-src https://accounts.google.com/gsi/'] : []),
   ].join('; ');
 }

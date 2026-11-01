@@ -53,6 +53,10 @@
     "swatchroom": {
       "label": "Swatchroom (studio)",
       "blurb": "The Design Studio: its own Express routes, browser code, Python scan models and Modal GPU blueprint, kept exactly as built"
+    },
+    "catalogue": {
+      "label": "Catalogue engine (Python)",
+      "blurb": "The real-catalogue retrieval engine ported from terucon-cat-1.ipynb: compute, bundle, publish, search, and the Modal app. See catalogue/ARCHITECTURE.md."
     }
   },
   "tags": {
@@ -70,7 +74,8 @@
     "JSON",
     "HTML",
     "CSS",
-    "Markdown"
+    "Markdown",
+    "Notebook"
   ],
   "generatedFrom": "A scan of the project tree plus the authored descriptions in docs/overview/catalog/*.json",
   "docs": [

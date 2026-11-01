@@ -1,0 +1,6 @@
+# Extra dependencies to run catalogue/tests/ (pytest.ini: testpaths = tests). Install requirements.txt first.
+-r requirements.txt
+pytest
+mongomock
+httpx
+modal

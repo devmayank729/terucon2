@@ -1,15 +1,16 @@
 /**
- * The whole import, start to finish, as one function: an address in, a cropped photo in the Design Studio out.
+ * The whole import, start to finish, as one function: an address in, a cropped photo in the Design Studio (or, if the person
+ * chooses that instead, the Finder, target C3) out.
  *
  *   detect (sources.js) -> "Import this photo?" -> the server resolves it (api.js) -> pick one if there are several ->
- *   fetch it -> crop it (cropper.js, ui.js) -> keep it for the studio and go there (handoff.js)
+ *   fetch it -> crop it (cropper.js, ui.js) -> keep it and go there (handoff.js)
  *
  * It is the same for a paste into the shop's search box, the shop's assistant and the Inspiration page; the callers differ only in
  * what they pass in. A picture the person uploads themselves joins the same path at the crop.
  */
 import { ImportFailure, fetchPicture, resolveAddress } from './api.js';
 import { decodePicture } from './cropper.js';
-import { sendToStudio } from './handoff.js';
+import { sendToFinder, sendToStudio } from './handoff.js';
 import { detect } from './sources.js';
 import { createUI, isPhone } from './ui.js';
 
@@ -44,6 +45,7 @@ const WHAT_NEXT = {
  * @param {(info: {blob: Blob, width: number, height: number, source: string, action: string}) => void} [options.onCropped] the person is done cropping
  * @param {File | Blob} [options.file] start from a picture the person has, not an address
  * @param {boolean} [options.sendToStudio] after cropping, go to the Design Studio (default true)
+ * @param {boolean} [options.offerFinder] offer "Find similar materials" on the crop screen, next to Download (default true)
  * @returns {Promise<{status: 'sent' | 'downloaded' | 'declined' | 'cancelled' | 'failed' | 'busy' | 'ignored'}>}
  */
 export async function startImport(options = {}) {
@@ -80,12 +82,25 @@ async function journey(options, controller, holdOpen) {
     } catch {
       return failed(new ImportFailure('This file could not be opened as a photo. Try a JPEG, PNG or WebP picture.', { reason: 'not-an-image' }));
     }
-    const result = await ui.crop({ picture, source: label || source });
+    const result = await ui.crop({ picture, source: label || source, findLabel: options.offerFinder === false ? null : 'Find similar materials' });
     if (!result) return { status: 'cancelled' };
     options.onCropped?.({ blob: result.blob, width: result.width, height: result.height, source: label || source, action: result.action });
     if (result.action === 'download') {
       download(result.blob, name);
       return { status: 'downloaded' };
+    }
+    if (result.action === 'find') {
+      ui.progress({ title: 'Opening the Finder…', text: 'Your cropped photo goes in to match against the real catalogue.' });
+      holdOpen(true); // the page is about to change; the dialog stays until it does
+      try {
+        await sendToFinder(result.blob, { name, source: label || source });
+        return { status: 'sent' };
+      } catch {
+        holdOpen(false);
+        const next = await ui.message({ title: 'We could not pass the photo on', text: 'Your browser would not keep the photo for the Finder. Download it, then upload it there.', tone: 'error', actions: [{ label: 'Download the photo', value: 'download', primary: true, icon: 'download' }, { label: 'Close', value: null }] });
+        if (next === 'download') download(result.blob, name);
+        return { status: next === 'download' ? 'downloaded' : 'failed' };
+      }
     }
     if (options.sendToStudio === false) return { status: 'sent' };
     ui.progress({ title: 'Opening the Design Studio…', text: 'Your cropped photo goes in as a new photo.' });

@@ -9,6 +9,7 @@
  */
 
 export const STUDIO_PATH = '/design-studio';
+export const FINDER_PATH = '/finder';
 export const ID_PATTERN = /^[a-f0-9]{32}$/;
 const DB = 'terucon-inspiration';
 const STORE = 'pending';
@@ -90,5 +91,12 @@ export async function take(id) {
 export async function sendToStudio(blob, meta = {}) {
   const id = await stash(blob, meta);
   location.assign(`${STUDIO_PATH}?import=${id}`);
+  return id;
+}
+
+/** Keep the picture and go to the Finder, to match it against the real catalogue (target C3). Same mechanism as sendToStudio. */
+export async function sendToFinder(blob, meta = {}) {
+  const id = await stash(blob, meta);
+  location.assign(`${FINDER_PATH}?import=${id}`);
   return id;
 }

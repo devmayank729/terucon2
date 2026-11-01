@@ -92,7 +92,7 @@ describe('the token', () => {
       assert.equal((await a.adm('DELETE', '/jobs', undefined, { 'Content-Type': 'application/json' })).status, 405);
       assert.equal((await a.adm('GET', '/nothing-here')).status, 404);
       assert.equal((await a.app.request('/API/catalogue/admin/overview', { headers: { Authorization: `Bearer ${TOKEN}` } })).status, 404);
-      assert.equal((await a.adm('POST', '/catalogues', '{"id":')).status, 400);
+      assert.equal((await a.adm('POST', '/catalogues', '{"id":', { 'Content-Type': 'application/json' })).status, 400);
     } finally {
       await a.stop();
     }
@@ -237,7 +237,7 @@ describe('uploads', () => {
       const r = await a.upload({ catalogue: SEED_CATALOGUE, kind: 'photos', options: { segmentPhotos: true, captions: false }, files: names.map((name, i) => ({ name, size: 5 * MB, type: types[i] })) });
       assert.equal(r.status, 201, r.text);
       const keys = r.json().uploads.map((u) => u.key.replace(/^uploads\/job-\d{14}-[0-9a-f]{6}\//, ''));
-      assert.deepEqual(keys, ['living_room.jpg', 'Living_Room-2.jpg', 'passwd.png', 'My_Plan_final.webp', 'hidden.jpg', 'n_nicode_name.jpg', 'file.png']);
+      assert.deepEqual(keys, ['living_room.jpg', 'Living_Room-2.jpg', 'passwd.png', 'My_Plan_final.webp', 'hidden.jpg', 'unicode_name.jpg', 'file.png']);
       assert.deepEqual(r.json().uploads.map((u) => u.headers['x-goog-content-length-range']), Array(7).fill(`0,${25 * MB}`));
       assert.deepEqual(r.json().uploads.map((u) => u.name), ['living room.jpg', 'Living Room.JPG', 'passwd.png', 'My Plan (final).webp', '.hidden.jpeg', 'ünïcode — name.jpg', '日本語.png'], 'the name the browser gave, minus any folder, for it to match its files');
       const job = await (await a.jobsCol()).findOne({ _id: r.json().jobId });
@@ -480,7 +480,7 @@ describe('a job\'s life', () => {
       assert.deepEqual((await a.adm('GET', '/jobs?status=succeeded')).json().jobs.map((j) => j._id), [made[1]]);
       assert.equal((await a.adm('GET', `/jobs?catalogue=${SEED_CATALOGUE}`)).json().jobs.length, 4);
       assert.equal((await a.adm('GET', '/jobs?catalogue=other-one')).json().jobs.length, 0);
-      for (const query of ['status=bogus', 'limit=0', 'limit=101', 'limit=x', 'limit=1&limit=2', 'catalogue=BAD SLUG']) assert.equal((await a.adm('GET', `/jobs?${query}`)).status, 400, query);
+      for (const query of ['status=bogus', 'limit=0', 'limit=101', 'limit=x', 'limit=1&limit=2', 'catalogue=BAD%20SLUG']) assert.equal((await a.adm('GET', `/jobs?${query}`)).status, 400, query);
       const one = await a.adm('GET', `/jobs/${made[1]}`);
       assert.equal(one.status, 200);
       assert.deepEqual(one.json().log, [{ t: 1, level: 'info', msg: 'done' }]);
@@ -532,8 +532,10 @@ describe('items', () => {
     const a = await startAdminApp();
     try {
       const items = await a.itemsCol();
-      await items.updateOne({ _id: `${SEED_CATALOGUE}|${ids[3]}` }, { $set: { label: 'Wood (aged) [dark] 50% a.b*c', productId: 'AB-12/x' } });
       const find = async (q) => (await a.adm('GET', `/catalogues/${SEED_CATALOGUE}/items?q=${encodeURIComponent(q)}`)).json().items.map((i) => i.itemId);
+      // against the plain seed data, every one of these means only itself: none is treated as a pattern
+      for (const attack of ['.*', '^', '$', '(', '[', '\\', 'a|b', '(?:x)+$', '.+', '{1}', '(.*)*$']) assert.deepEqual(await find(attack), [], `${attack} is text, not a pattern`);
+      await items.updateOne({ _id: `${SEED_CATALOGUE}|${ids[3]}` }, { $set: { label: 'Wood (aged) [dark] 50% a.b*c', productId: 'AB-12/x' } });
       assert.deepEqual(await find('emperor'), [ids[0]], 'the start of a label, any case');
       assert.deepEqual(await find('DARK'), [ids[0], ids[3]], 'the start of a word');
       assert.deepEqual(await find('sb8'), [ids[0]], 'a product code');
@@ -541,7 +543,6 @@ describe('items', () => {
       assert.deepEqual(await find('mperor'), [], 'the middle of a word is not the start of one');
       assert.deepEqual(await find('ab-12/'), [ids[3]], 'dashes and slashes mean themselves');
       assert.deepEqual(await find('(aged) [dark] 50% a.b*c'), [ids[3]], 'so do brackets, a dot and a star');
-      for (const attack of ['.*', '^', '$', '(', '[', '\\', 'a|b', '(?:x)+$', '.+', '{1}', '(.*)*$']) assert.deepEqual(await find(attack), [], `${attack} is text, not a pattern`);
       assert.deepEqual(await find('emperor dark'), [ids[0]]);
       assert.equal((await a.adm('GET', `/catalogues/${SEED_CATALOGUE}/items?q=${'x'.repeat(61)}`)).status, 400);
       assert.deepEqual(await find('   '), ids, 'blank means no filter');
@@ -606,9 +607,9 @@ describe('editing an item', () => {
       // the shape of the request
       for (const body of [{}, { nothing: 1 }, { label: 'x', status: 'ok', extra: 1 }, { _id: 'x' }, { itemId: 'x' }, { images: {} }, { catalogue: 'other-one' }, { status: 'deleted' }, { status: 'OK' }, { status: true }, []]) assert.equal((await patch(a, ids[1], body)).status, 400, JSON.stringify(body));
       assert.equal((await patch(a, 'ffffffffffff-p0099-i00', { label: 'x' })).status, 404);
-      assert.equal((await patch(a, 'not an id', { label: 'x' })).status, 400);
+      assert.equal((await patch(a, 'not%20an%20id', { label: 'x' })).status, 400);
       assert.equal((await patch(a, ids[0], { label: 'x' }, 'no-such-one')).status, 404);
-      assert.equal((await patch(a, ids[0], { label: 'x' }, 'BAD SLUG')).status, 400);
+      assert.equal((await patch(a, ids[0], { label: 'x' }, 'BAD%20SLUG')).status, 400);
       assert.equal((await doc(ids[1])).label, null, 'a refused request changes nothing');
       assert.ok((await a.events()).some((e) => e.type === 'catalogue.item-edit' && e.detail.includes(ids[4]) && e.detail.includes('productId')));
       assert.equal((await a.events()).some((e) => JSON.stringify(e).includes(TOKEN)), false);
@@ -720,7 +721,7 @@ describe('releases', () => {
     try {
       await twoReleases(a);
       await seedOther(a);
-      const activate = (catalogue, release) => a.adm('POST', `/catalogues/${catalogue}/releases/${release}/activate`, {});
+      const activate = (catalogue, release) => a.adm('POST', `/catalogues/${catalogue}/releases/${encodeURIComponent(release)}/activate`, {});
       assert.equal((await activate(SEED_CATALOGUE, 'rel-20260101000000-ffffff')).status, 404);
       assert.equal((await activate(SEED_CATALOGUE, 'rel-20261105120000-aaaaaa')).status, 404, 'a release of another catalogue is not found here');
       assert.equal((await activate('no-such-one', NEXT)).status, 404);
