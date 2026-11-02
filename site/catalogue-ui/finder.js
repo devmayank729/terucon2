@@ -167,9 +167,10 @@ els.reticle.addEventListener('keydown', (event) => {
   updateHint();
 });
 
-// clicking the viewfinder itself (not the reticle) while "whole photo" is selected brings the reticle back, at that spot
+// clicking the viewfinder itself (not the reticle, and not the capture buttons that float over its bottom edge) while "whole
+// photo" is selected brings the reticle back, at that spot
 els.viewfinder.addEventListener('pointerdown', (event) => {
-  if (!wholePhoto || event.target === els.reticle) return;
+  if (!wholePhoto || event.target === els.reticle || els.photoActions.contains(event.target)) return;
   wholePhoto = false;
   els.reticle.hidden = false;
   const vf = els.viewfinder.getBoundingClientRect();
