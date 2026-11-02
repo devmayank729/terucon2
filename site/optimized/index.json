@@ -1,0 +1,1382 @@
+{
+  "version": 1,
+  "items": {
+    "26e0f8db9f102737842e4dc30cbd477ac0bf5630390f380ecadd4ae71830fa7a": {
+      "source": "media/a01-hero.jpg",
+      "name": "a01-hero",
+      "width": 1280,
+      "height": 720,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 360,
+          "file": "a01-hero-26e0f8db-640.webp",
+          "bytes": 55628
+        },
+        {
+          "w": 1280,
+          "h": 720,
+          "file": "a01-hero-26e0f8db-1280.webp",
+          "bytes": 139196
+        }
+      ]
+    },
+    "c1bcd9eed50a940a56e8113c2ce97022cd09d16cf849cd5bb2823cb2f3918f0b": {
+      "source": "bundle:materials:b83f76d6-b35d-4eb5-b853-6ff2aa8a7a0b",
+      "name": "acp-bone",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "acp-bone-c1bcd9ee-640.webp",
+          "bytes": 9304
+        }
+      ]
+    },
+    "6642282c751543bf00e244588beae703fd4ffcb95735065565b24250555b7af8": {
+      "source": "bundle:materials:bd71f079-74fe-455d-a32f-3de4fb8cf9aa",
+      "name": "acp-bronze",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "acp-bronze-6642282c-640.webp",
+          "bytes": 30326
+        }
+      ]
+    },
+    "121073ce3fdeed950d31a05a27a2f748b64084a39d1d3c5b425fbb02aa2774c3": {
+      "source": "bundle:materials:be7c9ba7-570d-47f5-8ed0-25e034034838",
+      "name": "acp-champagne",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "acp-champagne-121073ce-640.webp",
+          "bytes": 34372
+        }
+      ]
+    },
+    "4fd39ec6f5aaea1f3ea4dd97cc922af23458a793b6038b83eb02d0362df1ab45": {
+      "source": "bundle:materials:88f8d4c3-f0d8-4fd7-af17-348d2a722bf6",
+      "name": "acp-charcoal",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "acp-charcoal-4fd39ec6-640.webp",
+          "bytes": 10122
+        }
+      ]
+    },
+    "03ed12f3761eb427a59e9b98605f106393d2f80167bcf6f4ed59fba85799abc7": {
+      "source": "bundle:materials:1bda99d1-3ef0-4a82-8619-18eb365920dc",
+      "name": "acp-corten",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "acp-corten-03ed12f3-640.webp",
+          "bytes": 40962
+        }
+      ]
+    },
+    "fb798b515e1ea5ccbefe2752d76d5fe08b175aae3fd72393fe4d20077efe6ac5": {
+      "source": "bundle:materials:f0049b82-7c82-427d-b8e9-3ed200deb0b1",
+      "name": "acp-espresso",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "acp-espresso-fb798b51-640.webp",
+          "bytes": 10336
+        }
+      ]
+    },
+    "0bb4200d3e219b3c4cf7177bc4662f770a799299636ee128df32afd8ce26881d": {
+      "source": "bundle:materials:8f7c4314-9d4b-48e9-8d3e-cce45a2f93fd",
+      "name": "acp-graphite",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "acp-graphite-0bb4200d-640.webp",
+          "bytes": 30016
+        }
+      ]
+    },
+    "18c3fc7d425bcef4bc07d14bbaad66ea6ce98d51c40e4bb524c280df1b01388f": {
+      "source": "bundle:materials:fd710583-9bbb-4ffc-a305-58a914ef975d",
+      "name": "acp-sandstone",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "acp-sandstone-18c3fc7d-640.webp",
+          "bytes": 10280
+        }
+      ]
+    },
+    "4e6bb8804bf12b0002164fadb249b1a38e519cd2141e19ab07a9b9f8975be180": {
+      "source": "bundle:materials:27470aac-d464-4f25-81c1-75c44628ce50",
+      "name": "col-lime-oak",
+      "width": 1400,
+      "height": 1052,
+      "quality": 0.85,
+      "variants": [
+        {
+          "w": 640,
+          "h": 481,
+          "file": "col-lime-oak-4e6bb880-640.webp",
+          "bytes": 21394
+        },
+        {
+          "w": 1280,
+          "h": 962,
+          "file": "col-lime-oak-4e6bb880-1280.webp",
+          "bytes": 78170
+        }
+      ]
+    },
+    "801a99f606b8e8da42b562ad101a9ac90368bbdfa3cf6b34435d6e6934470f7b": {
+      "source": "bundle:materials:8b258c0f-56a3-4503-bfb0-6cdfc49283c0",
+      "name": "col-monolith",
+      "width": 1400,
+      "height": 1052,
+      "quality": 0.85,
+      "variants": [
+        {
+          "w": 640,
+          "h": 481,
+          "file": "col-monolith-801a99f6-640.webp",
+          "bytes": 23510
+        },
+        {
+          "w": 1280,
+          "h": 962,
+          "file": "col-monolith-801a99f6-1280.webp",
+          "bytes": 79074
+        }
+      ]
+    },
+    "7f42a6b530004e7f50232bf3c7fec7d9af748f6c9dfb16b4abac14809fb20821": {
+      "source": "bundle:materials:fa6a2813-0012-4ba0-9dd1-5692939a9ed7",
+      "name": "col-stone-bronze",
+      "width": 1400,
+      "height": 1052,
+      "quality": 0.85,
+      "variants": [
+        {
+          "w": 640,
+          "h": 481,
+          "file": "col-stone-bronze-7f42a6b5-640.webp",
+          "bytes": 29862
+        },
+        {
+          "w": 1280,
+          "h": 962,
+          "file": "col-stone-bronze-7f42a6b5-1280.webp",
+          "bytes": 105206
+        }
+      ]
+    },
+    "581f75ac6ccd90d72070e78ee53fffa5bf4ff62f51acfc8a69ddb85f8c648156": {
+      "source": "bundle:materials:587d2426-e332-4d80-9a1a-c95e16d11ab9",
+      "name": "col-teak-terracotta",
+      "width": 1400,
+      "height": 1052,
+      "quality": 0.85,
+      "variants": [
+        {
+          "w": 640,
+          "h": 481,
+          "file": "col-teak-terracotta-581f75ac-640.webp",
+          "bytes": 45710
+        },
+        {
+          "w": 1280,
+          "h": 962,
+          "file": "col-teak-terracotta-581f75ac-1280.webp",
+          "bytes": 143646
+        }
+      ]
+    },
+    "99119db388413629cff585d845cc931fef5395fbc3c2e9aabcc9e78d4138bd65": {
+      "source": "bundle:materials:b84ef1fc-23fa-41b5-8616-f2f622b1d096",
+      "name": "gl-bronze",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "gl-bronze-99119db3-640.webp",
+          "bytes": 33910
+        }
+      ]
+    },
+    "d3e8da17a4d8e81096ae3340a14f1e862cbfe53332e8133f4ca7f0b8a428e5fd": {
+      "source": "bundle:materials:9cab4e96-994a-4a22-85b8-7348f428e373",
+      "name": "gl-clear",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "gl-clear-d3e8da17-640.webp",
+          "bytes": 34408
+        }
+      ]
+    },
+    "44c6228703bb8e0db03f091fe469a76bfdd6683c30f154125e8642b993c0048e": {
+      "source": "bundle:materials:f16063ab-7e87-437c-bb0f-3332a0acfa72",
+      "name": "gl-grey",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "gl-grey-44c62287-640.webp",
+          "bytes": 37956
+        }
+      ]
+    },
+    "cccc8fa9be05c34874291e517236bd5917ba719e869e5e96e7f466ed63f5e7b5": {
+      "source": "bundle:materials:aa970666-640f-4297-8850-53966b57e07f",
+      "name": "hc-charcoal",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "hc-charcoal-cccc8fa9-640.webp",
+          "bytes": 9790
+        }
+      ]
+    },
+    "76d1d91f41684d3f49b8a4fc8059f1096789369bd28d232522c630fcdddb6d09": {
+      "source": "bundle:materials:690b33d2-684f-497c-8d80-5f6ebf979b66",
+      "name": "hc-oak",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "hc-oak-76d1d91f-640.webp",
+          "bytes": 38528
+        }
+      ]
+    },
+    "8b7d59892537a0c50e3fc50da3c5a9ce2a71c94205855920a9f50840baa44252": {
+      "source": "bundle:materials:00dab61e-6458-4ff1-941f-74a140d4e78c",
+      "name": "hc-teak",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "hc-teak-8b7d5989-640.webp",
+          "bytes": 38804
+        }
+      ]
+    },
+    "82c5bdb2df0934b8caa317c874e026db250ec2631f71c5857faaba2d0bb93950": {
+      "source": "bundle:materials:bbc971de-e751-42ac-93c4-cf87b0f538b4",
+      "name": "hc-terracotta",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "hc-terracotta-82c5bdb2-640.webp",
+          "bytes": 12528
+        }
+      ]
+    },
+    "28ef1e8a4b4846a12cc65660483ecaf17eada62f8c5aec943903d904248285b7": {
+      "source": "bundle:materials:8a6909b4-d138-4e11-b05c-d4bacb59828b",
+      "name": "hd-linen",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "hd-linen-28ef1e8a-640.webp",
+          "bytes": 9542
+        }
+      ]
+    },
+    "5dcdd3093561d4cea644da927cf4b24a713fe793ff87b2d09e69646da5e790b0": {
+      "source": "bundle:materials:b9ba3f4b-e97c-4fab-b243-0b636060854b",
+      "name": "hd-oak",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "hd-oak-5dcdd309-640.webp",
+          "bytes": 35674
+        }
+      ]
+    },
+    "8f34c9c8ca7aa01e5e126fa2ba4050f301c70c644d3ed42b33baa6edd1579d28": {
+      "source": "bundle:materials:17ae5207-0437-49ac-b883-8280dc3bea57",
+      "name": "hd-stone",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "hd-stone-8f34c9c8-640.webp",
+          "bytes": 12832
+        }
+      ]
+    },
+    "b611256ca15859ea0f95fad2a41cf01b199773e797783f425b334fd2ed2f6160": {
+      "source": "bundle:materials:870cd753-9d6e-4b90-bb80-0bbf657f5ae4",
+      "name": "hd-walnut",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "hd-walnut-b611256c-640.webp",
+          "bytes": 30844
+        }
+      ]
+    },
+    "b3b736196876420be3ba83689379d8c9d3423ff1f3d69cff0578135562034ebb": {
+      "source": "bundle:home:3c66de8f-1606-4d55-800b-f9a98dde03fb",
+      "name": "home-3c66de8f",
+      "width": 1447,
+      "height": 1087,
+      "quality": 0.85,
+      "variants": [
+        {
+          "w": 640,
+          "h": 481,
+          "file": "home-3c66de8f-b3b73619-640.webp",
+          "bytes": 26720
+        },
+        {
+          "w": 1280,
+          "h": 962,
+          "file": "home-3c66de8f-b3b73619-1280.webp",
+          "bytes": 91202
+        }
+      ]
+    },
+    "dc1c6912756f1b72d05f44c5db851d442ad7dae0bd8eda0f9806a3adc7a58d47": {
+      "source": "bundle:home:a909a13d-7e0e-434b-8f1b-972f0f2fc46d",
+      "name": "home-a909a13d",
+      "width": 1447,
+      "height": 1087,
+      "quality": 0.85,
+      "variants": [
+        {
+          "w": 640,
+          "h": 481,
+          "file": "home-a909a13d-dc1c6912-640.webp",
+          "bytes": 24736
+        },
+        {
+          "w": 1280,
+          "h": 962,
+          "file": "home-a909a13d-dc1c6912-1280.webp",
+          "bytes": 96792
+        }
+      ]
+    },
+    "8399f6f98607784fd8449b8c962bc5d760f1be7a69b674afd4e797c8d2ef4179": {
+      "source": "bundle:home:b8e22504-de6c-428f-b5ba-219b5cf5fb2a",
+      "name": "home-b8e22504",
+      "width": 1447,
+      "height": 1087,
+      "quality": 0.85,
+      "variants": [
+        {
+          "w": 640,
+          "h": 481,
+          "file": "home-b8e22504-8399f6f9-640.webp",
+          "bytes": 49620
+        },
+        {
+          "w": 1280,
+          "h": 962,
+          "file": "home-b8e22504-8399f6f9-1280.webp",
+          "bytes": 169788
+        }
+      ]
+    },
+    "ae0b43fe3b892525dcb733e687c3b730f0361d4c2dd7068d5d3ec08bd378ebd5": {
+      "source": "bundle:home:d48f46af-a7ed-42bd-b5e6-e7c346d530fe",
+      "name": "home-d48f46af",
+      "width": 1447,
+      "height": 1087,
+      "quality": 0.85,
+      "variants": [
+        {
+          "w": 640,
+          "h": 481,
+          "file": "home-d48f46af-ae0b43fe-640.webp",
+          "bytes": 34062
+        },
+        {
+          "w": 1280,
+          "h": 962,
+          "file": "home-d48f46af-ae0b43fe-1280.webp",
+          "bytes": 123114
+        }
+      ]
+    },
+    "edd933c9ba45d59bb051343e43beb4f74afac2e8c6c17e105359a0d334ad1c6e": {
+      "source": "bundle:materials:1ec4cba7-40e3-44a2-8fac-63ad25551d4b",
+      "name": "iacp-silver",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "iacp-silver-edd933c9-640.webp",
+          "bytes": 29606
+        }
+      ]
+    },
+    "19dfc81762f1d3ecef3b59cbd3eb49bcbb6911356651aa15a01dd99f3197eea8": {
+      "source": "bundle:materials:93b16557-99a0-44df-a331-1f28925f9d39",
+      "name": "iacp-walnut",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "iacp-walnut-19dfc817-640.webp",
+          "bytes": 30370
+        }
+      ]
+    },
+    "98c4515d808ee098d86f1eb05ec74b27da5548ef6086cb0c098aae3c4fc873f5": {
+      "source": "bundle:materials:6ac4c9d4-9fe8-4cc1-8bfb-2746bcc0133e",
+      "name": "iacp-white",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "iacp-white-98c4515d-640.webp",
+          "bytes": 9886
+        }
+      ]
+    },
+    "f43c3f89db4229ee36ba87b9e8ed4a59ed956998ac3421dce6a44e31ba83b174": {
+      "source": "bundle:materials:0dea276d-63f6-474f-9fe3-2c907aca0464",
+      "name": "lp-bone",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "lp-bone-f43c3f89-640.webp",
+          "bytes": 28952
+        }
+      ]
+    },
+    "89d44b17d61b169fd1a4dcd6f88d1466127b8574f70c33ba9219664c7dc4c413": {
+      "source": "bundle:materials:c4cd1251-647f-49cb-88f8-f94f28a78d93",
+      "name": "lp-clay",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "lp-clay-89d44b17-640.webp",
+          "bytes": 28096
+        }
+      ]
+    },
+    "7b5083a45c1ec510092ef0604dbe4839df7f1386dc93a2696362fd732132c442": {
+      "source": "bundle:materials:aba22d60-7783-4daa-9752-a1e115d87b33",
+      "name": "lp-sand",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "lp-sand-7b5083a4-640.webp",
+          "bytes": 30340
+        }
+      ]
+    },
+    "9d0a1ca795e3aa401899b59a26942559a96bfc2967a178b109a2a8300cff123c": {
+      "source": "bundle:materials:9315e51d-ddb7-457b-a9a5-2831b5ff065d",
+      "name": "lp-umber",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "lp-umber-9d0a1ca7-640.webp",
+          "bytes": 36650
+        }
+      ]
+    },
+    "22607e3f30abe0a00a1fe40274aa50c6e63b9b3d9ad8a69b90b2da61684d1a3d": {
+      "source": "media/m01-acp.jpg",
+      "name": "m01-acp",
+      "width": 1122,
+      "height": 1402,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "m01-acp-22607e3f-640.webp",
+          "bytes": 65782
+        },
+        {
+          "w": 1122,
+          "h": 1402,
+          "file": "m01-acp-22607e3f-1122.webp",
+          "bytes": 209530
+        }
+      ]
+    },
+    "a0feffad3cdc1a639add87ec8d743ef7f75d70190009b140a86dd6aab2cc243d": {
+      "source": "media/m02-terracotta.jpg",
+      "name": "m02-terracotta",
+      "width": 1122,
+      "height": 1402,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "m02-terracotta-a0feffad-640.webp",
+          "bytes": 64268
+        },
+        {
+          "w": 1122,
+          "h": 1402,
+          "file": "m02-terracotta-a0feffad-1122.webp",
+          "bytes": 258820
+        }
+      ]
+    },
+    "91f87398bb9df3e160d1cf570fdd826d3667206dc620474252817dc04cf6d0bf": {
+      "source": "media/m03-stone.jpg",
+      "name": "m03-stone",
+      "width": 1122,
+      "height": 1402,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "m03-stone-91f87398-640.webp",
+          "bytes": 142792
+        },
+        {
+          "w": 1122,
+          "h": 1402,
+          "file": "m03-stone-91f87398-1122.webp",
+          "bytes": 471734
+        }
+      ]
+    },
+    "2a858acbbffcf7810ecc55743307ce38dfbb0a0832b15cacc826acb8acca83ef": {
+      "source": "media/m04-glass.jpg",
+      "name": "m04-glass",
+      "width": 1122,
+      "height": 1402,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "m04-glass-2a858acb-640.webp",
+          "bytes": 54816
+        },
+        {
+          "w": 1122,
+          "h": 1402,
+          "file": "m04-glass-2a858acb-1122.webp",
+          "bytes": 132312
+        }
+      ]
+    },
+    "08e4a6adb888a248cb6e7fcad68b42f139ead031842dc245f1c544b7df1bdee0": {
+      "source": "media/m05-timber.jpg",
+      "name": "m05-timber",
+      "width": 1122,
+      "height": 1402,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "m05-timber-08e4a6ad-640.webp",
+          "bytes": 85176
+        },
+        {
+          "w": 1122,
+          "h": 1402,
+          "file": "m05-timber-08e4a6ad-1122.webp",
+          "bytes": 260732
+        }
+      ]
+    },
+    "c03669ade8d328f4c3f7aa7528e664f5200af4f8d1751a24c379e40bebb19d99": {
+      "source": "media/m06-plaster.jpg",
+      "name": "m06-plaster",
+      "width": 1122,
+      "height": 1402,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "m06-plaster-c03669ad-640.webp",
+          "bytes": 112006
+        },
+        {
+          "w": 1122,
+          "h": 1402,
+          "file": "m06-plaster-c03669ad-1122.webp",
+          "bytes": 439376
+        }
+      ]
+    },
+    "7ecc5727ce9f6489180c08d2db9df313a601f766794b76a63dee06aa4b4d09e8": {
+      "source": "bundle:materials:3bc5d23c-ce65-417b-baf7-c6a209699d4b",
+      "name": "mc-ash",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "mc-ash-7ecc5727-640.webp",
+          "bytes": 37430
+        }
+      ]
+    },
+    "fee873f1115e849069e0ef0fcda4dcdce35b262d0fbdca4f0a576d3136d142ec": {
+      "source": "bundle:materials:9df71069-28ea-417d-be49-7326de26bdb4",
+      "name": "mc-bone",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "mc-bone-fee873f1-640.webp",
+          "bytes": 43540
+        }
+      ]
+    },
+    "b672ff65dec438fa8ae3144ea7eba0a0f3d88af6b30aa1a5de416162a1fabcfd": {
+      "source": "bundle:materials:f79d957d-9039-46ae-9d98-3f17bd46d4c2",
+      "name": "mc-umber",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "mc-umber-b672ff65-640.webp",
+          "bytes": 34704
+        }
+      ]
+    },
+    "070f61cb9656b9ba06e964513e5929c970e25497305b56405234d2a8f40c380d": {
+      "source": "media/p01-workplace.jpg",
+      "name": "p01-workplace",
+      "width": 1536,
+      "height": 1024,
+      "quality": 0.85,
+      "variants": [
+        {
+          "w": 640,
+          "h": 427,
+          "file": "p01-workplace-070f61cb-640.webp",
+          "bytes": 69074
+        },
+        {
+          "w": 1280,
+          "h": 853,
+          "file": "p01-workplace-070f61cb-1280.webp",
+          "bytes": 234562
+        }
+      ]
+    },
+    "d492d17ae5544d2d40f9c47bba07156cdcd8109acc239f474da4514cfdc1b86a": {
+      "source": "media/p02-lobby.jpg",
+      "name": "p02-lobby",
+      "width": 1536,
+      "height": 1024,
+      "quality": 0.85,
+      "variants": [
+        {
+          "w": 640,
+          "h": 427,
+          "file": "p02-lobby-d492d17a-640.webp",
+          "bytes": 38512
+        },
+        {
+          "w": 1280,
+          "h": 853,
+          "file": "p02-lobby-d492d17a-1280.webp",
+          "bytes": 123788
+        }
+      ]
+    },
+    "158d811dedb3498e2171e534f4b7a1ca6f97cc3283e3813d26036856784c8148": {
+      "source": "media/p03-showroom.jpg",
+      "name": "p03-showroom",
+      "width": 1536,
+      "height": 1024,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 427,
+          "file": "p03-showroom-158d811d-640.webp",
+          "bytes": 59772
+        },
+        {
+          "w": 1280,
+          "h": 853,
+          "file": "p03-showroom-158d811d-1280.webp",
+          "bytes": 195620
+        }
+      ]
+    },
+    "7dd488db1a8b65301bb4436b27132974f3e1d7171d3e7366a21b768f03b9ce71": {
+      "source": "media/p04-clinic.jpg",
+      "name": "p04-clinic",
+      "width": 1536,
+      "height": 1024,
+      "quality": 0.85,
+      "variants": [
+        {
+          "w": 640,
+          "h": 427,
+          "file": "p04-clinic-7dd488db-640.webp",
+          "bytes": 32188
+        },
+        {
+          "w": 1280,
+          "h": 853,
+          "file": "p04-clinic-7dd488db-1280.webp",
+          "bytes": 112972
+        }
+      ]
+    },
+    "c9b2943af35782bff713e52756d5f09d5021e981d1eedfd44c0acf27494ac8c7": {
+      "source": "media/s02-stone-bronze.jpg",
+      "name": "s02-stone-bronze",
+      "width": 1447,
+      "height": 1087,
+      "quality": 0.85,
+      "variants": [
+        {
+          "w": 640,
+          "h": 481,
+          "file": "s02-stone-bronze-c9b2943a-640.webp",
+          "bytes": 33944
+        },
+        {
+          "w": 1280,
+          "h": 962,
+          "file": "s02-stone-bronze-c9b2943a-1280.webp",
+          "bytes": 124656
+        }
+      ]
+    },
+    "f26f1726b3b5b5e75543fd983a32ebf67750e5cd7b56f24623e7190074ea006b": {
+      "source": "media/s03-teak-terracotta.jpg",
+      "name": "s03-teak-terracotta",
+      "width": 1447,
+      "height": 1087,
+      "quality": 0.85,
+      "variants": [
+        {
+          "w": 640,
+          "h": 481,
+          "file": "s03-teak-terracotta-f26f1726-640.webp",
+          "bytes": 51478
+        },
+        {
+          "w": 1280,
+          "h": 962,
+          "file": "s03-teak-terracotta-f26f1726-1280.webp",
+          "bytes": 170732
+        }
+      ]
+    },
+    "789a72135470569afc27af17ecb42258a4707a8b6a325356b2ffdcf5583d6dd3": {
+      "source": "media/s04-lime-oak.jpg",
+      "name": "s04-lime-oak",
+      "width": 1447,
+      "height": 1087,
+      "quality": 0.85,
+      "variants": [
+        {
+          "w": 640,
+          "h": 481,
+          "file": "s04-lime-oak-789a7213-640.webp",
+          "bytes": 24980
+        },
+        {
+          "w": 1280,
+          "h": 962,
+          "file": "s04-lime-oak-789a7213-1280.webp",
+          "bytes": 93974
+        }
+      ]
+    },
+    "54c666814e600c5a12cb94a9d6382d17647f2e0698ff58cb5a0f2675e29b4c8a": {
+      "source": "media/s05-monolith.jpg",
+      "name": "s05-monolith",
+      "width": 1447,
+      "height": 1087,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 481,
+          "file": "s05-monolith-54c66681-640.webp",
+          "bytes": 31742
+        },
+        {
+          "w": 1280,
+          "h": 962,
+          "file": "s05-monolith-54c66681-1280.webp",
+          "bytes": 116600
+        }
+      ]
+    },
+    "785ebc192206ead76bd2d9a8e9762fcb1ab078137947e9d766c4d3f89c1a453c": {
+      "source": "bundle:materials:595e05bb-872f-4cc8-ac11-e208d6deb26e",
+      "name": "sp-oak",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "sp-oak-785ebc19-640.webp",
+          "bytes": 43002
+        }
+      ]
+    },
+    "ff35ece2c725be079d2fded857cff5f6fcacb4e09ecaa91c40c5dd47f3f0a45c": {
+      "source": "bundle:materials:2266e9f1-7403-42ef-a6a0-6b3c9fa75e9c",
+      "name": "sp-smoked",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "sp-smoked-ff35ece2-640.webp",
+          "bytes": 38514
+        }
+      ]
+    },
+    "e070420b4a1df9a5636db826db52c4fd602c558ae36e330ac2637210d78eb8c4": {
+      "source": "bundle:materials:218160de-781e-4184-9417-3af6dcb983c9",
+      "name": "sp-teak",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "sp-teak-e070420b-640.webp",
+          "bytes": 36436
+        }
+      ]
+    },
+    "33f0237e5c674caee0ca24fb680d282c986b540ad740eced2449f513ee7b0c51": {
+      "source": "bundle:materials:e7152067-ae8a-422c-813f-c9d68a022f4c",
+      "name": "sp-walnut",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "sp-walnut-33f0237e-640.webp",
+          "bytes": 35130
+        }
+      ]
+    },
+    "b3ff5e8cd6c4bfdfadf7248bacbbcdab6d51ad05c459c54a1b35f07c0f74f59b": {
+      "source": "bundle:materials:76457b11-567d-49fb-9a1a-258d187fcc02",
+      "name": "st-gran-flamed",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "st-gran-flamed-b3ff5e8c-640.webp",
+          "bytes": 56818
+        }
+      ]
+    },
+    "a612406f19171cc5f2521d6de7a5074713ae4a41f403071c42ae27f7222de236": {
+      "source": "bundle:materials:ef0d7382-60de-400d-8e09-e09af66a879c",
+      "name": "st-gran-honed",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "st-gran-honed-a612406f-640.webp",
+          "bytes": 55792
+        }
+      ]
+    },
+    "063f43ec45f7f5f875cab9c7cd6e33c1d54a192cc5aec32bf8d40f3a7272113a": {
+      "source": "bundle:materials:2a43022d-4806-4e2c-833e-295e0860809f",
+      "name": "st-gran-leather",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "st-gran-leather-063f43ec-640.webp",
+          "bytes": 49938
+        }
+      ]
+    },
+    "cb5080d1bb7faf09bfadeb6db4f55b7269b7e2c53734656eb450259043e4e642": {
+      "source": "bundle:materials:491a803f-9fcd-4619-b452-86d61946dc27",
+      "name": "st-jais-honed",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "st-jais-honed-cb5080d1-640.webp",
+          "bytes": 40120
+        }
+      ]
+    },
+    "b19ede84c2a48c6baea7dd9085ae15a73be84c316adff9f466399dc54dc05f92": {
+      "source": "bundle:materials:2ed20f87-7e8a-4cbb-bbf4-d181ff073aa7",
+      "name": "st-jais-leather",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "st-jais-leather-b19ede84-640.webp",
+          "bytes": 34338
+        }
+      ]
+    },
+    "cf6752696553bc0cdb87de6243d3a743541df3055c6e2fcc9ca1691501be1f2a": {
+      "source": "bundle:materials:38dd610a-f9a0-47a0-9c79-0a97984641d9",
+      "name": "st-kota-honed",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "st-kota-honed-cf675269-640.webp",
+          "bytes": 34596
+        }
+      ]
+    },
+    "33f4025ddd41182847f2c21f1adff5a4a55cc318d3e8947f67af51ea8e7721d0": {
+      "source": "bundle:materials:fc009264-84ed-4ff1-9444-3a28c2816a13",
+      "name": "st-kota-natural",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "st-kota-natural-33f4025d-640.webp",
+          "bytes": 28218
+        }
+      ]
+    },
+    "c51b1847e4b9e99977881810e51b12aec6f8d6c496d5145c722871881b28093c": {
+      "source": "bundle:materials:430f7812-436c-4509-a2c2-d60f99fe199d",
+      "name": "st-sand-cleft",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "st-sand-cleft-c51b1847-640.webp",
+          "bytes": 31766
+        }
+      ]
+    },
+    "5dc09a6594a8ba44f6a74db6aac046b50ed3d066362ff8f180084f6dff78132e": {
+      "source": "bundle:materials:3e0bddbf-7530-4251-8e1d-c13f28020f95",
+      "name": "st-sand-honed",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "st-sand-honed-5dc09a65-640.webp",
+          "bytes": 42942
+        }
+      ]
+    },
+    "a8a724726a1daae0ccb0ec4ad7cdb454eb5b398aef835034dbfd4c2fa71dd683": {
+      "source": "media/t01-shell.jpg",
+      "name": "t01-shell",
+      "width": 1672,
+      "height": 941,
+      "quality": 0.85,
+      "variants": [
+        {
+          "w": 640,
+          "h": 360,
+          "file": "t01-shell-a8a72472-640.webp",
+          "bytes": 34118
+        },
+        {
+          "w": 1280,
+          "h": 720,
+          "file": "t01-shell-a8a72472-1280.webp",
+          "bytes": 120666
+        },
+        {
+          "w": 1672,
+          "h": 941,
+          "file": "t01-shell-a8a72472-1672.webp",
+          "bytes": 200396
+        }
+      ]
+    },
+    "994b6954e70863ea12f78dd08a73193a94f6d092eaaeb0baa97eda99c7777c80": {
+      "source": "media/t02-services.jpg",
+      "name": "t02-services",
+      "width": 1672,
+      "height": 941,
+      "quality": 0.85,
+      "variants": [
+        {
+          "w": 640,
+          "h": 360,
+          "file": "t02-services-994b6954-640.webp",
+          "bytes": 41876
+        },
+        {
+          "w": 1280,
+          "h": 720,
+          "file": "t02-services-994b6954-1280.webp",
+          "bytes": 159180
+        },
+        {
+          "w": 1672,
+          "h": 941,
+          "file": "t02-services-994b6954-1672.webp",
+          "bytes": 270456
+        }
+      ]
+    },
+    "2feb3e8c9f91a3b9bcc5aed8f337e7e0965ffc73ce8c83d031863ec0b6fc8278": {
+      "source": "media/t03-surfaces.jpg",
+      "name": "t03-surfaces",
+      "width": 1672,
+      "height": 941,
+      "quality": 0.85,
+      "variants": [
+        {
+          "w": 640,
+          "h": 360,
+          "file": "t03-surfaces-2feb3e8c-640.webp",
+          "bytes": 23188
+        },
+        {
+          "w": 1280,
+          "h": 720,
+          "file": "t03-surfaces-2feb3e8c-1280.webp",
+          "bytes": 81284
+        },
+        {
+          "w": 1672,
+          "h": 941,
+          "file": "t03-surfaces-2feb3e8c-1672.webp",
+          "bytes": 135020
+        }
+      ]
+    },
+    "cab031473eb4a1d2ea708d00fd4cb8a094d01b29a082058b3dc82fcc067c2ef0": {
+      "source": "media/t04-handover.jpg",
+      "name": "t04-handover",
+      "width": 1672,
+      "height": 941,
+      "quality": 0.85,
+      "variants": [
+        {
+          "w": 640,
+          "h": 360,
+          "file": "t04-handover-cab03147-640.webp",
+          "bytes": 33460
+        },
+        {
+          "w": 1280,
+          "h": 720,
+          "file": "t04-handover-cab03147-1280.webp",
+          "bytes": 114514
+        },
+        {
+          "w": 1672,
+          "h": 941,
+          "file": "t04-handover-cab03147-1672.webp",
+          "bytes": 187870
+        }
+      ]
+    },
+    "e75486f7d49cee4f4b6b5219b0784c4949ef71ca376b20542b8ded9aff3a59a6": {
+      "source": "bundle:materials:e7b7cbd4-3c06-4d5a-be6f-4eb8f6675818",
+      "name": "trc-bag-ochre",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "trc-bag-ochre-e75486f7-640.webp",
+          "bytes": 38792
+        }
+      ]
+    },
+    "9d13263cf8074dff8f8d27b5b65478ab3f88bba5bba0ba084b95f0caeb942353": {
+      "source": "bundle:materials:96cbaa78-0f7d-405d-851c-95cba045ece5",
+      "name": "trc-bag-red",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "trc-bag-red-9d13263c-640.webp",
+          "bytes": 39342
+        }
+      ]
+    },
+    "bcc791140df30a8c033fabc9dd3a4d39a1666bde16aeda8402bb63739eae4c11": {
+      "source": "bundle:materials:1d2833a9-20d3-45a8-b5a7-4151d709810a",
+      "name": "trc-bag-sand",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "trc-bag-sand-bcc79114-640.webp",
+          "bytes": 40710
+        }
+      ]
+    },
+    "98eb7b331ee54ee7e3d4f6e9497344a4eabef8087843bd2e531666c871ff4212": {
+      "source": "bundle:materials:ab606bdb-bd30-4793-b9b8-bfd9dfc829a6",
+      "name": "trc-rain-red",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "trc-rain-red-98eb7b33-640.webp",
+          "bytes": 38374
+        }
+      ]
+    },
+    "8893ea4dce7af011b260aab9a2290c5eb721c58cc4ede7cffd942a9d2fdaafa1": {
+      "source": "bundle:materials:dc4c6289-366e-4a9e-9f8a-b0f6b6d9a4b1",
+      "name": "trc-rain-sand",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "trc-rain-sand-8893ea4d-640.webp",
+          "bytes": 40166
+        }
+      ]
+    },
+    "507400828bf472a805d82f11b146bb0b56fa3aed67550be6043ae0e168dced8b": {
+      "source": "bundle:materials:65313b75-777d-41d4-a155-ef89a7d1df0a",
+      "name": "trc-rain-smoked",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "trc-rain-smoked-50740082-640.webp",
+          "bytes": 33744
+        }
+      ]
+    },
+    "c0bf388a5d29bba480048db5ee23d951af2e3150a8817c886f2348ac5aef88c1": {
+      "source": "bundle:materials:1d6fd658-9899-44fb-9a47-3bdb24adba10",
+      "name": "trc-tile-dusk",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "trc-tile-dusk-c0bf388a-640.webp",
+          "bytes": 34976
+        }
+      ]
+    },
+    "2373c863eb1e7338f504a716cb07727f2a36cc1573ad443b4447e8774493890f": {
+      "source": "bundle:materials:f23a0356-7b1e-46ac-ab80-f23ca252de3f",
+      "name": "trc-tile-red",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "trc-tile-red-2373c863-640.webp",
+          "bytes": 40794
+        }
+      ]
+    },
+    "6140aa51e8372f92a0105d1da3275bdd9ced71f66d20e27daa4fb837208e90e3": {
+      "source": "bundle:materials:7943f99a-a135-4937-ae90-b8d6f5b11804",
+      "name": "trc-tile-sand",
+      "width": 640,
+      "height": 800,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 800,
+          "file": "trc-tile-sand-6140aa51-640.webp",
+          "bytes": 40698
+        }
+      ]
+    },
+    "20bac52b7d0d58b4f0035fc2ae33ae4717324fd6a46ce0989ac3b24eb1fc0b3f": {
+      "source": "media/v02-craft.jpg",
+      "name": "v02-craft",
+      "width": 1280,
+      "height": 720,
+      "quality": 0.88,
+      "variants": [
+        {
+          "w": 640,
+          "h": 360,
+          "file": "v02-craft-20bac52b-640.webp",
+          "bytes": 29476
+        },
+        {
+          "w": 1280,
+          "h": 720,
+          "file": "v02-craft-20bac52b-1280.webp",
+          "bytes": 65566
+        }
+      ]
+    }
+  }
+}

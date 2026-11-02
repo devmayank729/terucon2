@@ -56,9 +56,14 @@ test('the Coming soon page: registered, themed, and every link on it leads somew
   const pages = new Set();
   for (const target of targets) {
     if (/^\/css\/|^\/favicon\.svg$/.test(target)) continue; // served with the studio's files
+    if (target === '/site.webmanifest') continue; // served by server/routes/brand.js from site/brand/site.webmanifest
     const r = resolve(target);
     if (r.kind === 'external') {
       assert.match(target, /^mailto:hello@teruconindia\.com$/, `the only outside link is the email address the other pages use (${target})`);
+      continue;
+    }
+    if (/^\/brand\//.test(target)) {
+      assert.equal(r.kind, 'asset', `${target} is a file of site/brand (checked to exist by the link checker)`);
       continue;
     }
     assert.ok(r.kind === 'route' || r.kind === 'alias', `${target} -> ${r.kind}`);

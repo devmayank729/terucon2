@@ -49,6 +49,131 @@
         },
         "</script>\n"
       ]
+    },
+    {
+      "id": "logo-header",
+      "op": "replace",
+      "why": "top bar: the real logo (it links to the landing page, as on every other page; the project home is the first item of the menu)",
+      "anchor": "<a href=\"#/\" sc-camel-on-click=\"{{ goHome }}\" aria-label=\"Terucon India — go to home\" style=\"flex:none;display:flex;align-items:baseline;gap:8px;color:#F1E8DC;font:600 15px/1 Switzer,sans-serif;letter-spacing:.32em\" style-hover=\"color:#E7C58F\">TERUCON<sc-if value=\"{{ showIndia }}\" hint-placeholder-val=\"{{ true }}\"><span style=\"font:500 9.5px/1 Switzer,sans-serif;letter-spacing:.28em\">INDIA</span></sc-if></a>",
+      "with": [
+        {
+          "component": "logoLink",
+          "entry": "logo",
+          "pill": false,
+          "w": 140,
+          "h": 24
+        }
+      ]
+    },
+    {
+      "id": "logo-drawer",
+      "op": "replace",
+      "why": "phone menu panel: the real logo",
+      "anchor": "<span style=\"display:flex;align-items:baseline;gap:8px;font:600 15px/1 Switzer,sans-serif;letter-spacing:.32em\">TERUCON<span style=\"font:500 9.5px/1 Switzer,sans-serif;letter-spacing:.28em\">INDIA</span></span>",
+      "with": [
+        {
+          "component": "logoLink",
+          "entry": "logo",
+          "pill": false,
+          "w": 140,
+          "h": 24
+        }
+      ]
+    },
+    {
+      "id": "drawer-destinations",
+      "op": "replace",
+      "why": "phone menu panel: a \"Terucon website\" section after the project pages, so Materials, Design Studio, Inspiration, Finder and the landing page are two taps away here (this page has its own bottom bar for Home, Design, Price and Menu, so the shared bottom bar is not added)",
+      "anchor": "</sc-for>\n</div>\n<div style=\"flex:none;padding:12px 14px 16px;border-top:1px solid var(--line)\">",
+      "with": [
+        "</sc-for>\n",
+        "<sc-if value=\"{{ phone }}\"><div style=\"flex:none;display:flex;flex-direction:column;gap:4px;margin-top:14px;padding-top:16px;border-top:1px solid var(--line)\"><span style=\"flex:none;padding:0 16px 8px;font:600 10.5px/1.2 Switzer,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--ink2)\">Terucon website</span><div style=\"display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0 4px\">\n",
+        {
+          "component": "railLink",
+          "entry": "logo",
+          "label": "Home",
+          "icon": "<path d=\"M4 11.2 12 4l8 7.2\"/><path d=\"M6 10v9.5h12V10\"/><path d=\"M10 19.5v-5h4v5\"/>"
+        },
+        "\n",
+        {
+          "component": "railLink",
+          "entry": "materials",
+          "label": "Materials",
+          "icon": "<path d=\"M12 3.2 20.3 8 12 12.8 3.7 8z\"/><path d=\"m3.7 12 8.3 4.8 8.3-4.8\"/><path d=\"m3.7 16 8.3 4.8 8.3-4.8\"/>"
+        },
+        "\n",
+        {
+          "component": "railLink",
+          "entry": "designStudio",
+          "label": "Design Studio",
+          "icon": "<path d=\"M12 3 20 7.5v9L12 21l-8-4.5v-9z\"/><path d=\"M12 12 4.4 7.7M12 12l7.6-4.3M12 12v8.6\"/>",
+          "wide": true
+        },
+        "\n",
+        {
+          "component": "railLink",
+          "entry": "inspiration",
+          "label": "Inspiration",
+          "icon": "<path d=\"M12 3.5c.5 4.3 2.2 6 6.5 6.5-4.3.5-6 2.2-6.5 6.5-.5-4.3-2.2-6-6.5-6.5 4.3-.5 6-2.2 6.5-6.5z\"/><path d=\"M18.5 16.5c.2 1.6.9 2.3 2.5 2.5-1.6.2-2.3.9-2.5 2.5-.2-1.6-.9-2.3-2.5-2.5 1.6-.2 2.3-.9 2.5-2.5z\"/>"
+        },
+        "\n",
+        {
+          "component": "railLink",
+          "entry": "finder",
+          "label": "Finder",
+          "icon": "<circle cx=\"10.5\" cy=\"10.5\" r=\"6.5\"/><path d=\"m15.4 15.4 5.1 5.1\"/><circle cx=\"10.5\" cy=\"10.5\" r=\"1.6\"/>"
+        },
+        "\n",
+        "</div></div></sc-if>\n",
+        "</div>\n<div style=\"flex:none;padding:12px 14px 16px;border-top:1px solid var(--line)\">"
+      ]
+    },
+    {
+      "id": "logo-style",
+      "op": "insertBefore",
+      "why": "page style: logo size on a laptop",
+      "anchor": "</helmet>",
+      "insert": [
+        "<style>\n/* top bar: the logo is 30 px tall on a laptop, 24 px on a phone */\n@media (min-width: 820px) { [data-tc-logo] img { height: 30px !important; } }\n</style>\n"
+      ]
+    },
+    {
+      "id": "logo-footer",
+      "op": "replace",
+      "why": "footer: the real logo (full lockup) instead of the typed TERUCON INDIA",
+      "anchor": "<span style=\"display:flex;align-items:baseline;gap:9px;font:600 15px/1 Switzer,sans-serif;letter-spacing:.32em\">TERUCON<span style=\"font:500 9.5px/1 Switzer,sans-serif;letter-spacing:.28em\">INDIA</span></span>",
+      "with": [
+        {
+          "component": "logoFooter",
+          "entry": "logoFooterFull",
+          "w": 200,
+          "h": 127
+        }
+      ]
+    },
+    {
+      "id": "fab-lift",
+      "op": "replace",
+      "why": "the Saathi button (not on a phone) stays above the bottom bar, which this page shows only between 720 and 899 px",
+      "anchor": "position:fixed;right:clamp(16px,2.4vw,28px);bottom:clamp(16px,2.4vw,28px);z-index:70",
+      "with": "position:fixed;right:clamp(16px,2.4vw,28px);bottom:calc(var(--tc-dock-h,0px) + clamp(16px,2.4vw,28px));z-index:70"
+    },
+    {
+      "id": "dock-tablet",
+      "op": "insertBefore",
+      "why": "mobile dock for 720-899 px (site/brand/dock.md); hidden below 720 px by the style above",
+      "anchor": "</helmet>",
+      "insert": [
+        "<style>\n/* the shared bottom bar on a small tablet only (720-899 px): below 720 px this page has its own bottom bar and Menu panel,\n   which carries the same destinations; above 899 px there is no bar */\n@media (max-width: 719px) { .tc-dock { display: none !important; } body::after { display: none !important; } html.tc-dock-on:root { --tc-dock-h: 0px; } }\n@media (min-width: 720px) and (max-width: 899px) {\n  body::after { display: none !important; }\n  .tc-dock-on [data-dash] { padding-bottom: calc(var(--tc-dock-h, 0px) + env(safe-area-inset-bottom, 0px)); }\n}\n</style>\n",
+        "<link rel=\"stylesheet\" href=\"/brand/dock.css\">\n<script src=\"/brand/dock.js\" defer></script>\n"
+      ]
+    },
+    {
+      "id": "rail-lift",
+      "op": "replace",
+      "why": "the side rail ends above the bottom bar on a small tablet (the bar is 0 px high elsewhere, so nothing changes there)",
+      "anchor": "style=\"position:fixed;left:0;top:{{ L.railTop }};bottom:0;z-index:{{ L.railZ }}",
+      "with": "style=\"position:fixed;left:0;top:{{ L.railTop }};bottom:var(--tc-dock-h,0px);z-index:{{ L.railZ }}"
     }
   ]
 }

@@ -214,11 +214,11 @@ describe('media', () => {
   });
   after(() => app.stop());
 
-  test('a file is served with its type and a one-hour cache', async () => {
+  test('a file is served with its type and a one-week cache (the files are not content-hashed, so not longer)', async () => {
     const r = await app.get('/media/photo.jpg');
     assert.equal(r.status, 200);
     assert.equal(r.headers['content-type'], 'image/jpeg');
-    assert.equal(r.headers['cache-control'], 'public, max-age=3600');
+    assert.equal(r.headers['cache-control'], 'public, max-age=604800');
     assert.equal(r.headers['accept-ranges'], 'bytes');
     assert.equal(r.buffer.length, 4096);
     assert.equal((await app.get('/media/sub/deep.png')).status, 200);

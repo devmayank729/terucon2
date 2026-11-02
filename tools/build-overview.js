@@ -34,7 +34,7 @@ const readJson = (p) => JSON.parse(readText(p));
 // ---------------------------------------------------------------------------------------------------------- scanning
 
 // Mirrors .gitignore. Anything matching here is skipped before it is stat'ed or read, so a private file is never opened.
-const IGNORED_DIRS = new Set(['.git', 'node_modules', '__pycache__', '.venv', 'venv', '.pytest_cache', '.cache', '.idea', '.vscode', 'coverage', 'credentials', 'keys', 'models', 'data']);
+const IGNORED_DIRS = new Set(['.git', 'node_modules', '__pycache__', '.venv', 'venv', '.pytest_cache', '.cache', '.idea', '.vscode', 'coverage', 'credentials', 'keys', 'models', 'data', 'dist']);
 const IGNORED_FILE = [/^\.env$/, /^\.env\..+$/, /\.pem$/, /-key\.json$/, /^service-account.*\.json$/, /^catalogue-signer.*\.json$/, /^modal-service-account.*\.json$/, /\.pyc$/, /^\.DS_Store$/, /^npm-debug\.log/];
 const KEPT_DOTFILES = new Set(['.env.example']);
 

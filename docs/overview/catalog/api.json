@@ -136,7 +136,7 @@
       ],
       "summary": "Photos and videos from media/.",
       "request": "No body. Only the extensions listed in site/site.json `media.extensions`; Range requests work.",
-      "response": "200 or 206 with Cache-Control: public, max-age=3600.",
+      "response": "200 or 206 with Cache-Control: public, max-age=604800 (a week: the files are not content-hashed).",
       "errors": [
         {
           "status": 404,
@@ -147,15 +147,72 @@
     },
     {
       "method": "GET",
+      "path": "/assets/*name",
+      "owner": "JS",
+      "group": "site",
+      "guards": [
+        "Host"
+      ],
+      "summary": "The built site's files from dist/assets/ (content-hashed names).",
+      "request": "No body. Only a fixed list of extensions (js, mjs, css, json, svg, txt, woff2, woff, png, jpg, webp, avif, gif, ico, mp4, webm); never HTML, never a hidden file.",
+      "response": "200 with Cache-Control: public, max-age=31536000, immutable; the .br / .gz copy the browser accepts, with Content-Encoding and Vary: Accept-Encoding.",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Other extension, a dot-segment, traversal, or no such file (JSON error body, not the Coming soon page)"
+        }
+      ],
+      "curl": "curl -sI -H 'Accept-Encoding: br' http://localhost:8080/assets/<a file from dist/assets> | head -8"
+    },
+    {
+      "method": "GET",
+      "path": "/brand/*name",
+      "owner": "JS",
+      "group": "site",
+      "guards": [
+        "Host"
+      ],
+      "summary": "Logos, icons, brand.css and the mobile dock from site/brand/.",
+      "request": "No body. css, js, svg, png, webp, jpg, ico, json, webmanifest only; never HTML.",
+      "response": "200 with Cache-Control: public, max-age=86400, stale-while-revalidate=604800.",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Other extension, a dot-segment, traversal, or no such file"
+        }
+      ],
+      "curl": "curl -sI http://localhost:8080/brand/brand.css | head -8"
+    },
+    {
+      "method": "GET",
+      "path": "/site.webmanifest",
+      "owner": "JS",
+      "group": "site",
+      "guards": [
+        "Host"
+      ],
+      "summary": "The web app manifest (site/brand/site.webmanifest).",
+      "request": "No body.",
+      "response": "200 application/manifest+json.",
+      "errors": [
+        {
+          "status": 404,
+          "when": "site/brand/site.webmanifest does not exist"
+        }
+      ],
+      "curl": "curl -sI http://localhost:8080/site.webmanifest | head -3"
+    },
+    {
+      "method": "GET",
       "path": "/favicon.ico",
       "owner": "JS",
       "group": "site",
       "guards": [
         "Host"
       ],
-      "summary": "No icon; answers quietly so the browser stops asking.",
+      "summary": "The site icon (site/brand/favicon.ico); answers 204 only if that file is missing.",
       "request": "No body.",
-      "response": "204 No Content.",
+      "response": "200 image/x-icon (204 No Content if site/brand/favicon.ico does not exist).",
       "errors": [],
       "curl": "curl -sI http://localhost:8080/favicon.ico | head -1"
     },

@@ -2,32 +2,40 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#E1D4C2">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F150A">
 <meta name="robots" content="noindex">
 <title>Your account — Terucon India</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
 <!-- Zodiak and Switzer, the site's fonts (served with the Design Studio); the page reads fine in Georgia / Helvetica without them -->
 <link rel="stylesheet" href="/css/fonts.css">
+<link rel="stylesheet" href="/brand/brand.css">
+<link rel="stylesheet" href="/brand/dock.css">
+<script src="/brand/dock.js" defer></script>
 <style>
-  :root { --bg:#E1D4C2; --card:#EFE6D8; --ink:#291C0E; --ink2:#6E473B; --line:rgba(41,28,14,.16); --line2:rgba(41,28,14,.34); --bad:#8C2F1B; --good:#3B5B2E; }
+  :root { --bg:#E1D4C2; --card:#EFE6D8; --ink:#291C0E; --ink2:#6E473B; --line:rgba(41,28,14,.16); --line2:rgba(41,28,14,.34); --bad:#8C2F1B; --good:#3B5B2E; --night:#1F150A; --gx:clamp(16px, 5vw, 72px); }
   * { box-sizing:border-box; }
   html, body { margin:0; padding:0; }
-  html { -webkit-text-size-adjust:100%; -webkit-tap-highlight-color:transparent; }
-  body { min-height:100vh; display:flex; flex-direction:column; background:var(--bg); color:var(--ink); font-family:Switzer, Helvetica, Arial, sans-serif; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  html { -webkit-text-size-adjust:100%; -webkit-tap-highlight-color:transparent; background:var(--night); }
+  body { min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; background:var(--bg); color:var(--ink); font-family:Switzer, Helvetica, Arial, sans-serif; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; overflow-wrap:break-word; }
   a { color:inherit; }
   ::selection { background:#6E473B; color:#E1D4C2; }
   :focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
   [hidden] { display:none !important; }
 
-  header { min-height:clamp(64px, calc(40px + 3.2vw), 76px); display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px; padding:10px clamp(20px, 5vw, 72px); border-bottom:1px solid var(--line); }
-  .brand { display:flex; align-items:baseline; gap:10px; font:600 15px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.34em; text-decoration:none; }
-  .brand span { font:500 9.5px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.3em; }
-  nav { display:flex; flex-wrap:wrap; align-items:center; gap:8px clamp(14px, 2.2vw, 28px); font:500 13px/1 Switzer, Helvetica, Arial, sans-serif; }
-  nav a { text-decoration:none; transition:opacity .25s; }
-  nav a:hover { opacity:.7; }
+  /* the frame, the same on every signed-in page: a dark header band with the logo, a dark footer band */
+  header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0 16px; min-height:calc(64px + env(safe-area-inset-top)); padding:calc(8px + env(safe-area-inset-top)) max(var(--gx), env(safe-area-inset-right)) 8px max(var(--gx), env(safe-area-inset-left)); background:var(--night); color:#E1D4C2; border-bottom:1px solid rgba(225,212,194,.14); }
+  header :focus-visible, footer :focus-visible { outline-color:#E1D4C2; }
+  nav { display:flex; flex-wrap:wrap; align-items:center; gap:0 clamp(14px, 2.2vw, 28px); font:500 13px/1 Switzer, Helvetica, Arial, sans-serif; }
+  nav a { display:inline-flex; align-items:center; min-height:44px; text-decoration:none; opacity:.82; transition:opacity .25s; }
+  nav a:hover, nav a[aria-current="page"] { opacity:1; }
+  nav a[aria-current="page"] { text-decoration:underline; text-underline-offset:6px; text-decoration-thickness:1px; }
+  @media (max-width:899px) { html.tc-dock-on header nav a:not(.keep) { display:none; } } /* on a phone the dock at the bottom carries the destinations */
 
-  main { flex:1; padding:clamp(28px, 6vh, 72px) clamp(16px, 5vw, 72px); }
+  main { flex:1; padding:clamp(28px, 6vh, 72px) max(var(--gx), env(safe-area-inset-right)) clamp(28px, 6vh, 72px) max(var(--gx), env(safe-area-inset-left)); }
   .wrap { width:100%; max-width:640px; margin:0 auto; display:flex; flex-direction:column; gap:24px; }
   .eyebrow { display:flex; align-items:center; gap:14px; margin:0; font:500 10.5px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.22em; text-transform:uppercase; color:var(--ink2); }
   .eyebrow::before { content:""; width:32px; height:1px; background:currentColor; }
@@ -45,10 +53,10 @@
   input:focus { outline:none; border-color:var(--ink); box-shadow:0 0 0 3px rgba(41,28,14,.14); }
   input:disabled { opacity:.5; }
   input.code { letter-spacing:.55em; text-align:center; font-size:24px; font-variant-numeric:tabular-nums; padding:0 0 0 .55em; max-width:260px; }
-  .check { display:flex; align-items:flex-start; gap:12px; font:400 14px/1.45 Switzer, Helvetica, Arial, sans-serif; cursor:pointer; }
-  .check input { width:20px; height:20px; margin:1px 0 0; accent-color:#291C0E; flex:none; }
+  .check { display:flex; align-items:center; gap:12px; min-height:44px; font:400 14px/1.45 Switzer, Helvetica, Arial, sans-serif; cursor:pointer; }
+  .check input { width:22px; height:22px; margin:0; accent-color:#291C0E; flex:none; }
 
-  .btn { display:inline-flex; align-items:center; justify-content:center; height:48px; padding:0 24px; border-radius:999px; border:1px solid var(--ink); background:var(--ink); color:var(--bg); font:500 14px/1 Switzer, Helvetica, Arial, sans-serif; cursor:pointer; transition:background .3s, opacity .2s; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:0 24px; border-radius:999px; border:1px solid var(--ink); background:var(--ink); color:var(--bg); font:500 14px/1 Switzer, Helvetica, Arial, sans-serif; cursor:pointer; transition:background .3s, opacity .2s; }
   .btn:hover { background:var(--ink2); border-color:var(--ink2); }
   .btn:disabled { opacity:.55; cursor:default; }
   .btn.ghost { background:transparent; color:var(--ink); border-color:var(--line2); }
@@ -56,6 +64,9 @@
   .btn.warn { background:var(--bad); border-color:var(--bad); color:#F7F1E7; }
   .btn.warn:hover { background:#6e2314; border-color:#6e2314; }
   .actions { display:flex; flex-wrap:wrap; gap:10px; }
+  .wait { display:flex; align-items:center; gap:12px; margin:0; font:400 15px/1.5 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+  .wait::before { content:""; width:18px; height:18px; flex:none; border-radius:50%; border:2px solid currentColor; border-right-color:transparent; animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
 
   .rowline { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 16px; padding:12px 0; border-top:1px solid var(--line); }
   .rowline:first-of-type { border-top:0; padding-top:0; }
@@ -64,20 +75,21 @@
   .what span { font:400 16px/1.4 Switzer, Helvetica, Arial, sans-serif; overflow-wrap:anywhere; }
   .badge { font:500 12px/1 Switzer, Helvetica, Arial, sans-serif; padding:6px 10px; border-radius:999px; border:1px solid var(--line2); white-space:nowrap; }
   .badge.good { color:var(--good); border-color:var(--good); }
-  .link { background:none; border:0; padding:6px 0; color:var(--ink); font:500 14px/1.2 Switzer, Helvetica, Arial, sans-serif; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+  .link { display:inline-flex; align-items:center; min-height:44px; background:none; border:0; padding:0 4px; color:var(--ink); font:500 14px/1.2 Switzer, Helvetica, Arial, sans-serif; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
   .panel { padding:14px; border:1px dashed var(--line2); border-radius:12px; display:flex; flex-direction:column; gap:12px; }
 
   .notice { margin:0; padding:12px 14px; border-radius:12px; font:400 14px/1.5 Switzer, Helvetica, Arial, sans-serif; border:1px solid var(--line2); }
   .notice.bad { border-color:var(--bad); color:var(--bad); background:rgba(140,47,27,.07); }
   .notice.good { border-color:var(--good); color:var(--good); background:rgba(59,91,46,.08); }
 
-  footer { padding:22px clamp(20px, 5vw, 72px); border-top:1px solid var(--line); font:400 12px/1.5 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
-  @media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
+  footer { display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; padding:20px max(var(--gx), env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) max(var(--gx), env(safe-area-inset-left)); background:var(--night); border-top:1px solid rgba(225,212,194,.14); color:rgba(225,212,194,.72); font:400 12px/1.5 Switzer, Helvetica, Arial, sans-serif; }
+  html.tc-dock-on footer { padding-bottom:20px; } /* the phone dock brings its own room (and the home-bar inset) below the footer */
+  @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation-duration:2.4s !important; } }
 </style>
 </head>
 <body>
 <header>
-  <a class="brand" href="/">TERUCON <span>INDIA</span></a>
+  <a class="tc-logo-link" href="/" aria-label="Terucon India, home"><img class="tc-logo tc-logo--header" src="/brand/logo-header-320.webp" srcset="/brand/logo-header-160.webp 160w, /brand/logo-header-320.webp 320w, /brand/logo-header-480.webp 480w" sizes="210px" width="210" height="36" alt="Terucon India" decoding="async"></a>
   <nav aria-label="Pages">
     <a href="/">Home</a>
     <a href="/materials">Materials</a>
@@ -93,6 +105,9 @@
     <h1>Your details</h1>
     <p class="notice bad" id="alert" role="alert" hidden></p>
     <p class="notice good" id="status" role="status" hidden></p>
+    <!-- Until the page has heard from the server (a slow connection), and if it cannot: never a blank page -->
+    <p class="wait" id="loading" role="status">Loading your details…</p>
+    <div class="actions" id="retry-box" hidden><button class="btn" id="retry" type="button">Try again</button></div>
 
     <section class="card" id="profile-card" hidden aria-labelledby="h-profile">
       <h2 id="h-profile">About you</h2>
@@ -133,7 +148,10 @@
   </div>
 </main>
 
-<footer>Terucon India Private Limited</footer>
+<footer>
+  <img class="tc-footer-logo" src="/brand/logo-header-320.webp" srcset="/brand/logo-header-320.webp 320w, /brand/logo-header-480.webp 480w" sizes="257px" width="257" height="44" alt="" loading="lazy" decoding="async">
+  <span>Terucon India Private Limited</span>
+</footer>
 
 <script>
 (function () {
@@ -279,7 +297,8 @@
 
   // ---------------------------------------------------------------------------------------------- signing out
   function signedOut() { location.replace('/'); }
-  $('logout').addEventListener('click', function () { api('/api/auth/logout', {}).then(signedOut); });
+  // only leave the page once the server has really ended the session: if it could not be reached, say so (the person is still signed in)
+  $('logout').addEventListener('click', function () { api('/api/auth/logout', {}).then(function (r) { if (r.ok) signedOut(); else say(errorOf(r).message); }); });
   $('logout-all').addEventListener('click', function () { api('/api/auth/logout-all', {}).then(function (r) { if (r.ok) signedOut(); else say(errorOf(r).message); }); });
 
   // ---------------------------------------------------------------------------------------------- deleting
@@ -314,8 +333,13 @@
   });
 
   // ---------------------------------------------------------------------------------------------- start
+  // The page cannot load (no connection, or the server had a problem): say so, and offer to try again instead of sending the person
+  // to the sign-in page for something that is not their doing.
+  $('retry').addEventListener('click', function () { location.reload(); });
   Promise.all([api('/api/auth/me'), api('/api/auth/config')]).then(function (res) {
     var who = res[0], cfg = res[1];
+    $('loading').hidden = true;
+    if (!who.ok && (who.status === 0 || who.status === 429 || who.status >= 500)) { say(errorOf(who).message); $('retry-box').hidden = false; return; }
     if (!who.ok || !who.data.authenticated) { toSignIn(false); return; }
     me = who.data.user;
     if (!me.profileComplete) { toSignIn(true); return; }

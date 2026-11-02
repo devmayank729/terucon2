@@ -20,6 +20,11 @@ RUN python3 -m venv python/.venv && python/.venv/bin/pip install --no-cache-dir 
 
 COPY . .
 
+# Build the fast version of the site into dist/ (pages without the self-extracting bundle, hashed and precompressed files:
+# README, "Speed, caching and compression"). A failure stops the image build on purpose: without dist/ the server still starts but
+# serves the slow pages/*.html, and a deploy that is silently slow is worse than one that does not go out.
+RUN node tools/build-dist.js
+
 # Render sets PORT; HOST must be 0.0.0.0 for its router to reach us.
 ENV NODE_ENV=production \
     HOST=0.0.0.0

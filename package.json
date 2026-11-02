@@ -13,10 +13,14 @@
   ],
   "scripts": {
     "start": "node app.js",
-    "prestart": "node tools/build-site.js --if-missing",
+    "prestart": "node tools/build-site.js --if-missing && node tools/build-dist.js",
     "dev": "node --watch-path=server --watch-path=swatchroom/server --watch-path=app.js app.js",
     "build:site": "node tools/build-site.js",
     "check:site": "node tools/build-site.js --check",
+    "build:dist": "node tools/build-dist.js",
+    "check:dist": "node tools/build-dist.js --check",
+    "optimize:images": "node tools/optimize-images.mjs",
+    "check:images": "node tools/optimize-images.mjs --check",
     "check:links": "node tools/check-links.js",
     "build:overview": "node tools/build-overview.js",
     "test": "node tools/run-tests.js",
@@ -26,6 +30,7 @@
     "test:swatchroom": "npm test -w swatchroom"
   },
   "dependencies": {
+    "compression": "^1.8.2",
     "express": "^5.1.0"
   }
 }

@@ -12,11 +12,15 @@ import path from 'node:path';
 import { allCdnHosts } from '../../site/inspiration/sources.js';
 import { HOST as GCS_HOST } from '../catalogue/gcsSigner.js';
 import { pageCsp } from '../lib/csp.js';
+import { chooseEncoding, sendVariant } from '../lib/delivery.js';
 import { sendError } from '../lib/errors.js';
+import { sendErrorPage } from '../lib/errorPage.js';
+import { ASSETS_ROUTE } from './assets.js';
+import { BRAND_ROUTE } from './brand.js';
 
-/** The sign-in cannot be checked right now (its database is down): say so, and let nothing through. */
-function unavailable(res) {
-  res.status(503).set({ 'Retry-After': '30', 'Cache-Control': 'no-store' }).type('html').send('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Terucon</title><p style="font:16px/1.5 system-ui;max-width:32em;margin:15vh auto;padding:0 20px">Sign-in is not available for a moment. Please try again in a minute.</p>');
+/** The sign-in cannot be checked right now (its database is down): say so, and let nothing through. The branded error page when there is one. */
+function unavailable(res, root) {
+  sendErrorPage(res, { root, status: 503, retryAfter: 30, fallback: '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Terucon</title><p style="font:16px/1.5 system-ui;max-width:32em;margin:15vh auto;padding:0 20px">Sign-in is not available for a moment. Please try again in a minute.</p>' });
 }
 
 /**
@@ -24,11 +28,15 @@ function unavailable(res) {
  * @param {string} root project folder, the base for the files in the table
  * @param {Map<string, object>} table
  * @param {string} buildHint what to run when a file has not been generated yet
- * @param {{gate?: (req: object, action: object) => Promise<null | {redirect: string} | {unavailable: true}>}} [options]
+ * @param {{gate?: (req: object, action: object) => Promise<null | {redirect: string} | {unavailable: true}>, dist?: ReturnType<typeof import('../lib/delivery.js').createDist>}} [options]
  *   `gate` is asked about every page that is really served (after the path has been decoded and looked up, so no spelling of
  *   the address skips it); a redirect sends the visitor to sign in, `unavailable` is a 503.
+ *   `dist` (the built site, server/lib/delivery.js): a page it has a built copy of is answered from there, with a strong ETag
+ *   (If-None-Match gives 304) and the precompressed copy the client accepts (br, then gzip, else the plain file). Every rule
+ *   before that point (route, aliases, sign-in gate, site.json headers, Cache-Control) is the same as for pages/*.html, which
+ *   is still what is served for a page dist does not have (no dist/ yet, a fresh checkout, the tests).
  */
-export function htmlHandler(root, table, buildHint, { gate } = {}) {
+export function htmlHandler(root, table, buildHint, { gate, dist } = {}) {
   // lower-cased name -> the one real name it stands for (null when two names differ only by capitals)
   const lowered = new Map();
   for (const key of table.keys()) lowered.set(key.toLowerCase(), lowered.has(key.toLowerCase()) ? null : key);
@@ -84,7 +92,7 @@ export function htmlHandler(root, table, buildHint, { gate } = {}) {
       } catch (error) {
         return next(error);
       }
-      if (verdict?.unavailable) return unavailable(res);
+      if (verdict?.unavailable) return unavailable(res, root);
       if (verdict?.redirect) return res.set({ 'Cache-Control': 'no-store', Vary: 'Cookie' }).redirect(302, verdict.redirect);
     }
     const policy = policyFor(action);
@@ -94,6 +102,17 @@ export function htmlHandler(root, table, buildHint, { gate } = {}) {
       ...(action.access === 'signed-in' && { Vary: 'Cookie' }),
       ...(policy && { 'Content-Security-Policy': policy }),
     };
+    const built = dist && action.key ? dist.page(action.key) : null;
+    if (built) {
+      const encoding = chooseEncoding(req.headers['accept-encoding'], { br: !!built.br, gzip: !!built.gz });
+      const tag = `"${built.etag}${encoding === 'br' ? '-br' : encoding === 'gzip' ? '-gz' : ''}"`; // one validator per body: the three bodies differ
+      try {
+        if (await sendVariant(res, { root: dist.dir, relative: built.file, encoding, type: 'text/html; charset=utf-8', etag: tag, headers })) return;
+      } catch (error) {
+        return next(error);
+      }
+      // the built file vanished (a rebuild in progress): serve pages/ below
+    }
     res.sendFile(action.file, { root, cacheControl: false, headers }, (err) => {
       if (!err || res.headersSent) return;
       if (err.status === 404 || err.code === 'ENOENT') return sendError(res, 404, `${action.file} has not been generated yet. Run: ${buildHint}`);
@@ -102,17 +121,20 @@ export function htmlHandler(root, table, buildHint, { gate } = {}) {
   };
 }
 
+/** Addresses with a route of their own: a miss there is that route's own 404, never the Coming soon page. (/media is added from site.json.) */
+const SKIPPED_PREFIXES = ['/api', ASSETS_ROUTE, BRAND_ROUTE];
+
 /**
  * The Coming soon page (site.json docs.comingSoon) for any address that is a page nobody has built yet: a browser asking for
  * HTML at a path with no file extension. It is answered 404, so search engines do not take it for a page. Files that are
- * missing (a path with an extension), /api and /media, and clients that do not want HTML keep their plain 404.
+ * missing (a path with an extension), /api, /media, /assets and /brand, and clients that do not want HTML keep their plain 404.
  */
 export function comingSoon(ctx) {
   const entry = ctx.site.docs.comingSoon;
   const mediaPrefix = `${ctx.site.media.route}/`;
   return (req, res, next) => {
     if (!entry || (req.method !== 'GET' && req.method !== 'HEAD')) return next();
-    if (req.path === '/api' || req.path.startsWith('/api/') || req.path.startsWith(mediaPrefix)) return next();
+    if (SKIPPED_PREFIXES.some((prefix) => req.path === prefix || req.path.startsWith(`${prefix}/`)) || req.path.startsWith(mediaPrefix)) return next();
     if (req.path.split('/').pop().includes('.') || !req.accepts('html')) return next();
     const options = { root: ctx.root, cacheControl: false, headers: { 'Cache-Control': 'no-cache' } };
     res.status(404).sendFile(entry.file, options, (err) => {
@@ -123,6 +145,5 @@ export function comingSoon(ctx) {
 }
 
 export function mountPages(app, ctx) {
-  app.use(htmlHandler(ctx.root, ctx.site.table('pages'), 'npm run build:site', { gate: ctx.auth?.pageGate }));
-  app.get('/favicon.ico', (req, res) => res.status(204).end());
+  app.use(htmlHandler(ctx.root, ctx.site.table('pages'), 'npm run build:site', { gate: ctx.auth?.pageGate, dist: ctx.dist }));
 }

@@ -43,13 +43,13 @@ async function errorFrom(res) {
   let body = null;
   try { body = await res.json(); } catch { /* not JSON (e.g. a gateway's own HTML error page) */ }
   const e = body?.error;
-  return new CatalogueClientError(e?.message || `The server answered ${res.status}.`, { reason: e?.reason || 'client', status: res.status, retryAfter: e?.retryAfter ?? (res.headers.get('Retry-After') ? Number(res.headers.get('Retry-After')) : null) });
+  return new CatalogueClientError(e?.message || (res.status >= 500 ? 'The search had a problem on our side. Please try again in a moment.' : 'Something went wrong. Please try again.'), { reason: e?.reason || 'client', status: res.status, retryAfter: e?.retryAfter ?? (res.headers.get('Retry-After') ? Number(res.headers.get('Retry-After')) : null) });
 }
 
 async function getJson(path) {
   let res;
   try { res = await fetch(path, { headers: { Accept: 'application/json' } }); }
-  catch { throw new CatalogueClientError('Could not reach the server.', { reason: 'network' }); }
+  catch { throw new CatalogueClientError('Could not reach the server. Check your connection and try again.', { reason: 'network' }); }
   if (!res.ok) throw await errorFrom(res);
   return res.json();
 }
@@ -57,7 +57,7 @@ async function getJson(path) {
 async function postJson(path, body) {
   let res;
   try { res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body ?? {}) }); }
-  catch { throw new CatalogueClientError('Could not reach the server.', { reason: 'network' }); }
+  catch { throw new CatalogueClientError('Could not reach the server. Check your connection and try again.', { reason: 'network' }); }
   if (!res.ok) throw await errorFrom(res);
   return res.status === 204 ? null : res.json();
 }
@@ -98,7 +98,7 @@ export async function searchPhoto({ photo, mode, point, box, radius, k, catalogu
   const type = photo.type || 'image/jpeg';
   let res;
   try { res = await fetch(`/api/catalogue/search?${q}`, { method: 'POST', headers: { 'Content-Type': type }, body: photo }); }
-  catch { throw new CatalogueClientError('Could not reach the server.', { reason: 'network' }); }
+  catch { throw new CatalogueClientError('Could not reach the server. Check your connection and try again.', { reason: 'network' }); }
   if (!res.ok) throw await errorFrom(res);
   return res.json();
 }

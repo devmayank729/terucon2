@@ -4,6 +4,7 @@ import http from 'node:http';
 import net from 'node:net';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import zlib from 'node:zlib';
 import { request } from '../helpers/http.js';
 import { makeProjectRoot, setStudioEnv } from '../helpers/studio.js';
 
@@ -64,14 +65,30 @@ test.after(async () => {
 
 // the anti-framing and HTTPS headers are the website's (server/middleware/headers.js); the studio on its own sends none
 const IGNORE = new Set(['date', 'set-cookie', 'connection', 'keep-alive', 'x-frame-options', 'content-security-policy', 'strict-transport-security']);
-const normal = (r) => ({
-  status: r.status,
-  headers: Object.fromEntries(Object.entries(r.headers).filter(([k]) => !IGNORE.has(k)).sort(([a], [b]) => a.localeCompare(b))),
-  body: r.buffer.toString('latin1'),
-});
+// The two things the website adds on purpose (and nothing else is allowed to differ):
+//  1. Vary: Accept-Encoding, which the compression middleware (server/middleware/compress.js) puts on every compressible answer, even for
+//     a client that did not ask for compression (these requests send no Accept-Encoding, so the BYTES are the same: compared as before).
+//     The test 'compressed, the studio's files decode to the same bytes' below sends Accept-Encoding and compares the decoded bytes.
+//  2. Cache-Control of /textures/*: the studio's `no-cache` becomes a week (server/middleware/studioCache.js). Asserted in `same`.
+const withoutAcceptEncoding = (vary) => String(vary).split(/\s*,\s*/).filter((token) => token && token.toLowerCase() !== 'accept-encoding').join(', ');
+const normal = (r) => {
+  const headers = Object.fromEntries(Object.entries(r.headers).filter(([k]) => !IGNORE.has(k)).sort(([a], [b]) => a.localeCompare(b)));
+  if (headers.vary !== undefined) {
+    const rest = withoutAcceptEncoding(headers.vary);
+    if (rest) headers.vary = rest;
+    else delete headers.vary;
+  }
+  return { status: r.status, headers, body: r.buffer.toString('latin1') };
+};
 const both = async (options) => [normal(await request(alonePort, options)), normal(await request(mountedPort, asMember(options)))];
 const same = async (what, options) => {
   const [a, m] = await both(options);
+  if (options.path.startsWith('/textures/')) {
+    assert.equal(a.headers['cache-control'], 'no-cache', `${what}: the studio's own policy for textures`);
+    assert.equal(m.headers['cache-control'], 'public, max-age=604800', `${what}: the website's policy for textures`);
+    delete a.headers['cache-control'];
+    delete m.headers['cache-control'];
+  }
   assert.deepEqual(m.headers, a.headers, `${what}: headers differ (alone first)`);
   assert.equal(m.status, a.status, `${what}: status`);
   assert.equal(m.body, a.body, `${what}: body`);
@@ -86,6 +103,28 @@ const signIn = async (port) => {
 test('the studio\'s own files come with the same status, headers and bytes', async () => {
   for (const p of ['/js/swatchroom-app.js', '/js/views/studio.js', '/css/swatchroom.css', '/css/fonts.css', '/fonts/zodiak-300.woff2', '/textures/brick.png', '/favicon.svg', '/admin', '/admin.html']) {
     await same(p, { path: p });
+  }
+});
+
+test('compressed, the studio\'s files decode to the same bytes (and keep their validators)', async () => {
+  for (const p of ['/js/swatchroom-app.js', '/css/swatchroom.css', '/js/views/studio.js']) {
+    const plain = await request(alonePort, { path: p });
+    for (const [coding, decode] of [['br', zlib.brotliDecompressSync], ['gzip', zlib.gunzipSync]]) {
+      const m = await request(mountedPort, asMember({ path: p, headers: { 'Accept-Encoding': coding } }));
+      assert.equal(m.status, 200, `${p} ${coding}`);
+      assert.equal(m.headers['content-encoding'], coding, `${p} ${coding}: it really was compressed`);
+      assert.ok(m.buffer.length < plain.buffer.length, `${p} ${coding}: smaller (${m.buffer.length} vs ${plain.buffer.length})`);
+      assert.deepEqual(decode(m.buffer), plain.buffer, `${p} ${coding}: the decoded bytes are the studio's own`);
+      assert.match(m.headers.vary, /Accept-Encoding/, p);
+      assert.equal(m.headers.etag, plain.headers.etag, `${p}: the studio's (weak) ETag is kept`);
+      assert.equal(m.headers['content-type'], plain.headers['content-type'], p);
+      assert.equal(m.headers['cache-control'], plain.headers['cache-control'], p);
+      assert.equal(m.headers['content-length'], undefined, `${p}: the plain length no longer applies`);
+    }
+    // a browser that asks again with the validator still gets the cheap answer
+    const again = await request(mountedPort, asMember({ path: p, headers: { 'Accept-Encoding': 'br', 'If-None-Match': plain.headers.etag } }));
+    assert.equal(again.status, 304, `${p}: conditional request`);
+    assert.equal(again.buffer.length, 0);
   }
 });
 

@@ -22,6 +22,9 @@ services:
   - type: web
     name: terucon
     runtime: docker
+    # The Dockerfile builds dist/ (the compressed, cacheable version of the pages and their /assets) with `node tools/build-dist.js`; no
+    # setting here is needed for it. The server listens with a 65 s keep-alive timeout for Render's router (app.js). To check what Render
+    # really sends, run: curl -sI -H 'Accept-Encoding: br' https://<your-service>.onrender.com/  (look for content-encoding, etag, vary).
     plan: starter
     region: oregon
     healthCheckPath: /api/health

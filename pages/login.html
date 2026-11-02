@@ -2,32 +2,41 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#E1D4C2">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F150A">
 <meta name="robots" content="noindex">
 <title>Sign in — Terucon India</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
 <!-- Zodiak and Switzer, the site's fonts (served with the Design Studio); the page reads fine in Georgia / Helvetica without them -->
 <link rel="stylesheet" href="/css/fonts.css">
+<link rel="stylesheet" href="/brand/brand.css">
+<link rel="stylesheet" href="/brand/dock.css">
+<script src="/brand/dock.js" defer></script>
 <style>
-  :root { --bg:#E1D4C2; --card:#EFE6D8; --ink:#291C0E; --ink2:#6E473B; --line:rgba(41,28,14,.16); --line2:rgba(41,28,14,.34); --bad:#8C2F1B; --good:#3B5B2E; }
+  :root { --bg:#E1D4C2; --card:#EFE6D8; --ink:#291C0E; --ink2:#6E473B; --line:rgba(41,28,14,.16); --line2:rgba(41,28,14,.34); --bad:#8C2F1B; --good:#3B5B2E; --night:#1F150A; --gx:clamp(16px, 5vw, 72px); }
   * { box-sizing:border-box; }
   html, body { margin:0; padding:0; }
-  html { -webkit-text-size-adjust:100%; -webkit-tap-highlight-color:transparent; }
-  body { min-height:100vh; display:flex; flex-direction:column; background:var(--bg); color:var(--ink); font-family:Switzer, Helvetica, Arial, sans-serif; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  html { -webkit-text-size-adjust:100%; -webkit-tap-highlight-color:transparent; background:var(--night); }
+  body { min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; background:var(--bg); color:var(--ink); font-family:Switzer, Helvetica, Arial, sans-serif; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; overflow-wrap:break-word; }
   a { color:inherit; }
   ::selection { background:#6E473B; color:#E1D4C2; }
   :focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
   [hidden] { display:none !important; }
 
-  header { height:clamp(64px, calc(40px + 3.2vw), 76px); display:flex; align-items:center; justify-content:space-between; gap:16px; padding:0 clamp(20px, 5vw, 72px); border-bottom:1px solid var(--line); }
-  .brand { display:flex; align-items:baseline; gap:10px; font:600 15px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.34em; text-decoration:none; }
-  .brand span { font:500 9.5px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.3em; }
-  .back { font:500 13px/1 Switzer, Helvetica, Arial, sans-serif; text-decoration:none; opacity:1; transition:opacity .25s; }
-  .back:hover { opacity:.7; }
+  /* the frame, the same on every signed-in page: a dark header band with the logo, a dark footer band */
+  header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:4px 16px; min-height:calc(64px + env(safe-area-inset-top)); padding:calc(8px + env(safe-area-inset-top)) max(var(--gx), env(safe-area-inset-right)) 8px max(var(--gx), env(safe-area-inset-left)); background:var(--night); color:#E1D4C2; border-bottom:1px solid rgba(225,212,194,.14); }
+  header :focus-visible, footer :focus-visible { outline-color:#E1D4C2; }
+  .back { display:inline-flex; align-items:center; min-height:44px; font:500 13px/1.2 Switzer, Helvetica, Arial, sans-serif; text-decoration:none; opacity:.86; transition:opacity .25s; }
+  .back:hover { opacity:1; }
 
-  main { flex:1; display:flex; align-items:center; justify-content:center; padding:clamp(28px, 6vh, 72px) clamp(16px, 5vw, 72px); }
-  .panel { width:100%; max-width:480px; display:flex; flex-direction:column; gap:22px; }
+  main { flex:1; display:flex; align-items:center; justify-content:center; padding:clamp(20px, 5vh, 64px) max(var(--gx), env(safe-area-inset-right)) clamp(28px, 6vh, 72px) max(var(--gx), env(safe-area-inset-left)); }
+  .stage { width:100%; max-width:480px; display:flex; flex-direction:column; gap:clamp(20px, 3.5vh, 32px); }
+  .plate { display:grid; place-items:center; padding:18px 20px; border-radius:22px; background:radial-gradient(70% 90% at 50% 38%, rgba(240,176,96,.16), rgba(240,176,96,0) 70%), var(--night); }
+  .plate img { display:block; width:min(56vw, 224px); height:auto; }
+  .panel { width:100%; display:flex; flex-direction:column; gap:22px; }
   .eyebrow { display:flex; align-items:center; gap:14px; margin:0; font:500 10.5px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.22em; text-transform:uppercase; color:var(--ink2); }
   .eyebrow::before { content:""; width:32px; height:1px; background:currentColor; }
   h1 { margin:0; font:300 clamp(34px, 6.2vw, 52px)/1.04 Zodiak, Georgia, serif; letter-spacing:-.02em; text-wrap:balance; }
@@ -45,17 +54,17 @@
   input[readonly] { background:transparent; color:var(--ink2); }
   input.code { letter-spacing:.55em; text-align:center; font-size:26px; font-variant-numeric:tabular-nums; padding:0 0 0 .55em; }
   input[aria-invalid=true] { border-color:var(--bad); }
-  .check { display:flex; align-items:flex-start; gap:12px; font:400 14px/1.45 Switzer, Helvetica, Arial, sans-serif; cursor:pointer; }
-  .check input { width:20px; height:20px; margin:1px 0 0; accent-color:#291C0E; flex:none; }
+  .check { display:flex; align-items:center; gap:12px; min-height:44px; font:400 14px/1.45 Switzer, Helvetica, Arial, sans-serif; cursor:pointer; }
+  .check input { width:22px; height:22px; margin:0; accent-color:#291C0E; flex:none; }
 
   .btn { display:inline-flex; align-items:center; justify-content:center; gap:10px; height:52px; padding:0 26px; border-radius:999px; border:1px solid var(--ink); background:var(--ink); color:var(--bg); font:500 15px/1 Switzer, Helvetica, Arial, sans-serif; cursor:pointer; transition:background .3s, color .3s, opacity .2s; }
   .btn:hover { background:var(--ink2); border-color:var(--ink2); }
   .btn:disabled { opacity:.55; cursor:default; }
   .btn.ghost { background:transparent; color:var(--ink); border-color:var(--line2); }
   .btn.ghost:hover { background:rgba(41,28,14,.07); border-color:var(--ink); }
-  .link { background:none; border:0; padding:6px 0; margin:0; color:var(--ink); font:500 14px/1.2 Switzer, Helvetica, Arial, sans-serif; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+  .link { display:inline-flex; align-items:center; min-height:44px; background:none; border:0; padding:0; margin:0; color:var(--ink); font:500 14px/1.2 Switzer, Helvetica, Arial, sans-serif; text-align:left; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
   .link:disabled { color:var(--ink2); text-decoration:none; cursor:default; }
-  .row { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px 16px; }
+  .row { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0 16px; }
 
   .divider { display:flex; align-items:center; gap:14px; margin:0; font:500 12px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.14em; text-transform:uppercase; color:var(--ink2); }
   .divider::before, .divider::after { content:""; flex:1; height:1px; background:var(--line2); }
@@ -66,30 +75,50 @@
   .notice.good { border-color:var(--good); color:var(--good); background:rgba(59,91,46,.08); }
   .verified { display:inline-flex; align-items:center; gap:8px; font:500 14px/1.3 Switzer, Helvetica, Arial, sans-serif; color:var(--good); }
   .small { font:400 12.5px/1.55 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); margin:0; }
+  #step-unavailable { display:flex; flex-direction:column; align-items:flex-start; gap:14px; }
+  .wait { display:flex; align-items:center; gap:12px; margin:0; font:400 15px/1.5 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+  .wait::before { content:""; width:18px; height:18px; flex:none; border-radius:50%; border:2px solid currentColor; border-right-color:transparent; animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
 
-  footer { padding:22px clamp(20px, 5vw, 72px); border-top:1px solid var(--line); font:400 12px/1.5 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+  footer { display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; padding:20px max(var(--gx), env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) max(var(--gx), env(safe-area-inset-left)); background:var(--night); border-top:1px solid rgba(225,212,194,.14); color:rgba(225,212,194,.72); font:400 12px/1.5 Switzer, Helvetica, Arial, sans-serif; }
+  html.tc-dock-on footer { padding-bottom:20px; } /* the phone dock brings its own room (and the home-bar inset) below the footer */
+
+  @media (min-width:900px) {
+    main { padding-top:clamp(32px, 7vh, 80px); }
+    .stage { max-width:1040px; display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 480px); align-items:center; gap:clamp(40px, 6vw, 96px); }
+    .plate { min-height:min(560px, 68vh); border-radius:28px; padding:48px; }
+    .plate img { width:min(100%, 380px); }
+  }
   @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
 </style>
 </head>
 <body>
 <header>
-  <a class="brand" href="/">TERUCON <span>INDIA</span></a>
-  <a class="back" href="/">← Back to the home page</a>
+  <a class="tc-logo-link" href="/" aria-label="Terucon India, home"><img class="tc-logo tc-logo--header" src="/brand/logo-header-320.webp" srcset="/brand/logo-header-160.webp 160w, /brand/logo-header-320.webp 320w, /brand/logo-header-480.webp 480w" sizes="210px" width="210" height="36" alt="Terucon India" decoding="async"></a>
+  <a class="back" href="/">← Back to home</a>
 </header>
 
 <main>
-  <div class="panel">
-    <p class="eyebrow" id="eyebrow">Welcome</p>
-    <h1 id="title">Sign in or <em>create your account</em></h1>
-    <p class="lead" id="lead">Use your e-mail address or mobile number. We will send you a one-time code, so there is no password to remember.</p>
+  <div class="stage">
+    <div class="plate"><img src="/brand/logo-full-640.webp" srcset="/brand/logo-full-320.webp 320w, /brand/logo-full-640.webp 640w, /brand/logo-full-1200.webp 1200w" sizes="(min-width:900px) 380px, 224px" width="640" height="407" alt="Terucon India Pvt. Ltd. Interiors for businesses" decoding="async" fetchpriority="high"></div>
+    <div class="panel">
+      <p class="eyebrow" id="eyebrow">Welcome</p>
+      <h1 id="title">Sign in or <em>create your account</em></h1>
+      <p class="lead" id="lead">Use your e-mail address or mobile number. We will send you a one-time code, so there is no password to remember.</p>
 
-    <div class="card">
-      <p class="notice bad" id="alert" role="alert" hidden></p>
+      <div class="card">
+        <p class="notice bad" id="alert" role="alert" hidden></p>
 
-      <!-- The sign-in is not available (nothing set up yet, or the database is down) -->
-      <section id="step-unavailable" hidden>
-        <p class="lead">Sign-in is not available just now. Please try again in a few minutes, or call us on the number on the home page.</p>
-      </section>
+        <!-- Shown until the page has heard from the server, so the card is never an empty box -->
+        <section id="step-loading" aria-live="polite">
+          <p class="wait">One moment…</p>
+        </section>
+
+        <!-- The sign-in is not available (nothing set up yet, or the database is down), or the server could not be reached -->
+        <section id="step-unavailable" hidden>
+          <p class="lead" id="unavailable-text">Sign-in is not available just now. Please try again in a few minutes, or call us on the number on the home page.</p>
+          <button class="btn ghost" id="retry-load" type="button" hidden>Try again</button>
+        </section>
 
       <!-- Step 1: who are you? -->
       <section id="step-start" hidden>
@@ -172,9 +201,13 @@
       </section>
     </div>
   </div>
+  </div>
 </main>
 
-<footer>Terucon India Private Limited</footer>
+<footer>
+  <img class="tc-footer-logo" src="/brand/logo-header-320.webp" srcset="/brand/logo-header-320.webp 320w, /brand/logo-header-480.webp 480w" sizes="257px" width="257" height="44" alt="" loading="lazy" decoding="async">
+  <span>Terucon India Private Limited</span>
+</footer>
 
 <script>
 (function () {
@@ -199,7 +232,7 @@
   };
 
   function show(step) {
-    ['unavailable', 'start', 'code', 'profile', 'confirm'].forEach(function (s) { $('step-' + s).hidden = s !== step; });
+    ['loading', 'unavailable', 'start', 'code', 'profile', 'confirm'].forEach(function (s) { $('step-' + s).hidden = s !== step; });
     var copy = {
       start: ['Welcome', 'Sign in or <em>create your account</em>', 'Use your e-mail address or mobile number. We will send you a one-time code, so there is no password to remember.'],
       code: ['Check your messages', 'Enter your <em>code</em>', ''],
@@ -598,9 +631,20 @@
   }
 
   // ------------------------------------------------------------------------------------------------ start
+  // Sign-in cannot be offered: either the server could not be reached (the person's connection), or it is not set up / is down.
+  // Either way: say which, in plain words, and offer to try again.
+  function unavailable(offline) {
+    show('unavailable');
+    $('unavailable-text').textContent = offline
+      ? 'We could not reach the server. Please check your connection and try again.'
+      : 'Sign-in is not available just now. Please try again in a few minutes, or call us on the number on the home page.';
+    $('retry-load').hidden = false;
+  }
+  $('retry-load').addEventListener('click', function () { location.reload(); });
+
   Promise.all([api('/api/auth/config'), api('/api/auth/me')]).then(function (results) {
     var cfg = results[0], who = results[1];
-    if (!cfg.ok) { show('unavailable'); return; }
+    if (!cfg.ok) { unavailable(cfg.status === 0 || who.status === 0); return; }
     config = cfg.data;
     if (who.ok && who.data.authenticated) {
       me = who.data.user;
@@ -618,7 +662,7 @@
         return;
       }
     }
-    if (!config.ready) { show('unavailable'); return; }
+    if (!config.ready) { unavailable(false); return; }
     describeChannels();
     if (!config.signupOpen) $('identifier-hint').textContent = 'Enter the e-mail address or mobile number of your account. We are not opening new accounts at the moment.';
     var saved = store.get('terucon.otp');

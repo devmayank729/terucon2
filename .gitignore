@@ -46,3 +46,6 @@ catalogue/.venv/
 catalogue/work/
 catalogue/.env
 catalogue/.env.*
+
+# The built site (tools/build-dist.js): the pages unpacked from the bundles, content-hashed assets, brotli/gzip copies. Rebuilt at deploy.
+/dist/

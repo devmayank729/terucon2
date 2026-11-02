@@ -31,12 +31,17 @@ function freePort() {
   });
 }
 
-/** The project as a temp folder: real code and pages, no secrets. Links point back at the big, harmless folders. */
-function copyProject(tmp, { importer = false } = {}) {
+/**
+ * The project as a temp folder: real code and pages, no secrets. Links point back at the big, harmless folders.
+ * dist/ (the built site: node tools/build-dist.js) is copied when there is one, so the stack serves the pages the way production does:
+ * from dist/, compressed and with /assets. Without it the pages come from pages/*.html, as on a fresh checkout. `dist: false` leaves it out.
+ */
+function copyProject(tmp, { importer = false, dist = true } = {}) {
   const project = path.join(tmp, 'project');
   fs.mkdirSync(path.join(project, 'docs'), { recursive: true });
   for (const item of ['app.js', 'package.json', 'server', 'site', 'pages']) fs.cpSync(path.join(ROOT, item), path.join(project, item), { recursive: true });
   fs.copyFileSync(path.join(ROOT, 'docs', 'PROJECT_OVERVIEW.html'), path.join(project, 'docs', 'PROJECT_OVERVIEW.html'));
+  if (dist && fs.existsSync(path.join(ROOT, 'dist', 'manifest.json'))) fs.cpSync(path.join(ROOT, 'dist'), path.join(project, 'dist'), { recursive: true });
   fs.symlinkSync(path.join(ROOT, 'media'), path.join(project, 'media'), 'dir');
   fs.symlinkSync(path.join(ROOT, 'node_modules'), path.join(project, 'node_modules'), 'dir');
   // the inspiration import's own Python (gallery-dl) by link, only when asked for: it reaches real websites
@@ -86,11 +91,11 @@ async function waitForHealth(base, exited, ms) {
 }
 
 /**
- * @param {{port?: number, passcode?: string, bootMs?: number, warmup?: 'on' | 'off', importer?: boolean}} [opts] `importer`: link the project's python/ folder in, so gallery-dl runs (it then reaches real websites: for live checks only)
+ * @param {{port?: number, passcode?: string, bootMs?: number, warmup?: 'on' | 'off', importer?: boolean, dist?: boolean, env?: Record<string, string>}} [opts] `importer`: link the project's python/ folder in, so gallery-dl runs (it then reaches real websites: for live checks only); `dist`: copy the built site (dist/) in when there is one (default true); `env`: more environment variables for the server
  * @returns {Promise<{base: string, port: number, health: object, pools: {oneformer: object, analyze: object}, stop(): Promise<void>, logs(): string, codeFor(who: string, purpose?: string): string | null}>}
  */
 export async function startStack(opts = {}) {
-  const { passcode = '', bootMs = 400, warmup = 'on', importer = false } = opts;
+  const { passcode = '', bootMs = 400, warmup = 'on', importer = false, dist = true, env: extraEnv = {} } = opts;
   const port = opts.port || (await freePort());
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'terucon-dev-'));
   const pools = { oneformer: await startMockModal({ key: 'key-oneformer', bootMs }), analyze: await startMockModal({ key: 'key-analyze', bootMs }) };
@@ -106,7 +111,7 @@ export async function startStack(opts = {}) {
     removeProject(tmp);
   };
   try {
-    const project = copyProject(tmp, { importer });
+    const project = copyProject(tmp, { importer, dist });
     const envFile = path.join(tmp, '.env');
     fs.writeFileSync(envFile, '# throw-away settings for the dev stack\n');
     const env = {
@@ -134,6 +139,7 @@ export async function startStack(opts = {}) {
       AUTH_SECRET: 'dev-stack-auth-secret-'.padEnd(48, 'x'),
     };
     if (passcode) Object.assign(env, { STUDIO_PASSCODE: passcode, STUDIO_REQUIRE_PASSCODE: 'on' });
+    Object.assign(env, extraEnv); // e.g. { AUTH_REQUIRED: 'off' } to look at the signed-in pages without signing in
     site = spawn(process.execPath, [path.join(project, 'app.js')], { cwd: project, env });
     site.stdout.on('data', (d) => (logs += d));
     site.stderr.on('data', (d) => (logs += d));

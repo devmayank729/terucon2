@@ -1,0 +1,180 @@
+<!-- Terucon loader. Paste as the first thing inside the body; call TeruconLoader.done() when the page is ready.
+     One style block, one element, one script block; the only request is the logo mark. No style attributes and no
+     inline event handlers (both are blocked by a strict Content-Security-Policy); the script sets styles through the CSSOM.
+     Keep tag names with angle brackets out of this comment: server/lib/csp.js finds inline blocks with a plain pattern.
+     The loader stays hidden until its own script has run, so a visitor without JavaScript, or a page that blocks
+     inline scripts, is never left behind a screen that cannot close.
+     API: TeruconLoader.done() opens the louvres and removes the loader; TeruconLoader.fail(message?) shows the
+     "taking longer than usual" screen (done() still works afterwards). fail() runs by itself after 12 s without done(),
+     and when a same-origin script src fails to load (add data-tc-optional to a script that may fail quietly). -->
+<style>
+#tc-loader{--w:min(70vw,300px);--sans:Switzer,"Avenir Next","Helvetica Neue",Helvetica,Arial,sans-serif;--serif:Zodiak,"Iowan Old Style","Palatino Linotype",Georgia,serif;display:none;position:fixed;inset:0;z-index:2147483000;align-items:center;justify-content:center;overflow:hidden;background:#1F150A;color:#E1D4C2;font-family:var(--sans);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+#tc-loader.tc-ld-on{display:flex}
+html.tc-ld-lock,html.tc-ld-lock body{overflow:hidden;overscroll-behavior:none}
+#tc-loader *{box-sizing:border-box}
+.tc-ld-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+.tc-ld-stage{position:relative;display:flex;flex-direction:column;align-items:center;transform:translateY(-3vh);transition:opacity .2s .08s}
+.tc-ld-glow{position:absolute;left:50%;top:calc(var(--w)*.31);width:calc(var(--w)*1.9);height:calc(var(--w)*1.3);transform:translate(-50%,-50%);background:radial-gradient(closest-side,rgba(245,179,87,.17),rgba(245,179,87,.05) 58%,transparent);opacity:0;pointer-events:none;animation:tc-fi 1s .9s forwards,tc-br 4.5s 1.9s ease-in-out infinite alternate}
+.tc-ld-fig{position:relative;width:var(--w);aspect-ratio:862/552;margin-bottom:calc(var(--w)*.19)}
+.tc-ld-art{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:none;stroke:#E1D4C2;stroke-width:3;stroke-linejoin:round;stroke-linecap:butt;transition:opacity .8s .1s}
+.tc-ld-art .d,.tc-ld-art .a{stroke-dasharray:1;stroke-dashoffset:1;animation:tc-dr var(--t,.9s) cubic-bezier(.55,0,.2,1) var(--k,0s) forwards}
+.tc-ld-art .a{stroke:#F5B357;stroke-width:4.5;animation-duration:.5s}
+.tc-ld-art .g{stroke:#F5B357;stroke-width:15;stroke-opacity:.13;stroke-linecap:round}
+.tc-ld-art .v{fill:#E1D4C2;fill-opacity:0;stroke:none;animation:tc-vo 1s 1.15s forwards}
+.tc-ld-art .p{stroke-width:2;opacity:0;animation:tc-pl .9s .15s forwards}
+.d1{--k:.12s;--t:.95s}.d2{--k:.42s;--t:.8s}.d3{--k:.45s;--t:.85s}.d4{--k:.55s;--t:.9s}.d5{--k:.72s;--t:.7s}.d6{--k:.88s;--t:.6s;stroke-width:2.2}
+.a1{--k:1.04s}.a2{--k:1.2s}.a3{--k:1.22s}.a4{--k:1.24s}.a5{--k:1.34s}.a6{--k:1.5s}.a7{--k:1.56s}
+.tc-ld-sweep{position:absolute;left:-32%;top:-34%;width:44%;height:168%;opacity:0;pointer-events:none;background:radial-gradient(closest-side,rgba(255,205,128,.3),rgba(255,190,110,.1) 52%,transparent);animation:tc-sw 1s .85s cubic-bezier(.45,0,.3,1) forwards}
+.tc-ld-mark{position:absolute;inset:0;width:100%;height:100%;opacity:0;transform:scale(.985);transition:opacity .9s,transform 1.2s cubic-bezier(.2,.7,.2,1)}
+.tc-ld-s2 .tc-ld-mark{opacity:1;transform:none}
+.tc-ld-s2 .tc-ld-art{opacity:0}
+.tc-ld-name{margin:0;font:600 15px/1 var(--sans);text-transform:uppercase;letter-spacing:.9em;padding-left:.9em;opacity:0;animation:tc-nm 1.2s cubic-bezier(.2,.7,.2,1) 1.55s forwards}
+.tc-ld-tag{margin:13px 0 0;font:400 10px/1.4 var(--sans);text-transform:uppercase;letter-spacing:.26em;padding-left:.26em;color:#A78D78;opacity:0;animation:tc-fi .9s 2.1s forwards}
+.tc-ld-led{position:relative;width:var(--w);height:2px;margin-top:30px;background:rgba(225,212,194,.1);border-radius:2px;opacity:0;animation:tc-fi .6s .35s forwards;-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.tc-ld-led i{position:absolute;left:0;top:0;bottom:0;width:34%;border-radius:2px;background:linear-gradient(90deg,transparent,#F5B357 45%,#FFD9A0 56%,transparent);box-shadow:0 0 12px 2px rgba(245,179,87,.5);animation:tc-gl 1.8s cubic-bezier(.45,0,.25,1) infinite}
+.tc-ld-fail{display:none;flex-direction:column;align-items:center;gap:10px;max-width:min(88vw,380px);margin-top:26px;text-align:center}
+.tc-ld-ft{margin:0;font:300 clamp(22px,6.4vw,30px)/1.18 var(--serif);letter-spacing:-.01em;text-wrap:balance}
+.tc-ld-fm{margin:0;font:400 14px/1.55 var(--sans);color:#BEB5A9}
+.tc-ld-fa{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 22px;margin-top:10px}
+.tc-ld-retry{min-height:44px;padding:0 28px;border:0;border-radius:999px;background:#E1D4C2;color:#291C0E;font:500 14px/1 var(--sans);cursor:pointer}
+.tc-ld-retry:hover{background:#fff}
+.tc-ld-home{display:inline-flex;align-items:center;min-height:44px;color:#E1D4C2;font:500 14px/1 var(--sans);text-decoration:underline;text-underline-offset:4px;text-decoration-color:rgba(225,212,194,.45)}
+.tc-ld-retry:focus-visible,.tc-ld-home:focus-visible{outline:2px solid #F5B357;outline-offset:3px}
+.tc-ld-failed .tc-ld-led,.tc-ld-failed .tc-ld-tag{display:none}
+.tc-ld-failed .tc-ld-name{animation:none;opacity:1;letter-spacing:.34em;padding-left:.34em}
+.tc-ld-failed .tc-ld-fail{display:flex;animation:tc-up .7s cubic-bezier(.2,.7,.2,1) both}
+.tc-ld-failed .tc-ld-glow,.tc-ld-failed .tc-ld-sweep{animation:none;opacity:0}
+.tc-ld-static .tc-ld-art{opacity:.8}
+.tc-ld-static .tc-ld-art .d,.tc-ld-static .tc-ld-art .a{animation:none;stroke-dashoffset:0}
+.tc-ld-static .tc-ld-art .g,.tc-ld-static .tc-ld-art .p{animation:none;opacity:1}
+.tc-ld-static .tc-ld-art .v{animation:none;fill-opacity:.06}
+.tc-ld-again .tc-ld-art,.tc-ld-again .tc-ld-sweep{display:none}
+.tc-ld-again .tc-ld-fig{margin-bottom:calc(var(--w)*.1)}
+.tc-ld-again .tc-ld-name{animation:none;opacity:1;letter-spacing:.34em;padding-left:.34em}
+.tc-ld-again .tc-ld-tag{animation:tc-fi .6s .2s forwards}
+.tc-ld-slats{position:absolute;inset:0;display:none;perspective:1600px;perspective-origin:50% 45%;pointer-events:none}
+.tc-ld-out{pointer-events:none;animation:tc-bg 0s .33s forwards}
+.tc-ld-out .tc-ld-slats{display:flex}
+.tc-ld-out .tc-ld-stage{opacity:0}
+.tc-ld-out .tc-ld-led i{animation:none;transform:none;width:100%;transition:width .18s}
+.tc-ld-slats i{position:relative;flex:1 1 0;margin:0 -.5px;transform-style:preserve-3d;backface-visibility:hidden;will-change:transform;background:linear-gradient(90deg,#1c1208 0%,#2f2114 20%,#4a3322 47%,#5d4131 52%,#35251a 80%,#1f150a 100%);opacity:0;animation:tc-fi .2s .12s forwards,tc-op .7s cubic-bezier(.76,0,.24,1) calc(.3s + var(--k)*.045s) forwards}
+.tc-ld-slats i::after{content:"";position:absolute;inset:0;background:#120b04;opacity:0;animation:tc-sh .7s linear calc(.3s + var(--k)*.045s) forwards}
+.tc-ld-q{animation-delay:.16s}
+.tc-ld-q .tc-ld-stage{transition-duration:.12s;transition-delay:0s}
+.tc-ld-q .tc-ld-slats i{animation:tc-fi .12s forwards,tc-op .5s cubic-bezier(.76,0,.24,1) calc(.15s + var(--k)*.03s) forwards}
+.tc-ld-q .tc-ld-slats i::after{animation-duration:.5s;animation-delay:calc(.15s + var(--k)*.03s)}
+.tc-ld-fade{transition:opacity .15s;opacity:0}
+@keyframes tc-dr{to{stroke-dashoffset:0}}
+@keyframes tc-vo{to{fill-opacity:.06}}
+@keyframes tc-pl{to{opacity:.34}}
+@keyframes tc-fi{to{opacity:1}}
+@keyframes tc-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes tc-br{from{opacity:.65}to{opacity:1}}
+@keyframes tc-sw{0%{opacity:0;transform:translateX(0)}15%{opacity:1}85%{opacity:1}100%{opacity:0;transform:translateX(273%)}}
+@keyframes tc-nm{to{opacity:1;letter-spacing:.34em;padding-left:.34em}}
+@keyframes tc-gl{from{transform:translateX(-100%)}to{transform:translateX(300%)}}
+@keyframes tc-op{to{transform:rotateY(90deg)}}
+@keyframes tc-sh{to{opacity:.7}}
+@keyframes tc-bg{to{background-color:transparent}}
+@keyframes tc-pu{from{opacity:.55}to{opacity:1}}
+@media (min-width:700px){#tc-loader{--w:min(24vw,320px)}.tc-ld-name{font-size:16px}}
+@media (prefers-reduced-motion:reduce){
+.tc-ld-art,.tc-ld-sweep,.tc-ld-glow,.tc-ld-slats{display:none!important}
+.tc-ld-fig{margin-bottom:calc(var(--w)*.1)}
+.tc-ld-mark{opacity:1;transform:none;transition:none;animation:tc-pu 2.4s ease-in-out infinite alternate}
+.tc-ld-name{animation:none;opacity:1;letter-spacing:.34em;padding-left:.34em}
+.tc-ld-tag{animation:none;opacity:1}
+.tc-ld-led{animation:none;opacity:1}
+.tc-ld-led i{animation:tc-pu 2.4s ease-in-out infinite alternate;left:0;width:100%;box-shadow:none;background:rgba(245,179,87,.55)}
+.tc-ld-failed .tc-ld-fail{animation:none}
+}
+</style>
+<noscript><style>#tc-loader{display:none!important}html.tc-ld-lock,html.tc-ld-lock body{overflow:auto!important}</style></noscript>
+<div id="tc-loader" role="status" aria-live="polite" aria-busy="true">
+<span class="tc-ld-sr">Loading Terucon</span>
+<div class="tc-ld-slats" aria-hidden="true"></div>
+<div class="tc-ld-stage">
+<div class="tc-ld-glow" aria-hidden="true"></div>
+<div class="tc-ld-fig" aria-hidden="true">
+<svg class="tc-ld-art" viewBox="0 0 862 552" focusable="false">
+<path class="v" d="M12 136L355 12V537L282 498V165L12 250Z"/>
+<path class="v" d="M450 243L585 272V468L450 478Z"/>
+<path class="p" d="M-70 557H932M12 597H850M12 585V609M850 585V609M6 603L18 591M844 603L856 591"/>
+<path class="d d1" pathLength="1" d="M12 136L355 12V537L282 498V165L12 250Z"/>
+<path class="d d2" pathLength="1" d="M12 250L108 280L205 233V205L282 165M205 205V465L282 498"/>
+<path class="d d3" pathLength="1" d="M402 196Q402 174 426 170L650 98L852 158L836 172L450 243"/>
+<path class="d d4" pathLength="1" d="M402 196V522Q402 528 412 528L640 522L826 479L448 480"/>
+<path class="d d5" pathLength="1" d="M450 243L585 272V468L450 478V243M498 257V474M545 266V471M450 322L585 318"/>
+<path class="d d6" pathLength="1" d="M598 268V468M612 264V468M627 259V468M641 255V468M656 250V468M670 246V468M684 241V468M699 237V468M713 232V468M728 228V468M742 223V468M756 219V468"/>
+<g class="gl">
+<path class="a g a1" pathLength="1" d="M205 205V465"/><path class="a g a2" pathLength="1" d="M367 215V520"/><path class="a g a3" pathLength="1" d="M402 196V524"/>
+<path class="a g a4" pathLength="1" d="M355 12L640 98"/><path class="a g a5" pathLength="1" d="M424 171L650 98"/><path class="a g a6" pathLength="1" d="M545 252L695 210"/><path class="a g a7" pathLength="1" d="M572 268L757 218"/>
+<path class="a a1" pathLength="1" d="M205 205V465"/><path class="a a2" pathLength="1" d="M367 215V520"/><path class="a a3" pathLength="1" d="M402 196V524"/>
+<path class="a a4" pathLength="1" d="M355 12L640 98"/><path class="a a5" pathLength="1" d="M424 171L650 98"/><path class="a a6" pathLength="1" d="M545 252L695 210"/><path class="a a7" pathLength="1" d="M572 268L757 218"/>
+</g>
+</svg>
+<div class="tc-ld-sweep"></div>
+<img class="tc-ld-mark" src="/brand/logo-mark-256.webp" srcset="/brand/logo-mark-256.webp 256w,/brand/logo-mark-512.webp 512w" sizes="(min-width:700px) 320px,70vw" width="862" height="552" alt="" decoding="async" fetchpriority="high">
+</div>
+<p class="tc-ld-name" aria-hidden="true">Terucon</p>
+<p class="tc-ld-tag" aria-hidden="true">Interiors for businesses</p>
+<div class="tc-ld-led" aria-hidden="true"><i></i></div>
+<div class="tc-ld-fail">
+<p class="tc-ld-ft">This page is taking longer than usual</p>
+<p class="tc-ld-fm">Please check your connection and try again.</p>
+<div class="tc-ld-fa"><button type="button" class="tc-ld-retry">Retry</button><a class="tc-ld-home" href="/">Go to the home page</a></div>
+</div>
+</div>
+</div>
+<script>
+(function(){
+var w=window,d=document,el=d.getElementById('tc-loader');
+if(!el||w.TeruconLoader)return;
+var st='loading',t0=Date.now(),tm=[],q=function(s){return el.querySelector(s)},
+reduce=w.matchMedia&&w.matchMedia('(prefers-reduced-motion: reduce)').matches,
+img=q('.tc-ld-mark'),seen=false;
+try{seen=w.sessionStorage.getItem('tc-ld')==='1'}catch(e){}
+function T(f,ms){tm.push(setTimeout(f,ms))}
+function stop(){while(tm.length)clearTimeout(tm.pop());w.removeEventListener('error',onErr,true)}
+function unlock(){d.documentElement.classList.remove('tc-ld-lock')}
+function gone(){unlock();if(el.parentNode)el.parentNode.removeChild(el)}
+function s2(){if(st!=='done')el.classList.add('tc-ld-s2')}
+function done(){
+if(st==='done')return;st='done';stop();unlock();
+try{w.sessionStorage.setItem('tc-ld','1')}catch(e){}
+el.setAttribute('aria-busy','false');
+if(!el.isConnected)return;
+if(reduce){el.classList.add('tc-ld-fade');T(gone,200);return}
+var quick=Date.now()-t0<700,n=w.innerWidth<600?7:12,host=q('.tc-ld-slats'),i,s;
+for(i=0;i<n;i++){s=d.createElement('i');s.style.setProperty('--k',String(Math.abs(i-(n-1)/2)));host.appendChild(s)}
+if(quick)el.classList.add('tc-ld-q');
+el.classList.add('tc-ld-out');
+T(gone,quick?950:1450);
+}
+function fail(msg){
+if(st!=='loading')return;st='fail';stop();
+if(!el.isConnected)return;
+if(!el.classList.contains('tc-ld-s2'))el.classList.add('tc-ld-static');
+var m=q('.tc-ld-fm');if(msg&&m)m.textContent=String(msg);
+el.classList.add('tc-ld-failed');el.setAttribute('aria-busy','false');
+var b=q('.tc-ld-retry');if(b)try{b.focus({preventScroll:true})}catch(e){}
+}
+function onErr(e){
+var t=e.target;
+if(!t||t.tagName!=='SCRIPT'||!t.src||t.hasAttribute('data-tc-optional'))return;
+try{if(new URL(t.src,w.location.href).origin===w.location.origin)fail()}catch(x){}
+}
+w.TeruconLoader={done:done,fail:fail,get state(){return st}};
+var r=q('.tc-ld-retry');if(r)r.addEventListener('click',function(){w.location.reload()});
+if(img){
+img.addEventListener('error',function(){el.classList.remove('tc-ld-s2');img.hidden=true});
+if(seen&&!reduce)el.classList.add('tc-ld-again');
+var show=function(){if(img.complete&&img.naturalWidth>0)s2();else img.addEventListener('load',s2,{once:true})};
+if(seen&&!reduce)show();else T(show,1900);
+}
+d.documentElement.classList.add('tc-ld-lock');
+el.classList.add('tc-ld-on');
+w.addEventListener('error',onErr,true);
+T(function(){fail()},12000);
+})();
+</script>

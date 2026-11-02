@@ -113,7 +113,7 @@ $('paste').addEventListener('click', async () => {
   try {
     text = await navigator.clipboard.readText();
   } catch {
-    say('info', 'Your browser did not let us read the clipboard. Click in the box and press Ctrl+V (or ⌘+V).');
+    say('info', window.matchMedia?.('(pointer: coarse)').matches ? 'Your browser did not let us read the clipboard. Touch and hold in the box, then choose Paste.' : 'Your browser did not let us read the clipboard. Click in the box and press Ctrl+V (or ⌘+V).');
     input.focus();
     return;
   }

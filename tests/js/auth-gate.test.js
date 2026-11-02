@@ -80,7 +80,8 @@ describe('the gate in front of the pages', () => {
     assert.equal(account.status, 200);
     assert.doesNotMatch(account.headers['content-security-policy'], /google/, 'the account page does not talk to Google');
     assert.equal(account.headers['cache-control'], 'private, no-cache');
-    assert.equal(account.headers.vary, 'Cookie');
+    // Cookie stays in Vary (the answer depends on who asks); the compression middleware adds Accept-Encoding to a text answer
+    assert.deepEqual(account.headers.vary.split(/\s*,\s*/).filter((token) => token !== 'Accept-Encoding'), ['Cookie']);
   });
 
   test('a page for members is never cached for somebody else', async () => {
@@ -162,7 +163,10 @@ describe('the policy of the hand-written pages', () => {
       }
       assert.doesNotMatch(html, /\son[a-z]+\s*=/i, `${name}: no inline event handlers (the policy would block them, and they are an injection route)`);
       assert.doesNotMatch(html, /\sstyle\s*=/i, `${name}: no style attributes in the markup (the policy has no 'unsafe-inline')`);
-      assert.doesNotMatch(html, /<script[^>]*\ssrc=/i, `${name}: no script is loaded from the markup (the sign-in page adds Google's itself, only when Google is switched on)`);
+      // no script is loaded from the markup but the site's own brand scripts (the mobile dock): same origin, so the policy's script-src 'self' covers
+      // them; the sign-in page adds Google's itself, only when Google is switched on
+      const external = [...html.matchAll(/<script[^>]*\ssrc=["']([^"']*)["']/gi)].map((m) => m[1]);
+      for (const src of external) assert.match(src, /^\/brand\/[A-Za-z0-9._-]+\.js$/, `${name}: a script loaded from the markup must be one of the site's own brand files (${src})`);
     }
   });
 });

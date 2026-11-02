@@ -1,0 +1,91 @@
+/* Terucon brand: colour tokens and logo classes. Plain CSS, no @import, no external URLs, so it is
+   safe on pages with a strict Content-Security-Policy (style-src 'self').
+   Logo files (built by build-brand.mjs from media/Terucon_logo.png), all served at /brand/:
+     logo-header-{160,320,480}.webp   emblem + TERUCON wordmark on one line, 1834 x 314 (5.84 : 1)
+     logo-full-{320,640,1200}.webp    the whole lockup, 1325 x 842 (1.57 : 1)
+     logo-mark-{128,256,512}.webp     the emblem only, 862 x 552 (1.56 : 1)
+   Usage:
+     <a class="tc-logo-link" href="/" aria-label="Terucon India, home">
+       <img class="tc-logo tc-logo--header" src="/brand/logo-header-320.webp"
+            srcset="/brand/logo-header-160.webp 160w, /brand/logo-header-320.webp 320w, /brand/logo-header-480.webp 480w"
+            sizes="210px" width="210" height="36" alt="Terucon India"></a>
+   The header logo is cream and gold: on a light header add tc-logo--on-light (dark pill). */
+
+:root {
+  /* from the site's own pages */
+  --tc-bg: #1F150A;          /* warm brown: dark surfaces, theme-color */
+  --tc-bg-2: #291C0E;        /* ink on cream, slightly lifted brown */
+  --tc-cream: #E1D4C2;       /* cream: light surfaces, text on dark */
+  --tc-sand: #A78D78;
+  --tc-bronze: #6E473B;
+  --tc-stone: #BEB5A9;
+  --tc-line-dark: rgba(225, 212, 194, .14);
+  --tc-line-light: rgba(41, 28, 14, .16);
+  /* sampled from the logo's lit strips */
+  --tc-led: #F5B357;
+  --tc-led-deep: #EF8F29;
+
+  /* button tokens (match the site's pill buttons) */
+  --tc-btn-h: 44px;
+  --tc-btn-radius: 999px;
+  --tc-btn-bg: var(--tc-cream);
+  --tc-btn-ink: var(--tc-bg-2);
+  --tc-btn-bg-hover: #FFFFFF;
+
+  /* logo sizes */
+  --tc-logo-h: 36px;
+  --tc-logo-aspect-header: 1834 / 314;
+  --tc-logo-aspect-full: 1325 / 842;
+  --tc-logo-aspect-mark: 862 / 552;
+}
+
+/* The link that wraps a logo: a 44 px tap target, no underline, no layout jump while the image loads. */
+.tc-logo-link { display: inline-flex; align-items: center; min-height: var(--tc-btn-h); color: inherit; text-decoration: none; }
+
+.tc-logo { display: block; max-width: 100%; height: auto; border: 0; }
+
+/* Header: emblem + TERUCON. 36 px tall, 32 px on phones. width:auto keeps the aspect ratio; the
+   aspect-ratio rule reserves the space before the image arrives. */
+.tc-logo--header { height: var(--tc-logo-h); width: auto; aspect-ratio: var(--tc-logo-aspect-header); }
+@media (max-width: 480px) { .tc-logo--header { height: 32px; } }
+
+/* The whole lockup (with INDIA PVT. LTD. and the tagline): for hero areas, sign-in cards, print. */
+.tc-logo--full { width: min(100%, 320px); height: auto; aspect-ratio: var(--tc-logo-aspect-full); }
+.tc-logo--full-lg { width: min(100%, 560px); }
+
+/* The emblem alone. */
+.tc-logo--mark { height: 40px; width: auto; aspect-ratio: var(--tc-logo-aspect-mark); }
+
+/* Footer logo: a little larger than the header one. */
+.tc-footer-logo { display: block; height: 44px; width: auto; max-width: 100%; aspect-ratio: var(--tc-logo-aspect-header); }
+@media (max-width: 480px) { .tc-footer-logo { height: 38px; } }
+
+/* On a light background (cream pages) the logo sits on a dark pill so its cream lettering keeps its
+   contrast. content-box: the logo keeps its height, the pill adds the padding around it. */
+.tc-logo--on-light {
+  box-sizing: content-box;
+  background: var(--tc-bg);
+  padding: 7px 16px;
+  border-radius: 999px;
+}
+.tc-logo--full.tc-logo--on-light { padding: 18px 26px; border-radius: 18px; }
+.tc-logo--mark.tc-logo--on-light { padding: 7px 12px; }
+
+/* Visually hidden text for screen readers */
+.tc-visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+/* Pill buttons in the site's style */
+.tc-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: var(--tc-btn-h); padding: 0 24px; border: 1px solid transparent; border-radius: var(--tc-btn-radius);
+  background: var(--tc-btn-bg); color: var(--tc-btn-ink);
+  font: 500 14px/1 Switzer, Helvetica, Arial, sans-serif; text-decoration: none; cursor: pointer;
+  transition: background-color .25s, border-color .25s, color .25s;
+}
+.tc-btn:hover { background: var(--tc-btn-bg-hover); }
+.tc-btn:focus-visible { outline: 2px solid var(--tc-led); outline-offset: 3px; }
+.tc-btn--ghost { background: transparent; color: inherit; border-color: currentColor; }
+.tc-btn--ghost:hover { background: rgba(225, 212, 194, .1); }

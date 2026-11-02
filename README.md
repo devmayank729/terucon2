@@ -212,6 +212,37 @@ The dashboard is still a front-end prototype with a demo project ("Rao Dental St
 
 ---
 
+## Speed, caching and compression
+
+The four big pages (landing page, shop, studio page, dashboard) are exported as one self-extracting file each. `node tools/build-dist.js` (`npm run build:dist`) unpacks them once into `dist/` (git-ignored): plain pages with `<link>` / `<script src>` / `<img src>` to content-hashed files under `/assets/`, each with brotli and gzip copies made at build time. The server answers from `dist/` when `dist/manifest.json` exists, and from `pages/*.html` exactly as before when it does not (a fresh checkout, the tests). The start-up banner says which, and warns when `pages/` is newer than `dist/`.
+
+| What | Cache | Compression |
+|---|---|---|
+| `/`, `/materials`, `/design-studio`, `/my-project` | `no-cache` (members' pages `private, no-cache`), strong `ETag`, `If-None-Match` gives 304 | the `.br` / `.gz` copy the browser accepts (br first); `Vary: Accept-Encoding` |
+| `/assets/*` | one year, `immutable` (the file names carry a hash of the content) | `.br` / `.gz` copies of js, css, svg, json; images and fonts are already compressed |
+| `/brand/*`, `/favicon.ico`, `/site.webmanifest` | one day, then served stale for up to a week while the browser checks | on the fly |
+| `/media/*` | one week (`max-age=604800`); the photos and videos are **not** content-hashed, so not longer | none (already compressed); Range requests work for the videos |
+| the hand-written pages, `/api/*`, the studio's `/js` and `/css` | `no-cache` with validators (`/api` is `no-store`) | on the fly (brotli, else gzip) when over 1 KB |
+| the studio's `/textures/*` | one week (the studio itself sends `no-cache`); its fonts are a year | none |
+
+The full table, with the file that sets each rule, is the comment at the top of `app.js`.
+
+* **Rebuild:** `npm run build:dist` after any change to `pages/`, `site/brand/`, `site/optimized/` or `site/vendor/`; `npm run check:dist` says whether `dist/` is current. `npm start` builds it only when it is missing (`prestart`); the Dockerfile builds it on every image build and stops if the build fails.
+* **Verify** (against a running server; for the live site use its address):
+
+```bash
+curl -sI -H 'Accept-Encoding: br' http://localhost:8080/ | grep -i -E 'content-encoding|etag|vary|cache-control|content-length'
+curl -sI http://localhost:8080/ | grep -i content-length                                  # the same page, not compressed: compare the sizes
+curl -sI -H 'Accept-Encoding: br' -H 'If-None-Match: "<the etag from above>"' http://localhost:8080/ | head -1    # 304 Not Modified
+curl -sI -H 'Accept-Encoding: br' http://localhost:8080/assets/<a file name from dist/assets>                       # immutable, content-encoding br
+curl -sI -H 'Accept-Encoding: br' http://localhost:8080/css/swatchroom.css                                         # the studio's css, compressed on the fly
+```
+
+* The files under `/assets/` are public (they are not behind sign-in; only the HTML of the members' pages is). The names are not guessable but they are not secret either.
+* A failure on the server shows `pages/error.html` to a browser and a JSON body to everything else; nothing of the error is shown, the detail is in the server log. An error nobody caught is logged, the server finishes the requests in flight and exits with code 1 so Render starts a new one. The server keeps connections open for 65 s (`keepAliveTimeout`) for Render's router.
+
+---
+
 ## Layout
 
 ```

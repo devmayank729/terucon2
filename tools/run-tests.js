@@ -2,9 +2,9 @@
 // npm test: every check that needs no credentials, in order, with one summary at the end (the overview's browser test uses Chrome
 // when it is installed and skips itself otherwise; the full browser suite is --e2e).
 //
-//   npm test                 site build check, link check, overview check, JavaScript tests
+//   npm test                 site build check, link check, overview check, optimized-images check, JavaScript tests
 //   npm test -- --e2e        also the browser tests (Chrome)
-//   npm test -- --only js    run one step (build, links, overview, js, e2e)
+//   npm test -- --only js    run one step (build, links, overview, images, js, e2e)
 import { spawn } from 'node:child_process';
 import { readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -36,6 +36,7 @@ const steps = [
   { id: 'build', label: 'site patches apply to the pristine exports', go: () => run('site build (check only)', node, ['tools/build-site.js', '--check']) },
   { id: 'links', label: 'every page links where the site map says', go: () => run('links between pages', node, ['tools/check-links.js']) },
   { id: 'overview', label: 'the project overview matches the tree', go: () => run('project overview is current', node, ['tools/build-overview.js', '--check']) },
+  { id: 'images', label: 'the optimized photos match the originals', go: () => run('optimized images are current', node, ['tools/optimize-images.mjs', '--check']) },
   { id: 'js', label: 'JavaScript tests (server, build, overview)', go: () => run('JavaScript tests', node, ['--test', ...jsTestFiles()]) },
   ...(withE2e ? [{ id: 'e2e', label: 'browser tests', go: () => run('browser tests (Chrome)', node, ['tests/e2e/run.mjs']) }] : []),
 ];

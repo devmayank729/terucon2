@@ -816,6 +816,133 @@ await test('Catalogue admin: with no AUTH_ADMIN_TOKEN configured, any token says
   }
 });
 
+// ---- the six hand-written pages on a phone (390 x 844, touch): the logo, the phone dock, no sideways scroll, no policy violations.
+// Each of these pages runs under a strict Content-Security-Policy built from the page itself, so the dock's one stylesheet and one
+// script (same-origin, /brand/dock.*) and the logo files (/brand/*.webp) must be allowed by it: a violation shows up here as a
+// console error (the "securitypolicyviolation" events are collected as well).
+const HAND_WRITTEN = [['Sign in', '/login', { signedIn: false, hero: true }], ['Your account', '/account', {}], ['Inspiration', '/inspiration', {}], ['Finder', '/finder', {}], ['Catalogue admin', '/admin/catalogue', {}], ['Coming soon', '/coming-soon', { hero: true }]];
+const DOCK_LINKS = ['/materials', '/design-studio', '/inspiration', '/finder', '/my-project'];
+const watchPolicy = (page) => page.evaluateOnNewDocument(() => { window.__csp = []; document.addEventListener('securitypolicyviolation', (e) => window.__csp.push(`${e.violatedDirective} ${e.blockedURI || 'inline'}`)); });
+
+for (const [label, route, options] of HAND_WRITTEN) {
+  await test(`on a phone, ${label} (${route}): loads with no console or policy errors, no sideways scroll, the logo shows, the five dock links are there`, async () => {
+    const page = await newPage(PHONE, stack, { signedIn: options.signedIn !== false });
+    try {
+      await watchPolicy(page);
+      const response = await page.goto(base + route, { waitUntil: 'networkidle2' });
+      assert(response.status() === 200, `${route} -> ${response.status()}`);
+      await sleep(400);
+      const m = await page.evaluate(() => {
+        const header = document.querySelector('header img');
+        const box = header?.getBoundingClientRect();
+        const hero = document.querySelector('main img[src*="logo-full"]');
+        const items = [...document.querySelectorAll('.tc-dock .tc-dock__item')];
+        const dock = document.querySelector('.tc-dock');
+        return {
+          wide: document.documentElement.scrollWidth - innerWidth,
+          logo: header ? { loaded: header.complete && header.naturalWidth > 0, w: box.width, h: box.height, hidden: getComputedStyle(header).visibility === 'hidden' || getComputedStyle(header).display === 'none', alt: header.alt } : null,
+          hero: hero ? { loaded: hero.complete && hero.naturalWidth > 0, w: hero.getBoundingClientRect().width } : null,
+          dockOn: document.documentElement.classList.contains('tc-dock-on'),
+          dockShown: dock ? getComputedStyle(dock).display !== 'none' : false,
+          hrefs: items.map((a) => a.getAttribute('href')),
+          tall: items.map((a) => Math.round(a.getBoundingClientRect().height)),
+          csp: window.__csp,
+        };
+      });
+      assert(m.wide <= 0, `sideways scroll: the page is ${m.wide}px wider than the screen`);
+      assert(m.logo && m.logo.loaded && m.logo.w > 40 && m.logo.h > 20 && !m.logo.hidden, 'the header logo is missing, not loaded or not visible: ' + JSON.stringify(m.logo));
+      assert(m.logo.alt === 'Terucon India', 'the header logo has no plain alt text: ' + JSON.stringify(m.logo.alt));
+      if (options.hero) assert(m.hero && m.hero.loaded && m.hero.w > 120, 'the full logo is missing from the top of the page: ' + JSON.stringify(m.hero));
+      assert(m.dockOn && m.dockShown, 'the phone dock is not on screen');
+      assert(JSON.stringify(m.hrefs) === JSON.stringify(DOCK_LINKS), 'the dock links are not the five destinations: ' + JSON.stringify(m.hrefs));
+      assert(m.tall.every((h) => h >= 44), 'a dock link is shorter than 44 px: ' + JSON.stringify(m.tall));
+      assert(m.csp.length === 0, 'the page\'s policy refused something: ' + JSON.stringify(m.csp));
+      noProblems(page, `${label} on a phone`);
+    } finally {
+      await page.close();
+    }
+  });
+}
+
+await test('on a phone, an uploaded tall photo gives the Finder a tall frame with the reticle inside it, and the buttons stay in reach', async () => {
+  const page = await newPage(PHONE);
+  const file = path.join(os.tmpdir(), `terucon-e2e-finder-tall-${Date.now()}.jpg`);
+  try {
+    await page.goto(base + '/finder', { waitUntil: 'networkidle2' });
+    fs.writeFileSync(file, await makeJpeg(page, 900, 1200));
+    await (await page.$('#file')).uploadFile(file);
+    await until(() => page.evaluate(() => !document.getElementById('viewfinder').hidden && !document.getElementById('still').hidden && document.getElementById('still').complete), 'the uploaded photo to show in the viewfinder', 8000);
+    await sleep(300);
+    const m = await page.evaluate(() => {
+      const v = document.getElementById('viewfinder').getBoundingClientRect();
+      const r = document.getElementById('reticle').getBoundingClientRect();
+      const go = document.getElementById('go-photo').getBoundingClientRect();
+      return { ratio: v.width / v.height, inside: r.left >= v.left - 1 && r.right <= v.right + 1 && r.top >= v.top - 1 && r.bottom <= v.bottom + 1, reticle: Math.min(r.width, r.height), wide: document.documentElement.scrollWidth - innerWidth, goHeight: go.height };
+    });
+    assert(Math.abs(m.ratio - 0.75) < 0.03, 'the frame does not take the photo\'s tall shape (width / height = ' + m.ratio.toFixed(2) + ', expected 0.75)');
+    assert(m.inside && m.reticle >= 44, 'the reticle is not inside the frame or is too small to touch: ' + JSON.stringify(m));
+    assert(m.wide <= 0 && m.goHeight >= 44, 'sideways scroll, or the "Find it" button is too short: ' + JSON.stringify(m));
+    noProblems(page, 'the Finder with a tall photo');
+  } finally {
+    fs.rmSync(file, { force: true });
+    await page.close();
+  }
+});
+
+await test('on a phone, the Inspiration crop screen fills the screen, its buttons are all inside it and a finger can resize the frame', async () => {
+  const page = await newPage(PHONE);
+  const file = path.join(os.tmpdir(), `terucon-e2e-crop-${Date.now()}.jpg`);
+  try {
+    await page.goto(base + '/inspiration', { waitUntil: 'networkidle2' });
+    fs.writeFileSync(file, await makeJpeg(page, 1200, 900));
+    await (await page.$('#file')).uploadFile(file);
+    await until(() => dialogRect(page, '.tc-crop-screen'), 'the crop screen to open', 8000);
+    await sleep(500);
+    const card = await dialogRect(page, '.tc-crop-screen');
+    assert(card.w >= 389 && card.h >= 843, 'the crop screen does not fill a 390 x 844 phone: ' + JSON.stringify(card));
+    const buttons = await inShadow(page, (root) => [...root.querySelectorAll('.tc-foot .tc-btn')].map((b) => { const r = b.getBoundingClientRect(); return { text: b.textContent.trim(), right: Math.round(r.right), bottom: Math.round(r.bottom), left: Math.round(r.left), h: Math.round(r.height), clipped: b.scrollWidth > b.clientWidth + 1 }; }));
+    assert(buttons.length >= 3 && buttons.every((b) => b.left >= 0 && b.right <= 390 && b.bottom <= 844 && b.h >= 44 && !b.clipped), 'a crop screen button is cut off or too small: ' + JSON.stringify(buttons));
+    const before = await dialogRect(page, '.tc-box');
+    const handle = await dialogRect(page, '.tc-handle-se');
+    const touch = await page.touchscreen.touchStart(handle.x + handle.w / 2, handle.y + handle.h / 2);
+    await touch.move(handle.x + handle.w / 2 - 50, handle.y + handle.h / 2 - 40);
+    await touch.end();
+    await sleep(300);
+    const after = await dialogRect(page, '.tc-box');
+    assert(after.w < before.w - 20 && after.h < before.h - 15, 'a finger on the corner did not resize the frame: ' + JSON.stringify({ before, after }));
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'sideways scroll behind the crop screen');
+  } finally {
+    fs.rmSync(file, { force: true });
+    await page.close();
+  }
+});
+
+await test('when the server cannot be reached, Your account and Sign in say so and offer "Try again" instead of a blank page or a wrong redirect', async () => {
+  const cut = async (page, prefix) => { await page.setRequestInterception(true); page.on('request', (req) => (new URL(req.url()).pathname.startsWith(prefix) ? req.abort('internetdisconnected') : req.continue())); };
+  const account = await newPage(PHONE);
+  try {
+    await cut(account, '/api/auth/me');
+    await account.goto(base + '/account', { waitUntil: 'networkidle2' });
+    await until(() => account.evaluate(() => !document.getElementById('alert').hidden && !document.getElementById('retry-box').hidden), 'the connection message and the "Try again" button', 6000);
+    const said = await account.evaluate(() => document.getElementById('alert').textContent);
+    assert(/could not reach the server/i.test(said) && /connection/i.test(said), 'the message does not say what happened: ' + said);
+    assert(new URL(account.url()).pathname === '/account', 'a lost connection must not send the person to the sign-in page: ' + account.url());
+  } finally {
+    await account.close();
+  }
+  const login = await newPage(PHONE, stack, { signedIn: false });
+  try {
+    await cut(login, '/api/auth/');
+    await login.goto(base + '/login', { waitUntil: 'networkidle2' });
+    await until(() => login.evaluate(() => !document.getElementById('step-unavailable').hidden && !document.getElementById('retry-load').hidden), 'the connection message and the "Try again" button', 6000);
+    const said = await login.evaluate(() => document.getElementById('unavailable-text').textContent);
+    assert(/could not reach the server/i.test(said), 'the message does not say what happened: ' + said);
+    assert(await login.evaluate(() => document.getElementById('step-loading').hidden), 'the "One moment" line is still showing');
+  } finally {
+    await login.close();
+  }
+});
+
 await browser.close();
 await stack.stop();
 const failed = results.filter(([, ok]) => !ok);

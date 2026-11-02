@@ -125,6 +125,15 @@ export class Bundle {
     throw new BundleError(`ext resource '${extId}' not found`);
   }
 
+  /** The uuids listed in `__bundler/page_order` (nested pages carried as iframe targets); [] when the block is empty or absent. */
+  get pageOrder() {
+    try {
+      return JSON.parse(this._block('page_order') || '[]');
+    } catch {
+      return [];
+    }
+  }
+
   /** {logical name: uuid} */
   extIds() {
     return Object.fromEntries(this._ext.map((e) => [e.id, e.uuid]));

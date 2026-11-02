@@ -133,11 +133,18 @@ button:focus-visible, .tc-btn:focus-within, .tc-chip:focus-visible, .tc-tile:foc
   .tc-card { width: 100%; max-height: 100dvh; border-radius: 26px 26px 0 0; }
   .tc-card.tc-crop-screen { height: 100dvh; max-height: 100dvh; border-radius: 0; }
   .tc-pane { padding: 30px 22px 24px; }
-  .tc-head { padding: 14px 16px 10px; }
-  .tc-bar { padding: 12px 16px 6px; }
-  .tc-foot { padding: 8px 16px calc(14px + env(safe-area-inset-bottom)); }
-  .tc-foot .tc-actions { width: 100%; }
-  .tc-foot .tc-actions .tc-btn { flex: 1; padding: 0 12px; }
+  .tc-head { padding: calc(14px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 10px max(16px, env(safe-area-inset-left)); }
+  .tc-bar { padding: 12px max(16px, env(safe-area-inset-right)) 6px max(16px, env(safe-area-inset-left)); }
+  .tc-foot { padding: 8px max(16px, env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+  /* a finger needs 44 px */
+  .tc-chip { height: 44px; padding: 0 16px; }
+  .tc-tool { width: 44px; height: 44px; }
+  .tc-x { width: 44px; height: 44px; }
+  .tc-zoom { height: 44px; }
+  /* the crop screen's buttons (Cancel, Download, Find similar materials, Use in the Design Studio) sit two by two so none is cut off on a narrow phone */
+  .tc-foot .tc-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tc-foot .tc-actions .tc-btn { height: auto; min-height: 46px; padding: 8px 12px; white-space: normal; line-height: 1.2; text-align: center; }
+  .tc-foot .tc-actions .tc-btn:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .tc-zoomgroup { order: 3; flex-basis: 100%; margin-left: 0; }
   .tc-handle { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
   .tc-handle-nw::before, .tc-handle-ne::before, .tc-handle-sw::before, .tc-handle-se::before { width: 22px; height: 22px; }
@@ -145,7 +152,7 @@ button:focus-visible, .tc-btn:focus-within, .tc-chip:focus-visible, .tc-tile:foc
   .tc-handle-sw::before { left: 21px; bottom: 21px; } .tc-handle-se::before { right: 21px; bottom: 21px; }
   .tc-handle-n::before { left: 12px; top: 21px; } .tc-handle-s::before { left: 12px; bottom: 21px; }
   .tc-handle-w::before { top: 12px; left: 21px; } .tc-handle-e::before { top: 12px; right: 21px; }
-  .tc-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); max-height: 58vh; }
+  .tc-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); max-height: 58vh; max-height: 58dvh; }
 }
 @media (prefers-reduced-motion: reduce) {
   .tc-overlay, .tc-card { animation: none; }

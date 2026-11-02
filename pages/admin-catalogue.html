@@ -2,34 +2,41 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#E1D4C2">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F150A">
 <meta name="robots" content="noindex">
 <title>Catalogue admin — Terucon India</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
 <!-- Zodiak and Switzer, the site's fonts (served with the Design Studio); the page reads fine in Georgia / Helvetica without them -->
 <link rel="stylesheet" href="/css/fonts.css">
+<link rel="stylesheet" href="/brand/brand.css">
+<link rel="stylesheet" href="/brand/dock.css">
+<script src="/brand/dock.js" defer></script>
 <link rel="stylesheet" href="/catalogue-ui/assets/catalogue-ui.css">
 <style>
-  :root { --bg:#E1D4C2; --card:#EFE6D8; --ink:#291C0E; --ink2:#6E473B; --sand:#A78D78; --line:rgba(41,28,14,.16); --line2:rgba(41,28,14,.34); --bad:#8C2F1B; --good:#3B5B2E; }
+  :root { --bg:#E1D4C2; --card:#EFE6D8; --ink:#291C0E; --ink2:#6E473B; --sand:#A78D78; --line:rgba(41,28,14,.16); --line2:rgba(41,28,14,.34); --bad:#8C2F1B; --good:#3B5B2E; --night:#1F150A; --gx:clamp(16px, 5vw, 72px); }
   * { box-sizing:border-box; }
   html, body { margin:0; padding:0; }
-  html { -webkit-text-size-adjust:100%; -webkit-tap-highlight-color:transparent; }
-  body { min-height:100vh; display:flex; flex-direction:column; background:var(--bg); color:var(--ink); font-family:Switzer, Helvetica, Arial, sans-serif; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  html { -webkit-text-size-adjust:100%; -webkit-tap-highlight-color:transparent; background:var(--night); }
+  body { min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; background:var(--bg); color:var(--ink); font-family:Switzer, Helvetica, Arial, sans-serif; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; overflow-wrap:break-word; }
   a { color:inherit; }
   ::selection { background:#6E473B; color:#E1D4C2; }
   :focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
   [hidden] { display:none !important; }
 
-  header { min-height:clamp(64px, calc(40px + 3.2vw), 76px); display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px; padding:10px clamp(20px, 5vw, 72px); border-bottom:1px solid var(--line); }
-  .brand { display:flex; align-items:baseline; gap:10px; font:600 15px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.34em; text-decoration:none; }
-  .brand span { font:500 9.5px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.3em; }
-  nav { display:flex; flex-wrap:wrap; align-items:center; gap:8px clamp(14px, 2.2vw, 28px); font:500 13px/1 Switzer, Helvetica, Arial, sans-serif; }
-  nav a { text-decoration:none; transition:opacity .25s; }
-  nav a:hover { opacity:.7; }
+  /* the frame, the same on every signed-in page: a dark header band with the logo, a dark footer band */
+  header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0 16px; min-height:calc(64px + env(safe-area-inset-top)); padding:calc(8px + env(safe-area-inset-top)) max(var(--gx), env(safe-area-inset-right)) 8px max(var(--gx), env(safe-area-inset-left)); background:var(--night); color:#E1D4C2; border-bottom:1px solid rgba(225,212,194,.14); }
+  header :focus-visible, footer :focus-visible { outline-color:#E1D4C2; }
+  nav { display:flex; flex-wrap:wrap; align-items:center; gap:0 clamp(14px, 2.2vw, 28px); font:500 13px/1 Switzer, Helvetica, Arial, sans-serif; }
+  nav a { display:inline-flex; align-items:center; min-height:44px; text-decoration:none; opacity:.82; transition:opacity .25s; }
+  nav a:hover, nav a[aria-current="page"] { opacity:1; }
   nav a[aria-current="page"] { text-decoration:underline; text-underline-offset:6px; text-decoration-thickness:1px; }
+  @media (max-width:899px) { html.tc-dock-on header nav a:not(.keep) { display:none; } } /* on a phone the dock at the bottom carries the destinations */
 
-  main { flex:1; padding:clamp(28px, 6vh, 72px) clamp(16px, 5vw, 72px) clamp(40px, 8vh, 96px); }
+  main { flex:1; padding:clamp(28px, 6vh, 72px) max(var(--gx), env(safe-area-inset-right)) clamp(40px, 8vh, 96px) max(var(--gx), env(safe-area-inset-left)); }
   .wrap { width:100%; max-width:860px; margin:0 auto; display:flex; flex-direction:column; gap:22px; }
   .eyebrow { display:flex; align-items:center; gap:14px; margin:0; font:500 10.5px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.22em; text-transform:uppercase; color:var(--ink2); }
   .eyebrow::before { content:""; width:32px; height:1px; background:currentColor; }
@@ -42,20 +49,24 @@
   .card.danger { border-color:var(--bad); }
 
   label.l { display:flex; flex-direction:column; gap:6px; font:500 12.5px/1 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
-  .l input, .l select, .l textarea { height:44px; padding:0 14px; border-radius:12px; background:#F9F4EA; border:1px solid var(--line2); color:var(--ink); font:400 15px/1 Switzer, Helvetica, Arial, sans-serif; }
-  .l textarea { height:auto; padding:10px 14px; font:400 14px/1.5 Switzer, Helvetica, Arial, sans-serif; resize:vertical; }
+  .l input, .l select, .l textarea { height:44px; padding:0 14px; border-radius:12px; background:#F9F4EA; border:1px solid var(--line2); color:var(--ink); font:400 16px/1 Switzer, Helvetica, Arial, sans-serif; }
+  .l textarea { height:auto; padding:10px 14px; font:400 16px/1.5 Switzer, Helvetica, Arial, sans-serif; resize:vertical; }
   .l input:focus, .l select:focus, .l textarea:focus { outline:none; border-color:var(--ink); box-shadow:0 0 0 3px rgba(41,28,14,.1); }
-  .grid2 { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; }
+  .l select, .l input, .l textarea { width:100%; min-width:0; }
+  .grid2 { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap:12px; }
+  .grid2 .wide { grid-column:1 / -1; }
   .checks { display:flex; gap:16px; flex-wrap:wrap; font:400 13.5px/1 Switzer, Helvetica, Arial, sans-serif; }
-  .checks label { display:flex; align-items:center; gap:7px; }
+  .checks label { display:flex; align-items:center; gap:9px; min-height:44px; }
+  .checks input { width:20px; height:20px; flex:none; accent-color:#291C0E; }
 
-  .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; height:42px; padding:0 20px; border-radius:999px; border:1px solid var(--ink); background:var(--ink); color:var(--bg); font:500 13.5px/1 Switzer, Helvetica, Arial, sans-serif; cursor:pointer; white-space:nowrap; transition:background .3s, opacity .2s; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:0 20px; border-radius:999px; border:1px solid var(--ink); background:var(--ink); color:var(--bg); font:500 13.5px/1 Switzer, Helvetica, Arial, sans-serif; cursor:pointer; white-space:nowrap; transition:background .3s, opacity .2s; }
   .btn:hover { background:var(--ink2); border-color:var(--ink2); }
   .btn:disabled { opacity:.5; cursor:default; }
   .btn.ghost { background:transparent; color:var(--ink); border-color:var(--line2); }
   .btn.ghost:hover { background:rgba(41,28,14,.07); }
   .btn.bad { background:var(--bad); border-color:var(--bad); }
-  .btn.small { height:34px; padding:0 14px; font-size:12.5px; }
+  .btn.small { min-height:34px; padding:0 14px; font-size:12.5px; }
+  @media (max-width:899px) { .btn.small { min-height:44px; } }
   .btn input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; }
   .btn { position:relative; overflow:hidden; }
   .actions-row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
@@ -66,19 +77,24 @@
   .notice.info { color:var(--ink2); background:rgba(255,255,255,.4); }
 
   .small { margin:0; font:400 12.5px/1.5 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+  .stack { display:flex; flex-direction:column; gap:22px; }
+  .grow { flex:1; min-width:200px; }
+  .card.inset { background:#F9F4EA; }
+  .h-sub { font-size:17px; }
   .empty { padding:18px; text-align:center; color:var(--ink2); font-size:13.5px; }
-  footer { padding:22px clamp(20px, 5vw, 72px); border-top:1px solid var(--line); font:400 12px/1.5 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+  footer { display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; padding:20px max(var(--gx), env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) max(var(--gx), env(safe-area-inset-left)); background:var(--night); border-top:1px solid rgba(225,212,194,.14); color:rgba(225,212,194,.72); font:400 12px/1.5 Switzer, Helvetica, Arial, sans-serif; }
+  html.tc-dock-on footer { padding-bottom:20px; } /* the phone dock brings its own room (and the home-bar inset) below the footer */
 </style>
 </head>
 <body>
 <header>
-  <a class="brand" href="/">TERUCON <span>INDIA</span></a>
+  <a class="tc-logo-link" href="/" aria-label="Terucon India, home"><img class="tc-logo tc-logo--header" src="/brand/logo-header-320.webp" srcset="/brand/logo-header-160.webp 160w, /brand/logo-header-320.webp 320w, /brand/logo-header-480.webp 480w" sizes="210px" width="210" height="36" alt="Terucon India" decoding="async"></a>
   <nav aria-label="Pages">
     <a href="/">Home</a>
     <a href="/materials">Materials</a>
     <a href="/design-studio">Design Studio</a>
     <a href="/finder">Finder</a>
-    <a href="/account">Account</a>
+    <a class="keep" href="/account">Account</a>
     <a href="/admin/catalogue" aria-current="page">Catalogue admin</a>
   </nav>
 </header>
@@ -94,7 +110,7 @@
       <h2 id="h-token">Admin token</h2>
       <p class="notice bad" id="token-status" role="alert" hidden></p>
       <div class="grid2">
-        <label class="l" style="grid-column:1/-1">Bearer token
+        <label class="l wide">Bearer token
           <input id="token-input" type="password" autocomplete="off" placeholder="Pasted here only, kept for this tab alone">
         </label>
       </div>
@@ -105,7 +121,7 @@
       </div>
     </section>
 
-    <div id="admin-sections" hidden style="display:flex; flex-direction:column; gap:22px;">
+    <div id="admin-sections" class="stack" hidden>
 
       <!-- 2. overview -->
       <section class="card" id="overview-card" aria-labelledby="h-overview">
@@ -137,7 +153,7 @@
         </div>
         <div class="actions-row">
           <button class="btn" id="create-go" type="button">Create</button>
-          <p class="notice bad" id="create-status" hidden style="flex:1;min-width:200px;"></p>
+          <p class="notice bad grow" id="create-status" hidden></p>
         </div>
       </section>
 
@@ -190,8 +206,8 @@
         <div class="actions-row">
           <button class="btn ghost small" id="items-more" type="button" hidden>Show more</button>
         </div>
-        <div class="card" id="item-edit" hidden style="background:#F9F4EA;">
-          <h2 id="h-item-edit" style="font-size:17px;">Edit item</h2>
+        <div class="card inset" id="item-edit" hidden>
+          <h2 class="h-sub" id="h-item-edit">Edit item</h2>
           <div class="grid2">
             <label class="l">Label<input id="edit-label" type="text"></label>
             <label class="l">Product code<input id="edit-productId" type="text"></label>
@@ -220,7 +236,10 @@
   </div>
 </main>
 
-<footer>Terucon India Private Limited — admin only</footer>
+<footer>
+  <img class="tc-footer-logo" src="/brand/logo-header-320.webp" srcset="/brand/logo-header-320.webp 320w, /brand/logo-header-480.webp 480w" sizes="257px" width="257" height="44" alt="" loading="lazy" decoding="async">
+  <span>Terucon India Private Limited — admin only</span>
+</footer>
 
 <noscript><p class="notice bad">This page needs JavaScript.</p></noscript>
 <script type="module" src="/catalogue-ui/assets/admin.js"></script>

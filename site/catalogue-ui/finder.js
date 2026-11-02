@@ -45,19 +45,28 @@ let stillUrl = null; // its object URL, so it can be revoked
 let wholePhoto = false; // true once "Search the whole photo" was chosen: the next search omits `point`
 let reticleCenter = { xFrac: 0.5, yFrac: 0.5 }; // the reticle's centre, as a fraction of the viewfinder's own box
 let persistentNotice = null; // the "catalogue is off/not ready" message, if any: kept showing under any temporary one
+let persistentAction = null; // the button that goes with it, if any ({label, run}): "Try again" when the server could not be reached
 let flashTimer = null;
 
 const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
 
 // ---------------------------------------------------------------------------------------------------------- #status
 
-function showStatus(message) {
+function showStatus(message, action) {
   els.status.hidden = false;
   els.status.textContent = message;
+  if (action) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'link';
+    button.textContent = action.label;
+    button.addEventListener('click', action.run);
+    els.status.append(' ', button);
+  }
 }
 
 function restoreStatus() {
-  if (persistentNotice) showStatus(persistentNotice);
+  if (persistentNotice) showStatus(persistentNotice, persistentAction);
   else {
     els.status.hidden = true;
     els.status.textContent = '';
@@ -182,6 +191,19 @@ window.addEventListener('resize', () => {
 
 // ---------------------------------------------------------------------------------------------------------- camera / upload
 
+/** Give the viewfinder box the shape of the picture it shows, so the reticle's place in the box is its place in the picture (a phone's camera is tall, not 4:3). */
+function fitViewfinder() {
+  const source = !els.video.hidden && els.video.videoWidth ? { w: els.video.videoWidth, h: els.video.videoHeight } : { w: els.still.naturalWidth, h: els.still.naturalHeight };
+  if (!source.w || !source.h) return;
+  els.viewfinder.style.setProperty('--vf-ar', String(source.w / source.h));
+  if (els.viewfinder.hidden || els.reticle.hidden) return;
+  const rect = els.viewfinder.getBoundingClientRect();
+  layoutReticle(reticleCenter.xFrac * rect.width, reticleCenter.yFrac * rect.height);
+}
+els.video.addEventListener('loadedmetadata', fitViewfinder);
+els.video.addEventListener('resize', fitViewfinder);
+els.still.addEventListener('load', fitViewfinder);
+
 function stopCamera() {
   if (liveStream) {
     for (const track of liveStream.getTracks()) track.stop();
@@ -218,6 +240,7 @@ els.startCamera.addEventListener('click', async () => {
       /* some browsers resolve play() late; the stream still shows once it is ready */
     }
     openViewfinder();
+    fitViewfinder();
   } catch (err) {
     flashStatus(err instanceof client.CatalogueClientError ? client.friendlyMessage(err) : 'The camera could not be started. You can still upload a photo.');
   }
@@ -362,23 +385,35 @@ async function tryInspirationImport() {
 
 // ---------------------------------------------------------------------------------------------------------- start-up
 
-async function init() {
-  client.warm(); // fire-and-forget; errors are already swallowed inside client.js
+/** Ask the server whether the catalogue can be searched, and say so plainly if not. Re-run by the "Try again" button after a connection failure. */
+async function checkStatus() {
   const statusButtons = [els.modePhoto, els.modeColour, els.modeWords, els.goPhoto, els.goWords];
   try {
     const st = await client.status();
     if (!st?.enabled || !st?.ready) {
       persistentNotice = statusMessage(st?.reasons || []);
+      persistentAction = null;
       showStatus(persistentNotice);
       setDisabled(statusButtons, true);
+    } else {
+      persistentNotice = null;
+      persistentAction = null;
+      restoreStatus();
+      setDisabled(statusButtons, false);
     }
   } catch (err) {
     // status() does not normally throw on a 200; this covers a network failure, or a real refusal (e.g. the session
     // ended), reaching it at all — client.friendlyMessage() already has the right sentence for either
     persistentNotice = err instanceof client.CatalogueClientError ? client.friendlyMessage(err) : 'Catalogue search is not available right now. Please try again in a minute.';
-    showStatus(persistentNotice);
+    persistentAction = err?.reason === 'unauthorized' ? { label: 'Sign in', run: () => location.assign('/login?next=' + encodeURIComponent(location.pathname)) } : { label: 'Try again', run: checkStatus };
+    showStatus(persistentNotice, persistentAction);
     setDisabled(statusButtons, true);
   }
+}
+
+async function init() {
+  client.warm(); // fire-and-forget; errors are already swallowed inside client.js
+  await checkStatus();
   await tryInspirationImport();
 }
 

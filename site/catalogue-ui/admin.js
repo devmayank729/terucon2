@@ -68,13 +68,13 @@ async function api(path, { method = 'GET', body } = {}) {
   try {
     res = await fetch(`/api/catalogue/admin${path}`, { method, headers, body: payload });
   } catch {
-    throw new AdminError('Could not reach the server.', { status: 0, reason: 'network' });
+    throw new AdminError('Could not reach the server. Check your connection and try again.', { status: 0, reason: 'network' });
   }
   let json = null;
   try { json = await res.json(); } catch { /* no body, or not JSON */ }
   if (!res.ok) {
     const e = json?.error;
-    throw new AdminError(e?.message || `The server answered ${res.status}.`, { status: res.status, reason: e?.reason || 'error' });
+    throw new AdminError(e?.message || (res.status >= 500 ? 'The server had a problem. Please try again in a moment.' : 'Something went wrong. Please try again.'), { status: res.status, reason: e?.reason || 'error' });
   }
   return json;
 }
@@ -345,9 +345,9 @@ function jobTagClass(jobStatus) {
 function progressHtml(progress) {
   if (!progress || !progress.total) return '';
   const pct = Math.max(0, Math.min(100, Math.round((progress.done / progress.total) * 100)));
-  return `<div style="flex:1 1 160px; min-width:140px;">
-    <div class="progress"><span style="width:${pct}%"></span></div>
-    <p class="muted" style="margin:3px 0 0;">${progress.done}/${progress.total}${progress.message ? ' — ' + esc(progress.message) : ''}</p>
+  return `<div class="job-progress">
+    <div class="progress"><span data-pct="${pct}"></span></div>
+    <p class="muted job-note">${progress.done}/${progress.total}${progress.message ? ' — ' + esc(progress.message) : ''}</p>
   </div>`;
 }
 
@@ -355,12 +355,12 @@ function jobRowHtml(j) {
   const canStart = j.status === 'draft' || j.status === 'failed';
   const canCancel = j.status === 'draft' || j.status === 'queued' || j.status === 'running';
   return `
-    <div data-job-row="${esc(j._id)}" style="cursor:pointer;">
+    <div class="is-click" data-job-row="${esc(j._id)}">
       <strong>${esc(j._id)}</strong>
       <span class="muted">${esc(j.catalogue)}</span>
       <span class="tag ${jobTagClass(j.status)}">${esc(j.status)}</span>
       ${progressHtml(j.progress)}
-      <span class="actions-row" style="gap:6px; margin-left:auto;">
+      <span class="actions-row push tight">
         ${canStart ? `<button type="button" class="btn ghost small" data-job-start="${esc(j._id)}">Start</button>` : ''}
         ${canCancel ? `<button type="button" class="btn ghost small" data-job-cancel="${esc(j._id)}">Cancel</button>` : ''}
       </span>
@@ -372,6 +372,8 @@ function renderJobsList(jobs) {
   const node = $('jobs-list');
   if (!jobs.length) { node.innerHTML = '<p class="empty">No jobs yet.</p>'; return; }
   node.innerHTML = jobs.map(jobRowHtml).join('');
+  // the progress bars' widths: the page's strict policy refuses a style="" attribute in markup, but setting a style from script is allowed
+  node.querySelectorAll('.progress > span[data-pct]').forEach((bar) => { bar.style.width = `${Number(bar.dataset.pct) || 0}%`; });
   node.querySelectorAll('[data-job-start]').forEach((btn) => btn.addEventListener('click', (e) => { e.stopPropagation(); startJobFromList(btn.dataset.jobStart); }));
   node.querySelectorAll('[data-job-cancel]').forEach((btn) => btn.addEventListener('click', (e) => { e.stopPropagation(); cancelJobFromList(btn.dataset.jobCancel); }));
   node.querySelectorAll('[data-job-row]').forEach((row) => row.addEventListener('click', () => toggleJobDetail(row.dataset.jobRow)));
@@ -397,7 +399,7 @@ async function toggleJobDetail(id) {
     const job = await api(`/jobs/${encodeURIComponent(id)}`);
     const lines = [`Status: ${job.status}${job.stage ? ` (${job.stage})` : ''}`, job.error ? `Error: ${job.error}` : '', `Sources: ${(job.sources || []).map((s) => s.name).join(', ') || 'none'}`].filter(Boolean);
     const log = (job.log || []).map((l) => `[${l.level || 'info'}] ${l.msg || ''}`).join('\n');
-    detail.innerHTML = `<pre style="white-space:pre-wrap; margin:0; font:400 12px/1.5 Switzer, Helvetica, Arial, sans-serif; width:100%;">${esc(lines.join('\n'))}${log ? '\n\n' + esc(log) : ''}</pre>`;
+    detail.innerHTML = `<pre class="log">${esc(lines.join('\n'))}${log ? '\n\n' + esc(log) : ''}</pre>`;
   } catch (err) {
     detail.innerHTML = `<p class="notice bad">${esc(err.message)}</p>`;
   }
@@ -432,15 +434,15 @@ let editing = null; // { catalogueId, itemId }
 
 function itemRowHtml(it) {
   const thumb = it.thumbUrl
-    ? `<img src="${esc(it.thumbUrl)}" alt="" loading="lazy" style="width:48px; height:48px; object-fit:cover; border-radius:8px; flex:none; background:#d9ccb9;">`
-    : '<span style="width:48px; height:48px; border-radius:8px; background:#d9ccb9; flex:none; display:inline-block;"></span>';
+    ? `<img class="thumb" src="${esc(it.thumbUrl)}" alt="" loading="lazy">`
+    : '<span class="thumb"></span>';
   return `
     <div>
       ${thumb}
       <span>${esc(it.label || it.itemId)}</span>
       <span class="muted">${esc(it.productId || 'no code')}</span>
       <span class="tag ${it.status === 'hidden' ? 'hidden' : 'ok'}">${it.status === 'hidden' ? 'Hidden' : 'Visible'}</span>
-      <button type="button" class="btn ghost small" data-item-edit="${esc(it.itemId)}" style="margin-left:auto;">Edit</button>
+      <button type="button" class="btn ghost small push" data-item-edit="${esc(it.itemId)}">Edit</button>
     </div>`;
 }
 
@@ -555,7 +557,7 @@ function releaseRowHtml(r) {
       <span class="muted">${r.nItems ?? 0} items</span>
       <span class="muted">${esc(pillars || 'no search vectors')}</span>
       ${tag}
-      ${r.active ? '' : `<button type="button" class="btn small" data-release-activate="${esc(r.id)}" style="margin-left:auto;">Activate</button>`}
+      ${r.active ? '' : `<button type="button" class="btn small push" data-release-activate="${esc(r.id)}">Activate</button>`}
     </div>`;
 }
 

@@ -76,17 +76,20 @@
         "\n        ",
         {
           "component": "menuCard",
-          "entry": "materials"
+          "entry": "materials",
+          "mobileHide": true
         },
         "\n        ",
         {
           "component": "menuCard",
-          "entry": "project"
+          "entry": "project",
+          "mobileHide": true
         },
         "\n        ",
         {
           "component": "menuCard",
-          "entry": "account"
+          "entry": "account",
+          "mobileHide": true
         }
       ]
     },
@@ -174,6 +177,228 @@
           "chomp": true
         },
         "</script>\n"
+      ]
+    },
+    {
+      "id": "logo-header",
+      "op": "replace",
+      "why": "header: the real logo (in a dark pill, so it reads on the cream sections too) instead of the typed TERUCON INDIA",
+      "anchor": "<a href=\"#top\" style=\"pointer-events:auto;display:flex;align-items:baseline;gap:10px;color:inherit;font:600 15px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.34em\" style-hover=\"color:inherit\">TERUCON<span style=\"font:500 9.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.3em\">INDIA</span></a>",
+      "with": [
+        {
+          "component": "logoLink",
+          "entry": "logo",
+          "target": "#top",
+          "pill": true
+        }
+      ]
+    },
+    {
+      "id": "logo-menu",
+      "op": "replace",
+      "why": "menu overlay: the real logo (the overlay is dark, no pill)",
+      "anchor": "<span style=\"display:flex;align-items:baseline;gap:10px;font:600 15px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.34em\">TERUCON<span style=\"font:500 9.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.3em\">INDIA</span></span>",
+      "with": [
+        {
+          "component": "logoLink",
+          "entry": "logo",
+          "target": "#top",
+          "pill": false
+        }
+      ]
+    },
+    {
+      "id": "logo-footer",
+      "op": "replace",
+      "why": "footer: the full lockup (emblem, name, INDIA PVT. LTD., tagline) above the columns, and a little less space above the columns",
+      "anchor": "<div style=\"position:relative;padding:clamp(56px,9vh,100px) 5cqw 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));column-gap:clamp(24px,3cqw,56px);row-gap:44px\">",
+      "with": [
+        "<div style=\"position:relative;padding:clamp(48px,8vh,88px) 5cqw 0\">",
+        {
+          "component": "logoFooter",
+          "entry": "logoFooterFull",
+          "target": "#top"
+        },
+        "</div>\n  <div style=\"position:relative;padding:clamp(36px,6vh,64px) 5cqw 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));column-gap:clamp(24px,3cqw,56px);row-gap:44px\">"
+      ]
+    },
+    {
+      "id": "header-phone",
+      "op": "replace",
+      "why": "header on a phone: less padding so the sticky bar takes 62 px, not 78",
+      "anchor": "<header data-nav=\"\" style=\"position:fixed;top:0;left:0;right:0;z-index:50;",
+      "with": "<header data-nav=\"\" data-m=\"padding:10px 16px\" style=\"position:fixed;top:0;left:0;right:0;z-index:50;"
+    },
+    {
+      "id": "dvh",
+      "op": "replaceAll",
+      "why": "pinned scenes fill the visible screen on a phone (100dvh), not the screen with the browser bars hidden (100vh); 100vh stays as the fallback",
+      "anchor": "position:sticky;top:0;height:100vh;overflow:hidden",
+      "count": 6,
+      "with": "position:sticky;top:0;height:100vh;height:100dvh;overflow:hidden"
+    },
+    {
+      "id": "menu-spacing",
+      "op": "replace",
+      "why": "menu overlay on a phone: start at the top with tighter gaps (the overlay scrolls)",
+      "anchor": "<div style=\"min-height:100%;display:flex;flex-direction:column;justify-content:space-between;gap:48px;padding:18px clamp(20px,5vw,72px) clamp(24px,5vh,48px)\">",
+      "with": "<div data-m=\"justify-content:flex-start;gap:26px;padding:12px 20px calc(28px + env(safe-area-inset-bottom,0px))\" style=\"min-height:100%;display:flex;flex-direction:column;justify-content:space-between;gap:48px;padding:18px clamp(20px,5vw,72px) clamp(24px,5vh,48px)\">"
+    },
+    {
+      "id": "menu-destinations",
+      "op": "insertBefore",
+      "why": "menu overlay: on a phone the five destinations come first as large tap targets, then Sign in / Account and Start a project; the in-page sections follow",
+      "anchor": "<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:48px;align-items:end\">",
+      "insert": [
+        "<div data-menu-dest=\"\" data-m=\"display:flex\" style=\"display:none;flex-direction:column\">\n      <span style=\"font:500 10.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#A78D78;padding-bottom:6px\">Explore Terucon</span>\n        ",
+        {
+          "component": "menuDest",
+          "entry": "materials"
+        },
+        "\n        ",
+        {
+          "component": "menuDest",
+          "entry": "designStudio"
+        },
+        "\n        ",
+        {
+          "component": "menuDest",
+          "entry": "inspiration"
+        },
+        "\n        ",
+        {
+          "component": "menuDest",
+          "entry": "finder"
+        },
+        "\n        ",
+        {
+          "component": "menuDest",
+          "entry": "project"
+        },
+        "\n        ",
+        "<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px\">\n          ",
+        {
+          "component": "menuCta",
+          "entry": "account",
+          "label": "Account",
+          "ghost": true,
+          "account": true
+        },
+        "\n          ",
+        {
+          "component": "menuCta",
+          "entry": "startProject",
+          "target": "#enquire",
+          "solid": true
+        },
+        "\n        </div>\n      </div>\n    "
+      ]
+    },
+    {
+      "id": "menu-sections-label",
+      "op": "insertAfter",
+      "why": "menu overlay on a phone: a small heading over the in-page sections",
+      "anchor": "<nav style=\"display:flex;flex-direction:column\">",
+      "insert": [
+        "\n        <span data-m=\"display:block\" style=\"display:none;padding:0 0 4px;font:500 10.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#A78D78\">On this page</span>"
+      ]
+    },
+    {
+      "id": "menu-sections-size",
+      "op": "replaceAll",
+      "why": "menu overlay on a phone: the in-page sections are smaller than the destinations (and still 44 px tall)",
+      "anchor": "font:300 clamp(28px,4vw,56px)/1.05 Zodiak,Georgia,serif;color:#E1D4C2\" style-hover=\"color:#A78D78\">",
+      "count": 7,
+      "with": "font:300 clamp(28px,4vw,56px)/1.05 Zodiak,Georgia,serif;color:#E1D4C2\" data-m=\"font-size:22px;padding:13px 0\" style-hover=\"color:#A78D78\">"
+    },
+    {
+      "id": "menu-studio-card-phone",
+      "op": "replace",
+      "why": "menu overlay on a phone: the Design Studio card is replaced by the destinations list above (it stays on a laptop)",
+      "anchor": "color:#E1D4C2\" style-hover=\"border-color:#E1D4C2;color:#E1D4C2\"><span style=\"font:500 10.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#A78D78\">07 · AI visualisation</span>",
+      "with": "color:#E1D4C2\" data-m=\"display:none\" style-hover=\"border-color:#E1D4C2;color:#E1D4C2\"><span style=\"font:500 10.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#A78D78\">07 · AI visualisation</span>"
+    },
+    {
+      "id": "video-preload",
+      "op": "replace",
+      "why": "hero and craft films: do not preload (the loader below starts them after the page has loaded, and not at all on a phone)",
+      "anchor": "v.autoplay = true; v.preload = 'auto';",
+      "with": "v.autoplay = true; v.preload = 'none';"
+    },
+    {
+      "id": "video-poster-first",
+      "op": "replace",
+      "why": "films: decide once whether this visitor gets the film (a phone, data saver, reduced motion or a slow connection get the poster picture only); show the poster at once",
+      "anchor": "if (vh.dataset.poster) { const pi = new Image(); pi.onload = () => { v.poster = vh.dataset.poster; }; pi.src = vh.dataset.poster; }",
+      "with": "const nc = navigator.connection || {}, lite = matchMedia('(max-width: 899px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches || !!nc.saveData || /(^|-)(2g|3g)$/.test(nc.effectiveType || '');\n        if (lite) { v.autoplay = false; v.removeAttribute('autoplay'); }\n        if (vh.dataset.poster) { const pi = new Image(); pi.onload = () => { v.poster = vh.dataset.poster; v.style.opacity = 1; if (lite) done(true); }; pi.onerror = () => { if (lite) done(false); }; pi.src = vh.dataset.poster; } else if (lite) done(false);"
+    },
+    {
+      "id": "video-after-load",
+      "op": "replace",
+      "why": "films: start downloading only after the window load event, so they never compete with the page itself",
+      "anchor": "v.src = vh.dataset.video;",
+      "with": "if (!lite) { const go = () => { v.src = vh.dataset.video; }; if (document.readyState === 'complete') setTimeout(go, 300); else addEventListener('load', () => setTimeout(go, 300), { once: true }); }"
+    },
+    {
+      "id": "strips-lazy",
+      "op": "replace",
+      "why": "the three big \"shell to handover\" pictures are fetched when the visitor is about 1500 px away from them, not all at page load",
+      "anchor": "im.src = h.dataset.src;",
+      "with": "const go = () => { im.src = h.dataset.src; };\n      if ('IntersectionObserver' in window) { const io = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting)) { io.disconnect(); go(); } }, { rootMargin: '1500px 0px' }); io.observe(h); } else go();"
+    },
+    {
+      "id": "img-lazy-media",
+      "op": "replaceAll",
+      "why": "pictures below the first screen load lazily (the page reveals each one when it has loaded)",
+      "anchor": "<img data-media=\"\"",
+      "count": 11,
+      "with": "<img loading=\"lazy\" decoding=\"async\" data-media=\"\""
+    },
+    {
+      "id": "img-lazy-dir",
+      "op": "replaceAll",
+      "why": "the finish-picker pictures load lazily",
+      "anchor": "draggable=\"false\" decoding=\"async\" style=",
+      "count": 12,
+      "with": "draggable=\"false\" decoding=\"async\" loading=\"lazy\" style="
+    },
+    {
+      "id": "form-autofill-name",
+      "op": "replace",
+      "why": "enquiry form: let a phone fill the name",
+      "anchor": "<input name=\"name\" placeholder=\"Full name\"",
+      "with": "<input name=\"name\" autocomplete=\"name\" placeholder=\"Full name\""
+    },
+    {
+      "id": "form-autofill-phone",
+      "op": "replace",
+      "why": "enquiry form: phone keypad and autofill",
+      "anchor": "<input name=\"phone\" type=\"tel\" placeholder",
+      "with": "<input name=\"phone\" type=\"tel\" inputmode=\"tel\" autocomplete=\"tel-national\" placeholder"
+    },
+    {
+      "id": "form-autofill-email",
+      "op": "replace",
+      "why": "enquiry form: e-mail keyboard and autofill",
+      "anchor": "<input name=\"email\" type=\"email\" placeholder",
+      "with": "<input name=\"email\" type=\"email\" inputmode=\"email\" autocomplete=\"email\" placeholder"
+    },
+    {
+      "id": "dock",
+      "op": "insertBefore",
+      "why": "mobile dock: the bottom bar with the five destinations on a phone (site/brand/dock.md)",
+      "anchor": "</helmet>",
+      "insert": [
+        "<link rel=\"stylesheet\" href=\"/brand/dock.css\">\n<script src=\"/brand/dock.js\" defer></script>\n"
+      ]
+    },
+    {
+      "id": "header-fit",
+      "op": "insertBefore",
+      "why": "header between 820 and 1199 px: links stay on one line (they wrapped once the real logo replaced the typed one); between 820 and 899 the dock carries the destinations; the hero buttons stay clear of the bottom bar; room under the footer for the bottom bar; 44 px tap targets on a phone",
+      "anchor": "</helmet>",
+      "insert": [
+        "<style>\n/* header links on a narrow laptop or a tablet: one line each; the phone dock (up to 899 px) already carries the destinations */\n[data-nav] nav a { white-space: nowrap; }\n@media (min-width: 820px) and (max-width: 899px) { [data-nav] nav > a:not([data-navpill]) { display: none !important; } }\n@media (min-width: 900px) and (max-width: 1199px) {\n  [data-nav] nav { gap: 14px !important; }\n  [data-nav] nav a[data-terucon-account], [data-nav] nav > a[href=\"/design-studio\"] > span { display: none !important; }\n}\n/* the hero's buttons stay clear of the bottom bar */\n@media (max-width: 899px) {\n  [data-hero-copy] { bottom: calc(var(--tc-dock-h, 0px) + env(safe-area-inset-bottom, 0px) + 24px) !important; }\n  [data-cue] { display: none !important; }\n}\n/* room under the footer for the bottom bar (the body is only a frame here, so dock.css's own spacer would sit mid-page) */\n@media (max-width: 899px) {\n  body::after { display: none !important; }\n  .tc-dock-on [data-root] { padding-bottom: calc(var(--tc-dock-h, 0px) + env(safe-area-inset-bottom, 0px)); }\n}\n/* tap targets: 44 px on a phone or a small tablet (links in the footer and the contact lines, the material list, the menu buttons) */\n@media (max-width: 899px) {\n  footer a, a[href^=\"tel:\"], a[href^=\"mailto:\"], a[href*=\"wa.me\"] { display: inline-flex !important; align-items: center; min-height: 44px !important; }\n  [data-menu-btn], [data-menu-close], [data-totop], [data-finish], [data-mat] { min-height: 44px !important; }\n  [data-fcol] { gap: 0 !important; }\n  [data-hero-copy] a[href=\"#work\"] { position: relative; }\n  [data-hero-copy] a[href=\"#work\"]::after { content: \"\"; position: absolute; left: -10px; right: -10px; top: -14px; bottom: -14px; }\n}\n</style>\n"
       ]
     }
   ]

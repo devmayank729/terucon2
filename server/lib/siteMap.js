@@ -104,7 +104,7 @@ export class SiteMap {
    * Lookup table for the pages (or docs): the decoded request path -> what to do with it.
    * Canonical routes serve the file; aliases (301) and legacy design-time names (302) redirect to the route.
    * @param {'pages' | 'docs'} kind
-   * @returns {Map<string, {file: string, headers: Record<string, string>} | {redirect: string, status: number}>}
+   * @returns {Map<string, {key: string, file: string, headers: Record<string, string>} | {redirect: string, status: number}>}
    */
   table(kind) {
     const table = new Map();
@@ -113,7 +113,7 @@ export class SiteMap {
       table.set(key, action);
     };
     for (const entry of Object.values(this[kind])) {
-      add(entry.route, { file: entry.file, headers: entry.headers, access: entry.access, route: entry.route, csp: entry.csp });
+      add(entry.route, { key: entry.key, file: entry.file, headers: entry.headers, access: entry.access, route: entry.route, csp: entry.csp });
       for (const alias of entry.aliases) add(alias, { redirect: entry.route, status: 301 });
       for (const name of entry.legacy) add('/' + name, { redirect: entry.route, status: 302 });
     }

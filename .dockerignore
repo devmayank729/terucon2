@@ -24,3 +24,5 @@ swatchroom/tests/sa.json
 # The catalogue engine (catalogue/) runs on Modal or on your own computer, never in the website's image; the notebook it came from does not belong in it either
 catalogue/
 **/*.ipynb
+# The built site is made inside the image (Dockerfile: RUN node tools/build-dist.js); a copy built on this computer would be stale or from another version
+dist/

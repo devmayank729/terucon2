@@ -3,10 +3,16 @@
   "components": {
     "headerLink": "<a href=\"{{target}}\"{{#mobileHide}} data-m=\"display:none\"{{/mobileHide}} style=\"display:flex;align-items:center;gap:8px;color:inherit;font:500 13px/1 Switzer,Helvetica,Arial,sans-serif\" style-hover=\"color:inherit;opacity:.75\">{{label}}</a>",
     "accountLink": "<a href=\"{{target}}\" data-terucon-account=\"\"{{#mobileHide}} data-m=\"display:none\"{{/mobileHide}} style=\"display:flex;align-items:center;gap:8px;color:inherit;font:500 13px/1 Switzer,Helvetica,Arial,sans-serif\" style-hover=\"color:inherit;opacity:.75\">{{label}}</a>",
-    "menuCard": "<a href=\"{{target}}\" style=\"display:flex;flex-direction:column;gap:10px;padding:26px;border:1px solid rgba(225,212,194,.2);color:#E1D4C2\" style-hover=\"border-color:#E1D4C2;color:#E1D4C2\"><span style=\"font:500 10.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#A78D78\">{{eyebrow}}</span><span style=\"font:300 clamp(26px,2.4vw,36px)/1.1 Zodiak,Georgia,serif\">{{title}}</span><span style=\"font:400 14px/1.5 Switzer,Helvetica,Arial,sans-serif;color:#BEB5A9\">{{blurb}}</span></a>",
+    "menuCard": "<a href=\"{{target}}\"{{#mobileHide}} data-m=\"display:none\"{{/mobileHide}} style=\"display:flex;flex-direction:column;gap:10px;padding:26px;border:1px solid rgba(225,212,194,.2);color:#E1D4C2\" style-hover=\"border-color:#E1D4C2;color:#E1D4C2\"><span style=\"font:500 10.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#A78D78\">{{eyebrow}}</span><span style=\"font:300 clamp(26px,2.4vw,36px)/1.1 Zodiak,Georgia,serif\">{{title}}</span><span style=\"font:400 14px/1.5 Switzer,Helvetica,Arial,sans-serif;color:#BEB5A9\">{{blurb}}</span></a>",
     "footerLink": "<a href=\"{{target}}\" style=\"align-self:flex-start;font:400 15px/1.5 Switzer,sans-serif;color:#E1D4C2\" style-hover=\"color:#FFFFFF\">{{label}}</a>",
     "footerLinkUnderlined": "<a href=\"{{target}}\" style=\"align-self:flex-start;font:400 15px/1.5 Switzer,Helvetica,Arial,sans-serif;color:#E1D4C2;background:linear-gradient(#E1D4C2,#E1D4C2) 0 100%/0 1px no-repeat;transition:background-size .5s cubic-bezier(.2,.7,.2,1),color .3s\" style-hover=\"background-size:100% 1px;color:#FFFFFF\">{{label}}</a>",
-    "heroPill": "<a href=\"{{target}}\" style=\"display:inline-flex;align-items:center;gap:10px;height:50px;padding:0 24px;border-radius:999px;border:1px solid rgba(225,212,194,.55);color:#E1D4C2;font:500 14px/1 Switzer,Helvetica,Arial,sans-serif;transition:background .35s,border-color .35s\" style-hover=\"background:rgba(225,212,194,.14);border-color:#E1D4C2;color:#E1D4C2\">{{label}}<span>→</span></a>"
+    "heroPill": "<a href=\"{{target}}\" style=\"display:inline-flex;align-items:center;gap:10px;height:50px;padding:0 24px;border-radius:999px;border:1px solid rgba(225,212,194,.55);color:#E1D4C2;font:500 14px/1 Switzer,Helvetica,Arial,sans-serif;transition:background .35s,border-color .35s\" style-hover=\"background:rgba(225,212,194,.14);border-color:#E1D4C2;color:#E1D4C2\">{{label}}<span>→</span></a>",
+    "logoLink": "<a href=\"{{target}}\" aria-label=\"Terucon India, home\" data-tc-logo=\"\" style=\"pointer-events:auto;flex:none;display:inline-flex;align-items:center;min-height:44px;color:inherit\">{{#pill}}<span style=\"display:inline-flex;align-items:center;padding:6px 14px;border-radius:999px;background:rgba(31,21,10,.92);box-shadow:0 0 0 1px rgba(225,212,194,.14)\">{{/pill}}<img src=\"/brand/logo-header-320.webp\" srcset=\"/brand/logo-header-160.webp 160w, /brand/logo-header-320.webp 320w, /brand/logo-header-480.webp 480w\" sizes=\"{{w}}px\" width=\"{{w}}\" height=\"{{h}}\" alt=\"Terucon India\" decoding=\"async\" style=\"display:block;height:{{h}}px;width:auto;max-width:none\">{{#pill}}</span>{{/pill}}<span style=\"position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap\">TERUCON INDIA</span></a>",
+    "logoFooter": "<a href=\"{{target}}\" aria-label=\"Terucon India, home\" style=\"align-self:flex-start;display:inline-block;color:inherit\"><img src=\"/brand/logo-full-640.webp\" srcset=\"/brand/logo-full-320.webp 320w, /brand/logo-full-640.webp 640w, /brand/logo-full-1200.webp 1200w\" sizes=\"{{w}}px\" width=\"{{w}}\" height=\"{{h}}\" alt=\"Terucon India Pvt. Ltd. Interiors for businesses\" loading=\"lazy\" decoding=\"async\" style=\"display:block;width:min(100%,{{w}}px);height:auto\"></a>",
+    "menuDest": "<a href=\"{{target}}\"{{#here}} aria-current=\"page\" sc-camel-on-click=\"{{ closeMenu }}\"{{/here}} style=\"display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;padding:14px 0;border-bottom:1px solid rgba(225,212,194,.14);color:#E1D4C2\" style-hover=\"color:#E1D4C2\" style-active=\"background:rgba(225,212,194,.06)\"><span style=\"display:flex;flex-direction:column;gap:6px;min-width:0\"><span style=\"font:300 clamp(28px,8.4vw,38px)/1.05 Zodiak,Georgia,serif\">{{label}}</span><span style=\"font:400 13.5px/1.45 Switzer,Helvetica,Arial,sans-serif;color:#BEB5A9\">{{blurb}}</span></span><span aria-hidden=\"true\" style=\"flex:none;font:300 26px/1 Zodiak,Georgia,serif;color:#F0B060\">→</span></a>",
+    "menuCta": "<a href=\"{{target}}\"{{#account}} data-terucon-account=\"\"{{/account}} style=\"display:flex;align-items:center;justify-content:center;min-height:52px;padding:0 18px;border-radius:999px;{{#solid}}background:#E1D4C2;color:#291C0E;border:1px solid #E1D4C2{{/solid}}{{#ghost}}border:1px solid rgba(225,212,194,.5);color:#E1D4C2{{/ghost}};font:500 15px/1 Switzer,Helvetica,Arial,sans-serif;text-align:center\" style-hover=\"{{#solid}}background:#A78D78;color:#291C0E{{/solid}}{{#ghost}}background:rgba(225,212,194,.12);color:#E1D4C2{{/ghost}}\">{{label}}</a>",
+    "railLink": "<a href=\"{{target}}\" style=\"{{#wide}}grid-column:1/-1;{{/wide}}display:flex;align-items:center;gap:10px;min-width:0;height:48px;padding:0 12px;border-radius:14px;border:1px solid var(--line2);color:var(--ink);font:600 .875rem/1 Switzer,sans-serif;white-space:nowrap\" style-hover=\"border-color:var(--ink)\"><svg width=\"22\" height=\"22\" sc-camel-view-box=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" sc-camel-stroke-width=\"1.8\" sc-camel-stroke-linecap=\"round\" sc-camel-stroke-linejoin=\"round\" aria-hidden=\"true\" style=\"flex:none\">{{icon}}</svg><span style=\"min-width:0;overflow:hidden;text-overflow:ellipsis\">{{label}}</span></a>",
+    "logoLinkTail": "style=\"pointer-events:auto;flex:none;display:inline-flex;align-items:center;min-height:44px;color:inherit\" aria-label=\"Terucon India, home\" data-tc-logo=\"\">{{#pill}}<span style=\"display:inline-flex;align-items:center;padding:6px 14px;border-radius:999px;background:rgba(31,21,10,.92);box-shadow:0 0 0 1px rgba(225,212,194,.14)\">{{/pill}}<img src=\"/brand/logo-header-320.webp\" srcset=\"/brand/logo-header-160.webp 160w, /brand/logo-header-320.webp 320w, /brand/logo-header-480.webp 480w\" sizes=\"{{w}}px\" width=\"{{w}}\" height=\"{{h}}\" alt=\"Terucon India\" decoding=\"async\" style=\"display:block;height:{{h}}px;width:auto;max-width:none\">{{#pill}}</span>{{/pill}}<span style=\"position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap\">TERUCON INDIA</span></a>"
   },
   "entries": {
     "materials": {
@@ -47,6 +53,26 @@
       "eyebrow": "Finder",
       "title": "Point, snap, find it →",
       "blurb": "Match a material against the real catalogue, by photo, a spot, or colour."
+    },
+    "logo": {
+      "page": "home",
+      "w": 175,
+      "h": 30
+    },
+    "logoFooterFull": {
+      "page": "home",
+      "w": 260,
+      "h": 165
+    },
+    "designStudio": {
+      "page": "studio",
+      "label": "Design Studio",
+      "blurb": "Upload a photo of your space and see it in Terucon materials."
+    },
+    "startProject": {
+      "page": "home",
+      "fragment": "#enquire",
+      "label": "Start a project"
     }
   }
 }

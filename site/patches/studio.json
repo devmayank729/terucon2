@@ -190,6 +190,133 @@
       "insert": [
         "<script type=\"module\" src=\"/inspiration/assets/feed.js\"></script>\n"
       ]
+    },
+    {
+      "id": "logo-header",
+      "op": "replace",
+      "why": "header: the real logo (in a dark pill, so it reads on the cream header) instead of the typed TERUCON INDIA (the page's own <a href> stays, so the link style of the build is respected)",
+      "anchor": "style=\"display:flex;align-items:baseline;gap:10px;color:inherit;font:600 15px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.34em\" style-hover=\"color:inherit\">TERUCON<span style=\"font:500 9.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.3em\">INDIA</span></a>",
+      "with": [
+        {
+          "component": "logoLinkTail",
+          "entry": "logo",
+          "pill": true,
+          "w": 152,
+          "h": 26
+        }
+      ]
+    },
+    {
+      "id": "logo-menu",
+      "op": "replace",
+      "why": "menu overlay: the real logo (dark overlay, no pill)",
+      "anchor": "<span style=\"display:flex;align-items:baseline;gap:10px;font:600 15px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.34em\">TERUCON<span style=\"font:500 9.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.3em\">INDIA</span></span>",
+      "with": [
+        {
+          "component": "logoLink",
+          "entry": "logo",
+          "pill": false
+        }
+      ]
+    },
+    {
+      "id": "logo-footer",
+      "op": "insertBefore",
+      "why": "footer: the full lockup above the columns",
+      "anchor": "<div style=\"padding:0 clamp(20px,5vw,72px);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));column-gap:clamp(24px,3vw,56px);row-gap:36px\">",
+      "insert": [
+        "<div style=\"padding:0 clamp(20px,5vw,72px) clamp(28px,4vh,44px)\">",
+        {
+          "component": "logoFooter",
+          "entry": "logoFooterFull"
+        },
+        "</div>\n  "
+      ]
+    },
+    {
+      "id": "menu-destinations",
+      "op": "insertBefore",
+      "why": "menu overlay on a phone: the five destinations first as large tap targets, then Account and Start a project (shown by the page style below; the cards for the same pages are hidden there)",
+      "anchor": "<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:48px;align-items:end\">",
+      "insert": [
+        "<div data-menu-dest=\"\" style=\"flex-direction:column\">\n      <span style=\"font:500 10.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#A78D78;padding-bottom:6px\">Explore Terucon</span>\n        ",
+        {
+          "component": "menuDest",
+          "entry": "materials"
+        },
+        "\n        ",
+        {
+          "component": "menuDest",
+          "entry": "designStudio",
+          "here": true,
+          "blurb": "You are here. Upload a photo of your space and see it in Terucon materials."
+        },
+        "\n        ",
+        {
+          "component": "menuDest",
+          "entry": "inspiration"
+        },
+        "\n        ",
+        {
+          "component": "menuDest",
+          "entry": "finder"
+        },
+        "\n        ",
+        {
+          "component": "menuDest",
+          "entry": "project"
+        },
+        "\n        ",
+        "<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px\">\n          ",
+        {
+          "component": "menuCta",
+          "entry": "account",
+          "label": "Account",
+          "ghost": true,
+          "account": true
+        },
+        "\n          ",
+        {
+          "component": "menuCta",
+          "entry": "startProject",
+          "solid": true
+        },
+        "\n        </div>\n      </div>\n    "
+      ]
+    },
+    {
+      "id": "menu-sections-label",
+      "op": "insertAfter",
+      "why": "menu overlay on a phone: a small heading over the links to the home page sections",
+      "anchor": "<nav style=\"display:flex;flex-direction:column\">",
+      "insert": [
+        "\n        <span style=\"padding:0 0 4px;font:500 10.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#A78D78\">On the home page</span>"
+      ]
+    },
+    {
+      "id": "menu-aside-mark",
+      "op": "replace",
+      "why": "menu overlay: mark the cards column so the phone style can hide the page cards (the destinations list above replaces them)",
+      "anchor": "<div style=\"display:flex;flex-direction:column;gap:18px\">",
+      "with": "<div data-menu-aside=\"\" style=\"display:flex;flex-direction:column;gap:18px\">"
+    },
+    {
+      "id": "phone-style",
+      "op": "insertBefore",
+      "why": "page style for the phone: header fit, the menu overlay leading with the destinations, the studio frame above the bottom bar, room under the footer",
+      "anchor": "</helmet>",
+      "insert": [
+        "<style>\n/* header: one line per link; 820-899 px the bottom bar carries the destinations; 900-1199 px lose the least useful links */\n[data-nav] nav a { white-space: nowrap; }\n@media (min-width: 820px) and (max-width: 899px) { [data-nav] nav > a:not([href=\"/#enquire\"]) { display: none !important; } }\n@media (min-width: 900px) and (max-width: 1199px) {\n  [data-nav] nav { gap: 14px !important; }\n  [data-nav] nav a[data-terucon-account], [data-nav] nav > a[href=\"/design-studio\"] > span, [data-nav] nav > a[href=\"/materials#/saved\"] { display: none !important; }\n}\n@media (min-width: 820px) { [data-tc-logo] img { height: 30px !important; } }\n@media (max-width: 599px) { [data-nav] { padding-left: 14px !important; padding-right: 14px !important; } }\n/* menu overlay on a phone or small tablet: destinations lead */\n[data-menu-dest] { display: none; }\n@media (max-width: 819px) {\n  [data-menu-dest] { display: flex; }\n  [data-menu] > div { justify-content: flex-start !important; gap: 26px !important; padding: 12px 20px calc(28px + env(safe-area-inset-bottom, 0px)) !important; }\n  [data-menu-aside] > a { display: none !important; }\n  [data-menu] nav a { font-size: 22px !important; padding: 13px 0 !important; }\n}\n/* bottom bar: the studio frame stops above it (while the working view is not full screen) and the page gets room at its end */\n@media (max-width: 899px) {\n  body::after { display: none !important; }\n  .tc-dock-on:not(.swr-immersive) swatchroom-app .sr-studio { height: calc(100dvh - var(--swr-top, 0px) - var(--tc-dock-h, 0px)) !important; }\n  .tc-dock-on [data-studio] { padding-bottom: calc(var(--tc-dock-h, 0px) + env(safe-area-inset-bottom, 0px)); }\n}\n</style>\n"
+      ]
+    },
+    {
+      "id": "dock",
+      "op": "insertBefore",
+      "why": "mobile dock: the bottom bar with the five destinations on a phone (site/brand/dock.md); hidden by dock.css while the studio works full screen (html.swr-immersive)",
+      "anchor": "</helmet>",
+      "insert": [
+        "<link rel=\"stylesheet\" href=\"/brand/dock.css\">\n<script src=\"/brand/dock.js\" defer></script>\n"
+      ]
     }
   ]
 }

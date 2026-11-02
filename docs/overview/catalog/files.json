@@ -235,7 +235,7 @@
       "tags": [
         "Generated"
       ],
-      "desc": "The Terucon website, built from pages_original/index.html. Served at /."
+      "desc": "The Terucon website, built from pages_original/index.html. Served at /. Also the input of tools/build-dist.js, which makes the files actually sent."
     },
     {
       "match": "pages/materials.html",
@@ -243,7 +243,7 @@
       "tags": [
         "Generated"
       ],
-      "desc": "The Materials shop, built from pages_original/market_place.html. Served at /materials."
+      "desc": "The Materials shop, built from pages_original/market_place.html. Served at /materials. Also the input of tools/build-dist.js, which makes the files actually sent."
     },
     {
       "match": "pages/studio.html",
@@ -251,7 +251,7 @@
       "tags": [
         "Generated"
       ],
-      "desc": "The Design Studio page. Served at /design-studio. The Design Studio (Swatchroom) is a separate app kept in swatchroom/; the website mounts it. See swatchroom/README.md."
+      "desc": "The Design Studio page. Served at /design-studio. The Design Studio (Swatchroom) is a separate app kept in swatchroom/; the website mounts it. See swatchroom/README.md. Also the input of tools/build-dist.js, which makes the files actually sent."
     },
     {
       "match": "pages/dashboard.html",
@@ -259,7 +259,7 @@
       "tags": [
         "Generated"
       ],
-      "desc": "The client dashboard (front-end prototype), built from pages_original/dashboard.html. Served at /my-project."
+      "desc": "The client dashboard (front-end prototype), built from pages_original/dashboard.html. Served at /my-project. Also the input of tools/build-dist.js, which makes the files actually sent."
     },
     {
       "match": "pages_original/index.html",
@@ -483,7 +483,7 @@
       "tags": [
         "Run"
       ],
-      "desc": "npm test: site build check, link check, overview check and JavaScript tests, with one summary."
+      "desc": "npm test: site build check, link check, overview check, optimized-images check and JavaScript tests, with one summary."
     },
     {
       "match": "tools/**",
@@ -1687,6 +1687,193 @@
         "Dev"
       ],
       "desc": "python/gallery_resolve.py against a pretend gallery_dl: the allow list, the one hop of a short link, what is dropped, thumbnails, the options handed to gallery-dl, reasons and the timeout. Offline."
+    },
+    {
+      "match": "site/optimized/*.webp",
+      "owner": "site-data",
+      "tags": [
+        "Generated"
+      ],
+      "summarize": true,
+      "desc": "Responsive WebP copies (640, 1280, 1920 px wide as the photo allows) of the site's photos, named by the photo's content hash. Committed because the Docker image has no image encoder; tools/build-dist.js swaps them in."
+    },
+    {
+      "match": "site/optimized/index.json",
+      "owner": "site-data",
+      "tags": [
+        "Generated"
+      ],
+      "desc": "Which optimized files belong to which source photo (keyed by the sha256 of the original bytes), with sizes and the quality used."
+    },
+    {
+      "match": "site/optimized/README.md",
+      "owner": "docs",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "How the photos were optimized, how to redo it, the index format, and the ffmpeg commands for the two videos."
+    },
+    {
+      "match": "site/brand/*.webp",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "summarize": true,
+      "desc": "The Terucon logo cut from media/Terucon_logo.png: the full lockup, the header logo and the emblem alone, at several sizes."
+    },
+    {
+      "match": "site/brand/*.png",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "summarize": true,
+      "desc": "Logo and app-icon files in PNG: favicon, Apple touch icon, the 192 and 512 icons, the maskable icon, and PNG fallbacks of the logo."
+    },
+    {
+      "match": "site/brand/favicon.ico",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The browser tab icon (16, 32 and 48 px). Served at /favicon.ico."
+    },
+    {
+      "match": "site/brand/og-image.jpg",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "A 1200x630 preview picture (logo on dark brown) for link previews. Not yet referenced by a page: it needs the site's absolute address."
+    },
+    {
+      "match": "site/brand/site.webmanifest",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The web-app manifest: name, colours, icons. Served at /site.webmanifest."
+    },
+    {
+      "match": "site/brand/brand.css",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Colours and the logo classes (.tc-logo and friends) the hand-written pages share. Served at /brand/brand.css."
+    },
+    {
+      "match": "site/brand/dock.css",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The phone tab bar (Materials, Design Studio, Inspiration, Finder, My project): look, safe areas, keyboard hiding. Served at /brand/dock.css."
+    },
+    {
+      "match": "site/brand/dock.js",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The phone tab bar's script: builds the bar under 900 px wide, marks the current page, hides it while a text box has focus and inside the studio's full-screen view. No inline code, so strict-policy pages can load it."
+    },
+    {
+      "match": "site/brand/dock.md",
+      "owner": "docs",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "How a page includes the phone tab bar (one link and one script) and how it behaves."
+    },
+    {
+      "match": "site/brand/loader.html",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The loading screen: the T-block drawn as an architect's line plan, LED strips lighting, then timber louvres opening onto the page. Inline, a few KB, with a calm reduced-motion version and a 'taking longer than usual, Retry' state. tools/build-dist.js puts it first in every built page."
+    },
+    {
+      "match": "site/brand/head.html",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The icon, manifest and theme-colour tags every built page carries. tools/build-dist.js injects it."
+    },
+    {
+      "match": "site/brand/build-brand.mjs",
+      "owner": "tooling",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "Makes every file in site/brand/ from media/Terucon_logo.png (needs Google Chrome; re-running gives identical bytes)."
+    },
+    {
+      "match": "site/brand/build-preview.mjs",
+      "owner": "tooling",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "Makes site/brand/preview.html."
+    },
+    {
+      "match": "site/brand/preview.html",
+      "owner": "docs",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "A page to open from disk to look at the loader, the header logo options and the icons. Not served by the website."
+    },
+    {
+      "match": "site/brand/**",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "A brand file: served at /brand/ (server/routes/brand.js)."
+    },
+    {
+      "match": "site/vendor/**",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Third-party browser libraries kept in this repo so no page loads code from another site: React 18.3.1 and ReactDOM (hash-checked against the page runtime), and three.js for the façade picture. Licences and sources in README.md."
+    },
+    {
+      "match": "pages/error.html",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The page a browser gets when the server fails (5xx): the logo, one plain sentence, Retry and a link home. Written by hand, strict policy, no technical words."
+    },
+    {
+      "match": "pages/offline.html",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "A branded 'you seem to be offline' page. Not shown automatically yet: that needs a service worker."
+    },
+    {
+      "match": "tools/build-dist.js",
+      "owner": "tooling",
+      "tags": [
+        "Run"
+      ],
+      "desc": "Builds dist/ from the four pages in pages/: a real HTML file per page, shared content-hashed assets, woff2 fonts only, React from site/vendor/, optimized WebP photos, and .br/.gz copies. --check reports whether dist/ is current; --if-missing builds only when absent. Deterministic."
+    },
+    {
+      "match": "tools/optimize-images.mjs",
+      "owner": "tooling",
+      "tags": [
+        "Run"
+      ],
+      "desc": "Makes the WebP copies in site/optimized/ using the installed Chrome. --check (plain Node) fails when the index is stale; --report lists coverage."
     }
   ]
 }

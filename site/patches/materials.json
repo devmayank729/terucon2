@@ -206,6 +206,149 @@
       "insert": [
         "\n    <div style=\"display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:14px 18px;margin-bottom:18px;border-radius:16px;border:1px solid var(--line2);background:rgba(167,141,120,.14)\"><span style=\"font:400 13.5px/1.5 Switzer,sans-serif;color:var(--ink2)\">This is a preview. For a real match against our catalogue, open the Finder.</span><a href=\"/finder\" style=\"flex:none;height:40px;padding:0 18px;border-radius:999px;border:1px solid var(--ink);background:var(--ink);color:#E1D4C2;font:500 13px/1 Switzer,sans-serif;text-decoration:none;display:inline-flex;align-items:center;white-space:nowrap\">Open the Finder</a></div>\n    "
       ]
+    },
+    {
+      "id": "logo-header",
+      "op": "replace",
+      "why": "header: the real logo (in a dark pill, so it reads on the cream header too) instead of the typed TERUCON INDIA (the page's own <a href> stays, so the link style of the build is respected)",
+      "anchor": "style=\"display:flex;align-items:baseline;gap:10px;color:inherit;font:600 15px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.34em\" style-hover=\"color:inherit\">TERUCON<span style=\"font:500 9.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.3em\">INDIA</span></a>",
+      "with": [
+        {
+          "component": "logoLinkTail",
+          "entry": "logo",
+          "pill": true,
+          "w": 152,
+          "h": 26
+        }
+      ]
+    },
+    {
+      "id": "logo-menu",
+      "op": "replace",
+      "why": "menu overlay: the real logo (dark overlay, no pill)",
+      "anchor": "<span style=\"display:flex;align-items:baseline;gap:10px;font:600 15px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.34em\">TERUCON<span style=\"font:500 9.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.3em\">INDIA</span></span>",
+      "with": [
+        {
+          "component": "logoLink",
+          "entry": "logo",
+          "pill": false
+        }
+      ]
+    },
+    {
+      "id": "logo-footer",
+      "op": "insertBefore",
+      "why": "footer: the full lockup above the columns",
+      "anchor": "<div style=\"padding:0 clamp(20px,5vw,72px);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));column-gap:clamp(24px,3vw,56px);row-gap:36px\">",
+      "insert": [
+        "<div style=\"padding:0 clamp(20px,5vw,72px) clamp(28px,4vh,44px)\">",
+        {
+          "component": "logoFooter",
+          "entry": "logoFooterFull"
+        },
+        "</div>\n  "
+      ]
+    },
+    {
+      "id": "menu-destinations",
+      "op": "insertBefore",
+      "why": "menu overlay on a phone: the five destinations first as large tap targets, then Account and Start a project (shown by the page style below; the cards for the same pages are hidden there)",
+      "anchor": "<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:48px;align-items:end\">",
+      "insert": [
+        "<div data-menu-dest=\"\" style=\"flex-direction:column\">\n      <span style=\"font:500 10.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#A78D78;padding-bottom:6px\">Explore Terucon</span>\n        ",
+        {
+          "component": "menuDest",
+          "entry": "materials",
+          "target": "#/",
+          "here": true,
+          "blurb": "You are here. Sheets, stone, terracotta and finishes, priced per unit."
+        },
+        "\n        ",
+        {
+          "component": "menuDest",
+          "entry": "designStudio"
+        },
+        "\n        ",
+        {
+          "component": "menuDest",
+          "entry": "inspiration"
+        },
+        "\n        ",
+        {
+          "component": "menuDest",
+          "entry": "finder"
+        },
+        "\n        ",
+        {
+          "component": "menuDest",
+          "entry": "project"
+        },
+        "\n        ",
+        "<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px\">\n          ",
+        {
+          "component": "menuCta",
+          "entry": "account",
+          "label": "Account",
+          "ghost": true,
+          "account": true
+        },
+        "\n          ",
+        {
+          "component": "menuCta",
+          "entry": "startProject",
+          "solid": true
+        },
+        "\n        </div>\n      </div>\n    "
+      ]
+    },
+    {
+      "id": "menu-sections-label",
+      "op": "insertAfter",
+      "why": "menu overlay on a phone: a small heading over the links to the home page sections",
+      "anchor": "<nav style=\"display:flex;flex-direction:column\">",
+      "insert": [
+        "\n        <span data-menu-sections-label=\"\" style=\"padding:0 0 4px;font:500 10.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#A78D78\">On the home page</span>"
+      ]
+    },
+    {
+      "id": "menu-aside-mark",
+      "op": "replace",
+      "why": "menu overlay: mark the cards column so the phone style can hide the page cards (the destinations list above replaces them; Saved and Compare stay)",
+      "anchor": "<div style=\"display:flex;flex-direction:column;gap:18px\">\n        <a href=\"#/\" sc-camel-on-click=\"{{ closeMenu }}\"",
+      "with": "<div data-menu-aside=\"\" style=\"display:flex;flex-direction:column;gap:18px\">\n        <a href=\"#/\" sc-camel-on-click=\"{{ closeMenu }}\""
+    },
+    {
+      "id": "bar-height",
+      "op": "replace",
+      "why": "floating bars (cart bar, Ask button, compare tray, notices) sit above the bottom bar on a phone: the 58 px of the bar is added to their offset",
+      "anchor": "barH(name) { if (this.state.vw >= 820) return 20; return name === 'shop' || (name === 'product' && !this.state.ctaVis) ? 88 : 16; }",
+      "with": "barH(name) { const dk = this.state.vw <= 899 ? 58 : 0; if (this.state.vw >= 820) return 20 + dk; return dk + (name === 'shop' || (name === 'product' && !this.state.ctaVis) ? 88 : 16); }"
+    },
+    {
+      "id": "fixed-bars-lift",
+      "op": "replaceAll",
+      "why": "the two floating bars of the shop and the notice pill: lifted by the height of the bottom bar (0 when it is not there)",
+      "anchor": "bottom:calc(12px + env(safe-area-inset-bottom));z-index:",
+      "count": 3,
+      "with": "bottom:calc(var(--tc-dock-h,0px) + 12px + env(safe-area-inset-bottom));z-index:"
+    },
+    {
+      "id": "phone-style",
+      "op": "insertBefore",
+      "why": "page style for the phone: header fit, the menu overlay leading with the destinations, room for the bottom bar",
+      "anchor": "</helmet>",
+      "insert": [
+        "<style>\n/* header: one line per link; 820-899 px the bottom bar carries the destinations; 900-1199 px lose the least useful links */\n[data-nav] nav a { white-space: nowrap; }\n@media (min-width: 820px) and (max-width: 899px) { [data-nav] nav > a:not([href^=\"#/cart\"]) { display: none !important; } }\n@media (min-width: 900px) and (max-width: 1199px) {\n  [data-nav] nav { gap: 14px !important; }\n  [data-nav] nav a[data-terucon-account], [data-nav] nav > a[href=\"/design-studio\"] > span, [data-nav] nav > a[href^=\"#/saved\"] { display: none !important; }\n}\n@media (min-width: 820px) { [data-tc-logo] img { height: 30px !important; } }\n@media (max-width: 599px) { [data-nav] { padding-left: 14px !important; padding-right: 14px !important; } }\n/* menu overlay on a phone or small tablet: destinations lead */\n[data-menu-dest] { display: none; }\n@media (max-width: 819px) {\n  [data-menu-dest] { display: flex; }\n  [data-menu] > div { justify-content: flex-start !important; gap: 26px !important; padding: 12px 20px calc(28px + env(safe-area-inset-bottom, 0px)) !important; }\n  [data-menu-aside] > a { display: none !important; }\n  [data-menu] nav a { font-size: 22px !important; padding: 13px 0 !important; }\n}\n/* the footer already has 96 px of room at its end; dock.css's own spacer would sit mid-page here (the body is only a frame) */\n@media (max-width: 899px) {\n  body::after { display: none !important; }\n}\n</style>\n"
+      ]
+    },
+    {
+      "id": "dock",
+      "op": "insertBefore",
+      "why": "mobile dock: the bottom bar with the five destinations on a phone (site/brand/dock.md)",
+      "anchor": "</helmet>",
+      "insert": [
+        "<link rel=\"stylesheet\" href=\"/brand/dock.css\">\n<script src=\"/brand/dock.js\" defer></script>\n"
+      ]
     }
   ]
 }
