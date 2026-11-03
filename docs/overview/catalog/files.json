@@ -1089,6 +1089,14 @@
       "desc": "A written account of the Terucon + Swatchroom merge: what was done, how long it took and why."
     },
     {
+      "match": "WORK_LOG.md",
+      "owner": "docs",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The running work log, newest first: for every task what was asked, what exactly was done (steps, files, commands), what was and was not checked, and a closing summary of what was done."
+    },
+    {
       "match": "TARGETS.md",
       "owner": "docs",
       "tags": [

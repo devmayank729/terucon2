@@ -69,6 +69,20 @@
   .divider { display:flex; align-items:center; gap:14px; margin:0; font:500 12px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.14em; text-transform:uppercase; color:var(--ink2); }
   .divider::before, .divider::after { content:""; flex:1; height:1px; background:var(--line2); }
   #google { display:flex; flex-direction:column; align-items:center; gap:14px; min-height:44px; }
+  /* Google's button arrives in two steps: first a placeholder drawn on this page (its own styles are inline, which this page's strict
+     policy does not allow, so it comes out unstyled: a logo as wide as the card), then the real button in a frame. The placeholder is
+     never shown. Its place is held by a quiet pill of the final size (so the card does not change height), and the real button is
+     revealed when its frame has loaded. */
+  .gslot { position:relative; width:100%; height:44px; }
+  .gskel { position:absolute; top:2px; left:0; right:0; margin:0 auto; width:min(100%, 360px); height:40px; border-radius:999px; border:1px solid var(--line2); background:linear-gradient(100deg, #F7F1E7 35%, #FFFBF3 50%, #F7F1E7 65%) 0 0 / 250% 100%; animation:gshimmer 1.4s ease-in-out infinite; transition:opacity .25s, visibility 0s linear .25s; }
+  #google-button { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; justify-content:center; overflow:hidden; visibility:hidden; }
+  #google-button svg { width:20px; height:20px; max-width:24px; max-height:24px; } /* a backstop: the placeholder must never be able to show a large logo */
+  .gslot[data-state="ready"] #google-button { visibility:visible; animation:gfade .25s ease-out; }
+  .gslot[data-state="ready"] .gskel { opacity:0; visibility:hidden; }
+  .gslot[data-state="slow"] .gskel { animation:none; }
+  @keyframes gshimmer { from { background-position:100% 0; } to { background-position:-100% 0; } }
+  @keyframes gfade { from { opacity:0; } to { opacity:1; } }
+  .gnote { margin:0; text-align:center; }
 
   .notice { margin:0; padding:12px 14px; border-radius:12px; font:400 14px/1.5 Switzer, Helvetica, Arial, sans-serif; border:1px solid var(--line2); }
   .notice.bad { border-color:var(--bad); color:var(--bad); background:rgba(140,47,27,.07); }
@@ -122,8 +136,12 @@
 
       <!-- Step 1: who are you? -->
       <section id="step-start" hidden>
-        <div id="google" hidden>
-          <div id="google-button"></div>
+        <div id="google" hidden aria-busy="true">
+          <div class="gslot" id="google-slot" data-state="loading">
+            <div class="gskel" id="google-skel" aria-hidden="true"></div>
+            <div id="google-button"></div>
+          </div>
+          <p class="small gnote" id="google-note" role="status" hidden>Google sign-in is taking longer than usual. <button class="link" id="google-retry" type="button">Try again</button></p>
           <p class="divider" id="google-divider">or</p>
         </div>
         <form id="form-start" novalidate>
@@ -583,21 +601,93 @@
   }
 
   // ------------------------------------------------------------------------------------------------ Google
+  // The button's place is held (a quiet pill, state "loading") from the moment the step shows until Google's real button, in its frame,
+  // has loaded (state "ready"). If that takes more than GOOGLE_SLOW_MS it says so and offers "Try again" ("slow", and the button still
+  // appears if it comes); if Google cannot be loaded at all ("failed") the block goes away.
+  var GOOGLE_SLOW_MS = 12000;
+  var gsi = { script: null, timer: null, watch: null, gen: 0 };
+
+  function googleState(state) {
+    $('google-slot').setAttribute('data-state', state);
+    $('google').setAttribute('aria-busy', state === 'ready' ? 'false' : 'true');
+    $('google-note').hidden = state !== 'slow';
+  }
+
+  function stopGoogleWatch() {
+    if (gsi.watch) { gsi.watch.disconnect(); gsi.watch = null; }
+    clearTimeout(gsi.timer);
+  }
+
+  function googleFailed() {
+    stopGoogleWatch();
+    gsi.gen += 1;
+    $('google').hidden = true;
+    // on a site with no e-mail or text codes Google is the only way in: an empty card would be a dead end
+    if (!config.channels.email && !config.channels.sms && !$('step-start').hidden) {
+      unavailable(false, 'Google sign-in could not be loaded. Please check your connection and try again.');
+    }
+  }
+
+  function loadGoogleScript() {
+    if (window.google && window.google.accounts) return Promise.resolve();
+    if (gsi.script) return gsi.script;
+    gsi.script = new Promise(function (resolve, reject) {
+      var script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.onload = function () { resolve(); };
+      script.onerror = function () { gsi.script = null; reject(new Error('Google sign-in script did not load')); };
+      document.head.appendChild(script);
+    });
+    return gsi.script;
+  }
+
+  // Reveal the real button when the frame Google puts in the box has loaded (never before: a frame that is still loading is an empty box,
+  // and on a slow connection the pill is better to look at; the "taking longer" note covers a frame that never comes). Google's
+  // placeholder sits next to the frame, and Google may leave it there (it does when it refuses the page's address): the frame is
+  // all that is ever shown, so everything beside it is hidden.
+  function watchGoogleButton(box, gen) {
+    var seen = null;
+    function hideBeside(frame) {
+      Array.prototype.forEach.call(frame.parentNode.children, function (el) { if (el !== frame) el.hidden = true; });
+    }
+    function reveal() {
+      if (gen !== gsi.gen) return; // a newer render has started: this one is gone
+      clearTimeout(gsi.timer);
+      hideBeside(seen);
+      googleState('ready');
+    }
+    function check() {
+      var frame = box.querySelector('iframe');
+      if (!frame) return;
+      if (frame !== seen) {
+        seen = frame;
+        frame.addEventListener('load', reveal);
+      }
+      if ($('google-slot').getAttribute('data-state') === 'ready') hideBeside(frame); // anything Google adds beside it later
+    }
+    gsi.watch = new MutationObserver(check);
+    gsi.watch.observe(box, { childList: true, subtree: true });
+    check();
+  }
+
   function startGoogle() {
     if (!config.channels.google || !config.googleClientId) return;
-    var script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onerror = function () { $('google').hidden = true; };
-    script.onload = function () { armGoogle(); };
-    document.head.appendChild(script);
+    armGoogle();
   }
 
   function armGoogle() {
-    // a one-use value, tied to this browser by a cookie, that Google puts inside the token it hands back
-    api('/api/auth/google/nonce', {}).then(function (n) {
-      if (!n.ok || !window.google || !google.accounts) { $('google').hidden = true; return; }
+    stopGoogleWatch();
+    var gen = (gsi.gen += 1);
+    googleState('loading');
+    var width = Math.min(360, Math.max(240, $('google-slot').clientWidth || 320));
+    $('google-skel').style.width = width + 'px';
+    gsi.timer = setTimeout(function () { if (gen === gsi.gen && $('google-slot').getAttribute('data-state') === 'loading') googleState('slow'); }, GOOGLE_SLOW_MS);
+    // Google's script, and a one-use value (tied to this browser by a cookie, that Google puts inside the token it hands back), are fetched at the same time
+    Promise.all([loadGoogleScript(), api('/api/auth/google/nonce', {})]).then(function (results) {
+      if (gen !== gsi.gen) return;
+      var n = results[1];
+      if (!n.ok || !window.google || !google.accounts) { googleFailed(); return; }
       google.accounts.id.initialize({
         client_id: config.googleClientId,
         callback: onGoogle,
@@ -609,10 +699,12 @@
       });
       var box = $('google-button');
       box.textContent = '';
-      google.accounts.id.renderButton(box, { type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', shape: 'pill', logo_alignment: 'left', width: Math.min(360, Math.max(240, $('google').clientWidth || 320)) });
+      watchGoogleButton(box, gen);
+      google.accounts.id.renderButton(box, { type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', shape: 'pill', logo_alignment: 'left', width: width });
       google.accounts.id.prompt();
-    });
+    }).catch(function () { if (gen === gsi.gen) googleFailed(); });
   }
+  $('google-retry').addEventListener('click', function () { armGoogle(); });
 
   function onGoogle(response) {
     if (busy) return;
@@ -633,9 +725,9 @@
   // ------------------------------------------------------------------------------------------------ start
   // Sign-in cannot be offered: either the server could not be reached (the person's connection), or it is not set up / is down.
   // Either way: say which, in plain words, and offer to try again.
-  function unavailable(offline) {
+  function unavailable(offline, text) {
     show('unavailable');
-    $('unavailable-text').textContent = offline
+    $('unavailable-text').textContent = text ? text : offline
       ? 'We could not reach the server. Please check your connection and try again.'
       : 'Sign-in is not available just now. Please try again in a few minutes, or call us on the number on the home page.';
     $('retry-load').hidden = false;

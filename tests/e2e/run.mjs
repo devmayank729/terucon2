@@ -3,6 +3,7 @@
 //
 //   cd tests/e2e && npm install && npm test            (about a minute)
 //   CHROME_PATH=/path/to/chrome npm test               if Chrome is somewhere unusual
+//   E2E_ONLY="sign-in page" node tests/e2e/run.mjs      only the tests whose name contains that text
 import puppeteer from 'puppeteer-core';
 import fs, { existsSync, readFileSync } from 'node:fs';
 import os from 'node:os';
@@ -22,6 +23,7 @@ const PASSCODE = 'letmein';
 
 const results = [];
 const test = async (name, fn) => {
+  if (process.env.E2E_ONLY && !name.includes(process.env.E2E_ONLY)) return;
   const t0 = Date.now();
   try { await fn(); results.push([name, true, Date.now() - t0]); console.log(`  ok    ${name}  (${((Date.now() - t0) / 1000).toFixed(1)}s)`); }
   catch (e) { results.push([name, false, Date.now() - t0]); console.log(`  FAIL  ${name}\n        ${String(e.message || e).split('\n').join('\n        ')}`); if (process.env.E2E_STACK) console.log(String(e.stack).split('\n').slice(1, 6).map((l) => '        ' + l).join('\n')); }
@@ -1047,6 +1049,156 @@ await test('studio camera: a browser with no in-page camera still gets the camer
   } finally {
     await page.close();
     await open.stop();
+  }
+});
+
+// ---- the sign-in page's Google button ---------------------------------------------------------------------------------------------
+// Seen on the live site on 2026-11-03: Google's script first draws a placeholder button on the page (its styles are inline, which the
+// page's strict policy refuses, so it came out unstyled: a logo as wide as the card), and a moment later puts the real button, in a frame,
+// beside it. These tests stand in for Google (no request leaves this machine): a script that does those same two steps (and, like Google
+// when it refuses a page's address, leaves the placeholder where it is), and a frame whose arrival the test controls.
+const GOOGLE_ID = '123456789012-abcdefghijklmnop.apps.googleusercontent.com';
+const FAKE_GSI = `(function () {
+  var renders = 0;
+  window.__renders = function () { return renders; };
+  window.google = { accounts: { id: {
+    initialize: function () {}, prompt: function () {}, cancel: function () {},
+    renderButton: function (box, o) {
+      renders += 1;
+      var wrap = document.createElement('div'); wrap.className = 'S9gUrf-YoZ4jf';
+      var holder = document.createElement('div');
+      holder.innerHTML = '<div role="button" tabindex="0"><svg viewBox="0 0 48 48"><path fill="#EA4335" d="M0 0h48v48H0z"/></svg><span>Continue with Google</span></div>';
+      wrap.appendChild(holder); box.appendChild(wrap);
+      setTimeout(function () {
+        var f = document.createElement('iframe');
+        f.src = 'https://accounts.google.com/gsi/button?width=' + o.width; f.title = 'Sign in with Google';
+        f.style.display = 'block'; f.style.border = '0'; f.style.width = o.width + 'px'; f.style.height = '44px';
+        wrap.appendChild(f);
+      }, 150);
+    }
+  } } };
+})();`;
+const FAKE_GSI_FRAME = '<!doctype html><meta charset="utf-8"><body style="margin:0;font:500 14px sans-serif"><div style="margin:2px 0;height:40px;border-radius:20px;border:1px solid #ccc;background:#fff;display:flex;align-items:center;justify-content:center">Continue with Google</div>';
+// records what a visitor could see, every 30 ms and on every change: the Google block's state, its height and where the form sits under it,
+// the widest logo that is actually visible inside it, and whether the pill and the frame are visible
+const GOOGLE_SAMPLER = () => {
+  window.__g = [];
+  const seen = (el) => { for (let n = el; n && n.nodeType === 1; n = n.parentElement) { const c = getComputedStyle(n); if (c.visibility === 'hidden' || c.display === 'none' || Number(c.opacity) === 0) return false; } return true; };
+  const snap = () => {
+    const slot = document.getElementById('google-slot');
+    const skel = document.getElementById('google-skel');
+    const block = document.getElementById('google');
+    if (!block) return;
+    const frame = document.querySelector('#google-button iframe');
+    const logos = [...block.querySelectorAll('svg')].filter(seen).map((s) => Math.round(s.getBoundingClientRect().width));
+    window.__g.push({
+      shown: seen(block), state: slot ? slot.dataset.state : 'none', blockH: Math.round(block.getBoundingClientRect().height), slotH: slot ? Math.round(slot.getBoundingClientRect().height) : 0,
+      formGap: Math.round(document.getElementById('form-start').getBoundingClientRect().top - block.getBoundingClientRect().top),
+      widest: logos.length ? Math.max(...logos) : 0, pill: !!skel && seen(skel), frame: !!frame && seen(frame),
+    });
+  };
+  document.addEventListener('DOMContentLoaded', () => { new MutationObserver(snap).observe(document.documentElement, { childList: true, subtree: true, attributes: true }); setInterval(snap, 30); });
+};
+/** The sign-in page with Google's script and frame replaced by stand-ins. `script: false` = Google's script cannot be loaded; `hold` = the frame waits until `page.held` is released; `slowMs` = how long the page waits before it says it is taking longer (it waits 12 s). */
+const googleLoginPage = async (stk, viewport, { script = true, hold = false, slowMs = 0 } = {}) => {
+  const page = await newPage(viewport, stk, { signedIn: false });
+  page.held = [];
+  await page.setRequestInterception(true);
+  page.on('request', (req) => {
+    const u = req.url();
+    if (u.startsWith('https://accounts.google.com/gsi/client')) {
+      if (script) req.respond({ status: 200, contentType: 'application/javascript', body: FAKE_GSI }).catch(() => {});
+      else req.abort('failed').catch(() => {});
+    } else if (u.startsWith('https://accounts.google.com/')) {
+      const send = () => req.respond({ status: 200, contentType: 'text/html; charset=utf-8', body: FAKE_GSI_FRAME }).catch(() => {});
+      if (hold) page.held.push(send); else send();
+    } else req.continue().catch(() => {});
+  });
+  await page.evaluateOnNewDocument(GOOGLE_SAMPLER);
+  if (slowMs) await page.evaluateOnNewDocument((ms) => { const st = window.setTimeout; window.setTimeout = (fn, t, ...a) => st(fn, t === 12000 ? ms : t, ...a); }, slowMs);
+  return page;
+};
+const googleState = (page) => page.evaluate(() => document.getElementById('google-slot')?.dataset.state);
+
+await test('sign-in page: Google\'s unstyled placeholder is never shown, a pill holds the button\'s place, and the real button replaces it without moving anything (390 and 1440 px)', async () => {
+  const open = await startStack({ port: 0, bootMs: 300, env: { AUTH_GOOGLE_CLIENT_ID: GOOGLE_ID } });
+  try {
+    for (const viewport of [PHONE, { width: 1440, height: 900 }]) {
+      const page = await googleLoginPage(open, viewport);
+      try {
+        await page.goto(open.base + '/login', { waitUntil: 'domcontentloaded' });
+        await until(() => page.evaluate(() => !!window.__g.at(-1)?.frame), 'the real button', 8000);
+        await sleep(500); // the pill's fade
+        const shown = (await page.evaluate(() => window.__g)).filter((x) => x.shown);
+        const at = `at ${viewport.width}px`;
+        assert(shown.length > 5, `the sampler saw the Google block ${shown.length} times ${at}`);
+        const widest = Math.max(...shown.map((x) => x.widest));
+        assert(widest <= 24, `a ${widest}px Google logo was visible ${at}: Google's placeholder showed while the button loaded`);
+        assert(shown.some((x) => x.state === 'loading' && x.pill && x.slotH === 44), `no placeholder pill was shown while the button loaded ${at}`);
+        for (const key of ['blockH', 'formGap']) {
+          const values = shown.map((x) => x[key]);
+          assert(Math.max(...values) - Math.min(...values) <= 1, `${key} changed from ${Math.min(...values)} to ${Math.max(...values)} px while the button loaded ${at}: the page jumped`);
+        }
+        const last = shown.at(-1);
+        assert(last.state === 'ready' && last.frame && !last.pill, `the end state ${at} is not "the real button, no pill": ${JSON.stringify(last)}`);
+        assert(await page.evaluate(() => [...document.querySelectorAll('#google-button iframe')].every((f) => [...f.parentNode.children].filter((el) => el !== f).every((el) => el.hidden))), `Google's placeholder was left showing beside the real button ${at}`);
+        assert(await page.evaluate(() => document.getElementById('google').getAttribute('aria-busy') === 'false'), 'the block still says it is busy once the button is there');
+      } finally {
+        await page.close();
+      }
+    }
+  } finally {
+    await open.stop();
+  }
+});
+
+await test('sign-in page: if the button is slow it says so after the wait and offers Try again, and the button still lands if it arrives (the placeholder is never shown)', async () => {
+  const open = await startStack({ port: 0, bootMs: 300, env: { AUTH_GOOGLE_CLIENT_ID: GOOGLE_ID } });
+  const page = await googleLoginPage(open, PHONE, { hold: true, slowMs: 500 });
+  try {
+    await page.goto(open.base + '/login', { waitUntil: 'domcontentloaded' });
+    await until(async () => (await googleState(page)) === 'slow', 'the "taking longer" note', 6000);
+    const note = await page.evaluate(() => { const n = document.getElementById('google-note'); const r = document.getElementById('google-retry'); return { shown: !n.hidden, text: n.textContent, retry: r.getBoundingClientRect().height >= 40, pill: !!document.getElementById('google-skel').offsetParent }; });
+    assert(note.shown && /taking longer/i.test(note.text) && note.retry && note.pill, 'the note is not as expected: ' + JSON.stringify(note));
+    await page.click('#google-retry');
+    assert((await googleState(page)) === 'loading' && (await page.evaluate(() => document.getElementById('google-note').hidden)), 'Try again did not start over');
+    await until(() => page.evaluate(() => window.__renders() === 2), 'the second render after Try again', 4000);
+    await until(() => page.held.length >= 2, 'the second frame\'s request (the first frame was thrown away by Try again)', 4000);
+    page.held.splice(0).forEach((send) => send()); // the frame comes at last
+    await until(async () => (await googleState(page)) === 'ready', 'the button after the frame arrived', 6000);
+    assert(await page.evaluate(() => document.querySelectorAll('#google-button iframe').length === 1 && document.getElementById('google-note').hidden), 'after the frame arrived there is not exactly one frame, or the note is still showing');
+    const widest = Math.max(...(await page.evaluate(() => window.__g)).filter((x) => x.shown).map((x) => x.widest));
+    assert(widest <= 24, `a ${widest}px Google logo was visible at some point`);
+  } finally {
+    await page.close();
+    await open.stop();
+  }
+});
+
+await test('sign-in page: if Google\'s script cannot load, the person is told in words (not left with an empty card) when Google is the only way in, and the form stays when it is not', async () => {
+  const only = await startStack({ port: 0, bootMs: 300, env: { AUTH_GOOGLE_CLIENT_ID: GOOGLE_ID, AUTH_EMAIL_PROVIDER: 'off', AUTH_SMS_PROVIDER: 'off' } });
+  const both = await startStack({ port: 0, bootMs: 300, env: { AUTH_GOOGLE_CLIENT_ID: GOOGLE_ID } });
+  try {
+    const a = await googleLoginPage(only, PHONE, { script: false });
+    try {
+      await a.goto(only.base + '/login', { waitUntil: 'domcontentloaded' });
+      await until(() => a.evaluate(() => !document.getElementById('step-unavailable').hidden), 'the message', 6000);
+      const got = await a.evaluate(() => ({ text: document.getElementById('unavailable-text').textContent, retry: !document.getElementById('retry-load').hidden, google: document.getElementById('google').hidden, loading: document.getElementById('step-loading').hidden }));
+      assert(/Google sign-in could not be loaded/.test(got.text) && got.retry && got.google && got.loading, 'Google-only sign-in with no Google script: ' + JSON.stringify(got));
+    } finally {
+      await a.close();
+    }
+    const b = await googleLoginPage(both, PHONE, { script: false });
+    try {
+      await b.goto(both.base + '/login', { waitUntil: 'domcontentloaded' });
+      await until(() => b.evaluate(() => document.getElementById('google').hidden && !document.getElementById('step-start').hidden), 'the form without the Google block', 6000);
+      assert(await b.evaluate(() => !document.getElementById('form-start').hidden && document.getElementById('step-unavailable').hidden), 'the e-mail form should stay usable when only Google fails');
+    } finally {
+      await b.close();
+    }
+  } finally {
+    await only.stop();
+    await both.stop();
   }
 });
 
