@@ -192,6 +192,15 @@
       ]
     },
     {
+      "id": "studio-camera",
+      "op": "insertBefore",
+      "why": "the studio's \"Take a photo\" hands the screen to the phone's camera app, and a heavy page can be reloaded by the phone while it is away (the photo never arrives). This opens the camera inside the page instead, and gives the studio the picture as a chosen file; with no in-page camera it falls back to the camera app or the gallery (site/brand/studio-camera.js). swatchroom/ is not touched",
+      "anchor": "</helmet>",
+      "insert": [
+        "<script src=\"/brand/studio-camera.js\" defer></script>\n"
+      ]
+    },
+    {
       "id": "logo-header",
       "op": "replace",
       "why": "header: the real logo (in a dark pill, so it reads on the cream header) instead of the typed TERUCON INDIA (the page's own <a href> stays, so the link style of the build is respected)",

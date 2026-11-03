@@ -943,6 +943,113 @@ await test('when the server cannot be reached, Your account and Sign in say so a
   }
 });
 
+await test('landing header: the chapter label ("03 Shell to handover") never sits on the logo or the links; it shows from 1366 px and is hidden below', async () => {
+  for (const width of [1100, 1280, 1366, 1440, 1680]) {
+    const page = await newPage({ width, height: 800 }, stack, { signedIn: false });
+    try {
+      await page.goto(base + '/', { waitUntil: 'networkidle2' });
+      await sleep(800);
+      for (const section of ['transform', 'enquire']) {
+        await page.evaluate((key) => window.scrollTo(0, document.querySelector(`[data-sec="${key}"]`).getBoundingClientRect().top + scrollY + 40), section);
+        await sleep(1200);
+        const seen = await page.evaluate(() => {
+          const label = document.querySelector('header [data-chapter]');
+          const shown = getComputedStyle(label).display !== 'none' && Number(getComputedStyle(label).opacity) > 0.05;
+          const box = (e) => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom }; };
+          const others = [...document.querySelectorAll('header img, header nav a, header nav button')].filter((e) => { const r = e.getBoundingClientRect(); return r.width > 1 && r.height > 1; }).map((e) => ({ what: (e.textContent || e.alt || 'logo').trim().slice(0, 20), ...box(e) }));
+          const mine = box(label);
+          return { shown, text: label.textContent, mine, hits: others.filter((o) => o.l < mine.r - 1 && mine.l < o.r - 1 && o.t < mine.b && mine.t < o.b).map((o) => o.what), clipped: label.querySelector('[data-cht]').scrollWidth > label.querySelector('[data-cht]').clientWidth };
+        });
+        assert(seen.hits.length === 0, `at ${width} px, on "${seen.text}", the label covers: ${seen.hits.join(', ')}`);
+        assert(seen.shown === (width >= 1366), `at ${width} px the label should be ${width >= 1366 ? 'shown' : 'hidden'} (shown: ${seen.shown})`);
+        if (seen.shown) assert(!seen.clipped, `at ${width} px the label "${seen.text}" is cut short`);
+      }
+    } finally {
+      await page.close();
+    }
+  }
+});
+
+// ---- the studio's "Take a photo" (site/brand/studio-camera.js): the camera opens inside the page, so a phone's camera app never takes the screen
+// (and cannot leave a reloaded page behind). Puppeteer's fake camera device stands in for the lens; a real phone was not tried.
+const CAMERA_INPUT = 'input[data-input="camera"]';
+const chooserOpens = (page, ms) => page.waitForFileChooser({ timeout: ms }).then(() => true, () => false);
+const studioCameraPage = async (open, { before } = {}) => {
+  const page = await newPage(PHONE, open);
+  await page.evaluateOnNewDocument(() => {
+    window.__stops = 0;
+    const stop = MediaStreamTrack.prototype.stop;
+    MediaStreamTrack.prototype.stop = function () { window.__stops += 1; return stop.call(this); };
+    const real = window.fetch;
+    window.fetch = function (input, init) {
+      if (init?.method === 'PUT' && /\/files\/v0\/raw$/.test(String(input))) window.__raw = init.body;
+      return real.apply(this, arguments);
+    };
+  });
+  if (before) await page.evaluateOnNewDocument(before);
+  await page.goto(open.base + '/design-studio', { waitUntil: 'networkidle2' });
+  await page.waitForSelector(CAMERA_INPUT, { timeout: 20000 });
+  return page;
+};
+
+await test('studio camera: "Take a photo" opens the camera inside the page (no camera app), the shot reaches the studio as a JPEG, the camera is switched off', async () => {
+  const open = await startStack({ port: 0, bootMs: 300 });
+  const page = await studioCameraPage(open);
+  try {
+    await page.evaluate(() => { window.__marker = 'same-page'; });
+    const chooser = chooserOpens(page, 1500);
+    await page.evaluate((sel) => document.querySelector(sel).click(), CAMERA_INPUT); // what the studio's own button does
+    await until(() => page.evaluate(() => !!document.querySelector('[data-tc-camera]')), 'the in-page camera', 5000);
+    assert(!(await chooser), 'the phone\'s file or camera picker opened as well');
+    await until(() => page.evaluate(() => { const v = document.querySelector('[data-tc-camera] video'); return !!(v && v.srcObject && v.videoWidth > 0); }), 'the live picture', 8000);
+    await until(() => page.evaluate(() => { const s = document.querySelector('.tcc-shutter'); return s && !s.disabled; }), 'the shutter to be ready', 5000);
+    await page.evaluate(() => document.querySelector('.tcc-shutter').click());
+    await until(() => page.evaluate(() => !document.querySelector('[data-tc-camera]')), 'the camera to close after the shot', 5000);
+    const sent = await until(() => page.evaluate(async () => (window.__raw ? `${window.__raw.type} ${window.__raw.size > 1000}` : null)), 'the studio to upload the photo', 15000);
+    assert(sent === 'image/jpeg true', 'the studio received: ' + sent);
+    assert(await page.evaluate(() => window.__stops) >= 1, 'the camera was left running');
+    assert(await page.evaluate(() => window.__marker === 'same-page'), 'the page was reloaded');
+  } finally {
+    await page.close();
+    await open.stop();
+  }
+});
+
+await test('studio camera: when the camera is refused, the person is told and offered the camera app or the gallery; the camera app hand-off leaves a note, and a reload during it says so', async () => {
+  const open = await startStack({ port: 0, bootMs: 300 });
+  const page = await studioCameraPage(open, { before: () => { navigator.mediaDevices.getUserMedia = () => Promise.reject(Object.assign(new Error('refused'), { name: 'NotAllowedError' })); } });
+  try {
+    await page.evaluate((sel) => document.querySelector(sel).click(), CAMERA_INPUT);
+    await until(() => page.evaluate(() => /not allowed/i.test(document.querySelector('.tcc-panel')?.textContent ?? '')), 'the refusal message', 5000);
+    const labels = await page.evaluate(() => [...document.querySelectorAll('.tcc-panel button')].map((b) => b.textContent));
+    assert(labels.includes('Open the camera app') && labels.includes('Choose from gallery'), 'the fallbacks: ' + JSON.stringify(labels));
+    const chooser = chooserOpens(page, 4000);
+    await page.evaluate(() => [...document.querySelectorAll('.tcc-panel button')].find((b) => b.textContent === 'Open the camera app').click());
+    assert(await chooser, 'the camera app (file picker) did not open from "Open the camera app"');
+    assert(await page.evaluate(() => !!sessionStorage.getItem('terucon.cameraHandoff')), 'no note was left for the hand-off');
+    await page.reload({ waitUntil: 'networkidle2' }); // the phone threw the page away while the camera app was open
+    await until(() => page.evaluate(() => /reloaded this page/i.test(document.querySelector('.tcc-note')?.textContent ?? '')), 'the note about the reload', 8000);
+    assert(await page.evaluate(() => !sessionStorage.getItem('terucon.cameraHandoff')), 'the note was not cleared after it was shown');
+  } finally {
+    await page.close();
+    await open.stop();
+  }
+});
+
+await test('studio camera: a browser with no in-page camera still gets the camera app straight away (the old way)', async () => {
+  const open = await startStack({ port: 0, bootMs: 300 });
+  const page = await studioCameraPage(open, { before: () => { Object.defineProperty(navigator, 'mediaDevices', { value: undefined, configurable: true }); } });
+  try {
+    const chooser = chooserOpens(page, 4000);
+    await page.evaluate((sel) => document.querySelector(sel).click(), CAMERA_INPUT);
+    assert(await chooser, 'the camera app (file picker) did not open');
+    assert(await page.evaluate(() => !document.querySelector('[data-tc-camera]')), 'an in-page camera opened with no camera support');
+  } finally {
+    await page.close();
+    await open.stop();
+  }
+});
+
 await browser.close();
 await stack.stop();
 const failed = results.filter(([, ok]) => !ok);

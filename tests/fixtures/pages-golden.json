@@ -4,8 +4,8 @@
   "pages": {
     "home": {
       "templates": {
-        "route": "0f33b8982606f9fb14c434a900e22f44fdcaef62e9be914a7ae34d96c284aa08",
-        "file": "42368efc337692a70667cc38ecebf30b6de718ed5dfdee370607657638dfe690"
+        "route": "d8cd837395a36b27447954b5e7acb86e4ca9544d9b58ce2ea6e23698715de722",
+        "file": "54a4d68fc246e8b92643cde522e0e1e192f4dba8dc737d36500b61df89b1867e"
       },
       "assets": {
         "a909a13d-7e0e-434b-8f1b-972f0f2fc46d": "dc1c6912756f1b72d05f44c5db851d442ad7dae0bd8eda0f9806a3adc7a58d47",
@@ -126,8 +126,8 @@
     },
     "studio": {
       "templates": {
-        "route": "417cb00d48eb52d83ca557f65ee87670b76a8c746fc19520126a108bf41806c4",
-        "file": "4d7f65a5f94130e2e6eb1e1a5304783b1df6790c20f2fd55a7cd75f03e4777dc"
+        "route": "7f805677c2c98a88306b1363559f5e5a24be40b8e230c0505a46c0ec76666de0",
+        "file": "e0459da8acfe6859bc723f4642442630d8a4a0ceb1988a558eeb9f4a1f927235"
       },
       "assets": {
         "8374d943-7b04-4b96-9ca0-83a2d686decd": "d949f1c3687aedadcedac85261865f29b17cd273997e7f6b2bfc53b2f9d4c4dd",
