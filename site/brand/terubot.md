@@ -20,7 +20,11 @@ error pages have none. Opt a page out with `<html data-terubot="off">` or `<meta
 
 Page load builds the launcher only (one button, no request). The panel is built the first time it opens; the first open asks
 `GET /api/terubot/status` once (it can be asked again with "Check again"). If TeruBot sent the visitor to this page (see "navigate" below) the
-conversation opens again by itself; after an ordinary page change the chat is kept but the panel stays closed.
+conversation opens again by itself; after an ordinary page change the chat is kept but the panel stays closed. **Exception: the project form
+(`/start-project`, also `/start-project/` and with a query).** There the chat never opens by itself, whichever action took the visitor there (a
+plain `navigate`, the "Start a project" suggestion, or `prefill_enquiry`), because it would sit on top of the very form they came to read and fill
+in; the launcher is there and the conversation is one tap away (`FORM_PAGES`, `leave()` and `mount()` in `terubot.js`; fixed 2026-11-04, before
+that only `prefill_enquiry` was excepted).
 
 `window.TeruBot = { open(opts), close(), ask(text), isOpen() }`. `opts` is optional: `{ draft: "text" }` types a draft into the box without sending it,
 `{ mic: true }` starts voice input. `ask(text)` opens the panel and sends.
@@ -95,13 +99,37 @@ The shop keeps both in its own React state and persists them in `localStorage`, 
 
 A card links to `/materials#/p/<pid>?v=<vid>`; the shop also understands a bare `/materials#<variant, product or finish id>`.
 
+## Live conversation ("Talk")
+
+A **Talk** button in the panel header starts a spoken conversation, like a call: TeruBot says hello (in a fresh chat), **listens**, sends what it heard
+as an ordinary message, **reads the answer aloud**, and listens again. Controls: a strip above the form says "Listening…", "Thinking…" or
+"Speaking…"; **Skip** (while it speaks) stops the voice and listens at once; **End** (or Talk again) stops everything.
+
+* **How:** the browser's own speech recognition (`en-IN`) and speech synthesis; nothing new on the server, no extra cost, and nothing but the text
+  reaches TeruBot (as with typing). The voice is the device's: an Indian-English voice first, then British, US, Australian, then any English one.
+* **Never both at once:** the microphone is shut while TeruBot speaks (it would hear itself) and opens a moment after the voice stops. There is no
+  barge-in by voice; tap Skip.
+* **What is read out:** the first few sentences (about 420 characters, then "The rest is on your screen."), with addresses, site paths, markdown and
+  bullets removed, rupees and units in words ("₹1,200 per sq ft" is said "1,200 rupees per square foot"). Cards and notes are on screen only.
+* **It ends** on End, on closing the panel, on New chat, on a hidden tab, on leaving the page, after three quiet listens in a row, and on any answer
+  that is not an answer (too many messages, sign in, the AI is off, the server cannot be reached): the chat says why. **An answer that opens another
+  page is not read out and ends it:** a new page starts without the microphone or a turn to speak (iPhone Safari allows speech only inside a tap), so
+  the visitor taps Talk again there.
+* **Where it shows:** only where the browser has both speech recognition and speech synthesis and the page allows the microphone. The Design Studio
+  and the Finder send `Permissions-Policy: microphone=()`, so there Talk is hidden (typing works; so does nothing spoken).
+* **Privacy:** in Chrome and Edge the browser's speech recognition sends the audio to the browser maker's online speech service to turn it into
+  text (how that API is documented to work); other browsers differ and were not checked here. The microphone is open only between the Talk tap and End.
+  The site's privacy text was not checked: it should say this before launch.
+* **What it is not:** a studio-quality voice, a phone call, or a model that hears (TeruBot answers the text of what was heard). A neural voice
+  (Gemini Live / a text-to-speech service) would be a separate, billed upgrade behind the same buttons.
+
 ## Keyboard, focus, motion
 
 The panel is `role="dialog"` (`aria-modal` on a phone), the list is `role="log"` with `aria-live="polite"` (switched off while an old chat is drawn), Escape closes,
 Tab and Shift+Tab stay inside, focus returns to what opened it, keys typed inside never reach the page's own shortcuts. Controls are at least 44 px; the box is
-16 px (iOS). `prefers-reduced-motion` switches off the pulse, the slide and the typing dots. The microphone button uses the browser's speech recognition
+16 px (iOS). `prefers-reduced-motion` switches off the pulse, the slide and the typing dots. The microphone button (dictation: one thing said, one message sent) uses the browser's speech recognition
 (`en-IN`), sends what was heard, and is hidden where there is none and where the page forbids the microphone (the studio and the Finder send
-`Permissions-Policy: microphone=()`).
+`Permissions-Policy: microphone=()`). Talk (above) is the continuous version. `prefers-reduced-motion` also stills the orb in the live strip.
 
 ## Storage keys
 

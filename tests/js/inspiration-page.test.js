@@ -17,8 +17,8 @@ test('the page has no inline script, no inline style attribute and no event-hand
   const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
   assert.ok(scripts.length >= 1);
   for (const [, attrs, body] of scripts) {
-    // the site's own modules, and the brand scripts (site/brand/chrome.js, dock.js, terubot.js, transition.js: same-origin, no inline code)
-    assert.match(attrs, /\bsrc="(?:\/inspiration\/assets\/[a-z]+|\/brand\/(?:dock|chrome|terubot|transition))\.js"/, 'every script is one of the site\'s own modules');
+    // the site's own modules, and the brand scripts (site/brand/loader.js, chrome.js, dock.js, terubot.js, transition.js: same-origin, no inline code)
+    assert.match(attrs, /\bsrc="(?:\/inspiration\/assets\/[a-z]+|\/brand\/(?:dock|chrome|terubot|transition|loader))\.js"/, 'every script is one of the site\'s own modules');
     assert.equal(body.trim(), '', 'no inline script text');
   }
   assert.ok(!/\sstyle\s*=/i.test(html), 'an inline style="" attribute would be blocked');

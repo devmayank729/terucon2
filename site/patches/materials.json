@@ -193,6 +193,15 @@
       ]
     },
     {
+      "id": "photo-camera",
+      "op": "insertBefore",
+      "why": "the shop's \"Find it from a photo\" sheet has the same kind of input as the studio's \"Take a photo\" (a file input with capture=environment): on a phone it hands the screen to the camera app, the phone can throw this heavy page away meanwhile, and the photo never arrives. site/brand/studio-camera.js (shared with the studio) opens the camera inside the page instead and gives the sheet the picture as a chosen file; with no in-page camera it falls back to the camera app or the gallery. The address carries ?v=20261104 because /brand/* is cached for a day (app.js) and a phone that has used the studio holds the older script, which only knows the studio's input: change the number when this script changes",
+      "anchor": "</helmet>",
+      "insert": [
+        "<script src=\"/brand/studio-camera.js?v=20261104\" defer></script>\n"
+      ]
+    },
+    {
       "id": "import-search-box",
       "op": "replace",
       "why": "the shop's search box takes a pasted photo address (data-import-urls, see import-script)",

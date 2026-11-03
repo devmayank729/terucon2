@@ -30,6 +30,7 @@
   var ENQUIRY_FIELDS = ['type', 'name', 'company', 'phone', 'email', 'city', 'area', 'timeline', 'message'];
   var SUGGESTIONS = ['Find a material', 'Try the Design Studio with my photo', 'Start a project'];
   var GREETING = 'Hi, I’m TeruBot. I can help you find a material, try the Design Studio with your own photo, or start a project. What would you like to do?';
+  var FORM_PAGES = ['/start-project']; // pages to read and fill in: the chat does not reopen over them (see leave() and mount())
   var PLACES = { '/': 'the home page', '/materials': 'the shop', '/finder': 'the Finder', '/inspiration': 'Inspiration', '/design-studio': 'the Design Studio', '/my-project': 'My project', '/start-project': 'the project form', '/account': 'your account' };
   var SVGNS = 'http://www.w3.org/2000/svg';
 
@@ -63,6 +64,7 @@
   var ICON_MIC = ['M12 3.5a2.75 2.75 0 0 1 2.75 2.75v5.5a2.75 2.75 0 0 1-5.5 0v-5.5A2.75 2.75 0 0 1 12 3.5z', 'M6 11a6 6 0 0 0 12 0', 'M12 17v3.5'];
   var ICON_SEND = ['M12 19V5', 'm5.5 11.5 6.5-6.5 6.5 6.5'];
   var ICON_CLOSE = ['M6 6l12 12', 'M18 6 6 18'];
+  var ICON_WAVE = ['M4 10v4', 'M8 6.5v11', 'M12 3.5v17', 'M16 7.5v9', 'M20 10v4'];
 
   function str(v, max) {
     if (typeof v !== 'string') return '';
@@ -286,6 +288,8 @@
 
   // ---- the widget -------------------------------------------------------------------------------------------------------
   var rootEl, launchEl, panelEl, scrimEl, titleEl, subEl, noticeEl, noticeTextEl, noticeActEl, logEl, chipsEl, formEl, inputEl, micBtn, micStatusEl, sendBtn;
+  var talkBtn, liveEl, liveTextEl, liveSkipBtn;
+  var live = false, liveStep = '', silentRuns = 0, lastAnswered = false; // the live conversation (see "live conversation" below)
   var built = false, isOpen = false, busy = false, prevFocus = null, typingEl = null;
   var gen = 0; // bumped by "New chat" so an answer to an old conversation is dropped
   var inflight = null, blockedUntil = 0, blockTimer = 0;
@@ -567,6 +571,7 @@
         busy = false;
         hideTyping();
         handleResponse(res);
+        if (live && !lastAnswered) endLive(); // the chat says why (too many messages, sign in, the AI is off, ...): do not listen on
         updateControls();
       })
       .catch(function () {
@@ -576,6 +581,7 @@
         hideTyping();
         status.unreachable = !timedOut;
         if (!timedOut) describeStatus();
+        if (live) endLive();
         failMessage(timedOut ? 'TeruBot took too long to answer. Please try again.' : 'TeruBot can’t be reached right now. Check your connection, then try again.', true);
         updateControls();
       });
@@ -588,6 +594,7 @@
   }
   function handleResponse(res) {
     var j = res.json;
+    lastAnswered = false;
     if (res.status === 429) {
       var secs = Math.floor(Number(j && j.retryAfterSec));
       if (!(secs >= 1)) secs = Math.floor(Number(res.retryAfter)); // the Retry-After header says the same
@@ -629,15 +636,18 @@
     var actions = cleanActions(j.actions);
     var msg = { role: 'bot', text: text || (cards.length || actions.length ? '' : 'TeruBot had nothing to say to that.'), cards: cards, notes: [], err: false };
     appendMessage(msg);
-    runActions(msg, actions);
+    lastAnswered = true;
+    var leaving = runActions(msg, actions);
     if (!isOpen && launchEl) launchEl.classList.add('is-unread');
     saveState();
+    if (!leaving) afterReply(msg);
   }
 
   function submit(text) {
     var t = str(text, 100000).replace(/\r\n?/g, '\n').trim();
     if (!t || busy || blockedUntil > now()) return false;
     if (t.length > MAX_TEXT) t = t.slice(0, MAX_TEXT);
+    if (live) { abortMic(); stopSpeaking(); setLiveStep('thinking'); } // typed, or heard: either way the answer is next
     appendMessage({ role: 'user', text: t, cards: [], notes: [], err: false });
     saveState();
     request();
@@ -649,7 +659,9 @@
       inputEl.value = '';
       autosize();
       updateControls();
+      return true;
     }
+    return false;
   }
 
   // ---- what TeruBot does on the page: each action leaves a visible "Done:" line, and what can be undone has an Undo ------------
@@ -659,18 +671,26 @@
   }
   function placeName(path) {
     var p = path.split('#')[0].split('?')[0];
-    return PLACES[p] || path;
+    return PLACES[p] || PLACES[p.length > 1 ? p.replace(/\/+$/, '') : p] || path;
+  }
+  /** A page the visitor has come to read and fill in (the project form). The chat never opens by itself over it. */
+  function isFormPage(pathname) {
+    var p = String(pathname || '').toLowerCase().replace(/\.html$/, '').replace(/\/+$/, '');
+    return FORM_PAGES.indexOf(p) !== -1;
   }
   function leave(path, keepOpen) {
     var next, cur;
     try { next = new URL(path, window.location.href); cur = window.location; } catch (e) { return; }
     var samePage = next.pathname === cur.pathname && next.search === cur.search;
     // reopen the panel on the next page, but only when the page really changes, and not when the page is a form the visitor has to
-    // read and check (the project form): there the chat would sit on top of the very thing TeruBot has just filled in
-    state.resume = !samePage && keepOpen !== false;
+    // read and check (the project form): there the chat would sit on top of the very thing they came for. This is decided by where we
+    // are going, not by which action took us (a plain "navigate" to /start-project used to reopen it); mount() checks it again on arrival
+    state.resume = !samePage && keepOpen !== false && !isFormPage(next.pathname);
     saveState();
+    endLive(); // the page is about to go: no more listening, no more speaking (a new page starts without either)
     window.location.assign(path);
   }
+  /** Does what the answer asks for; true when it started a page change (the page is about to go). */
   function runActions(msg, actions) {
     var navigation = null;
     for (var i = 0; i < actions.length; i += 1) {
@@ -681,27 +701,31 @@
         navigation = a; // one trip per answer, done last, after the lines above are written down
       }
     }
-    if (!navigation) return;
+    if (!navigation) return false;
     if (navigation.type === 'navigate') {
       addNote(msg, { kind: 'done', text: 'Done: opening ' + placeName(navigation.to) + '. The Back button brings you back here.' });
       saveState();
       leave(navigation.to);
+      return true;
     } else if (navigation.type === 'open_studio') {
       addNote(msg, { kind: 'done', text: 'Done: opening the Design Studio. The Back button brings you back here.' });
       saveState();
       leave('/design-studio');
+      return true;
     } else if (navigation.type === 'prefill_enquiry') {
       var s = sess();
       var ok = !!s && storeSet(s, PREFILL_KEY, JSON.stringify({ v: 1, source: 'terubot', at: now(), fields: navigation.fields }));
       if (!ok) {
         addNote(msg, { kind: 'failed', text: 'I could not keep your details for the form (this browser blocks storage), so I did not open it.' });
         saveState();
-        return;
+        return false;
       }
       addNote(msg, { kind: 'done', text: 'Done: your details are filled in on the project form and I am opening it. Nothing is sent until you submit it.' });
       saveState();
       leave('/start-project', false);
+      return true;
     }
+    return false;
   }
   function shopAction(msg, a) {
     var name = cardName(a.id, msg.cards) || 'this item';
@@ -818,10 +842,16 @@
       setListening(false);
       if (cancelled && !finalText) { updateControls(); return; }
       if (finalText) {
+        silentRuns = 0;
         inputEl.value = (micBase + ' ' + finalText).trim();
         autosize();
         updateControls();
-        submitInput(); // the older assistants sent what they heard at once; so does this one
+        var sent = submitInput(); // the older assistants sent what they heard at once; so does this one
+        if (live && !sent) endLive('I could not send that just now. Tap Talk to try again.');
+      } else if (live) {
+        if (err && err !== 'no-speech') endLive(micMessage(err));
+        else if ((silentRuns += 1) >= SILENT_LIMIT) endLive('I did not hear anything, so I stopped listening. Tap Talk to start again.');
+        else setTimeout(listenLive, 150); // the browser ends a quiet listen by itself: listen again
       } else if (err) {
         micStatusEl.textContent = micMessage(err);
         micStatusEl.hidden = false;
@@ -846,6 +876,161 @@
   function abortMic() {
     if (rec) { var r = rec; rec = null; try { r.abort(); } catch (e) { /* already stopped */ } }
     if (micBtn) setListening(false);
+  }
+
+  // ---- live conversation: talk, and be answered aloud, like a call ---------------------------------------------------------
+  // Listen (the browser's speech recognition) -> send what was heard -> read the answer aloud (the browser's speech synthesis) -> listen
+  // again. The microphone is never open while TeruBot speaks (it would hear itself); tap Skip to interrupt. It ends on End, on closing
+  // the panel, on New chat, on leaving the page, on a hidden tab, after three quiet listens, and on any answer that is not an answer
+  // (too many messages, sign in, the AI is off, the server cannot be reached). Everything runs in this browser: nothing but the text
+  // goes to TeruBot, as with typing. The voice is whatever voice this device has (an Indian-English one first).
+  var SILENT_LIMIT = 3;
+  var SPEECH_MAX_CHARS = 420; // an answer is read out for its first few sentences; the whole of it is on the screen
+  var speakGen = 0, speakTimer = 0, voiceObj = null, voicesHooked = false;
+
+  function synthAvailable() {
+    return !!(window.speechSynthesis && typeof window.SpeechSynthesisUtterance === 'function');
+  }
+  function talkAvailable() { return synthAvailable() && micAvailable(); }
+
+  /** What is said for a piece of text: no addresses, no markdown, rupees and units in words, the first few sentences. */
+  function speakable(text) {
+    var t = str(text, 4000);
+    t = t.replace(/https?:\/\/\S+/gi, ' '); // addresses are not read out
+    t = t.replace(/(^|\s)\/[A-Za-z0-9]\S*/g, '$1'); // nor are paths of this site (/materials#/p/teak)
+    t = t.replace(/^\s*[-•·]\s+/gm, ''); // list bullets
+    t = t.replace(/[*_`#>~|]+/g, ' '); // markdown marks
+    t = t.replace(/₹\s?(\d[\d,]*(?:\.\d+)?)/g, '$1 rupees').replace(/\bRs\.?\s?(\d[\d,]*(?:\.\d+)?)/gi, '$1 rupees');
+    t = t.replace(/\bper\s+sq\.?\s?ft\b/gi, 'per square foot').replace(/\bper\s+sq\.?\s?m\b/gi, 'per square metre');
+    t = t.replace(/\bsq\.?\s?ft\b/gi, 'square feet').replace(/\bsq\.?\s?m\b/gi, 'square metres').replace(/×/g, ' times ');
+    t = t.replace(/[–—]/g, ', ').replace(/\s*\n+\s*/g, '. ').replace(/\s+/g, ' ').replace(/([.!?])(\s*[.!?])+/g, '$1').trim();
+    if (!t) return [];
+    t = t.replace(/(\d)\.(?=\d)/g, '$1\u0001'); // a point between digits (2.5, 1,200.50) is not the end of a sentence
+    var sentences = t.match(/[^.!?]+(?:[.!?]+|$)/g) || [t];
+    var out = [], len = 0, cut = false;
+    for (var i = 0; i < sentences.length; i += 1) {
+      var sentence = sentences[i].trim();
+      if (!sentence) continue;
+      if (len + sentence.length > SPEECH_MAX_CHARS && out.length) { cut = true; break; }
+      len += sentence.length + 1;
+      while (sentence.length > 200) { // a very long sentence is said in pieces (some browsers stop a long utterance part-way)
+        var at = sentence.lastIndexOf(', ', 200);
+        if (at < 40) at = sentence.lastIndexOf(' ', 200);
+        if (at < 40) at = 200;
+        out.push(sentence.slice(0, at + 1).trim());
+        sentence = sentence.slice(at + 1).trim();
+      }
+      if (sentence) out.push(sentence);
+    }
+    if (cut) out.push('The rest is on your screen.');
+    for (var k = 0; k < out.length; k += 1) out[k] = out[k].replace(/\u0001/g, '.');
+    return out;
+  }
+  function pickVoice() {
+    if (voiceObj) return voiceObj;
+    var list = [];
+    try { list = window.speechSynthesis.getVoices() || []; } catch (e) { list = []; }
+    var prefs = ['en-in', 'en-gb', 'en-us', 'en-au'], best = null, bestScore = -1;
+    for (var i = 0; i < list.length; i += 1) {
+      var lang = String(list[i].lang || '').toLowerCase().replace('_', '-');
+      var rank = prefs.indexOf(lang);
+      if (rank < 0 && lang.indexOf('en') !== 0) continue;
+      var score = (rank < 0 ? 1 : 10 - rank) * 10 + (list[i].localService ? 0 : 3) + (/natural|neural|google|premium|enhanced/i.test(String(list[i].name || '')) ? 4 : 0);
+      if (score > bestScore) { bestScore = score; best = list[i]; }
+    }
+    voiceObj = best; // null: the browser's own default voice
+    return best;
+  }
+  function hookVoices() {
+    // the list of voices arrives after the page has loaded in some browsers: choose again when it does
+    if (voicesHooked || !synthAvailable()) return;
+    voicesHooked = true;
+    try { window.speechSynthesis.addEventListener('voiceschanged', function () { voiceObj = null; }); } catch (e) { /* no event: the first list is used */ }
+  }
+  function stopSpeaking() {
+    speakGen += 1; // whatever was waiting for the end of the speech is dropped
+    clearTimeout(speakTimer);
+    try { if (synthAvailable()) window.speechSynthesis.cancel(); } catch (e) { /* nothing was playing */ }
+  }
+  /** Say the pieces one after the other, then call done(). An interrupted or replaced speech never calls it. */
+  function speakChunks(chunks, done) {
+    hookVoices();
+    speakGen += 1; // the old speech is replaced first: if the browser reports its cancelled piece at once, nothing continues it
+    clearTimeout(speakTimer);
+    try { window.speechSynthesis.cancel(); } catch (e) { /* nothing was playing */ }
+    speakGen += 1;
+    var mine = speakGen, i = 0;
+    function next() {
+      if (mine !== speakGen) return;
+      if (i >= chunks.length) { speakGen += 1; done(); return; }
+      var piece = chunks[i];
+      i += 1;
+      var u;
+      try { u = new window.SpeechSynthesisUtterance(piece); } catch (e) { speakGen += 1; done(); return; }
+      var v = pickVoice();
+      if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-IN';
+      var moved = false;
+      var advance = function () { if (moved || mine !== speakGen) return; moved = true; clearTimeout(speakTimer); next(); };
+      u.onend = advance;
+      u.onerror = advance;
+      // a voice that never says it has finished must not hold the conversation: the time the words need, plus a margin
+      speakTimer = setTimeout(advance, Math.max(4000, piece.length * 140 + 3000));
+      try { window.speechSynthesis.speak(u); } catch (e) { advance(); }
+    }
+    next();
+  }
+  function primeSpeech() {
+    // iPhone Safari lets speech start only inside a tap: say nothing, once, inside the tap that starts the conversation
+    try { var u = new window.SpeechSynthesisUtterance(' '); u.volume = 0; window.speechSynthesis.speak(u); } catch (e) { /* no speech here */ }
+  }
+
+  function setLiveStep(step) {
+    liveStep = step;
+    if (!liveEl) return;
+    liveEl.hidden = !live;
+    liveEl.setAttribute('data-step', live ? step : '');
+    liveTextEl.textContent = step === 'listening' ? 'Listening… go ahead and speak' : step === 'thinking' ? 'Thinking…' : step === 'speaking' ? 'Speaking…' : '';
+    liveSkipBtn.hidden = step !== 'speaking';
+    talkBtn.setAttribute('aria-pressed', live ? 'true' : 'false');
+    talkBtn.title = live ? 'End the live conversation' : 'Talk to TeruBot: speak, and hear the answer';
+  }
+  function listenLive() {
+    if (!live || !isOpen || listening) return;
+    if (busy) { setLiveStep('thinking'); return; } // an answer is still on its way: it brings us back here
+    setLiveStep('listening');
+    inputEl.value = '';
+    autosize();
+    startMic();
+  }
+  function startLive() {
+    if (live || !talkAvailable()) return;
+    if (blockedUntil > now()) return;
+    if (status.known && status.aiOn === false) { micStatusEl.textContent = 'TeruBot’s AI is not set up on this site yet, so there is nobody to talk to for now.'; micStatusEl.hidden = false; return; }
+    live = true;
+    silentRuns = 0;
+    micStatusEl.hidden = true;
+    primeSpeech();
+    if (busy) { setLiveStep('thinking'); return; }
+    if (!state.msgs.length) { // a fresh chat: say hello, like picking up a call
+      setLiveStep('speaking');
+      speakChunks(['Hi, I’m TeruBot. How can I help?'], function () { setTimeout(listenLive, 300); });
+    } else listenLive();
+  }
+  function endLive(message) {
+    var was = live;
+    live = false;
+    abortMic();
+    stopSpeaking();
+    setLiveStep('');
+    if (was && message && micStatusEl) { micStatusEl.textContent = message; micStatusEl.hidden = false; }
+  }
+  /** An answer has arrived: in a live conversation, say it, then listen again. */
+  function afterReply(msg) {
+    if (!live) return;
+    var chunks = speakable(msg.text || (msg.cards && msg.cards.length ? 'I have put the options on your screen.' : ''));
+    if (!chunks.length) { listenLive(); return; }
+    setLiveStep('speaking');
+    speakChunks(chunks, function () { setTimeout(listenLive, 300); }); // a moment after the voice stops, so the microphone does not hear its tail
   }
 
   // ---- building the panel (the first time it opens) ----------------------------------------------------------------------
@@ -907,6 +1092,15 @@
     ht.appendChild(titleEl);
     ht.appendChild(subEl);
     head.appendChild(ht);
+    talkBtn = el('button', 'tb-textbtn tb-talk');
+    talkBtn.type = 'button';
+    talkBtn.setAttribute('aria-pressed', 'false');
+    talkBtn.title = 'Talk to TeruBot: speak, and hear the answer';
+    talkBtn.appendChild(icon(ICON_WAVE));
+    talkBtn.appendChild(el('span', null, 'Talk'));
+    talkBtn.hidden = !talkAvailable(); // a page that forbids the microphone (the studio, the Finder) or a browser without speech has no Talk
+    talkBtn.addEventListener('click', function () { if (live) endLive(); else startLive(); });
+    head.appendChild(talkBtn);
     var fresh = el('button', 'tb-textbtn', 'New chat');
     fresh.type = 'button';
     fresh.addEventListener('click', newChat);
@@ -952,6 +1146,28 @@
     micStatusEl.setAttribute('role', 'status');
     panelEl.appendChild(micStatusEl);
 
+    liveEl = el('div', 'tb-live');
+    liveEl.hidden = true;
+    liveEl.setAttribute('role', 'group');
+    liveEl.setAttribute('aria-label', 'Live conversation');
+    var orb = el('span', 'tb-live__orb');
+    orb.setAttribute('aria-hidden', 'true');
+    liveEl.appendChild(orb);
+    liveTextEl = el('span', 'tb-live__text');
+    liveEl.appendChild(liveTextEl);
+    liveSkipBtn = el('button', 'tb-textbtn', 'Skip');
+    liveSkipBtn.type = 'button';
+    liveSkipBtn.hidden = true;
+    liveSkipBtn.setAttribute('aria-label', 'Stop speaking and listen');
+    liveSkipBtn.addEventListener('click', function () { if (!live) return; stopSpeaking(); listenLive(); });
+    liveEl.appendChild(liveSkipBtn);
+    var liveEnd = el('button', 'tb-textbtn', 'End');
+    liveEnd.type = 'button';
+    liveEnd.setAttribute('aria-label', 'End the live conversation');
+    liveEnd.addEventListener('click', function () { endLive(); });
+    liveEl.appendChild(liveEnd);
+    panelEl.appendChild(liveEl);
+
     formEl = el('form', 'tb-form');
     formEl.addEventListener('submit', function (e) { e.preventDefault(); submitInput(); });
     inputEl = el('textarea', 'tb-input');
@@ -986,6 +1202,7 @@
     formEl.appendChild(sendBtn);
     panelEl.appendChild(formEl);
     panelEl.appendChild(el('p', 'tb-foot', 'TeruBot can make mistakes. Check prices and details before you order.'));
+    setLiveStep('');
 
     rootEl.appendChild(scrimEl);
     rootEl.appendChild(panelEl);
@@ -1036,6 +1253,7 @@
   }
   function close() {
     if (!isOpen) return;
+    endLive();
     abortMic();
     isOpen = false;
     rootEl.classList.remove('is-open');
@@ -1051,6 +1269,7 @@
   function newChat() {
     gen += 1;
     if (inflight) { try { inflight.abort(); } catch (e) { /* done already */ } inflight = null; }
+    endLive();
     abortMic();
     busy = false;
     state.msgs = [];
@@ -1102,9 +1321,14 @@
     else if (state.resume) {
       state.resume = false;
       saveState();
-      open(); // TeruBot sent the visitor to this page: the conversation is still open
+      // TeruBot sent the visitor to this page: the conversation is still open, except over a form (a flag left by an older page or a
+      // second tab must not put the chat on top of the form either; the launcher is there and the conversation is kept)
+      if (!isFormPage(window.location.pathname)) open();
     }
   }
+
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden' && live) endLive(); });
+  window.addEventListener('pagehide', function () { if (synthAvailable()) stopSpeaking(); });
 
   window.TeruBot = {
     open: function (opts) { open(opts); },

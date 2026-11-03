@@ -640,6 +640,70 @@
 .tb-form + .tb-foot {
   padding-top: 0;
 }
+/* the live conversation (Talk in the header, the strip above the form while it runs): see terubot.md */
+.tb-talk svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+.tb-talk[aria-pressed="true"] {
+  background: var(--tb-amber);
+  color: var(--tb-bg);
+}
+.tb-talk[aria-pressed="true"]:hover {
+  background: var(--tb-amber);
+  color: var(--tb-bg);
+}
+.tb-live {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 8px 2px 16px;
+  border-top: 1px solid var(--tb-line);
+  background: #241809;
+}
+.tb-live[hidden] {
+  display: none;
+}
+.tb-live__orb {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--tb-amber);
+}
+.tb-live[data-step="listening"] .tb-live__orb {
+  animation: tb-orb 1.4s ease-out infinite;
+}
+.tb-live[data-step="speaking"] .tb-live__orb {
+  background: var(--tb-ok);
+  animation: tb-orb-speak 0.55s ease-in-out infinite alternate;
+}
+.tb-live[data-step="thinking"] .tb-live__orb {
+  opacity: 0.55;
+}
+.tb-live__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--tb-ink);
+}
+@keyframes tb-orb {
+  0% { box-shadow: 0 0 0 0 rgba(245, 179, 87, 0.55); }
+  70% { box-shadow: 0 0 0 10px rgba(245, 179, 87, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 179, 87, 0); }
+}
+@keyframes tb-orb-speak {
+  from { transform: scale(1); }
+  to { transform: scale(1.4); }
+}
 .tb-mic-status {
   flex: none;
   margin: 0;
@@ -748,6 +812,9 @@ html.swr-immersive .tb-root {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .tb-live__orb {
+    animation: none;
+  }
   .tb-launch,
   .tb-launch:hover {
     transition: none;

@@ -155,8 +155,8 @@
     if (!landing && accountOn) {
       html += '<a class="tc-ib tc-hdr__acct" href="/account" aria-label="Account"><span class="tc-av">' + svg('account') + '</span></a>';
     }
-    html += '<a class="tc-cta" href="' + CTA.href + '"><span>' + CTA.label + '</span><span class="tc-cta__go" aria-hidden="true">' + svg('arrow') + '</span></a>';
-    if (landing) {
+    if (landing) { // the call to action is in the landing page's header only (elsewhere it crowded the pill); see chrome.md
+      html += '<a class="tc-cta" href="' + CTA.href + '"><span>' + CTA.label + '</span><span class="tc-cta__go" aria-hidden="true">' + svg('arrow') + '</span></a>';
       html += '<button type="button" class="tc-ib tc-ib--menu" aria-label="Open menu" aria-haspopup="dialog"><span class="tc-ib__label">Menu</span><span class="tc-burger" aria-hidden="true"></span></button>';
     }
     html += '</div>';

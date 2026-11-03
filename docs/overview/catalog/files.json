@@ -1829,6 +1829,14 @@
       "desc": "The loading screen: the T-block drawn as an architect's line plan, LED strips lighting, then timber louvres opening onto the page. Inline, a few KB, with a calm reduced-motion version and a 'taking longer than usual, Retry' state. tools/build-dist.js puts it first in every built page."
     },
     {
+      "match": "site/brand/loader.js",
+      "owner": "site-data",
+      "tags": [
+        "Generated"
+      ],
+      "desc": "The same loading screen for the hand-written pages (Finder, Inspiration, the project form, sign-in, account, admin, coming soon), generated from loader.html by site/brand/build-loader.mjs: they load loader.css and this first in the head, it puts the loader on screen at once and lets it go when the page is read, its fonts are in and two frames are painted. Never edited by hand."
+    },
+    {
       "match": "site/brand/head.html",
       "owner": "site-data",
       "tags": [

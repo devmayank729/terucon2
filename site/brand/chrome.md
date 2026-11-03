@@ -22,16 +22,16 @@ same-origin and there is no inline code or style, so the strict-CSP pages accept
 ## What it draws
 
 * **The pill** (every page): a dark brown floating bar 10 px below the top edge (60 px high; 54 px under 900 px), the logo at the
-  left, the call to action at the right ("Start a project" with a light circle holding an up-right arrow, linking to
-  `/start-project`). 44 px touch targets, `aria-current="page"` on the current destination, a visible focus ring, no layout shift.
+  left. **The call to action ("Start a project" with a light circle holding an up-right arrow, linking to `/start-project`) is
+  drawn on the landing page only** (changed 2026-11-04: on every other page it crowded the pill; `/start-project` is still linked from the
+  landing page's hero and header, and from TeruBot's "Start a project" suggestion). 44 px touch targets, `aria-current="page"` on the current destination, a visible focus ring, no layout shift.
   * **Landing page**: the six links in the middle (Materials, Design Studio with the small "AI" badge, Inspiration, Finder,
-    My project, Sign in / Account) and a Menu button that clicks the export's own Menu button (its overlay is React state).
+    My project, Sign in / Account), the call to action and a Menu button that clicks the export's own Menu button (its overlay is React state).
     The export's scroll-driven chapter label is not drawn.
-  * **Every other page**: the page's title after the logo, the account button (initials; "Sign in" when signed out) before the call
-    to action.
-  * **Shop (`/materials`) only**: Saved and Cart icon buttons left of the call to action. They mirror the export's counts (one
+  * **Every other page**: the page's title after the logo and the account button (initials; "Sign in" when signed out) at the right end.
+  * **Shop (`/materials`) only**: Saved and Cart icon buttons left of the account button. They mirror the export's counts (one
     MutationObserver) and forward their clicks to the export's own links. Nothing the export owns is moved.
-  * **Under 900 px**: logo (the emblem alone up to 419 px), account, call to action; the landing page keeps its Menu instead of the
+  * **Under 900 px**: logo (the emblem alone up to 419 px) and account; the landing page has the call to action and its Menu instead of the
     account; the shop keeps Cart. The dock is the destinations.
 * **The sidebar** (900 px and wider, not on the landing page, sign-in, coming soon, error, offline): 260 px, cream, small caps
   "TERUCON", a row per destination (24 px line icon, semibold label; the active row a dark rounded pill), a round chevron on its

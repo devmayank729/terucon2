@@ -1,12 +1,17 @@
 /*
- * The Design Studio's "Take a photo", without leaving the page.
+ * "Take a photo" without leaving the page: the Design Studio's camera button and the shop's "Find it from a photo" sheet.
+ * (The file keeps the name it was first written under; the shop loads it too, see the `photo-camera` step of site/patches/materials.json.)
  *
  * Why this exists. The studio's camera button opens a file input with capture="environment" (swatchroom/public/js/views/studio.js:
- * `cameraInput`). On a phone that hands the screen to the operating system's camera app, and the browser tab goes to the background while
- * the photo is taken. A page as heavy as the studio can be thrown away by the phone in that time (the studio's own notes: iPhone Safari
- * reloads a tab at about 384 MB), and then the person comes back to a freshly loaded page and the photo never arrives: "the website
- * reloaded". This script keeps the person on the page: it takes over the click on that one input and opens the camera inside the page
- * (getUserMedia), then gives the studio the picture exactly as if a file had been chosen (the same way site/inspiration/feed.js does).
+ * `cameraInput`), and the shop's photo sheet has the same kind of input (`<input type="file" accept="image/*" capture="environment">`
+ * behind its "Take a photo" button). On a phone that hands the screen to the operating system's camera app, and the browser tab goes to the
+ * background while the photo is taken. A page as heavy as these can be thrown away by the phone in that time (the studio's own notes: iPhone
+ * Safari reloads a tab at about 384 MB), and then the person comes back to a freshly loaded page and the photo never arrives: "the website
+ * reloaded". This script keeps the person on the page: it takes over the click on such an input and opens the camera inside the page
+ * (getUserMedia), then gives the page the picture exactly as if a file had been chosen (the same way site/inspiration/feed.js does).
+ *
+ * Which inputs: the studio's `input[data-input="camera"]`, and any `input[type=file][capture]` (the shop's). For the gallery fallback the
+ * studio's `input[data-input="photo"]` is used, or else the file input without `capture` next to the one clicked (the shop's "Choose a photo").
  *
  * swatchroom/ is a verbatim copy and is not touched: everything here listens from outside.
  *
@@ -19,7 +24,7 @@
   if (window.__terucon_studio_camera) return;
   window.__terucon_studio_camera = true;
 
-  var CAMERA_INPUT = 'input[data-input="camera"]';
+  var CAMERA_INPUT = 'input[data-input="camera"], input[type="file"][capture]';
   var PHOTO_INPUT = 'input[data-input="photo"]';
   var PENDING_KEY = 'terucon.cameraHandoff';
   var PENDING_MAX_MS = 15 * 60 * 1000;
@@ -78,6 +83,10 @@
     return node;
   }
 
+  function isStudioPage() {
+    return /^\/(design-studio|studio|swatchroom)\/?$/i.test(window.location.pathname);
+  }
+
   function canUseCamera() {
     return window.isSecureContext !== false && !!(navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function');
   }
@@ -108,11 +117,11 @@
     var at = Number(storeGet());
     storeClear();
     if (!at || Date.now() - at > PENDING_MAX_MS) return;
-    try { if (window.posthog && typeof window.posthog.capture === 'function') window.posthog.capture('studio_camera_handoff_lost'); } catch (e) { /* analytics is optional */ }
+    try { if (window.posthog && typeof window.posthog.capture === 'function') window.posthog.capture(isStudioPage() ? 'studio_camera_handoff_lost' : 'camera_handoff_lost', { page: window.location.pathname }); } catch (e) { /* analytics is optional */ }
     addStyle();
     var note = make('div', 'tcc-note');
     note.setAttribute('role', 'status');
-    note.appendChild(make('p', '', 'Your phone reloaded this page while its camera app was open, so the photo did not arrive. Try again, or choose the photo from your gallery with "New photo".'));
+    note.appendChild(make('p', '', 'Your phone reloaded this page while its camera app was open, so the photo did not arrive. Try again, or choose the photo from your gallery.'));
     note.appendChild(button('Close', '', function () { if (note.parentNode) note.parentNode.removeChild(note); }));
     document.body.appendChild(note);
   }
@@ -128,7 +137,7 @@
 
   function onKey(event) {
     if (!overlay) return;
-    if (event.key === 'Escape') { event.preventDefault(); close(); return; }
+    if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(); return; } // the sheet under the camera (the shop's) must not close with it
     if (event.key !== 'Tab') return;
     var items = overlay.querySelectorAll('button:not([disabled])');
     var visible = [];
@@ -165,8 +174,19 @@
     bypass = false;
   }
 
+  function galleryInput(camera) {
+    var own = document.querySelector(PHOTO_INPUT);
+    if (own) return own;
+    // the shop: the camera input and the gallery input are siblings, the gallery one has no `capture`
+    for (var box = camera && camera.parentElement; box && box !== document.body; box = box.parentElement) {
+      var list = box.querySelectorAll('input[type="file"]');
+      for (var i = 0; i < list.length; i += 1) if (list[i] !== camera && !list[i].hasAttribute('capture')) return list[i];
+    }
+    return null;
+  }
+
   function chooseFromGallery() {
-    var input = document.querySelector(PHOTO_INPUT);
+    var input = galleryInput(target);
     close();
     if (input) input.click();
   }
@@ -271,7 +291,7 @@
     });
   }
 
-  // The studio's camera button clicks its own hidden input. Listening in the capture phase, before the studio's own code could act,
+  // The studio's camera button (and the shop's) clicks its own hidden input. Listening in the capture phase, before the studio's own code could act,
   // lets this cancel the phone's camera app (a cancelled click opens no picker) and open the camera here instead.
   document.addEventListener('click', function (event) {
     var input = event.target;

@@ -335,8 +335,9 @@ await test('from the landing page a visitor reaches the Design Studio in one cli
   await page.goto(base + '/design-studio', { waitUntil: 'domcontentloaded' });
   await sleep(600);
   await go(page, 'Materials', '/materials', { scope: '.tc-side' });
-  await page.goto(base + '/design-studio', { waitUntil: 'domcontentloaded' });
-  await sleep(600);
+  // "Start a project" is in the header of the landing page only
+  await page.goto(base + '/', { waitUntil: 'domcontentloaded' });
+  await sleep(1500);
   await go(page, 'Start a project', '/start-project', { scope: '.tc-hdr' });
   // /start-project is a page of its own (built apart from the chrome); until it exists the site's not-found page answers there
   page.problems = page.problems.filter((p) => !/ \/start-project$/.test(p));
@@ -1082,6 +1083,96 @@ await test('studio camera: a browser with no in-page camera still gets the camer
   }
 });
 
+// ---- the shop's "Find it from a photo" sheet: the same in-page camera (site/brand/studio-camera.js is shared with the studio; the shop's
+// photo sheet has the same kind of input, `<input type=file capture=environment>`, behind its "Take a photo" button). Reported on a phone:
+// the photo failed to upload after it was taken. A real phone was not tried; Puppeteer's fake camera device stands in for the lens.
+const SHOP_CAMERA_INPUT = 'input[type="file"][capture]';
+const shopPhotoPage = async ({ before } = {}) => {
+  const page = await newPage(PHONE);
+  await page.evaluateOnNewDocument(() => {
+    window.__stops = 0;
+    const stop = MediaStreamTrack.prototype.stop;
+    MediaStreamTrack.prototype.stop = function () { window.__stops += 1; return stop.call(this); };
+  });
+  if (before) await page.evaluateOnNewDocument(before);
+  await page.goto(base + '/materials', { waitUntil: 'networkidle2' });
+  await until(() => page.evaluate(() => { const b = [...document.querySelectorAll('button[aria-label="Search by photo"]')].find((x) => x.getBoundingClientRect().width > 0); if (!b) return false; b.click(); return true; }), 'the "Search by photo" button of the shop', 20000);
+  await page.waitForSelector(SHOP_CAMERA_INPUT, { timeout: 8000 });
+  return page;
+};
+const clickByText = (page, text) => page.evaluate((t) => { const b = [...document.querySelectorAll('button')].find((x) => x.textContent.trim() === t && x.getBoundingClientRect().width > 0); if (b) b.click(); return !!b; }, text);
+
+await test('shop camera: "Take a photo" in "Find it from a photo" opens the camera inside the page (no camera app), the shot reaches the shop sheet as a photo it analyses, the camera is switched off, the page is not reloaded', async () => {
+  const page = await shopPhotoPage();
+  try {
+    await page.evaluate(() => { window.__marker = 'same-page'; });
+    const chooser = chooserOpens(page, 1500);
+    assert(await clickByText(page, 'Take a photo'), 'no "Take a photo" button on the shop sheet');
+    await until(() => page.evaluate(() => !!document.querySelector('[data-tc-camera]')), 'the in-page camera', 5000);
+    assert(!(await chooser), 'the phone\'s file or camera picker opened as well');
+    await until(() => page.evaluate(() => { const v = document.querySelector('[data-tc-camera] video'); return !!(v && v.srcObject && v.videoWidth > 0); }), 'the live picture', 8000);
+    await until(() => page.evaluate(() => { const s = document.querySelector('.tcc-shutter'); return s && !s.disabled; }), 'the shutter to be ready', 5000);
+    // Escape closes the camera only: the shop's sheet under it stays
+    await page.keyboard.press('Escape');
+    await until(() => page.evaluate(() => !document.querySelector('[data-tc-camera]')), 'Escape to close the camera', 3000);
+    assert(await page.evaluate((sel) => !!document.querySelector(sel), SHOP_CAMERA_INPUT), 'Escape closed the shop sheet too');
+    assert(await page.evaluate(() => window.__stops) >= 1, 'the camera was left running after Escape');
+    assert(await clickByText(page, 'Take a photo'), 'no "Take a photo" button after the camera was closed');
+    await until(() => page.evaluate(() => { const s = document.querySelector('.tcc-shutter'); return s && !s.disabled; }), 'the shutter to be ready (second time)', 8000);
+    await page.evaluate(() => document.querySelector('.tcc-shutter').click());
+    await until(() => page.evaluate(() => !document.querySelector('[data-tc-camera]')), 'the camera to close after the shot', 5000);
+    // the shop took the photo: its sheet shows it (an object address made from the chosen file) and does not say it could not read it
+    const shown = await until(() => page.evaluate(() => { const i = [...document.querySelectorAll('img')].find((x) => x.src.startsWith('blob:')); return i ? { blob: true, w: i.naturalWidth, text: document.body.innerText.slice(0, 4000) } : null; }), 'the shop to show the photo it was given', 15000);
+    assert(!/couldn.t read that image|isn.t an image/i.test(shown.text), 'the shop could not read the photo: ' + shown.text.slice(0, 200));
+    assert(await page.evaluate(() => window.__stops) >= 2, 'the camera was left running');
+    assert(await page.evaluate(() => window.__marker === 'same-page'), 'the page was reloaded');
+  } finally {
+    await page.close();
+  }
+});
+
+await test('shop camera: when the camera is refused the person is told and offered the camera app or the gallery (the shop\'s own gallery input); the camera app hand-off leaves a note, and a reload during it says so', async () => {
+  const page = await shopPhotoPage({ before: () => { navigator.mediaDevices.getUserMedia = () => Promise.reject(Object.assign(new Error('refused'), { name: 'NotAllowedError' })); } });
+  try {
+    assert(await clickByText(page, 'Take a photo'), 'no "Take a photo" button on the shop sheet');
+    await until(() => page.evaluate(() => /not allowed/i.test(document.querySelector('.tcc-panel')?.textContent ?? '')), 'the refusal message', 5000);
+    const labels = await page.evaluate(() => [...document.querySelectorAll('.tcc-panel button')].map((b) => b.textContent));
+    assert(labels.includes('Open the camera app') && labels.includes('Choose from gallery'), 'the fallbacks: ' + JSON.stringify(labels));
+    // "Choose from gallery" opens the shop's own gallery input (the one without `capture`): a picker, and no hand-off note
+    const gallery = page.waitForFileChooser({ timeout: 4000 }).catch(() => null);
+    await page.evaluate(() => [...document.querySelectorAll('.tcc-panel button')].find((b) => b.textContent === 'Choose from gallery').click());
+    const g = await gallery;
+    assert(g, 'the gallery picker did not open from "Choose from gallery"');
+    assert(await page.evaluate(() => !!document.querySelector('input[type="file"]:not([capture])')), 'the shop has no gallery input without capture');
+    await g.cancel();
+    assert(await page.evaluate(() => !sessionStorage.getItem('terucon.cameraHandoff')), 'a hand-off note was left for the gallery');
+    // the camera app: a note, and the reload says what happened
+    assert(await clickByText(page, 'Take a photo'), 'no "Take a photo" button after the gallery');
+    await until(() => page.evaluate(() => /not allowed/i.test(document.querySelector('.tcc-panel')?.textContent ?? '')), 'the refusal message again', 5000);
+    const chooser = chooserOpens(page, 4000);
+    await page.evaluate(() => [...document.querySelectorAll('.tcc-panel button')].find((b) => b.textContent === 'Open the camera app').click());
+    assert(await chooser, 'the camera app (file picker) did not open from "Open the camera app"');
+    assert(await page.evaluate(() => !!sessionStorage.getItem('terucon.cameraHandoff')), 'no note was left for the hand-off');
+    await page.reload({ waitUntil: 'networkidle2' }); // the phone threw the page away while the camera app was open
+    await until(() => page.evaluate(() => /reloaded this page/i.test(document.querySelector('.tcc-note')?.textContent ?? '')), 'the note about the reload', 8000);
+    assert(await page.evaluate(() => !sessionStorage.getItem('terucon.cameraHandoff')), 'the note was not cleared after it was shown');
+  } finally {
+    await page.close();
+  }
+});
+
+await test('shop camera: a browser with no in-page camera still gets the camera app straight away (the old way)', async () => {
+  const page = await shopPhotoPage({ before: () => { Object.defineProperty(navigator, 'mediaDevices', { value: undefined, configurable: true }); } });
+  try {
+    const chooser = chooserOpens(page, 4000);
+    assert(await clickByText(page, 'Take a photo'), 'no "Take a photo" button on the shop sheet');
+    assert(await chooser, 'the camera app (file picker) did not open');
+    assert(await page.evaluate(() => !document.querySelector('[data-tc-camera]')), 'an in-page camera opened with no camera support');
+  } finally {
+    await page.close();
+  }
+});
+
 // ---- the sign-in page's Google button ---------------------------------------------------------------------------------------------
 // Seen on the live site on 2026-11-03: Google's script first draws a placeholder button on the page (its styles are inline, which the
 // page's strict policy refuses, so it came out unstyled: a logo as wide as the card), and a moment later puts the real button, in a frame,
@@ -1261,7 +1352,7 @@ const probeChrome = (page) => page.evaluate(() => {
 });
 const SIDE_ROWS = ['Home', 'Materials', 'Design StudioAI', 'Inspiration', 'Finder', 'My project', 'Account'];
 
-await test('chrome: the same pill on every page at 1440 px (logo, call to action to /start-project, account), no second header drawn, the sidebar on every page but the landing page, sign-in and coming soon', async () => {
+await test('chrome: the same pill on every page at 1440 px (logo, account; the call to action to /start-project on the landing page only), no second header drawn, the sidebar on every page but the landing page, sign-in and coming soon', async () => {
   const seen = {};
   for (const route of [...CHROME_BUILT, ...CHROME_HAND, ...CHROME_PLAIN]) {
     const page = await newPage(undefined, stack, { signedIn: route !== '/login' });
@@ -1272,7 +1363,8 @@ await test('chrome: the same pill on every page at 1440 px (logo, call to action
       seen[route] = m;
       assert(m.headers === 1, `${route}: ${m.headers} headers are drawn (the exports' own must stay hidden)`);
       assert(m.pill && m.pill[0] === 12 && m.pill[1] === 10 && m.pill[3] === 60 && m.pill[2] === 1440 - 24, `${route}: the pill is not where it is on the other pages: ${JSON.stringify(m.pill)}`);
-      assert(m.ctaText === 'Start a project' && m.ctaHref === '/start-project' && m.ctaArrow && m.cta[3] >= 44, `${route}: the call to action: ${JSON.stringify([m.ctaText, m.ctaHref, m.ctaArrow, m.cta])}`);
+      if (route === '/') assert(m.ctaText === 'Start a project' && m.ctaHref === '/start-project' && m.ctaArrow && m.cta[3] >= 44, `${route}: the call to action: ${JSON.stringify([m.ctaText, m.ctaHref, m.ctaArrow, m.cta])}`);
+      else assert(m.cta === null && m.ctaText === null, `${route}: the header has a call to action (it is on the landing page only): ${JSON.stringify([m.ctaText, m.cta])}`);
       assert(m.hdrH.startsWith('calc(70px'), `${route}: --tc-hdr-h is ${m.hdrH}`);
       const wantSide = !['/', '/login', '/coming-soon'].includes(route);
       assert(!!m.side === wantSide, `${route}: the sidebar should ${wantSide ? '' : 'not '}be drawn`);
@@ -1292,11 +1384,11 @@ await test('chrome: the same pill on every page at 1440 px (logo, call to action
       await page.close();
     }
   }
-  // one header, constant: the pill, the logo and (where nothing else sits right of it) the call to action are the same boxes on every page
+  // one header, constant: the pill, the logo and (where nothing else sits right of it) the account button are the same boxes on every page
   const ref = seen['/inspiration'];
   for (const [route, m] of Object.entries(seen)) {
     assert(JSON.stringify(m.pill) === JSON.stringify(ref.pill) && JSON.stringify(m.logo) === JSON.stringify(ref.logo), `${route}: the pill or the logo differs from /inspiration: ${JSON.stringify([m.pill, m.logo])} vs ${JSON.stringify([ref.pill, ref.logo])}`);
-    if (route !== '/' && route !== '/materials' && route !== '/login' && route !== '/coming-soon') assert(JSON.stringify(m.cta) === JSON.stringify(ref.cta), `${route}: the call to action moved: ${JSON.stringify(m.cta)} vs ${JSON.stringify(ref.cta)}`);
+    if (route !== '/' && route !== '/materials' && route !== '/login' && route !== '/coming-soon') assert(JSON.stringify(m.acct) === JSON.stringify(ref.acct), `${route}: the account button moved: ${JSON.stringify(m.acct)} vs ${JSON.stringify(ref.acct)}`);
   }
   assert(seen['/'].title === null && seen['/inspiration'].title === 'Inspiration' && seen['/design-studio'].title === 'Design Studio' && seen['/login'].title === 'Sign in' && seen['/admin/catalogue'].title === 'Catalogue admin', 'the titles: ' + JSON.stringify(Object.fromEntries(Object.entries(seen).map(([k, v]) => [k, v.title]))));
   // the hand-written pages' footer bands are the same
@@ -1331,7 +1423,7 @@ await test('chrome: the pill is keyboard-reachable with a visible focus ring, ar
     const chromeStops = order.filter((o) => o.inChrome);
     assert(chromeStops.length >= 9, 'the chrome has too few keyboard stops: ' + JSON.stringify(order));
     assert(chromeStops.every((o) => o.ring), 'a stop in the chrome has no visible focus ring: ' + JSON.stringify(chromeStops.filter((o) => !o.ring)));
-    assert(order[0].what === 'tc-hdr__logo' && order[2].what === 'tc-cta', 'the order of the pill is logo, account, call to action: ' + JSON.stringify(order.slice(0, 3)));
+    assert(order[0].what === 'tc-hdr__logo' && /tc-hdr__acct/.test(order[1].what) && !order.some((o) => /tc-cta/.test(o.what)), 'the order of the pill is logo, account (no call to action off the landing page), then the sidebar: ' + JSON.stringify(order.slice(0, 3)));
     await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
     const motion = await page.evaluate(() => [...document.querySelectorAll('.tc-cta__go svg, .tc-side__row, .tc-side__toggle svg, .tc-hdr__link')].map((e) => getComputedStyle(e).transitionDuration));
     assert(motion.every((d) => d.split(',').every((x) => parseFloat(x) === 0)), 'reduced motion still has transitions: ' + JSON.stringify(motion));
@@ -1403,7 +1495,7 @@ await test('chrome: the sidebar collapses to a 64 px icon rail and back, the pag
   }
 });
 
-await test('chrome: on a phone or a small tablet (820, 390, 360 px) the pill is logo + account + call to action (the landing page: logo + call to action + Menu), nothing overlaps or leaves it, no sidebar, the dock is the destinations, no sideways scroll', async () => {
+await test('chrome: on a phone or a small tablet (820, 390, 360 px) the pill is logo + account (the landing page: logo + call to action + Menu), nothing overlaps or leaves it, no sidebar, the dock is the destinations, no sideways scroll', async () => {
   for (const width of [820, 390, 360]) {
     for (const route of [...CHROME_BUILT, '/inspiration', '/finder', '/account']) {
       const view = width === 820 ? { width, height: 1100 } : { ...PHONE, width };
@@ -1423,7 +1515,8 @@ await test('chrome: on a phone or a small tablet (820, 390, 360 px) the pill is 
           for (let j = i + 1; j < parts.length; j += 1) assert(!(parts[i].l < parts[j].r - 0.5 && parts[j].l < parts[i].r - 0.5), `${where}: ${parts[i].what} overlaps ${parts[j].what}`);
         }
         const names = parts.map((x) => x.what);
-        assert(names.includes('Start a project'), `${where}: no call to action: ${names}`);
+        if (route === '/') assert(names.includes('Start a project'), `${where}: no call to action on the landing page: ${names}`);
+        else assert(!names.includes('Start a project'), `${where}: the call to action is on the landing page only: ${names}`);
         if (route === '/') assert(names.includes('Open menu') && !names.some((n) => /^Account|^Sign in/.test(n)), `${where}: the landing page's phone pill: ${names}`);
         else assert(!names.includes('Open menu'), `${where}: only the landing page has the Menu button: ${names}`);
         if (route !== '/') assert(names.some((n) => /^Account|^Sign in/.test(n)), `${where}: no account button: ${names}`);
@@ -1446,8 +1539,8 @@ await test('chrome: /materials: Saved and Cart are in the pill (only there), mir
     const first = await read();
     assert(first.shop.length === 2 && first.shop.every((b) => b.drawn) && first.shop[0].label === 'Saved' && /^Cart/.test(first.shop[1].label) && first.shop.every((b) => b.n === '0'), 'the two buttons at the start: ' + JSON.stringify(first.shop));
     assert(first.exportHidden === 'none', 'the export\'s own header is drawn');
-    const ctaBefore = await page.evaluate(() => { const hdr = document.querySelector('.tc-hdr'); return { shop: hdr.querySelector('.tc-hdr__shop').getBoundingClientRect().right, cta: hdr.querySelector('.tc-cta').getBoundingClientRect().left }; });
-    assert(ctaBefore.shop <= ctaBefore.cta, 'Saved and Cart are not left of the call to action');
+    const endBefore = await page.evaluate(() => { const hdr = document.querySelector('.tc-hdr'); const p = hdr.getBoundingClientRect(); return { shopRight: hdr.querySelector('.tc-hdr__shop').getBoundingClientRect().right, pillRight: p.right, cta: !!hdr.querySelector('.tc-cta') }; });
+    assert(!endBefore.cta && endBefore.shopRight <= endBefore.pillRight, 'Saved and Cart sit inside the right end of the pill, and the shop has no call to action: ' + JSON.stringify(endBefore));
     assert(await page.evaluate(() => { const hdr = document.querySelector('.tc-hdr'); return hdr.parentElement === document.documentElement && !hdr.closest('#dc-root'); }), 'the chrome sits inside the export');
     // a click on ours is a click on the export's own link
     await page.click('[data-tc-shop="cart"]');
@@ -1594,6 +1687,32 @@ const tbProblems = (page) => page.problems.filter((p) => !/\/api\/terubot\/|\/as
 const tbPage = async (viewport, st, { speech = null } = {}) => {
   const page = await newPage(viewport);
   if (speech === 'none') await page.evaluateOnNewDocument(() => { delete window.SpeechRecognition; delete window.webkitSpeechRecognition; });
+  if (speech === 'live' || speech === 'live-nosynth') {
+    // a recogniser and a synthesiser the test drives: window.__hear(text) / __silence() play what the microphone heard; __endSpeech() is the end of
+    // one spoken piece. What was spoken is also kept in sessionStorage, so it survives a page change.
+    await page.evaluateOnNewDocument((withSynth) => {
+      const sr = (window.__sr = { starts: 0, aborts: 0, active: false, inst: null });
+      window.SpeechRecognition = class {
+        constructor() { sr.inst = this; }
+        start() { sr.starts += 1; sr.active = true; this.onstart && this.onstart(); }
+        stop() { this.__end(); }
+        abort() { sr.aborts += 1; if (sr.active) { this.onerror && this.onerror({ error: 'aborted' }); this.__end(); } }
+        __end() { if (!sr.active) return; sr.active = false; this.onend && this.onend(); }
+      };
+      window.__hear = (text) => { const r = sr.inst; r.onresult({ resultIndex: 0, results: [Object.assign([{ transcript: text }], { isFinal: true })] }); r.__end(); };
+      window.__silence = () => { const r = sr.inst; r.onerror && r.onerror({ error: 'no-speech' }); r.__end(); };
+      if (!withSynth) { delete window.speechSynthesis; delete window.SpeechSynthesisUtterance; return; }
+      const tts = (window.__tts = { spoken: [], cancels: 0, pending: [] });
+      window.SpeechSynthesisUtterance = class { constructor(t) { this.text = t; this.volume = 1; } };
+      Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: {
+        getVoices: () => [],
+        addEventListener() {},
+        cancel() { tts.cancels += 1; const gone = tts.pending.splice(0); gone.forEach((u) => u.onerror && u.onerror({ error: 'canceled' })); },
+        speak(u) { if (u.volume === 0) return; tts.spoken.push(u.text); tts.pending.push(u); try { sessionStorage.setItem('__spoken', JSON.stringify(tts.spoken)); } catch (e) {} },
+      } });
+      window.__endSpeech = () => { const u = tts.pending.shift(); if (u && u.onend) u.onend({}); };
+    }, speech === 'live');
+  }
   if (speech === 'fake') {
     await page.evaluateOnNewDocument(() => {
       window.__heard = 'show me terracotta';
@@ -1616,13 +1735,19 @@ const tbPage = async (viewport, st, { speech = null } = {}) => {
   });
   return page;
 };
+/** Like a person: nothing can be clicked until the page's loader has stopped covering it (the studio's own loader holds for the GPU: not waited for). */
+const tbLoaderGone = async (page) => {
+  if (/\/design-studio/.test(page.url())) return;
+  await until(() => page.evaluate(() => { const l = document.getElementById('tc-loader'); return !l || getComputedStyle(l).pointerEvents === 'none'; }), 'the loader to let go of ' + page.url(), 15000);
+};
 const tbGo = async (page, route) => {
   await page.goto(base + route, { waitUntil: 'domcontentloaded' });
   await until(() => page.evaluate(() => !!window.TeruBot && !!document.querySelector('.tb-launch')), `TeruBot on ${route}`, 15000);
+  await tbLoaderGone(page);
 };
 /** The shop answers the "terucon:shop" event once its catalogue is loaded: poll with a harmless probe. */
 const tbShopReady = (page) => until(() => page.evaluate(() => { const d = { op: 'saved_remove', id: 'no-such-item', handled: false }; window.dispatchEvent(new CustomEvent('terucon:shop', { detail: d })); return d.handled; }), 'the shop to answer', 20000);
-const tbOpen = async (page) => { await page.evaluate(() => window.TeruBot.open()); await until(() => page.evaluate(() => { const p = document.getElementById('terubot-panel'); return !!p && !p.hidden; }), 'the panel to open'); };
+const tbOpen = async (page) => { await tbLoaderGone(page); await page.evaluate(() => window.TeruBot.open()); await until(() => page.evaluate(() => { const p = document.getElementById('terubot-panel'); return !!p && !p.hidden; }), 'the panel to open'); };
 const tbSend = async (page, text) => { await page.type('.tb-input', text); await page.keyboard.press('Enter'); };
 const tbBotTexts = (page) => page.evaluate(() => [...document.querySelectorAll('.tb-msg--bot .tb-text')].map((n) => n.textContent));
 const tbNotes = (page) => page.evaluate(() => [...document.querySelectorAll('.tb-note .tb-note__text')].map((n) => n.textContent));
@@ -1758,6 +1883,52 @@ await test('terubot: actions: navigate, open_studio and prefill_enquiry leave a 
   await page.close();
 });
 
+await test('terubot: a plain "navigate" to the project form (the "Start a project" suggestion, with or without a query) leaves the chat closed on the form, with the conversation one tap away; other pages still reopen it', async () => {
+  const st = tbState();
+  const page = await tbPage(null, st);
+  const panelState = () => page.evaluate(() => ({ open: !!document.querySelector('.tb-root.is-open'), hidden: !document.getElementById('terubot-panel') || document.getElementById('terubot-panel').hidden, launch: !!document.querySelector('.tb-launch'), scrim: !!document.querySelector('.tb-scrim:not([hidden])') }));
+  for (const to of ['/start-project', '/start-project?type=Retail', '/start-project/']) {
+    await tbGo(page, '/finder');
+    await page.evaluate(() => sessionStorage.clear());
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await until(() => page.evaluate(() => !!window.TeruBot && !!document.querySelector('.tb-launch')), 'TeruBot on the Finder', 15000);
+    st.chat = () => tbAnswer('Opening the project form.', { actions: [{ type: 'navigate', to }] });
+    await tbOpen(page);
+    const nav = page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+    await page.evaluate(() => { for (const c of document.querySelectorAll('.tb-chip')) if (c.textContent === 'Start a project') c.click(); });
+    await nav;
+    await until(() => new URL(page.url()).pathname.replace(/\/$/, '') === '/start-project', `the project form for ${to}`);
+    await until(() => page.evaluate(() => !!window.TeruBot && !!document.querySelector('.tb-launch')), `TeruBot on the project form for ${to}`, 15000);
+    await sleep(600); // anything that was going to reopen the chat by itself has done so by now
+    const closed = await panelState();
+    assert(closed.launch && !closed.open && closed.hidden && !closed.scrim, `navigate ${to}: the chat should stay closed over the form: ${JSON.stringify(closed)}`);
+    assert(await page.evaluate(() => !!document.getElementById('form') && document.getElementById('form').getBoundingClientRect().width > 0), `navigate ${to}: the form is not on screen`);
+    await page.evaluate(() => document.querySelector('.tb-launch').click());
+    await until(() => page.evaluate(() => !!document.querySelector('.tb-root.is-open') && /Start a project/.test(document.querySelector('.tb-panel').innerText) && /Opening the project form\./.test(document.querySelector('.tb-panel').innerText) && /Done: opening the project form/.test(document.querySelector('.tb-panel').innerText)), `the conversation kept for ${to}`, 5000);
+    // the flag was used up: a plain reload of the form does not reopen the chat either
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await until(() => page.evaluate(() => !!document.querySelector('.tb-launch')), 'TeruBot after a reload', 15000);
+    await sleep(400);
+    assert(!(await panelState()).open, `navigate ${to}: the chat reopened after a reload of the form`);
+  }
+  // a stale "reopen" flag in the tab must not put the chat over the form either (it can be left by an older page, a Back, a second tab)
+  await tbGo(page, '/finder');
+  await page.evaluate(() => { const k = 'terucon.terubot.v1'; const s = JSON.parse(sessionStorage.getItem(k) || '{}'); s.resume = true; s.msgs = s.msgs || [{ role: 'user', text: 'hello', cards: [], notes: [] }]; sessionStorage.setItem(k, JSON.stringify(s)); });
+  await page.goto(base + '/start-project', { waitUntil: 'domcontentloaded' });
+  await until(() => page.evaluate(() => !!document.querySelector('.tb-launch')), 'TeruBot on the form with a stale flag', 15000);
+  await sleep(400);
+  assert(!(await panelState()).open, 'a stale reopen flag put the chat over the form');
+  // control: a page that is not a form still gets the conversation back
+  await tbGo(page, '/finder');
+  st.chat = () => tbAnswer('Opening the shop for you.', { actions: [{ type: 'navigate', to: '/materials' }] });
+  await tbOpen(page);
+  const nav2 = page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+  await tbSend(page, 'open the shop');
+  await nav2;
+  await until(() => page.evaluate(() => !!document.querySelector('.tb-root.is-open')), 'the chat reopened on the shop (the unchanged behaviour)', 15000);
+  await page.close();
+});
+
 await test('terubot: cart and saved list: on the shop the page itself changes (and Undo works); from another page the change is queued, said so in words, and applied when the shop opens', async () => {
   const st = tbState();
   const page = await tbPage(null, st);
@@ -1781,7 +1952,7 @@ await test('terubot: cart and saved list: on the shop the page itself changes (a
   st.chat = () => tbAnswer('I will add it.', { cards: [{ kind: 'material', id: 'superbond-fr-metallic--acp-bronze-4-1220x2440', pid: 'superbond-fr-metallic', vid: 'superbond-fr-metallic--acp-bronze-4-1220x2440', fid: 'acp-bronze', variant: 'Brushed Bronze', name: 'FR Façade ACP', price: '₹', image: '', href: '/materials#/p/superbond-fr-metallic?v=superbond-fr-metallic--acp-bronze-4-1220x2440' }], actions: [{ type: 'cart_add', id: 'superbond-fr-metallic--acp-bronze-4-1220x2440', qty: 3 }, { type: 'saved_remove', id: 'superbond-fr-metallic--acp-bronze-4-1220x2440', pid: 'superbond-fr-metallic' }] });
   await tbGo(page, '/finder');
   await tbOpen(page);
-  await page.click('.tb-head .tb-textbtn'); // New chat: the lines of the shop part above are not under test here
+  await page.click('.tb-head .tb-textbtn:not(.tb-talk)'); // New chat (Talk is the other text button of the header): the lines of the shop part above are not under test here
   await tbSend(page, 'put the bronze in my cart');
   await until(async () => (await tbNotes(page)).length === 2, 'two lines for two queued changes');
   const q = await tbNotes(page);
@@ -1884,7 +2055,7 @@ await test('terubot: the conversation survives a reload in the same tab; New cha
   await tbOpen(page);
   assert(JSON.stringify(await page.evaluate(() => [...document.querySelectorAll('.tb-bubble')].map((n) => n.textContent))) === '["Find a material","second"]', 'the conversation after the reload');
   assert(await page.evaluate(() => JSON.parse(sessionStorage.getItem('terucon.terubot.pending')).length) === 2, 'nothing queued');
-  await page.click('.tb-head .tb-textbtn');
+  await page.click('.tb-head .tb-textbtn:not(.tb-talk)'); // New chat
   await until(() => page.evaluate(() => document.querySelectorAll('.tb-bubble').length === 0 && !!document.querySelector('[data-greeting]')), 'New chat to clear the list');
   assert(await page.evaluate(() => sessionStorage.getItem('terucon.terubot.pending') === null && !document.querySelector('.tb-chips').hidden), 'New chat should drop what was queued for the shop and bring the suggestions back');
   await page.reload({ waitUntil: 'domcontentloaded' });
@@ -2044,14 +2215,220 @@ await test('terubot: voice: the microphone button uses the browser\'s speech rec
   await tbGo(page, '/design-studio');
   await tbOpen(page);
   assert(await page.evaluate(() => document.querySelector('.tb-roundbtn[aria-pressed]').hidden), 'the studio sends Permissions-Policy: microphone=(): the button must be hidden there');
+  assert(await page.evaluate(() => document.querySelector('.tb-talk').hidden), 'Talk needs the microphone too: hidden in the studio');
   await page.close();
   const none = await tbPage(null, st, { speech: 'none' });
   await tbGo(none, '/materials');
   await tbOpen(none);
   assert(await none.evaluate(() => document.querySelector('.tb-roundbtn[aria-pressed]').hidden), 'no microphone button should show where the browser has no speech recognition');
+  assert(await none.evaluate(() => document.querySelector('.tb-talk').hidden), 'Talk should not show where the browser has no speech recognition');
   await none.close();
+  const mute = await tbPage(null, st, { speech: 'live-nosynth' });
+  await tbGo(mute, '/materials');
+  await tbOpen(mute);
+  assert(await mute.evaluate(() => !document.querySelector('[aria-label="Speak your message"]').hidden && document.querySelector('.tb-talk').hidden), 'with recognition but no speech synthesis: dictation stays, Talk (which needs to answer aloud) is hidden');
+  await mute.close();
+});
+
+// ---- the live conversation (Talk): listen -> send -> answer aloud -> listen again. The recogniser and the synthesiser are stand-ins the test
+// drives (headless Chrome has no voice and no microphone): what is checked is TeruBot's own logic, not a browser's speech quality.
+const liveState = () => ({ strip: document.querySelector('.tb-live') && !document.querySelector('.tb-live').hidden ? document.querySelector('.tb-live__text').textContent : null, listening: window.__sr.active, starts: window.__sr.starts, spoken: window.__tts ? window.__tts.spoken.slice() : null, pressed: document.querySelector('.tb-talk').getAttribute('aria-pressed') });
+const liveWait = (page, pred, what, ms = 6000) => until(() => page.evaluate(pred), what, ms);
+/** The panel slides in: click only once it has stopped moving (a click on a moving button can miss it). */
+const tbSettled = async (page) => { let last = null; await until(async () => { const t = await page.evaluate(() => { const b = document.querySelector('.tb-talk'); const r = b && b.getBoundingClientRect(); return r ? Math.round(r.top * 10) + ':' + Math.round(r.left * 10) : null; }); const same = t !== null && t === last; last = t; return same; }, 'the panel to stop moving', 4000); };
+
+await test('terubot: live conversation: Talk greets, listens, sends what was heard, reads the answer aloud (never listening while it speaks), listens again; Skip interrupts; End stops; the spoken text has no addresses or markdown', async () => {
+  const st = tbState();
+  const page = await tbPage(null, st, { speech: 'live' });
+  await tbGo(page, '/inspiration');
+  await tbOpen(page);
+  await tbSettled(page);
+  assert(await page.evaluate(() => !document.querySelector('.tb-talk').hidden && document.querySelector('.tb-talk').textContent.trim() === 'Talk'), 'no Talk button where speech works');
+  assert(await page.evaluate(() => document.querySelector('.tb-live').hidden), 'the live strip shows before anything started');
+  await page.click('.tb-talk');
+  // a fresh chat: TeruBot says hello first, and does not listen while it speaks
+  await liveWait(page, () => window.__tts.spoken.length === 1, 'the spoken greeting');
+  let m = await page.evaluate(liveState);
+  assert(m.spoken[0] === 'Hi, I’m TeruBot. How can I help?' && m.strip === 'Speaking…' && !m.listening && m.pressed === 'true', 'the greeting: ' + JSON.stringify(m));
+  await page.evaluate(() => window.__endSpeech());
+  await liveWait(page, () => window.__sr.active, 'the microphone to open after the greeting');
+  m = await page.evaluate(liveState);
+  assert(/^Listening/.test(m.strip), 'the strip while listening: ' + m.strip);
+  // what is heard is sent as a message; the answer is read aloud with no addresses, no markdown, rupees and units in words
+  st.chat = () => tbAnswer('Here are **two** terracotta tiles from ₹1,200 per sq ft. See https://example.test/x and /materials#/p/terracotta for details. Each tile covers 2.5 sq ft.\n- first\n- second', { cards: [{ kind: 'material', id: 'terracotta-a', name: 'Terracotta A', variant: 'Matt', price: '₹1,200', image: '', href: '/materials#/p/terracotta-a' }] });
+  await page.evaluate(() => window.__hear('show me terracotta'));
+  await liveWait(page, () => window.__tts.spoken.length === 2, 'the answer to be spoken');
+  assert(st.calls.at(-1).messages.at(-1).text === 'show me terracotta' && st.calls.length === 1, 'what was heard was not sent as one message: ' + JSON.stringify(st.calls.at(-1)));
+  m = await page.evaluate(liveState);
+  const said = m.spoken[1];
+  assert(!/https?:|\/materials|\*|₹|^- |\n/.test(said) && /1,200 rupees per square foot/.test(said) && /two terracotta tiles/.test(said), 'the first spoken piece: ' + said);
+  assert(m.strip === 'Speaking…' && !m.listening, 'listening while it speaks (it would hear itself): ' + JSON.stringify(m));
+  assert((await tbBotTexts(page)).some((t) => /Here are \*\*two\*\*/.test(t)), 'the written answer is shown as it came');
+  // the whole answer, piece by piece, to its end: nothing in it is an address, a path, markdown or a bullet
+  while (await page.evaluate(() => window.__tts.pending.length > 0)) {
+    assert(!(await page.evaluate(liveState)).listening, 'listening while a piece of the answer is spoken');
+    await page.evaluate(() => window.__endSpeech());
+    await sleep(40);
+  }
+  const whole = (await page.evaluate(liveState)).spoken.slice(1).join(' ');
+  assert(!/https?:|example\.test|\/materials|terracotta-a|\*|₹|\n|(^|\s)- /.test(whole) && /for details/.test(whole) && /first/.test(whole) && /second/.test(whole), 'the whole spoken answer: ' + whole);
+  assert(/covers 2\.5 square feet/.test(whole), 'a point between digits was taken for the end of a sentence: ' + whole);
+  await liveWait(page, () => window.__sr.active, 'listening again once the whole answer was spoken');
+  // Skip: the voice stops at once and the microphone opens at once
+  st.chat = () => tbAnswer('You are welcome. Anything else I can find for you?');
+  await page.evaluate(() => window.__hear('thanks'));
+  await liveWait(page, () => window.__tts.pending.length === 1, 'the second answer to be spoken');
+  const cancelsBefore = await page.evaluate(() => window.__tts.cancels);
+  await page.evaluate(() => [...document.querySelectorAll('.tb-live button')].find((b) => b.textContent === 'Skip').click());
+  await liveWait(page, () => window.__sr.active && window.__tts.pending.length === 0, 'the microphone to open after Skip', 2000);
+  assert(await page.evaluate((n) => window.__tts.cancels > n, cancelsBefore), 'Skip did not stop the voice');
+  // another turn, spoken to its end: it listens again by itself, a moment after the voice stops
+  st.chat = () => tbAnswer('Glad to help.');
+  const startsBefore = (await page.evaluate(liveState)).starts;
+  await page.evaluate(() => window.__hear('great'));
+  await liveWait(page, () => window.__tts.pending.length === 1, 'the third answer to be spoken');
+  assert(!(await page.evaluate(liveState)).listening, 'listening while the third answer is spoken');
+  await page.evaluate(() => window.__endSpeech());
+  await until(() => page.evaluate((n) => window.__sr.starts > n && window.__sr.active, startsBefore), 'listening again after the answer', 4000);
+  // End: nothing listens, nothing speaks, the strip goes, and it stays that way
+  await page.evaluate(() => [...document.querySelectorAll('.tb-live button')].find((b) => b.textContent === 'End').click());
+  await sleep(700);
+  m = await page.evaluate(liveState);
+  assert(m.strip === null && !m.listening && m.pressed === 'false', 'after End: ' + JSON.stringify(m));
+  const starts = m.starts;
+  await sleep(500);
+  assert((await page.evaluate(liveState)).starts === starts, 'it started listening again after End');
+  noProblems({ problems: tbProblems(page) }, 'a live conversation');
+  await page.close();
+});
+
+await test('terubot: live conversation: three quiet listens end it with a message; closing the panel, a new chat, a hidden tab and a failed answer stop it and the voice at once; an answer that moves to another page is not spoken', async () => {
+  const st = tbState();
+  const page = await tbPage(null, st, { speech: 'live' });
+  await tbGo(page, '/inspiration');
+  await tbOpen(page);
+  await tbSettled(page);
+  const begin = async () => { // with a message already in the chat, Talk goes straight to listening
+    await page.click('.tb-talk');
+    await liveWait(page, () => window.__sr.active, 'the microphone');
+  };
+  // 1. nobody speaks: it listens again twice, and on the third quiet listen it stops and says so
+  await tbSend(page, 'hello');
+  await tbWaitBot(page, 1);
+  await begin();
+  for (let i = 0; i < 3; i += 1) {
+    await liveWait(page, () => window.__sr.active, `listen ${i + 1}`);
+    await page.evaluate(() => window.__silence());
+  }
+  await liveWait(page, () => document.querySelector('.tb-live').hidden, 'the conversation to end after three quiet listens');
+  assert(/did not hear anything/.test(await page.evaluate(() => document.querySelector('.tb-mic-status').textContent)) && await page.evaluate(() => !document.querySelector('.tb-mic-status').hidden), 'no message after the quiet listens');
+  assert((await page.evaluate(() => window.__sr.starts)) === 3, 'it listened ' + (await page.evaluate(() => window.__sr.starts)) + ' times, not 3');
+  // 2. closing the panel while it speaks: the voice is cut, the microphone stays shut
+  st.chat = () => tbAnswer('A long answer that is being read out.');
+  await begin();
+  await page.evaluate(() => window.__hear('tell me more'));
+  await liveWait(page, () => window.__tts.pending.length === 1, 'the answer being spoken');
+  const cancels = await page.evaluate(() => window.__tts.cancels);
+  await page.keyboard.press('Escape');
+  await liveWait(page, () => document.getElementById('terubot-panel').hidden, 'the panel to close');
+  await sleep(700);
+  let m = await page.evaluate(() => ({ cancels: window.__tts.cancels, pending: window.__tts.pending.length, active: window.__sr.active }));
+  assert(m.cancels > cancels && m.pending === 0 && !m.active, 'closing the panel left the conversation going: ' + JSON.stringify(m));
+  // 3. a hidden tab ends it (a browser stops listening in the background anyway)
+  await tbOpen(page);
+  await tbSettled(page);
+  await begin();
+  await page.evaluate(() => { Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' }); document.dispatchEvent(new Event('visibilitychange')); });
+  await liveWait(page, () => document.querySelector('.tb-live').hidden && !window.__sr.active, 'a hidden tab to end the conversation');
+  await page.evaluate(() => { delete document.visibilityState; });
+  // 4. an answer that is not an answer (the server failed): the chat says so and nothing keeps listening
+  st.chat = () => ({ status: 500, json: { error: 'down' } });
+  await begin();
+  await page.evaluate(() => window.__hear('anyone there'));
+  await liveWait(page, () => document.querySelector('.tb-live').hidden && !window.__sr.active, 'a failed answer to end the conversation');
+  await sleep(500);
+  assert(await page.evaluate(() => !window.__sr.active), 'it listened again after a failed answer');
+  // 5. New chat ends it
+  st.chat = () => tbAnswer('ok');
+  await begin();
+  await page.evaluate(() => [...document.querySelectorAll('.tb-textbtn')].find((b) => b.textContent === 'New chat').click());
+  await liveWait(page, () => document.querySelector('.tb-live').hidden && !window.__sr.active, 'New chat to end the conversation');
+  // 6. an answer that takes the visitor to another page: not spoken, the conversation ends, the new page starts quiet
+  await tbSend(page, 'hello again');
+  await tbWaitBot(page, 1);
+  await begin();
+  st.chat = () => tbAnswer('Opening the shop for you.', { actions: [{ type: 'navigate', to: '/materials' }] });
+  await page.evaluate(() => sessionStorage.removeItem('__spoken'));
+  const nav = page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => window.__hear('open the shop'));
+  await nav;
+  await until(() => page.evaluate(() => !!document.querySelector('.tb-launch')), 'TeruBot on the shop', 15000);
+  await sleep(600);
+  m = await page.evaluate(() => ({ spoken: sessionStorage.getItem('__spoken'), starts: window.__sr.starts, live: !!document.querySelector('.tb-live') && !document.querySelector('.tb-live').hidden }));
+  assert(m.spoken === null && m.starts === 0 && !m.live, 'the new page: ' + JSON.stringify(m));
+  noProblems({ problems: tbProblems(page) }, 'ending a live conversation');
+  await page.close();
+});
+
+await test('terubot: live conversation: on a phone the header still fits (Talk, New chat, Close are at least 44 px, none overlaps or leaves it), and the strip and the form fit in the sheet', async () => {
+  const st = tbState();
+  for (const width of [390, 360]) {
+    const page = await tbPage({ ...PHONE, width }, st, { speech: 'live' });
+    await tbGo(page, '/inspiration');
+    await tbOpen(page);
+  await tbSettled(page);
+    await page.click('.tb-talk');
+    await liveWait(page, () => window.__tts.spoken.length === 1, 'the greeting');
+    const m = await page.evaluate(() => {
+      const box = (n) => { const r = n.getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom, w: r.width, h: r.height }; };
+      const head = box(document.querySelector('.tb-head')), panel = box(document.querySelector('.tb-panel'));
+      const parts = [...document.querySelectorAll('.tb-head button')].filter((b) => b.getBoundingClientRect().width > 0).map((b) => ({ name: b.textContent.trim() || b.getAttribute('aria-label'), ...box(b) }));
+      const live = box(document.querySelector('.tb-live')), form = box(document.querySelector('.tb-form'));
+      const live44 = [...document.querySelectorAll('.tb-live button')].filter((b) => b.getBoundingClientRect().width > 0).map((b) => b.getBoundingClientRect().height);
+      return { head, panel, parts, live, form, live44, sideways: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+    });
+    assert(m.parts.length === 3 && m.parts.every((p) => p.h >= 43.5 && p.w >= 43.5 && p.l >= m.head.l - 0.5 && p.r <= m.head.r + 0.5), `${width}: a header control is under 44 px or leaves the header: ` + JSON.stringify(m.parts));
+    for (let i = 0; i < m.parts.length; i += 1) for (let j = i + 1; j < m.parts.length; j += 1) assert(!(m.parts[i].l < m.parts[j].r - 0.5 && m.parts[j].l < m.parts[i].r - 0.5), `${width}: ${m.parts[i].name} overlaps ${m.parts[j].name}`);
+    assert(m.live44.length >= 1 && m.live44.every((h) => h >= 43.5) && m.live.b <= m.form.t + 1 && m.form.b <= m.panel.b + 1 && m.sideways <= 0, `${width}: the strip and the form: ` + JSON.stringify({ live: m.live, form: m.form, panel: m.panel, live44: m.live44, sideways: m.sideways }));
+    await page.close();
+  }
 });
 // ==== terubot widget (end) ====
+
+// ---- one loader on every page ---------------------------------------------------------------------------------------------------------
+// The four built pages carry the loader inline (tools/build-dist.js); the hand-written pages get the same one from /brand/loader.js, which is
+// generated from the same loader.html. Asked for on 2026-11-04: every page opens behind the one Terucon loader. The Design Studio is left out
+// here on purpose: its loader holds for the GPU and has its own tests in the motion block below.
+await test('loader: every page (built and hand-written) opens behind the same Terucon loader, put on screen while the page is still being read, and lets it go: nothing locked, no failure screen, no error', async () => {
+  const ROUTES = ['/', '/materials', '/my-project', '/inspiration', '/finder', '/start-project', '/account', '/login', '/coming-soon', '/admin/catalogue'];
+  const markup = {};
+  for (const route of ROUTES) {
+    const page = await newPage(undefined, stack, { signedIn: route !== '/login' });
+    try {
+      await page.evaluateOnNewDocument(() => {
+        const ld = (window.__ld = { rs: null, markup: null, exit: false });
+        const mo = new MutationObserver(() => { if (document.getElementById('tc-loader')) { ld.rs = document.readyState; mo.disconnect(); } });
+        mo.observe(document, { childList: true, subtree: true });
+        document.addEventListener('DOMContentLoaded', () => { const l = document.getElementById('tc-loader'); ld.markup = l ? l.innerHTML.replace(/>\s+</g, '><').replace(/(<div class="tc-ld-curtain"[^>]*>)[\s\S]*?<\/div>/, '$1</div>').replace(/ style="[^"]*"/g, '').trim() : null; }); // the curtain's slats and its --m are added when the loader opens: state, not markup
+        window.addEventListener('tc-ld-exit', () => { ld.exit = true; });
+      });
+      await page.goto(base + route, { waitUntil: 'domcontentloaded' });
+      await until(() => page.evaluate(() => window.__ld.markup !== null || window.__ld.exit), `the loader on ${route}`, 8000);
+      const seen = await page.evaluate(() => window.__ld);
+      assert(seen.markup, `${route}: the loader was not on the page when it had been read`);
+      assert(seen.rs === 'loading', `${route}: the loader appeared when the page was already "${seen.rs}", not while it was still being read`);
+      markup[route] = seen.markup;
+      await until(() => page.evaluate(() => !document.getElementById('tc-loader')), `the loader to leave ${route}`, 20000);
+      const after = await page.evaluate(() => ({ lock: document.documentElement.classList.contains('tc-ld-lock'), state: window.TeruconLoader && window.TeruconLoader.state, failed: !!document.querySelector('.tc-ld-failed'), exit: window.__ld.exit }));
+      assert(!after.lock && after.state === 'done' && !after.failed && after.exit, `${route}: after the loader: ${JSON.stringify(after)}`);
+      noProblems(page, `${route} behind the loader`);
+    } finally {
+      await page.close();
+    }
+  }
+  const kinds = new Set(Object.values(markup));
+  assert(kinds.size === 1, 'the loader is not the same on every page: ' + JSON.stringify(Object.entries(markup).map(([r, m]) => [r, m.length, m.slice(0, 60)])));
+});
 
 // ==== motion (begin) ====
 // The loader, its curtain, the landing hero's louvres and the one continuous loader on the way into the Design Studio
@@ -2305,14 +2682,16 @@ await test('terubot: voice: the microphone button uses the browser\'s speech rec
     } finally { await p.close(); await stk.stop(); }
   });
 
-  await test('motion: a page with a strict Content-Security-Policy and no loader of its own gets the same overlay from transition.js (style sheet linked, no inline code), and the studio page continues it', async () => {
+  await test('motion: a page with a strict Content-Security-Policy gets the same overlay from transition.js on a click to the studio (its own arrival loader already gone, no inline code), and the studio page continues it', async () => {
     const stk = await startStack({ port: 0, bootMs: 300, env: MOTION_ENV });
     const p = await motionPage(stk, DESK);
     const csp = [];
     p.on('console', (m) => { if (/Content Security Policy/i.test(m.text())) csp.push(m.text().slice(0, 160)); });
     try {
       await p.goto(stk.base + '/inspiration', { waitUntil: 'load' });
-      assert(await p.evaluate(() => !document.getElementById('tc-loader') && !window.TeruconLoader), 'the hand-written page has a loader of its own');
+      // the page's own loader (site/brand/loader.js) has come and gone: nothing is left on screen, nothing locks the page
+      await until(() => poll(p, () => !document.getElementById('tc-loader')), 'the page\'s own loader to leave', 8000);
+      assert(await p.evaluate(() => window.TeruconLoader && window.TeruconLoader.state === 'done' && !document.documentElement.classList.contains('tc-ld-lock')), 'the page\'s own loader left something behind');
       await p.addScriptTag({ url: stk.base + '/brand/transition.js' });
       await until(() => poll(p, () => [...document.styleSheets].some((s) => /\/brand\/loader\.css/.test(s.href || ''))), 'loader.css to load', 5000);
       await p.evaluate(() => { const a = document.createElement('a'); a.href = '/design-studio'; a.id = 'tc-test-link'; a.textContent = 'Design Studio'; document.body.prepend(a); a.click(); });
@@ -2321,6 +2700,23 @@ await test('terubot: voice: the microphone button uses the browser\'s speech rec
       await studioUsable(p);
       const m = await p.evaluate(() => window.__m);
       assert(reviewFrames(m).bad.length === 0, reviewFrames(m).bad.slice(0, 3).join('; '));
+      assert(csp.length === 0, 'Content-Security-Policy violations: ' + csp.join(' | '));
+    } finally { await p.close(); await stk.stop(); }
+  });
+
+  await test('motion: with loader.js unavailable a strict page still gets the click overlay (transition.js links the style sheet itself), and the page is not left behind a loader that never started', async () => {
+    const stk = await startStack({ port: 0, bootMs: 300, env: MOTION_ENV });
+    const p = await motionPage(stk, DESK);
+    const csp = [];
+    p.on('console', (m) => { if (/Content Security Policy/i.test(m.text())) csp.push(m.text().slice(0, 160)); });
+    await p.setRequestInterception(true);
+    p.on('request', (req) => { if (new URL(req.url()).pathname === '/brand/loader.js') req.respond({ status: 404, contentType: 'text/plain', body: 'gone' }); else req.continue(); });
+    try {
+      await p.goto(stk.base + '/inspiration', { waitUntil: 'load' });
+      assert(await p.evaluate(() => !document.getElementById('tc-loader') && !window.TeruconLoader && !document.documentElement.classList.contains('tc-ld-lock')), 'the page is behind a loader that cannot be released');
+      await p.evaluate(() => { const a = document.createElement('a'); a.href = '/design-studio'; a.id = 'tc-test-link'; a.textContent = 'Design Studio'; document.body.prepend(a); a.click(); });
+      const up = await p.evaluate(() => { const el = document.getElementById('tc-loader'); return !!el && getComputedStyle(el).display === 'flex' && el.querySelectorAll('.tc-ld-curtain i').length >= 5; });
+      assert(up, 'the overlay did not come up on the strict page without loader.js');
       assert(csp.length === 0, 'Content-Security-Policy violations: ' + csp.join(' | '));
     } finally { await p.close(); await stk.stop(); }
   });
