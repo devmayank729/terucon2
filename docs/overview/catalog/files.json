@@ -1057,6 +1057,23 @@
       "desc": "Setting up the catalogue (Finder, catalogue admin) step by step: the Google Cloud bucket, two service accounts and the CORS rule, MongoDB, the three Modal secrets, deploy, the website settings, three ways to bring a catalogue in, how to check it, and what is not verified."
     },
     {
+      "match": "docs/DESIGN_STUDIO_ARCHITECTURE.md",
+      "owner": "docs",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The Design Studio's calls and behaviour, verified (2026-11-03): who calls whom for each action (upload, tap, pick a finish, render, history), when MoGe-2, Marigold, SAM 3 and OneFormer run, why a design can load slowly or look 2D before 3D, and what the console's job lines mean. Evidence-tagged; the studio's six existing guides are copied in as appendices, with a table of what in them is out of date."
+    },
+    {
+      "match": "docs/design-studio-checks/**",
+      "owner": "docs",
+      "tags": [
+        "Dev",
+        "Run"
+      ],
+      "desc": "Two scripts that back docs/DESIGN_STUDIO_ARCHITECTURE.md: they run the studio's real pipeline route and runner (verify_pipeline.cjs) and its pure preview modules (verify_preview.mjs) with every database, storage, model and network call stubbed, and print what would have been called. Nothing leaves the machine."
+    },
+    {
       "match": "SESSION_OVERVIEW.md",
       "owner": "docs",
       "tags": [
@@ -1439,6 +1456,14 @@
         "Edit"
       ],
       "desc": "The Finder page, written by hand, same theme as pages/inspiration.html: point a camera (or upload a photo, or type) to find the closest match in the real catalogue — the whole photo, one spot (point-to-find), or colour alone (targets C4, C5, C7). Served at /finder, members only, under a strict Content-Security-Policy (`strict+catalogue`). No inline script or style attribute; behaviour is site/catalogue-ui/finder.js."
+    },
+    {
+      "match": "pages/start-project.html",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The Start a project page, written by hand: a three-step enquiry form (what is planned, the space, how to reach the person) that posts to POST /api/enquiry (server/routes/enquiry.js), kept on the server and not sent to a CRM yet. Served at /start-project, open to everybody, under a strict Content-Security-Policy (`strict`), with the shared header from site/brand/chrome.js. It can be pre-filled from `?type=`, from TeruBot's hand-over (sessionStorage `terucon.enquiry.prefill`) and from the signed-in account. The contact details in it are the landing page's placeholders."
     },
     {
       "match": "pages/admin-catalogue.html",

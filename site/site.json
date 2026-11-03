@@ -97,6 +97,15 @@
       "access": "signed-in",
       "csp": "strict"
     },
+    "startProject": {
+      "label": "Start a project",
+      "description": "Tell Terucon about your space: what you are planning, where, how big, when, and how to reach you. A project lead answers within one working day (the promise the landing page makes). Open to everybody; the enquiry is kept on the server (POST /api/enquiry) and is not sent to a CRM yet.",
+      "route": "/start-project",
+      "file": "pages/start-project.html",
+      "aliases": ["/start", "/enquire", "/enquiry", "/contact", "/start-project.html"],
+      "access": "public",
+      "csp": "strict"
+    },
     "inspiration": {
       "label": "Inspiration",
       "description": "Paste a link to a photo, a Pinterest pin or board, or a web page; crop the picture; open it in the Design Studio.",

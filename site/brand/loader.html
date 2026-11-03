@@ -4,34 +4,53 @@
      Keep tag names with angle brackets out of this comment: server/lib/csp.js finds inline blocks with a plain pattern.
      The loader stays hidden until its own script has run, so a visitor without JavaScript, or a page that blocks
      inline scripts, is never left behind a screen that cannot close.
-     API: TeruconLoader.done() opens the louvres and removes the loader; TeruconLoader.fail(message?) shows the
-     "taking longer than usual" screen (done() still works afterwards). fail() runs by itself after 12 s without done(),
-     and when a same-origin script src fails to load (add data-tc-optional to a script that may fail quietly). -->
+
+     The style block is a copy of loader.css and the markup is copied into transition.js: edit loader.css / this markup,
+     then run `node site/brand/build-loader.mjs` (tests/js/brand-loader.test.js fails when they drift apart).
+
+     One CYCLE is one full pass of the brand animation (loader.css): a light scans the T-block line-work into view
+     (LED sweep), the accent strips light, the line-work resolves into the logo, the name and tagline settle; it holds
+     composed, dissolves, and starts again. The loop wraps at the composed state, so there is no restart flash.
+     CYCLE_MS below is pushed to CSS as --cyc.
+
+     Attributes on the element (set by tools/build-dist.js per page):
+       data-tc-mode="studio"     the Design Studio entry: no quick mode, at least MIN_CYCLES cycles after the start, release at a
+                                 composed moment; the start is the click on a link to the studio when transition.js
+                                 stored it (sessionStorage "tc-go"), so the loader continues across the navigation
+       data-tc-exit="dissolve"   the page opens its own curtain (the landing hero's louvres): the loader fades instead
+                                 of opening its slats, then fires "tc-ld-exit" on window (the hero starts opening then)
+
+     API: TeruconLoader.done() opens the curtain and removes the loader; TeruconLoader.fail(message?) shows the
+     "taking longer than usual" screen (done() still works afterwards); TeruconLoader.note(text) shows a quiet status line;
+     TeruconLoader.hold() cancels the automatic fail() because the page is up and only waiting (the studio entry calls it once the
+     studio's first screen exists, so waiting for the GPU is never shown as a failure).
+     fail() runs by itself after FAIL_MS without done() or hold(), and when a same-origin script src fails to load
+     (add data-tc-optional to a script that may fail quietly). -->
 <style>
-#tc-loader{--w:min(70vw,300px);--sans:Switzer,"Avenir Next","Helvetica Neue",Helvetica,Arial,sans-serif;--serif:Zodiak,"Iowan Old Style","Palatino Linotype",Georgia,serif;display:none;position:fixed;inset:0;z-index:2147483000;align-items:center;justify-content:center;overflow:hidden;background:#1F150A;color:#E1D4C2;font-family:var(--sans);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+#tc-loader{--cyc:2200ms;--w:min(70vw,300px);--bg:#1F150A;--sans:Switzer,"Avenir Next","Helvetica Neue",Helvetica,Arial,sans-serif;--serif:Zodiak,"Iowan Old Style","Palatino Linotype",Georgia,serif;display:none;position:fixed;inset:0;z-index:2147483000;align-items:center;justify-content:center;overflow:hidden;background:var(--bg);color:#E1D4C2;font-family:var(--sans);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 #tc-loader.tc-ld-on{display:flex}
 html.tc-ld-lock,html.tc-ld-lock body{overflow:hidden;overscroll-behavior:none}
 #tc-loader *{box-sizing:border-box}
 .tc-ld-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
-.tc-ld-stage{position:relative;display:flex;flex-direction:column;align-items:center;transform:translateY(-3vh);transition:opacity .2s .08s}
-.tc-ld-glow{position:absolute;left:50%;top:calc(var(--w)*.31);width:calc(var(--w)*1.9);height:calc(var(--w)*1.3);transform:translate(-50%,-50%);background:radial-gradient(closest-side,rgba(245,179,87,.17),rgba(245,179,87,.05) 58%,transparent);opacity:0;pointer-events:none;animation:tc-fi 1s .9s forwards,tc-br 4.5s 1.9s ease-in-out infinite alternate}
+.tc-ld-stage{position:relative;display:flex;flex-direction:column;align-items:center;transform:translateY(-3vh);transition:opacity .28s ease;animation:tc-sf .5s ease-out backwards}
 .tc-ld-fig{position:relative;width:var(--w);aspect-ratio:862/552;margin-bottom:calc(var(--w)*.19)}
-.tc-ld-art{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:none;stroke:#E1D4C2;stroke-width:3;stroke-linejoin:round;stroke-linecap:butt;transition:opacity .8s .1s}
-.tc-ld-art .d,.tc-ld-art .a{stroke-dasharray:1;stroke-dashoffset:1;animation:tc-dr var(--t,.9s) cubic-bezier(.55,0,.2,1) var(--k,0s) forwards}
-.tc-ld-art .a{stroke:#F5B357;stroke-width:4.5;animation-duration:.5s}
-.tc-ld-art .g{stroke:#F5B357;stroke-width:15;stroke-opacity:.13;stroke-linecap:round}
-.tc-ld-art .v{fill:#E1D4C2;fill-opacity:0;stroke:none;animation:tc-vo 1s 1.15s forwards}
-.tc-ld-art .p{stroke-width:2;opacity:0;animation:tc-pl .9s .15s forwards}
-.d1{--k:.12s;--t:.95s}.d2{--k:.42s;--t:.8s}.d3{--k:.45s;--t:.85s}.d4{--k:.55s;--t:.9s}.d5{--k:.72s;--t:.7s}.d6{--k:.88s;--t:.6s;stroke-width:2.2}
-.a1{--k:1.04s}.a2{--k:1.2s}.a3{--k:1.22s}.a4{--k:1.24s}.a5{--k:1.34s}.a6{--k:1.5s}.a7{--k:1.56s}
-.tc-ld-sweep{position:absolute;left:-32%;top:-34%;width:44%;height:168%;opacity:0;pointer-events:none;background:radial-gradient(closest-side,rgba(255,205,128,.3),rgba(255,190,110,.1) 52%,transparent);animation:tc-sw 1s .85s cubic-bezier(.45,0,.3,1) forwards}
-.tc-ld-mark{position:absolute;inset:0;width:100%;height:100%;opacity:0;transform:scale(.985);transition:opacity .9s,transform 1.2s cubic-bezier(.2,.7,.2,1)}
-.tc-ld-s2 .tc-ld-mark{opacity:1;transform:none}
-.tc-ld-s2 .tc-ld-art{opacity:0}
-.tc-ld-name{margin:0;font:600 15px/1 var(--sans);text-transform:uppercase;letter-spacing:.9em;padding-left:.9em;opacity:0;animation:tc-nm 1.2s cubic-bezier(.2,.7,.2,1) 1.55s forwards}
-.tc-ld-tag{margin:13px 0 0;font:400 10px/1.4 var(--sans);text-transform:uppercase;letter-spacing:.26em;padding-left:.26em;color:#A78D78;opacity:0;animation:tc-fi .9s 2.1s forwards}
-.tc-ld-led{position:relative;width:var(--w);height:2px;margin-top:30px;background:rgba(225,212,194,.1);border-radius:2px;opacity:0;animation:tc-fi .6s .35s forwards;-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
-.tc-ld-led i{position:absolute;left:0;top:0;bottom:0;width:34%;border-radius:2px;background:linear-gradient(90deg,transparent,#F5B357 45%,#FFD9A0 56%,transparent);box-shadow:0 0 12px 2px rgba(245,179,87,.5);animation:tc-gl 1.8s cubic-bezier(.45,0,.25,1) infinite}
+.tc-ld-art{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:none;stroke:#E1D4C2;stroke-width:3;stroke-linejoin:round;stroke-linecap:butt;opacity:0;animation:tc-art var(--cyc) linear infinite}
+.tc-ld-art .v{fill:#E1D4C2;fill-opacity:.06;stroke:none}
+.tc-ld-art .p{stroke-width:2;opacity:.34}
+.tc-ld-art .d6{stroke-width:2.2}
+.tc-ld-led-art{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:none;stroke:#F5B357;stroke-linejoin:round;opacity:0;animation:tc-ac var(--cyc) linear infinite}
+.tc-ld-led-art .a{stroke-width:4.5}
+.tc-ld-led-art .g{stroke-width:15;stroke-opacity:.13;stroke-linecap:round}
+.tc-ld-mark{position:absolute;inset:0;width:100%;height:100%;opacity:1;animation:tc-mk var(--cyc) linear infinite}
+.tc-ld-hide{position:absolute;inset:-8% -4%;background:var(--bg);animation:tc-hd 1ms linear calc(var(--cyc)*.18) forwards}
+.tc-ld-scan{position:absolute;top:-10%;bottom:-10%;left:0;width:240%;opacity:0;background:linear-gradient(90deg,rgba(255,196,110,0) 0,rgba(255,196,110,.0) 1%,rgba(255,196,110,.14) 4.4%,rgba(255,222,165,.85) 7.2%,var(--bg) 7.55%,var(--bg) 100%);animation:tc-sc var(--cyc) linear infinite;will-change:transform}
+.tc-ld-glow{position:absolute;left:50%;top:calc(var(--w)*.31);width:calc(var(--w)*1.9);height:calc(var(--w)*1.3);margin:calc(var(--w)*-.65) 0 0 calc(var(--w)*-.95);background:radial-gradient(closest-side,rgba(245,179,87,.17),rgba(245,179,87,.05) 58%,transparent);pointer-events:none;animation:tc-gb var(--cyc) ease-in-out infinite}
+.tc-ld-name{margin:0;font:600 15px/1 var(--sans);text-transform:uppercase;letter-spacing:.34em;padding-left:.34em;animation:tc-up .8s cubic-bezier(.2,.7,.2,1) calc(var(--cyc)*.06) backwards}
+.tc-ld-tag{margin:13px 0 0;font:400 10px/1.4 var(--sans);text-transform:uppercase;letter-spacing:.26em;padding-left:.26em;color:#A78D78;animation:tc-up .8s cubic-bezier(.2,.7,.2,1) calc(var(--cyc)*.12) backwards}
+.tc-ld-led{position:relative;width:var(--w);height:2px;margin-top:30px;background:rgba(225,212,194,.1);border-radius:2px;overflow:hidden;animation:tc-fi .6s ease-out calc(var(--cyc)*.08) backwards}
+.tc-ld-led i{position:absolute;left:0;top:0;bottom:0;width:34%;border-radius:2px;background:linear-gradient(90deg,transparent,#F5B357 45%,#FFD9A0 56%,transparent);opacity:0;animation:tc-gl var(--cyc) linear infinite}
+.tc-ld-status{margin:16px 0 0;min-height:1.5em;max-width:min(86vw,380px);text-align:center;font:400 13px/1.5 var(--sans);color:#BEB5A9;opacity:0;transition:opacity .5s ease}
+.tc-ld-noted .tc-ld-status{opacity:1}
 .tc-ld-fail{display:none;flex-direction:column;align-items:center;gap:10px;max-width:min(88vw,380px);margin-top:26px;text-align:center}
 .tc-ld-ft{margin:0;font:300 clamp(22px,6.4vw,30px)/1.18 var(--serif);letter-spacing:-.01em;text-wrap:balance}
 .tc-ld-fm{margin:0;font:400 14px/1.55 var(--sans);color:#BEB5A9}
@@ -40,141 +59,203 @@ html.tc-ld-lock,html.tc-ld-lock body{overflow:hidden;overscroll-behavior:none}
 .tc-ld-retry:hover{background:#fff}
 .tc-ld-home{display:inline-flex;align-items:center;min-height:44px;color:#E1D4C2;font:500 14px/1 var(--sans);text-decoration:underline;text-underline-offset:4px;text-decoration-color:rgba(225,212,194,.45)}
 .tc-ld-retry:focus-visible,.tc-ld-home:focus-visible{outline:2px solid #F5B357;outline-offset:3px}
-.tc-ld-failed .tc-ld-led,.tc-ld-failed .tc-ld-tag{display:none}
-.tc-ld-failed .tc-ld-name{animation:none;opacity:1;letter-spacing:.34em;padding-left:.34em}
+.tc-ld-failed .tc-ld-led,.tc-ld-failed .tc-ld-tag,.tc-ld-failed .tc-ld-status{display:none}
 .tc-ld-failed .tc-ld-fail{display:flex;animation:tc-up .7s cubic-bezier(.2,.7,.2,1) both}
-.tc-ld-failed .tc-ld-glow,.tc-ld-failed .tc-ld-sweep{animation:none;opacity:0}
-.tc-ld-static .tc-ld-art{opacity:.8}
-.tc-ld-static .tc-ld-art .d,.tc-ld-static .tc-ld-art .a{animation:none;stroke-dashoffset:0}
-.tc-ld-static .tc-ld-art .g,.tc-ld-static .tc-ld-art .p{animation:none;opacity:1}
-.tc-ld-static .tc-ld-art .v{animation:none;fill-opacity:.06}
-.tc-ld-again .tc-ld-art,.tc-ld-again .tc-ld-sweep{display:none}
+.tc-ld-failed .tc-ld-glow,.tc-ld-failed .tc-ld-scan,.tc-ld-failed .tc-ld-hide{animation:none;opacity:0}
+.tc-ld-failed .tc-ld-art,.tc-ld-failed .tc-ld-led-art{animation:none;opacity:.8}
+.tc-ld-failed .tc-ld-mark{animation:none;opacity:0}
+.tc-ld-again .tc-ld-art,.tc-ld-again .tc-ld-led-art,.tc-ld-again .tc-ld-scan,.tc-ld-again .tc-ld-hide{display:none}
+.tc-ld-again .tc-ld-mark{animation:none;opacity:1}
 .tc-ld-again .tc-ld-fig{margin-bottom:calc(var(--w)*.1)}
-.tc-ld-again .tc-ld-name{animation:none;opacity:1;letter-spacing:.34em;padding-left:.34em}
-.tc-ld-again .tc-ld-tag{animation:tc-fi .6s .2s forwards}
-.tc-ld-slats{position:absolute;inset:0;display:none;perspective:1600px;perspective-origin:50% 45%;pointer-events:none}
-.tc-ld-out{pointer-events:none;animation:tc-bg 0s .33s forwards}
-.tc-ld-out .tc-ld-slats{display:flex}
-.tc-ld-out .tc-ld-stage{opacity:0}
-.tc-ld-out .tc-ld-led i{animation:none;transform:none;width:100%;transition:width .18s}
-.tc-ld-slats i{position:relative;flex:1 1 0;margin:0 -.5px;transform-style:preserve-3d;backface-visibility:hidden;will-change:transform;background:linear-gradient(90deg,#1c1208 0%,#2f2114 20%,#4a3322 47%,#5d4131 52%,#35251a 80%,#1f150a 100%);opacity:0;animation:tc-fi .2s .12s forwards,tc-op .7s cubic-bezier(.76,0,.24,1) calc(.3s + var(--k)*.045s) forwards}
-.tc-ld-slats i::after{content:"";position:absolute;inset:0;background:#120b04;opacity:0;animation:tc-sh .7s linear calc(.3s + var(--k)*.045s) forwards}
+.tc-ld-again .tc-ld-led i{animation-duration:1.8s;animation-name:tc-gl2}
+.tc-ld-nomark .tc-ld-mark,.tc-ld-nomark .tc-ld-hide,.tc-ld-nomark .tc-ld-scan{display:none}
+.tc-ld-nomark .tc-ld-art,.tc-ld-nomark .tc-ld-led-art{animation:none;opacity:.8}
+.tc-ld-curtain{position:absolute;inset:0;display:none;perspective:2400px;perspective-origin:50% 42%;pointer-events:none;overflow:hidden}
+.tc-ld-curtain i{position:relative;flex:1 1 0;margin:0 -.5px;transform-style:preserve-3d;backface-visibility:hidden;will-change:transform;background:linear-gradient(90deg,#160d05 0%,#2a1c10 16%,#4a3322 42%,#6d4d38 50%,#4a3322 58%,#2a1c10 84%,#160d05 100%)}
+.tc-ld-curtain i::after{content:"";position:absolute;inset:0;background:#0d0803;opacity:0}
+.tc-ld-curtain b{position:absolute;top:0;bottom:0;left:0;width:100%;opacity:0;pointer-events:none;background:linear-gradient(100deg,transparent 34%,rgba(255,206,140,.1) 43%,rgba(255,226,176,.3) 50%,rgba(255,206,140,.1) 57%,transparent 66%);transform:translateX(-100%);will-change:transform,opacity}
+.tc-ld-in{background:transparent}
+.tc-ld-in .tc-ld-stage{opacity:0}
+.tc-ld-in .tc-ld-curtain,.tc-ld-out .tc-ld-curtain{display:flex}
+.tc-ld-in .tc-ld-curtain i{transform:rotateY(0deg);animation:tc-cl .52s cubic-bezier(.2,.75,.2,1) calc((var(--m) - var(--k))*42ms) backwards}
+.tc-ld-held{background:var(--bg)}
+.tc-ld-held .tc-ld-stage{opacity:1;transition:opacity .4s ease .12s}
+.tc-ld-held .tc-ld-curtain{opacity:0;transition:opacity .34s ease}
+.tc-ld-out{pointer-events:none;animation:tc-bg 1ms .32s forwards}
+.tc-ld-out .tc-ld-stage{opacity:0;animation:none}
+.tc-ld-out .tc-ld-curtain i{opacity:0;transform:rotateY(0deg);animation:tc-fi .22s ease-out .02s forwards,tc-op .86s cubic-bezier(.66,0,.24,1) calc(.3s + var(--k)*55ms) forwards}
+.tc-ld-out .tc-ld-curtain i::after{animation:tc-sh .86s cubic-bezier(.4,0,.6,1) calc(.3s + var(--k)*55ms) forwards}
+.tc-ld-out .tc-ld-curtain b{animation:tc-lt 1.1s cubic-bezier(.4,0,.2,1) .22s forwards}
 .tc-ld-q{animation-delay:.16s}
-.tc-ld-q .tc-ld-stage{transition-duration:.12s;transition-delay:0s}
-.tc-ld-q .tc-ld-slats i{animation:tc-fi .12s forwards,tc-op .5s cubic-bezier(.76,0,.24,1) calc(.15s + var(--k)*.03s) forwards}
-.tc-ld-q .tc-ld-slats i::after{animation-duration:.5s;animation-delay:calc(.15s + var(--k)*.03s)}
+.tc-ld-q .tc-ld-curtain i{animation:tc-fi .12s ease-out forwards,tc-op .56s cubic-bezier(.66,0,.24,1) calc(.14s + var(--k)*32ms) forwards}
+.tc-ld-q .tc-ld-curtain i::after{animation-duration:.56s;animation-delay:calc(.14s + var(--k)*32ms)}
+.tc-ld-q .tc-ld-curtain b{animation-duration:.7s;animation-delay:.12s}
+.tc-ld-dis{animation:none;transition:opacity .55s cubic-bezier(.4,0,.2,1) .2s;opacity:0}
 .tc-ld-fade{transition:opacity .15s;opacity:0}
-@keyframes tc-dr{to{stroke-dashoffset:0}}
-@keyframes tc-vo{to{fill-opacity:.06}}
-@keyframes tc-pl{to{opacity:.34}}
-@keyframes tc-fi{to{opacity:1}}
-@keyframes tc-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-@keyframes tc-br{from{opacity:.65}to{opacity:1}}
-@keyframes tc-sw{0%{opacity:0;transform:translateX(0)}15%{opacity:1}85%{opacity:1}100%{opacity:0;transform:translateX(273%)}}
-@keyframes tc-nm{to{opacity:1;letter-spacing:.34em;padding-left:.34em}}
-@keyframes tc-gl{from{transform:translateX(-100%)}to{transform:translateX(300%)}}
-@keyframes tc-op{to{transform:rotateY(90deg)}}
-@keyframes tc-sh{to{opacity:.7}}
+@keyframes tc-sf{from{opacity:0}}
+@keyframes tc-fi{from{opacity:0}to{opacity:1}}
+@keyframes tc-up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes tc-hd{to{opacity:0}}
+@keyframes tc-gb{0%,100%{opacity:.5}50%{opacity:1}}
+@keyframes tc-art{0%,17.9%{opacity:0}18%{opacity:1}56%{opacity:1;animation-timing-function:ease-in-out}68%,100%{opacity:0}}
+@keyframes tc-ac{0%,17.9%{opacity:0}18%,36%{opacity:0;animation-timing-function:ease-out}50%,56%{opacity:1;animation-timing-function:ease-in-out}68%,100%{opacity:0}}
+@keyframes tc-mk{0%,8%{opacity:1;transform:none;animation-timing-function:ease-in-out}18%,54%{opacity:0;transform:scale(.985);animation-timing-function:ease-out}68%,100%{opacity:1;transform:none}}
+@keyframes tc-sc{0%,17.9%{opacity:0;transform:translateX(-7.5%)}18%{opacity:1;transform:translateX(-7.5%);animation-timing-function:cubic-bezier(.5,.08,.2,1)}58%{opacity:1;transform:translateX(36.3%)}62%,100%{opacity:0;transform:translateX(36.3%)}}
+@keyframes tc-gl{0%{opacity:0;transform:translateX(-100%)}18%{opacity:0;transform:translateX(-100%);animation-timing-function:cubic-bezier(.5,.08,.2,1)}22%{opacity:1}58%{opacity:1;transform:translateX(300%)}62%,100%{opacity:0;transform:translateX(300%)}}
+@keyframes tc-gl2{0%{opacity:0;transform:translateX(-100%)}15%{opacity:1}85%{opacity:1}100%{opacity:0;transform:translateX(300%)}}
+@keyframes tc-op{78%{opacity:1}to{transform:rotateY(86deg);opacity:0}}
+@keyframes tc-cl{from{transform:rotateY(86deg)}}
+@keyframes tc-sh{to{opacity:.62}}
+@keyframes tc-lt{0%{opacity:0;transform:translateX(-100%)}18%{opacity:1}78%{opacity:1}100%{opacity:0;transform:translateX(100%)}}
 @keyframes tc-bg{to{background-color:transparent}}
 @keyframes tc-pu{from{opacity:.55}to{opacity:1}}
 @media (min-width:700px){#tc-loader{--w:min(24vw,320px)}.tc-ld-name{font-size:16px}}
 @media (prefers-reduced-motion:reduce){
-.tc-ld-art,.tc-ld-sweep,.tc-ld-glow,.tc-ld-slats{display:none!important}
-.tc-ld-fig{margin-bottom:calc(var(--w)*.1)}
-.tc-ld-mark{opacity:1;transform:none;transition:none;animation:tc-pu 2.4s ease-in-out infinite alternate}
-.tc-ld-name{animation:none;opacity:1;letter-spacing:.34em;padding-left:.34em}
-.tc-ld-tag{animation:none;opacity:1}
-.tc-ld-led{animation:none;opacity:1}
-.tc-ld-led i{animation:tc-pu 2.4s ease-in-out infinite alternate;left:0;width:100%;box-shadow:none;background:rgba(245,179,87,.55)}
-.tc-ld-failed .tc-ld-fail{animation:none}
+#tc-loader *{animation:none!important}
+#tc-loader .tc-ld-art,#tc-loader .tc-ld-led-art,#tc-loader .tc-ld-scan,#tc-loader .tc-ld-hide,#tc-loader .tc-ld-glow,#tc-loader .tc-ld-curtain{display:none!important}
+#tc-loader .tc-ld-fig{margin-bottom:calc(var(--w)*.1)}
+#tc-loader .tc-ld-mark{opacity:1;transform:none;animation:tc-pu 2.4s ease-in-out infinite alternate!important}
+#tc-loader .tc-ld-led i{left:0;width:100%;opacity:1;background:rgba(245,179,87,.55);animation:tc-pu 2.4s ease-in-out infinite alternate!important}
+#tc-loader.tc-ld-in{background:var(--bg)}
+#tc-loader.tc-ld-in .tc-ld-stage{opacity:1}
+#tc-loader.tc-ld-out,#tc-loader.tc-ld-dis{transition:opacity .15s}
+#tc-loader.tc-ld-out .tc-ld-stage{transition:none}
 }
 </style>
 <noscript><style>#tc-loader{display:none!important}html.tc-ld-lock,html.tc-ld-lock body{overflow:auto!important}</style></noscript>
 <div id="tc-loader" role="status" aria-live="polite" aria-busy="true">
 <span class="tc-ld-sr">Loading Terucon</span>
-<div class="tc-ld-slats" aria-hidden="true"></div>
 <div class="tc-ld-stage">
-<div class="tc-ld-glow" aria-hidden="true"></div>
 <div class="tc-ld-fig" aria-hidden="true">
 <svg class="tc-ld-art" viewBox="0 0 862 552" focusable="false">
 <path class="v" d="M12 136L355 12V537L282 498V165L12 250Z"/>
 <path class="v" d="M450 243L585 272V468L450 478Z"/>
 <path class="p" d="M-70 557H932M12 597H850M12 585V609M850 585V609M6 603L18 591M844 603L856 591"/>
-<path class="d d1" pathLength="1" d="M12 136L355 12V537L282 498V165L12 250Z"/>
-<path class="d d2" pathLength="1" d="M12 250L108 280L205 233V205L282 165M205 205V465L282 498"/>
-<path class="d d3" pathLength="1" d="M402 196Q402 174 426 170L650 98L852 158L836 172L450 243"/>
-<path class="d d4" pathLength="1" d="M402 196V522Q402 528 412 528L640 522L826 479L448 480"/>
-<path class="d d5" pathLength="1" d="M450 243L585 272V468L450 478V243M498 257V474M545 266V471M450 322L585 318"/>
-<path class="d d6" pathLength="1" d="M598 268V468M612 264V468M627 259V468M641 255V468M656 250V468M670 246V468M684 241V468M699 237V468M713 232V468M728 228V468M742 223V468M756 219V468"/>
-<g class="gl">
-<path class="a g a1" pathLength="1" d="M205 205V465"/><path class="a g a2" pathLength="1" d="M367 215V520"/><path class="a g a3" pathLength="1" d="M402 196V524"/>
-<path class="a g a4" pathLength="1" d="M355 12L640 98"/><path class="a g a5" pathLength="1" d="M424 171L650 98"/><path class="a g a6" pathLength="1" d="M545 252L695 210"/><path class="a g a7" pathLength="1" d="M572 268L757 218"/>
-<path class="a a1" pathLength="1" d="M205 205V465"/><path class="a a2" pathLength="1" d="M367 215V520"/><path class="a a3" pathLength="1" d="M402 196V524"/>
-<path class="a a4" pathLength="1" d="M355 12L640 98"/><path class="a a5" pathLength="1" d="M424 171L650 98"/><path class="a a6" pathLength="1" d="M545 252L695 210"/><path class="a a7" pathLength="1" d="M572 268L757 218"/>
-</g>
+<path class="d d1" d="M12 136L355 12V537L282 498V165L12 250Z"/>
+<path class="d d2" d="M12 250L108 280L205 233V205L282 165M205 205V465L282 498"/>
+<path class="d d3" d="M402 196Q402 174 426 170L650 98L852 158L836 172L450 243"/>
+<path class="d d4" d="M402 196V522Q402 528 412 528L640 522L826 479L448 480"/>
+<path class="d d5" d="M450 243L585 272V468L450 478V243M498 257V474M545 266V471M450 322L585 318"/>
+<path class="d d6" d="M598 268V468M612 264V468M627 259V468M641 255V468M656 250V468M670 246V468M684 241V468M699 237V468M713 232V468M728 228V468M742 223V468M756 219V468"/>
 </svg>
-<div class="tc-ld-sweep"></div>
+<svg class="tc-ld-led-art" viewBox="0 0 862 552" focusable="false">
+<path class="a g" d="M205 205V465"/><path class="a g" d="M367 215V520"/><path class="a g" d="M402 196V524"/>
+<path class="a g" d="M355 12L640 98"/><path class="a g" d="M424 171L650 98"/><path class="a g" d="M545 252L695 210"/><path class="a g" d="M572 268L757 218"/>
+<path class="a" d="M205 205V465"/><path class="a" d="M367 215V520"/><path class="a" d="M402 196V524"/>
+<path class="a" d="M355 12L640 98"/><path class="a" d="M424 171L650 98"/><path class="a" d="M545 252L695 210"/><path class="a" d="M572 268L757 218"/>
+</svg>
 <img class="tc-ld-mark" src="/brand/logo-mark-256.webp" srcset="/brand/logo-mark-256.webp 256w,/brand/logo-mark-512.webp 512w" sizes="(min-width:700px) 320px,70vw" width="862" height="552" alt="" decoding="async" fetchpriority="high">
+<div class="tc-ld-hide"></div>
+<div class="tc-ld-scan"></div>
 </div>
 <p class="tc-ld-name" aria-hidden="true">Terucon</p>
 <p class="tc-ld-tag" aria-hidden="true">Interiors for businesses</p>
 <div class="tc-ld-led" aria-hidden="true"><i></i></div>
+<p class="tc-ld-status"></p>
 <div class="tc-ld-fail">
 <p class="tc-ld-ft">This page is taking longer than usual</p>
 <p class="tc-ld-fm">Please check your connection and try again.</p>
 <div class="tc-ld-fa"><button type="button" class="tc-ld-retry">Retry</button><a class="tc-ld-home" href="/">Go to the home page</a></div>
 </div>
+<div class="tc-ld-glow" aria-hidden="true"></div>
 </div>
+<div class="tc-ld-curtain" aria-hidden="true"></div>
 </div>
 <script>
 (function(){
 var w=window,d=document,el=d.getElementById('tc-loader');
 if(!el||w.TeruconLoader)return;
-var st='loading',t0=Date.now(),tm=[],q=function(s){return el.querySelector(s)},
+var CYCLE_MS=2200,MIN_CYCLES=2,COMPOSED_FROM=.66,COMPOSED_TAIL=.08,ALIGN_MAX_MS=700,CLOSE_MS=650,START_MAX_AGE_MS=8000,FAIL_MS=12000,
+studio=el.getAttribute('data-tc-mode')==='studio',kind=el.getAttribute('data-tc-exit')||'',
+st='loading',tm=[],ft=0,rel=0,now=Date.now,q=function(s){return el.querySelector(s)},
 reduce=w.matchMedia&&w.matchMedia('(prefers-reduced-motion: reduce)').matches,
-img=q('.tc-ld-mark'),seen=false;
+img=q('.tc-ld-mark'),seen=false,t0=now(),click=false;
 try{seen=w.sessionStorage.getItem('tc-ld')==='1'}catch(e){}
+if(studio){try{var g=JSON.parse(w.sessionStorage.getItem('tc-go')||'null'),ago=g&&now()-g.t;w.sessionStorage.removeItem('tc-go');if(g&&ago>=0&&ago<START_MAX_AGE_MS){t0=g.t;click=true}}catch(e){}}
+var stage0=click?t0+CLOSE_MS:t0;
 function T(f,ms){tm.push(setTimeout(f,ms))}
-function stop(){while(tm.length)clearTimeout(tm.pop());w.removeEventListener('error',onErr,true)}
+function stop(){while(tm.length)clearTimeout(tm.pop());clearTimeout(ft);w.removeEventListener('error',onErr,true)}
 function unlock(){d.documentElement.classList.remove('tc-ld-lock')}
 function gone(){unlock();if(el.parentNode)el.parentNode.removeChild(el)}
-function s2(){if(st!=='done')el.classList.add('tc-ld-s2')}
-function done(){
+function fire(){try{w.dispatchEvent(new CustomEvent('tc-ld-exit'))}catch(e){}}
+function slats(){
+var host=q('.tc-ld-curtain'),n=w.innerWidth<600?5:9,mid=(n-1)/2,i,s;
+host.textContent='';host.style.setProperty('--m',String(mid));
+for(i=0;i<n;i++){s=d.createElement('i');s.style.setProperty('--k',String(Math.abs(i-mid)));host.appendChild(s)}
+host.appendChild(d.createElement('b'));
+return mid;
+}
+function shift(){
+if(!el.getAnimations)return;
+var ts=now(),a=ts-stage0,c=click?Math.max(1200,ts-t0):0,cur=q('.tc-ld-curtain'),l,i,x,tg,e;
+if(a<=30&&!c)return;
+l=el.getAnimations({subtree:true});
+for(i=0;i<l.length;i++){x=l[i];tg=x.effect&&x.effect.target;e=tg&&cur&&cur.contains(tg)?c:a;if(e>0)try{x.currentTime=e}catch(r){}}
+}
+function age(){
+var a=img&&img.getAnimations?img.getAnimations()[0]:null,c=a&&a.currentTime;
+return typeof c==='number'?c:now()-stage0;
+}
+function leave(){
 if(st==='done')return;st='done';stop();unlock();
 try{w.sessionStorage.setItem('tc-ld','1')}catch(e){}
 el.setAttribute('aria-busy','false');
 if(!el.isConnected)return;
-if(reduce){el.classList.add('tc-ld-fade');T(gone,200);return}
-var quick=Date.now()-t0<700,n=w.innerWidth<600?7:12,host=q('.tc-ld-slats'),i,s;
-for(i=0;i<n;i++){s=d.createElement('i');s.style.setProperty('--k',String(Math.abs(i-(n-1)/2)));host.appendChild(s)}
+el.classList.remove('tc-ld-in','tc-ld-held');
+if(reduce){el.classList.add('tc-ld-fade');T(gone,200);fire();return}
+if(kind==='dissolve'){el.classList.add('tc-ld-out','tc-ld-dis');T(fire,380);T(gone,900);return}
+var quick=!studio&&(now()-t0<700||seen),mid=slats();
 if(quick)el.classList.add('tc-ld-q');
 el.classList.add('tc-ld-out');
-T(gone,quick?950:1450);
+T(fire,300);
+T(gone,Math.round((quick?140+mid*32+560:300+mid*55+860)+120));
+}
+function done(){
+if(st==='done'||rel)return;
+rel=1;clearTimeout(ft);
+if(st==='fail')return leave();
+var waited=0;
+function go(){
+if(studio&&!reduce){
+var a=age(),need=MIN_CYCLES*CYCLE_MS-a;
+if(need>4){T(go,need+8);return}
+var p=(a%CYCLE_MS)/CYCLE_MS;
+if(!waited&&p>COMPOSED_TAIL&&p<COMPOSED_FROM){waited=1;T(go,Math.min((COMPOSED_FROM-p)*CYCLE_MS,ALIGN_MAX_MS));return}
+}
+leave();
+}
+go();
 }
 function fail(msg){
-if(st!=='loading')return;st='fail';stop();
+if(st!=='loading'||rel)return;st='fail';stop();
 if(!el.isConnected)return;
-if(!el.classList.contains('tc-ld-s2'))el.classList.add('tc-ld-static');
 var m=q('.tc-ld-fm');if(msg&&m)m.textContent=String(msg);
-el.classList.add('tc-ld-failed');el.setAttribute('aria-busy','false');
+el.classList.add('tc-ld-failed','tc-ld-held');el.setAttribute('aria-busy','false');
 var b=q('.tc-ld-retry');if(b)try{b.focus({preventScroll:true})}catch(e){}
+}
+function hold(){if(st==='loading')clearTimeout(ft)}
+function note(text){
+var s=q('.tc-ld-status');if(!s||st==='done'||st==='fail')return;
+s.textContent=text?String(text):'';el.classList.toggle('tc-ld-noted',!!text);
 }
 function onErr(e){
 var t=e.target;
 if(!t||t.tagName!=='SCRIPT'||!t.src||t.hasAttribute('data-tc-optional'))return;
 try{if(new URL(t.src,w.location.href).origin===w.location.origin)fail()}catch(x){}
 }
-w.TeruconLoader={done:done,fail:fail,get state(){return st}};
+w.TeruconLoader={done:done,fail:fail,note:note,hold:hold,get state(){return st},get startedAt(){return t0},get cycleMs(){return CYCLE_MS},get minCycles(){return studio&&!reduce?MIN_CYCLES:0},get age(){return age()}};
 var r=q('.tc-ld-retry');if(r)r.addEventListener('click',function(){w.location.reload()});
+el.style.setProperty('--cyc',CYCLE_MS+'ms');
 if(img){
-img.addEventListener('error',function(){el.classList.remove('tc-ld-s2');img.hidden=true});
-if(seen&&!reduce)el.classList.add('tc-ld-again');
-var show=function(){if(img.complete&&img.naturalWidth>0)s2();else img.addEventListener('load',s2,{once:true})};
-if(seen&&!reduce)show();else T(show,1900);
+img.addEventListener('error',function(){el.classList.add('tc-ld-nomark')});
+if(!studio&&seen&&!reduce)el.classList.add('tc-ld-again');
 }
 d.documentElement.classList.add('tc-ld-lock');
+if(click&&!reduce){slats();el.classList.add('tc-ld-in')}
 el.classList.add('tc-ld-on');
+shift();
+if(click&&!reduce)T(function(){el.classList.add('tc-ld-held')},80);
 w.addEventListener('error',onErr,true);
-T(function(){fail()},12000);
+ft=setTimeout(function(){fail()},Math.max(3000,t0+FAIL_MS-now()));
 })();
 </script>

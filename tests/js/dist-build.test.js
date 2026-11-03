@@ -213,11 +213,21 @@ describe('the real pages, built', () => {
     }
   });
 
-  test('the loader hook: a script that calls TeruconLoader.done() when #dc-root has its first child', () => {
+  test('the loader hook: a script that calls TeruconLoader.done() when #dc-root has its first child (the studio page: when the studio\'s own first screen exists)', () => {
     for (const key of KEYS) {
       const html = htmlOf(key);
       assert.match(html, /TeruconLoader\.done\(\)/);
-      assert.match(html, /getElementById\('dc-root'\)/);
+      if (key === 'studio') {
+        // the first React commit is only the studio's shell: the page is released by site/brand/studio-entry.js instead
+        assert.doesNotMatch(html, /getElementById\('dc-root'\)/, 'the studio page does not use the first-commit signal');
+        assert.match(html, /<div id="tc-loader" data-tc-mode="studio"/, 'the studio loader holds for the studio and for two cycles');
+        assert.match(html, /\.sr-studio, \.sr-gate/, 'the studio\'s first interactive screens are the ones watched');
+        assert.match(html, /\/api\/vision\/warmup/);
+      } else {
+        assert.match(html, /getElementById\('dc-root'\)/);
+        assert.doesNotMatch(html, /data-tc-mode=/);
+      }
+      assert.equal(/data-tc-exit="dissolve"/.test(html), key === 'home', `${key}: only the landing page opens its own curtain`);
       if (fs.existsSync(path.join(ROOT, 'site', 'brand', 'loader.html'))) {
         assert.match(html, /<body[^>]*>\s*<style>[\s\S]{0,40}#tc-loader|<body[^>]*>\s*<noscript>|<body[^>]*>\s*<div id="tc-loader"/, `${key}: the loader is the first thing in <body>`);
       }
@@ -409,7 +419,11 @@ describe('inputs the build must cope with', () => {
     assert.ok(head.includes('<meta name="theme-color" content="#1F150A">'));
     assert.equal((html.match(/property="og:type"/g) || []).length, 1, 'a tag head.html already has is not added twice');
     assert.ok(!html.includes('note for people'), 'the explanatory comment is dropped');
-    assert.match(html, /<body[^>]*>\s*<div id="tc-loader">loading<\/div>/);
+    assert.match(html, /<body[^>]*>\s*<div id="tc-loader" data-tc-exit="dissolve">loading<\/div>/, 'the landing page\'s loader is told it opens its own curtain (loaderFor in tools/build-dist.js)');
+    const studio = planDist({ root, log: quiet }).files.get('pages/studio.html').toString('utf8');
+    assert.match(studio, /<body[^>]*>\s*<div id="tc-loader" data-tc-mode="studio">loading<\/div>/, 'the studio page\'s loader is in studio mode');
+    const materials = planDist({ root, log: quiet }).files.get('pages/materials.html').toString('utf8');
+    assert.match(materials, /<body[^>]*>\s*<div id="tc-loader">loading<\/div>/, 'the other pages\' loader is unchanged');
     // and absent: skipped without a word
     const bare = planDist({ root: makeRoot(), log: quiet }).files.get('pages/home.html').toString('utf8');
     assert.ok(!bare.includes('tc-loader'));

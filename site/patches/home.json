@@ -9,63 +9,11 @@
       "expect": 5
     },
     {
-      "id": "header-materials",
-      "op": "insertAfter",
-      "why": "header: Materials link",
-      "anchor": "<nav style=\"pointer-events:auto;display:flex;align-items:center;gap:clamp(14px,2vw,28px)\">",
-      "insert": [
-        "\n    ",
-        {
-          "component": "headerLink",
-          "entry": "materials",
-          "mobileHide": true
-        }
-      ]
-    },
-    {
-      "id": "header-inspiration",
-      "op": "insertBefore",
-      "why": "header: Inspiration link",
-      "anchor": "<a href=\"#enquire\" data-navpill=\"\"",
-      "insert": [
-        {
-          "component": "headerLink",
-          "entry": "inspiration",
-          "mobileHide": true
-        }
-      ]
-    },
-    {
-      "id": "header-finder",
-      "op": "insertBefore",
-      "why": "header: Finder link",
-      "anchor": "<a href=\"#enquire\" data-navpill=\"\"",
-      "insert": [
-        {
-          "component": "headerLink",
-          "entry": "finder",
-          "mobileHide": true
-        }
-      ]
-    },
-    {
-      "id": "header-project",
-      "op": "insertBefore",
-      "why": "header: My project link",
-      "anchor": "<a href=\"#enquire\" data-navpill=\"\"",
-      "insert": [
-        {
-          "component": "headerLink",
-          "entry": "project",
-          "mobileHide": true
-        },
-        {
-          "component": "accountLink",
-          "entry": "account",
-          "mobileHide": true
-        },
-        "\n    "
-      ]
+      "id": "enquiry-send",
+      "op": "replace",
+      "why": "the landing page's own enquiry form really sends (POST /api/enquiry, kept on the server) instead of only showing \"Thank you\"",
+      "anchor": "    err.textContent = '';\n    this.setState({ sent: true, sentName: name.split(/\\s+/)[0] });",
+      "with": "    err.textContent = '';\n    if (this._sending) return;\n    this._sending = true;\n    const digits = phone.replace(/\\D/g, '');\n    const body = { source: 'landing', name, phone: /^\\d{10}$/.test(phone.replace(/[\\s-]/g, '')) ? '+91 ' + digits : phone, email, company: String(fd.get('company') || ''), city: String(fd.get('city') || ''), message: String(fd.get('message') || ''), type: this.sel.type || '', timeline: this.sel.timeline || '', area: (f.querySelector('[name=\"area\"]') || {}).value || '' };\n    const btn = f.querySelector('button[type=\"submit\"]'); if (btn) btn.disabled = true;\n    fetch('/api/enquiry', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })\n      .then(r => r.json().catch(() => null).then(d => ({ ok: r.ok, d })))\n      .then(res => { if (res.ok) this.setState({ sent: true, sentName: name.split(/\\s+/)[0] }); else err.textContent = (res.d && res.d.error && res.d.error.message) || 'Something went wrong. Please try again, or call us.'; })\n      .catch(() => { err.textContent = 'We could not reach the server. Check your connection and try again, or call us.'; })\n      .then(() => { this._sending = false; if (btn) btn.disabled = false; });"
     },
     {
       "id": "menu-cards",
@@ -180,20 +128,6 @@
       ]
     },
     {
-      "id": "logo-header",
-      "op": "replace",
-      "why": "header: the real logo (in a dark pill, so it reads on the cream sections too) instead of the typed TERUCON INDIA",
-      "anchor": "<a href=\"#top\" style=\"pointer-events:auto;display:flex;align-items:baseline;gap:10px;color:inherit;font:600 15px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.34em\" style-hover=\"color:inherit\">TERUCON<span style=\"font:500 9.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.3em\">INDIA</span></a>",
-      "with": [
-        {
-          "component": "logoLink",
-          "entry": "logo",
-          "target": "#top",
-          "pill": true
-        }
-      ]
-    },
-    {
       "id": "logo-menu",
       "op": "replace",
       "why": "menu overlay: the real logo (the overlay is dark, no pill)",
@@ -221,13 +155,6 @@
         },
         "</div>\n  <div style=\"position:relative;padding:clamp(36px,6vh,64px) 5cqw 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));column-gap:clamp(24px,3cqw,56px);row-gap:44px\">"
       ]
-    },
-    {
-      "id": "header-phone",
-      "op": "replace",
-      "why": "header on a phone: less padding so the sticky bar takes 62 px, not 78",
-      "anchor": "<header data-nav=\"\" style=\"position:fixed;top:0;left:0;right:0;z-index:50;",
-      "with": "<header data-nav=\"\" data-m=\"padding:10px 16px\" style=\"position:fixed;top:0;left:0;right:0;z-index:50;"
     },
     {
       "id": "dvh",
@@ -393,13 +320,47 @@
       ]
     },
     {
-      "id": "header-fit",
+      "id": "chrome-fit",
       "op": "insertBefore",
-      "why": "header between 820 and 1199 px: links stay on one line (they wrapped once the real logo replaced the typed one); between 820 and 899 the dock carries the destinations; the chapter label no longer sits under the links (it lives between the logo and the links, hidden at 900-1365 px); the hero buttons stay clear of the bottom bar; room under the footer for the bottom bar; 44 px tap targets on a phone",
+      "why": "the site chrome (site/brand/chrome.js) is the one header: the export's own header (and its scroll-driven chapter label, \"03 - Shell to handover\") is not drawn once the chrome is on, the chrome's Menu button clicks the export's own Menu button; the hero buttons stay clear of the bottom bar; room under the footer for the bottom bar; 44 px tap targets on a phone",
       "anchor": "</helmet>",
       "insert": [
-        "<style>\n/* header links on a narrow laptop or a tablet: one line each; the phone dock (up to 899 px) already carries the destinations */\n[data-nav] nav a { white-space: nowrap; }\n@media (min-width: 820px) and (max-width: 899px) { [data-nav] nav > a:not([data-navpill]) { display: none !important; } }\n@media (min-width: 900px) and (max-width: 1199px) {\n  [data-nav] nav { gap: 14px !important; }\n  [data-nav] nav a[data-terucon-account], [data-nav] nav > a[href=\"/design-studio\"] > span { display: none !important; }\n}\n/* the chapter label (\"03 - Shell to handover\", shown once the hero is scrolled past) was centred on the page, which is where the six links now run: it sat under Materials / Design Studio. It now takes the free space between the logo and the links (a flex item, so it cannot overlap them), cuts its title with an ellipsis when short of room, and is hidden between 900 and 1365 px, where even the longest one (\"Shell to handover\") does not fit whole */\n@media (min-width: 820px) {\n  [data-nav] [data-chapter] { position: static !important; transform: none !important; flex: 1 1 0 !important; min-width: 0 !important; justify-content: center !important; overflow: hidden; padding: 0 8px; }\n  [data-nav] [data-chapter] > * { flex: none; white-space: nowrap; }\n  [data-nav] [data-chapter] > [data-cht] { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }\n}\n@media (min-width: 900px) and (max-width: 1365px) { [data-nav] [data-chapter] { display: none !important; } }\n/* the hero's buttons stay clear of the bottom bar */\n@media (max-width: 899px) {\n  [data-hero-copy] { bottom: calc(var(--tc-dock-h, 0px) + env(safe-area-inset-bottom, 0px) + 24px) !important; }\n  [data-cue] { display: none !important; }\n}\n/* room under the footer for the bottom bar (the body is only a frame here, so dock.css's own spacer would sit mid-page) */\n@media (max-width: 899px) {\n  body::after { display: none !important; }\n  .tc-dock-on [data-root] { padding-bottom: calc(var(--tc-dock-h, 0px) + env(safe-area-inset-bottom, 0px)); }\n}\n/* tap targets: 44 px on a phone or a small tablet (links in the footer and the contact lines, the material list, the menu buttons) */\n@media (max-width: 899px) {\n  footer a, a[href^=\"tel:\"], a[href^=\"mailto:\"], a[href*=\"wa.me\"] { display: inline-flex !important; align-items: center; min-height: 44px !important; }\n  [data-menu-btn], [data-menu-close], [data-totop], [data-finish], [data-mat] { min-height: 44px !important; }\n  [data-fcol] { gap: 0 !important; }\n  [data-hero-copy] a[href=\"#work\"] { position: relative; }\n  [data-hero-copy] a[href=\"#work\"]::after { content: \"\"; position: absolute; left: -10px; right: -10px; top: -14px; bottom: -14px; }\n}\n</style>\n"
+        "<style>\n/* the site chrome is the one header (see site/brand/chrome.md); the export's own header stays in the page, because the chrome's Menu button clicks its Menu button, but is not drawn while the chrome is on */\nhtml.tc-chrome-on [data-nav] { display: none !important; }\n/* the hero's buttons stay clear of the bottom bar */\n@media (max-width: 899px) {\n  [data-hero-copy] { bottom: calc(var(--tc-dock-h, 0px) + env(safe-area-inset-bottom, 0px) + 24px) !important; }\n  [data-cue] { display: none !important; }\n}\n/* room under the footer for the bottom bar (the body is only a frame here, so dock.css's own spacer would sit mid-page) */\n@media (max-width: 899px) {\n  body::after { display: none !important; }\n  .tc-dock-on [data-root] { padding-bottom: calc(var(--tc-dock-h, 0px) + env(safe-area-inset-bottom, 0px)); }\n}\n/* tap targets: 44 px on a phone or a small tablet (links in the footer and the contact lines, the material list, the menu buttons) */\n@media (max-width: 899px) {\n  footer a, a[href^=\"tel:\"], a[href^=\"mailto:\"], a[href*=\"wa.me\"] { display: inline-flex !important; align-items: center; min-height: 44px !important; }\n  [data-menu-btn], [data-menu-close], [data-totop], [data-finish], [data-mat] { min-height: 44px !important; }\n  [data-fcol] { gap: 0 !important; }\n  [data-hero-copy] a[href=\"#work\"] { position: relative; }\n  [data-hero-copy] a[href=\"#work\"]::after { content: \"\"; position: absolute; left: -10px; right: -10px; top: -14px; bottom: -14px; }\n}\n</style>\n"
       ]
+    },
+    {
+      "id": "hero-curtain-methods",
+      "op": "replace",
+      "why": "the landing hero's louvres: new buildFins (9 fins, 5 on a phone, timber, lit edge, warm light), a Web Animation opening that starts when the page loader leaves, the scroll part written only when it changes, and the 3D facade started after the opening (snippets/hero-curtain.js; the export's own buildFins stays below as buildFinsOld, unused)",
+      "anchor": "buildFins = () => {",
+      "with": [
+        {
+          "file": "snippets/hero-curtain.js"
+        },
+        "\n  buildFinsOld = () => {"
+      ]
+    },
+    {
+      "id": "hero-curtain-start",
+      "op": "replace",
+      "why": "the opening waits for the page loader (tc-ld-exit) instead of starting 450 ms after mount, and the 3D facade is started later (lazy3D) instead of inside the opening",
+      "anchor": "    this.init3D();\n    this.showMat(0, true);\n    this.introStart = performance.now() + 450;",
+      "with": "    this.lazy3D();\n    this.showMat(0, true);\n    this.waitIntro();"
+    },
+    {
+      "id": "hero-curtain-scroll",
+      "op": "replace",
+      "why": "the fin loop of fxHero (every fin's transform and two opacities on every frame) becomes one call that writes only when the hero's progress changed",
+      "anchor": "    const n = this.fins.length, c = (n - 1) / 2;\n    const tilt = this.fine ? (this.P.sx - .5) * 10 : 0;\n    const wo = 1 - clamp((I - .08) / .42);\n    for (let i = 0; i < n; i++) {\n      const dd = c ? Math.abs(i - c) / c : 0;\n      const e = eio(clamp((I - dd * .3) / .7));\n      const a = clamp(e * 56 + p * 36 + tilt * e * (1 - p), 0, 90);\n      const F = this.fins[i];\n      F.f.style.transform = `rotateY(${a.toFixed(2)}deg)`;\n      F.shade.style.opacity = (a / 90 * .55).toFixed(3);\n      F.f.style.opacity = p > .82 ? (1 - (p - .82) / .18).toFixed(3) : '1';\n      F.word.style.opacity = wo.toFixed(3);\n    }",
+      "with": "    this.fxFins(p);"
+    },
+    {
+      "id": "start-project-links",
+      "op": "replaceAll",
+      "why": "every \"Start a project\" button opens its own page, /start-project, instead of scrolling to the form at the bottom of the landing page",
+      "anchor": "href=\"#enquire\"",
+      "with": "href=\"/start-project\"",
+      "count": 6
     }
   ]
 }

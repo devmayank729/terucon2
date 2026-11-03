@@ -61,6 +61,7 @@ const KNOWN_GAPS = [/\/%7B%7B(%20|\+| )[^/]*%7D%7D$/, /\/media\/materials\/fx-mi
 // settings, so the catalogue is off, and client.warm() (fire-and-forget; finder.js calls it on every load) gets a 503.
 const BY_DESIGN = [[401, /\/api\/vision\/warmup$/], [503, /\/api\/vision\/warmup$/], [500, /\/api\/rooms(\/|$)/], [503, /^\/api\/catalogue\/warm$/]];
 let signIns = 0;
+let guests = 0;
 /**
  * Sign this window in the way a visitor does: ask for a code, read it (the stack prints it in its window), enter it, fill in the
  * sign-up form. Every page but the landing page is for members, so a test that walks the site starts here. Each call comes from its
@@ -70,6 +71,10 @@ const signInPage = async (p, stk) => {
   signIns += 1;
   const email = `visitor${signIns}-${Date.now()}@example.com`;
   const ip = `10.66.${Math.floor(signIns / 250)}.${(signIns % 250) + 1}`;
+  // the page's own requests come from that address too: every page now asks who is signed in (the site chrome), and 120 requests a
+  // minute from one address are all the sign-in API allows, which a whole run of tests from one computer would use up. (The header goes to
+  // other sites too, and their CORS rules refuse it: a test that opens a page which loads from another site clears it, see the overview test.)
+  await p.setExtraHTTPHeaders({ 'X-Forwarded-For': ip });
   await p.goto(stk.base + '/login', { waitUntil: 'domcontentloaded' });
   const started = await p.evaluate(async (who, addr) => (await (await fetch('/api/auth/start', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': addr }, body: JSON.stringify({ identifier: who }) })).json()), email, ip);
   assert(started.challengeId, 'sign-in did not start: ' + JSON.stringify(started));
@@ -111,6 +116,10 @@ const newPage = async (viewport, stk = stack, { signedIn = true } = {}) => {
     }
   });
   if (signedIn) await signInPage(p, stk);
+  else {
+    guests += 1;
+    await p.setExtraHTTPHeaders({ 'X-Forwarded-For': `10.67.${Math.floor(guests / 250)}.${(guests % 250) + 1}` }); // see signInPage
+  }
   return p;
 };
 const noProblems = (page, what) => assert(page.problems.length === 0, `${what}: ${page.problems.join('; ')}`);
@@ -146,15 +155,19 @@ await test('every page loads cleanly and links to the pages the site map says it
     assert(r.status() === 200, `${route} -> ${r.status()}`);
     await sleep(800);
     let hrefs = await page.evaluate(() => [...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href')));
+    // the links a visitor can see (the exports' own headers are in the page but not drawn: their links must not count as the page's links)
+    const drawn = () => page.evaluate(() => [...document.querySelectorAll('a[href]')].filter((a) => { const r = a.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(a).visibility !== 'hidden'; }).map((a) => a.getAttribute('href')));
+    let seen = await drawn();
     if (name === 'dashboard') {  // the dashboard keeps some links inside its own views ("My design" holds the studio link)
       for (const view of ['studio', 'materials']) {
         await page.evaluate((v) => { location.hash = '#/' + v; }, view);
         await sleep(700);
         hrefs = hrefs.concat(await page.evaluate(() => [...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href'))));
+        seen = seen.concat(await drawn());
       }
     }
     for (const other of CONNECTIONS[name]) {
-      assert(hrefs.some((h) => pathOf(h) === PAGES[other]), `${name} has no link to ${other} (${PAGES[other]})`);
+      assert(seen.some((h) => pathOf(h) === PAGES[other]), `${name} has no visible link to ${other} (${PAGES[other]})`);
     }
     assert(!hrefs.some((h) => /\.dc\.html|Media%20Brief|Terucon%20Home%20v2|landing%20page/.test(h)), `${name} still has a design-time link: ${hrefs.filter((h) => /\.dc\.html|Media|Home%20v2|landing/.test(h)).join(', ')}`);
     noProblems(page, `${name} (${route})`);
@@ -222,6 +235,8 @@ await test('secrets and source code are never served, not even with the Design S
 await test('the project overview opens, is linked from the site map, and shows the live server', async () => {
   const route = site.docs.overview.route;
   const page = await newPage();
+  // newPage gives every page its own network address (X-Forwarded-For); the overview loads fonts from another site, whose rules refuse that header
+  await page.setExtraHTTPHeaders({});
   const r = await page.goto(base + route, { waitUntil: 'networkidle2' });
   assert(r.status() === 200, `${route} -> ${r.status()}`);
   await sleep(1200);
@@ -311,16 +326,20 @@ await test('from the landing page a visitor reaches the Design Studio in one cli
   await page.goto(base + '/', { waitUntil: 'networkidle2' });
   await sleep(1500);
   await go(page, 'Try it with your photo', '/design-studio');
-  await go(page, 'TERUCON', '/', { scope: 'header' });
-  await go(page, 'Materials', '/materials', { scope: 'header' });
-  await go(page, 'Design Studio', '/design-studio', { scope: 'header' });
-  await go(page, 'My project', '/my-project', { scope: 'header' });
+  // the site chrome (site/brand/chrome.js): the sidebar on a laptop, the landing page's pill; the exports' own headers are hidden, so only
+  // what a visitor can see is clicked here (clickLink would also click a hidden link)
+  await go(page, 'Home', '/', { scope: '.tc-side' });
+  await go(page, 'Materials', '/materials', { scope: '.tc-hdr' });
+  await go(page, 'Design Studio', '/design-studio', { scope: '.tc-side' });
+  await go(page, 'My project', '/my-project', { scope: '.tc-side' });
   await page.goto(base + '/design-studio', { waitUntil: 'domcontentloaded' });
   await sleep(600);
-  await go(page, 'Materials', '/materials', { scope: 'header' });
+  await go(page, 'Materials', '/materials', { scope: '.tc-side' });
   await page.goto(base + '/design-studio', { waitUntil: 'domcontentloaded' });
   await sleep(600);
-  await go(page, 'Start a project', '/#enquire', { scope: 'header' });
+  await go(page, 'Start a project', '/start-project', { scope: '.tc-hdr' });
+  // /start-project is a page of its own (built apart from the chrome); until it exists the site's not-found page answers there
+  page.problems = page.problems.filter((p) => !/ \/start-project$/.test(p));
   noProblems(page, 'the walk');
   await page.close();
 });
@@ -338,13 +357,17 @@ await test('on a phone the studio is one tap from the landing page, and the menu
   const box = await until(async () => { const b = await measureHero(); return b.visible ? b : null; }, 'the hero link to fade in', 8000).catch(() => measureHero());
   assert(box.top >= 0 && box.bottom <= box.height, `the hero link is not on the first screen of a phone (${JSON.stringify(box)})`);
   assert(box.visible, 'the hero link is not visible');
-  await go(page, 'Try it with your photo', '/design-studio');
-  await sleep(1500);
-  await page.evaluate(() => document.querySelector('header button[aria-label="Open menu"]').click());
+  // the landing page's Menu is the chrome's button (the pill's, which clicks the export's own): its overlay opens and leads with the destinations
+  await page.click('.tc-hdr button[aria-label="Open menu"]');
   await sleep(1200);
   const cards = await page.evaluate(() => [...document.querySelectorAll('[data-menu] a')].map((a) => a.textContent.replace(/\s+/g, ' ').trim()));
-  assert(cards.some((c) => c.startsWith('07 · Design Studio') || /You are here/.test(c)) && cards.some((c) => /Shop materials/.test(c)) && cards.some((c) => /My project/.test(c)), 'the phone menu lacks a card: ' + JSON.stringify(cards));
-  await go(page, 'Materials', '/materials', { scope: '[data-menu]' }); // the card's eyebrow comes first: "Materials" "Shop materials →"
+  assert(cards.some((c) => /^Materials/.test(c)) && cards.some((c) => /Design Studio/.test(c)) && cards.some((c) => /My project/.test(c)), 'the phone menu lacks a destination: ' + JSON.stringify(cards));
+  await page.evaluate(() => document.querySelector('[data-menu-close]').click());
+  await sleep(900);
+  await go(page, 'Try it with your photo', '/design-studio');
+  await sleep(1500);
+  // on the studio the phone's destinations are the dock; the studio's own header is not drawn, the chrome's pill is
+  await go(page, 'Materials', '/materials', { scope: '.tc-dock' });
   await page.close();
 });
 
@@ -355,7 +378,7 @@ await test('the studio opens inside the site: its splash, then its sign-in, then
   const splash = await page.evaluate(() => document.querySelector('.swr-splash').innerText);
   assert(/Powered by/i.test(splash) && /Terucon India/.test(splash), 'the splash: ' + splash);
   await until(() => page.evaluate(() => /Sign in to the studio/.test(document.body.innerText) && !document.querySelector('.swr-splash')), 'the sign-in after the splash', 15000);
-  assert(await page.evaluate(() => !!document.querySelector('header[data-nav]')), 'the studio sits under the site header');
+  assert(await page.evaluate(() => { const h = document.querySelector('.tc-hdr'); const s = document.querySelector('swatchroom-app'); return !!h && !!s && h.getBoundingClientRect().bottom <= s.getBoundingClientRect().top + 1; }), 'the studio sits under the site header (the chrome\'s pill)');
   await page.type('input[placeholder="Passcode"]', 'not-the-passcode');
   await page.evaluate(() => [...document.querySelectorAll('button')].find((b) => /Open the studio/i.test(b.textContent)).click());
   await until(() => page.evaluate(() => /passcode/i.test(document.querySelector('.sr-form-error, [role=alert]')?.textContent ?? '')), 'a refusal for a wrong passcode', 8000);
@@ -599,7 +622,7 @@ await test('a board: the question, the picker with its photos, the chosen photo 
   await page.close();
 });
 
-await test('the shop: the search box and the assistant box both ask; "Not now" keeps the text, "Yes" takes the address out and goes on to the crop', async () => {
+await test('the shop: the search box asks about a pasted photo address; "Not now" keeps the text, "Yes" takes the address out and goes on to the crop', async () => {
   const page = await newPage();
   await page.goto(base + '/materials', { waitUntil: 'networkidle2' });
   const photo = await makeJpeg(page, 900, 600);
@@ -632,12 +655,7 @@ await test('the shop: the search box and the assistant box both ask; "Not now" k
   await until(() => dialogText(page, '.tc-title'), 'the question after Enter');
   await page.keyboard.press('Escape');
   await until(async () => !(await dialogOpen(page)), 'the question to close');
-  // the assistant's box (opened from the search overlay, which is still open)
-  await page.evaluate(() => [...document.querySelectorAll('button')].find((b) => /Ask by voice/.test(b.textContent))?.click());
-  await until(() => page.$('[data-import-urls][aria-label="Type a question"]'), 'the assistant box', 8000);
-  await pasteInto(page, '[data-import-urls][aria-label="Type a question"]', 'https://www.flickr.com/photos/12345678@N05/53012345678/');
-  await until(() => dialogText(page, '.tc-title'), 'the question in the assistant');
-  assert(/photo from Flickr/.test(await dialogText(page, '.tc-text')), 'the assistant question is wrong');
+  // (the shop assistant's own box, which used to be tested here, went with the assistant: TeruBot is the one assistant now)
   await page.keyboard.press('Escape');
   await page.close();
 });
@@ -945,26 +963,38 @@ await test('when the server cannot be reached, Your account and Sign in say so a
   }
 });
 
-await test('landing header: the chapter label ("03 Shell to handover") never sits on the logo or the links; it shows from 1366 px and is hidden below', async () => {
-  for (const width of [1100, 1280, 1366, 1440, 1680]) {
+// The landing page's scroll-driven chapter label ("03 - Shell to handover", in the export's own header) is gone with that header: the site chrome's
+// pill is the header now. What this test used to guard (the label printing over the links) cannot happen; it now guards the pill's own row.
+await test('landing header: the pill\'s links (Materials, Design Studio AI, Inspiration, Finder, My project, Sign in) and its buttons never sit on one another or leave the pill from 900 to 1680 px, and no chapter label is drawn', async () => {
+  for (const width of [900, 1024, 1100, 1280, 1366, 1440, 1680]) {
     const page = await newPage({ width, height: 800 }, stack, { signedIn: false });
     try {
       await page.goto(base + '/', { waitUntil: 'networkidle2' });
       await sleep(800);
-      for (const section of ['transform', 'enquire']) {
-        await page.evaluate((key) => window.scrollTo(0, document.querySelector(`[data-sec="${key}"]`).getBoundingClientRect().top + scrollY + 40), section);
-        await sleep(1200);
+      for (const section of ['hero', 'transform', 'enquire']) {
+        await page.evaluate((key) => window.scrollTo(0, document.querySelector(`[data-sec="${key}"]`).getBoundingClientRect().top + scrollY + (key === 'hero' ? 0 : 40)), section);
+        await sleep(1000);
         const seen = await page.evaluate(() => {
-          const label = document.querySelector('header [data-chapter]');
-          const shown = getComputedStyle(label).display !== 'none' && Number(getComputedStyle(label).opacity) > 0.05;
-          const box = (e) => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom }; };
-          const others = [...document.querySelectorAll('header img, header nav a, header nav button')].filter((e) => { const r = e.getBoundingClientRect(); return r.width > 1 && r.height > 1; }).map((e) => ({ what: (e.textContent || e.alt || 'logo').trim().slice(0, 20), ...box(e) }));
-          const mine = box(label);
-          return { shown, text: label.textContent, mine, hits: others.filter((o) => o.l < mine.r - 1 && mine.l < o.r - 1 && o.t < mine.b && mine.t < o.b).map((o) => o.what), clipped: label.querySelector('[data-cht]').scrollWidth > label.querySelector('[data-cht]').clientWidth };
+          const box = (e) => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom, w: r.width, h: r.height }; };
+          const pill = document.querySelector('.tc-hdr');
+          const parts = [...pill.querySelectorAll('a, button')].filter((e) => e.getBoundingClientRect().width > 1).map((e) => ({ what: (e.textContent || e.getAttribute('aria-label') || 'logo').trim().slice(0, 24), ...box(e) }));
+          const p = box(pill);
+          const label = document.querySelector('[data-chapter]');
+          const labelRect = label ? label.getBoundingClientRect() : { width: 0, height: 0 };
+          const overlaps = [];
+          for (let i = 0; i < parts.length; i += 1) for (let j = i + 1; j < parts.length; j += 1) { const a = parts[i], b = parts[j]; if (a.l < b.r - 0.5 && b.l < a.r - 0.5 && a.t < b.b - 0.5 && b.t < a.b - 0.5) overlaps.push(`${a.what} / ${b.what}`); }
+          return {
+            overlaps, outside: parts.filter((x) => x.l < p.l - 0.5 || x.r > p.r + 0.5).map((x) => x.what),
+            links: [...pill.querySelectorAll('.tc-hdr__nav a')].map((a) => a.textContent.replace(/\s+/g, ' ').trim()),
+            small: parts.filter((x) => x.h < 43.5).map((x) => x.what), labelDrawn: labelRect.width > 0 && labelRect.height > 0, sidebar: !!document.querySelector('.tc-side'),
+          };
         });
-        assert(seen.hits.length === 0, `at ${width} px, on "${seen.text}", the label covers: ${seen.hits.join(', ')}`);
-        assert(seen.shown === (width >= 1366), `at ${width} px the label should be ${width >= 1366 ? 'shown' : 'hidden'} (shown: ${seen.shown})`);
-        if (seen.shown) assert(!seen.clipped, `at ${width} px the label "${seen.text}" is cut short`);
+        assert(seen.overlaps.length === 0, `at ${width} px (${section}) the pill's parts overlap: ${seen.overlaps.join('; ')}`);
+        assert(seen.outside.length === 0, `at ${width} px the pill's parts leave the pill: ${seen.outside.join(', ')}`);
+        assert(JSON.stringify(seen.links) === JSON.stringify(['Materials', 'Design StudioAI', 'Inspiration', 'Finder', 'My project', 'Sign in']), `at ${width} px the pill's links are ${JSON.stringify(seen.links)}`);
+        assert(seen.small.length === 0, `at ${width} px a part of the pill is shorter than 44 px: ${seen.small.join(', ')}`);
+        assert(!seen.labelDrawn, 'the chapter label is drawn');
+        assert(!seen.sidebar, 'the landing page has no sidebar');
       }
     } finally {
       await page.close();
@@ -1201,6 +1231,1196 @@ await test('sign-in page: if Google\'s script cannot load, the person is told in
     await both.stop();
   }
 });
+
+// ==== chrome (begin) ====
+// The site chrome (site/brand/chrome.{js,css}): ONE header (a floating pill) on every page and, on a laptop, a collapsible sidebar; the dock stays on a phone.
+// Real Chrome against the dev stack, on a laptop and on phone widths. The exports' own headers are in their pages but not drawn: these tests look at what is drawn.
+const CHROME_BUILT = Object.values(PAGES); // the four exported pages
+const CHROME_HAND = ['/inspiration', '/finder', '/account', '/admin/catalogue']; // hand-written, with the sidebar
+const CHROME_PLAIN = ['/login', '/coming-soon']; // hand-written, pill only
+const rect = (e) => { if (!e) return null; const b = e.getBoundingClientRect(); return [Math.round(b.left * 10) / 10, Math.round(b.top * 10) / 10, Math.round(b.width * 10) / 10, Math.round(b.height * 10) / 10]; };
+const probeChrome = (page) => page.evaluate(() => {
+  const r = (e) => { if (!e) return null; const b = e.getBoundingClientRect(); return [Math.round(b.left * 10) / 10, Math.round(b.top * 10) / 10, Math.round(b.width * 10) / 10, Math.round(b.height * 10) / 10]; };
+  const drawn = (e) => { const b = e.getBoundingClientRect(); return b.width > 0 && b.height > 0 && getComputedStyle(e).visibility !== 'hidden'; };
+  const hdr = document.querySelector('.tc-hdr');
+  const side = document.querySelector('.tc-side');
+  const sideShown = !!side && getComputedStyle(side).display !== 'none';
+  const cs = getComputedStyle(document.documentElement);
+  const cta = hdr && hdr.querySelector('.tc-cta');
+  return {
+    headers: [...document.querySelectorAll('header')].filter((h) => drawn(h) && !h.closest('swatchroom-app')).length, // the studio's own bar (a <header> inside <swatchroom-app>) stays, by design
+    pill: r(hdr), logo: r(hdr && hdr.querySelector('.tc-hdr__logo')), cta: r(cta), ctaText: cta && cta.textContent.trim(), ctaHref: cta && cta.getAttribute('href'), ctaArrow: !!(cta && cta.querySelector('.tc-cta__go svg')),
+    title: hdr && hdr.querySelector('.tc-hdr__title') ? hdr.querySelector('.tc-hdr__title').textContent : null,
+    acct: r(hdr && hdr.querySelector('.tc-hdr__acct')),
+    side: sideShown ? r(side) : null, sideRail: document.documentElement.classList.contains('tc-side-rail'),
+    rows: sideShown ? [...side.querySelectorAll('.tc-side__row')].map((a) => ({ text: a.textContent.replace(/\s+/g, ' ').trim(), href: a.getAttribute('href'), current: a.getAttribute('aria-current'), drawn: a.querySelector('.tc-side__text').getBoundingClientRect().width > 4 })) : [],
+    hdrH: cs.getPropertyValue('--tc-hdr-h').trim(), sideW: cs.getPropertyValue('--tc-side-w').trim(),
+    dock: !!document.querySelector('.tc-dock') && getComputedStyle(document.querySelector('.tc-dock')).display !== 'none',
+    sideways: document.documentElement.scrollWidth - innerWidth, vh: innerHeight,
+  };
+});
+const SIDE_ROWS = ['Home', 'Materials', 'Design StudioAI', 'Inspiration', 'Finder', 'My project', 'Account'];
+
+await test('chrome: the same pill on every page at 1440 px (logo, call to action to /start-project, account), no second header drawn, the sidebar on every page but the landing page, sign-in and coming soon', async () => {
+  const seen = {};
+  for (const route of [...CHROME_BUILT, ...CHROME_HAND, ...CHROME_PLAIN]) {
+    const page = await newPage(undefined, stack, { signedIn: route !== '/login' });
+    try {
+      await page.goto(base + route, { waitUntil: 'networkidle2' });
+      await sleep(route === '/' ? 1500 : 600);
+      const m = await probeChrome(page);
+      seen[route] = m;
+      assert(m.headers === 1, `${route}: ${m.headers} headers are drawn (the exports' own must stay hidden)`);
+      assert(m.pill && m.pill[0] === 12 && m.pill[1] === 10 && m.pill[3] === 60 && m.pill[2] === 1440 - 24, `${route}: the pill is not where it is on the other pages: ${JSON.stringify(m.pill)}`);
+      assert(m.ctaText === 'Start a project' && m.ctaHref === '/start-project' && m.ctaArrow && m.cta[3] >= 44, `${route}: the call to action: ${JSON.stringify([m.ctaText, m.ctaHref, m.ctaArrow, m.cta])}`);
+      assert(m.hdrH.startsWith('calc(70px'), `${route}: --tc-hdr-h is ${m.hdrH}`);
+      const wantSide = !['/', '/login', '/coming-soon'].includes(route);
+      assert(!!m.side === wantSide, `${route}: the sidebar should ${wantSide ? '' : 'not '}be drawn`);
+      if (wantSide) {
+        assert(JSON.stringify(m.rows.map((x) => x.text)) === JSON.stringify(SIDE_ROWS), `${route}: the rows are ${JSON.stringify(m.rows.map((x) => x.text))}`);
+        const current = m.rows.filter((x) => x.current === 'page').map((x) => x.href);
+        const here = { '/my-project': '/my-project', '/materials': '/materials', '/design-studio': '/design-studio', '/inspiration': '/inspiration', '/finder': '/finder', '/account': '/account' }[route];
+        assert(JSON.stringify(current) === JSON.stringify(here ? [here] : []), `${route}: aria-current marks ${JSON.stringify(current)}`);
+        assert(m.side[0] === 0 && m.side[2] === (route === '/my-project' ? 64 : 260) && m.side[1] === 70 && Math.abs(m.side[1] + m.side[3] - m.vh) < 1.5, `${route}: the sidebar's box ${JSON.stringify(m.side)}`);
+        assert(m.sideW === (route === '/my-project' ? '64px' : '260px'), `${route}: --tc-side-w is ${m.sideW} (the dashboard has its own rail: the chrome's starts as a rail there)`);
+      } else {
+        assert(m.sideW === '0px', `${route}: --tc-side-w should be 0 (${m.sideW})`);
+      }
+      assert(m.sideways <= 0, `${route}: sideways scroll ${m.sideways}px`);
+      noProblems(page, `${route} with the chrome`);
+    } finally {
+      await page.close();
+    }
+  }
+  // one header, constant: the pill, the logo and (where nothing else sits right of it) the call to action are the same boxes on every page
+  const ref = seen['/inspiration'];
+  for (const [route, m] of Object.entries(seen)) {
+    assert(JSON.stringify(m.pill) === JSON.stringify(ref.pill) && JSON.stringify(m.logo) === JSON.stringify(ref.logo), `${route}: the pill or the logo differs from /inspiration: ${JSON.stringify([m.pill, m.logo])} vs ${JSON.stringify([ref.pill, ref.logo])}`);
+    if (route !== '/' && route !== '/materials' && route !== '/login' && route !== '/coming-soon') assert(JSON.stringify(m.cta) === JSON.stringify(ref.cta), `${route}: the call to action moved: ${JSON.stringify(m.cta)} vs ${JSON.stringify(ref.cta)}`);
+  }
+  assert(seen['/'].title === null && seen['/inspiration'].title === 'Inspiration' && seen['/design-studio'].title === 'Design Studio' && seen['/login'].title === 'Sign in' && seen['/admin/catalogue'].title === 'Catalogue admin', 'the titles: ' + JSON.stringify(Object.fromEntries(Object.entries(seen).map(([k, v]) => [k, v.title]))));
+  // the hand-written pages' footer bands are the same
+  const bands = [];
+  for (const route of [...CHROME_HAND, ...CHROME_PLAIN]) {
+    const page = await newPage(undefined, stack, { signedIn: route !== '/login' });
+    try {
+      await page.goto(base + route, { waitUntil: 'networkidle2' });
+      bands.push([route, await page.evaluate(() => { const f = document.querySelector('footer'); const cs = getComputedStyle(f); return [f.className, f.innerHTML.replace(/\s+/g, ' ').trim(), cs.backgroundColor, cs.paddingTop, cs.paddingBottom, cs.fontSize, cs.borderTopColor, Math.round(f.getBoundingClientRect().height)].join(' | '); })]);
+    } finally {
+      await page.close();
+    }
+  }
+  assert(new Set(bands.map((b) => b[1])).size === 1, 'the footer bands differ:\n' + bands.map((b) => `${b[0]}: ${b[1]}`).join('\n'));
+});
+
+await test('chrome: the pill is keyboard-reachable with a visible focus ring, aria-current is on the current destination, reduced motion switches its transitions off, and the chrome causes no layout shift', async () => {
+  const page = await newPage();
+  try {
+    await page.evaluateOnNewDocument(() => {
+      window.__shifts = [];
+      new PerformanceObserver((list) => { for (const e of list.getEntries()) if (!e.hadRecentInput) window.__shifts.push((e.sources || []).map((s) => s.node && s.node.nodeType === 1 && s.node.closest ? (s.node.closest('.tc-hdr, .tc-side') ? 'chrome' : 'page') : 'other')); }).observe({ type: 'layout-shift', buffered: true });
+    });
+    await page.goto(base + '/inspiration', { waitUntil: 'networkidle2' });
+    await sleep(800);
+    // Tab from the top of the page: logo, account, the call to action, then the sidebar
+    const order = [];
+    for (let i = 0; i < 12; i += 1) {
+      await page.keyboard.press('Tab');
+      order.push(await page.evaluate(() => { const a = document.activeElement; const cs = getComputedStyle(a); return { what: a.className || a.tagName, text: (a.textContent || a.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim().slice(0, 20), ring: cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) >= 2, inChrome: !!a.closest('.tc-hdr, .tc-side') }; }));
+    }
+    const chromeStops = order.filter((o) => o.inChrome);
+    assert(chromeStops.length >= 9, 'the chrome has too few keyboard stops: ' + JSON.stringify(order));
+    assert(chromeStops.every((o) => o.ring), 'a stop in the chrome has no visible focus ring: ' + JSON.stringify(chromeStops.filter((o) => !o.ring)));
+    assert(order[0].what === 'tc-hdr__logo' && order[2].what === 'tc-cta', 'the order of the pill is logo, account, call to action: ' + JSON.stringify(order.slice(0, 3)));
+    await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+    const motion = await page.evaluate(() => [...document.querySelectorAll('.tc-cta__go svg, .tc-side__row, .tc-side__toggle svg, .tc-hdr__link')].map((e) => getComputedStyle(e).transitionDuration));
+    assert(motion.every((d) => d.split(',').every((x) => parseFloat(x) === 0)), 'reduced motion still has transitions: ' + JSON.stringify(motion));
+    const shifts = await page.evaluate(() => window.__shifts);
+    assert(!shifts.some((s) => s.includes('chrome')), 'the chrome shifted: ' + JSON.stringify(shifts));
+    noProblems(page, 'keyboard and motion');
+  } finally {
+    await page.close();
+  }
+});
+
+await test('chrome: the sidebar collapses to a 64 px icon rail and back, the page content follows with no overlap, the state is remembered (and a browser whose localStorage throws still works), the card shows the signed-in person', async () => {
+  const page = await newPage();
+  try {
+    await page.goto(base + '/inspiration', { waitUntil: 'networkidle2' });
+    await sleep(600);
+    const mainLeft = () => page.evaluate(() => document.querySelector('main').getBoundingClientRect().left);
+    const open = await probeChrome(page);
+    assert(open.side[2] === 260 && !open.sideRail, 'starts open at 1440: ' + JSON.stringify(open.side));
+    assert((await mainLeft()) >= 260, 'the page content overlaps the sidebar: main starts at ' + await mainLeft());
+    const card = await page.evaluate(() => ({ name: document.querySelector('.tc-side__name').textContent, sub: document.querySelector('.tc-side__sub').textContent, href: document.querySelector('.tc-side__card').getAttribute('href'), av: document.querySelector('.tc-side__card .tc-av').textContent, hav: document.querySelector('.tc-hdr__acct .tc-av').textContent, hlabel: document.querySelector('.tc-hdr__acct').getAttribute('aria-label') }));
+    assert(card.name === 'Test Visitor' && card.sub === 'Test Firm' && card.href === '/account' && card.av === 'TV' && card.hav === 'TV' && card.hlabel === 'Account, Test Visitor', 'the signed-in card: ' + JSON.stringify(card));
+    const toggle = await page.evaluate(() => { const b = document.querySelector('.tc-side__toggle'); const r = b.getBoundingClientRect(); const side = document.querySelector('.tc-side').getBoundingClientRect(); return { exp: b.getAttribute('aria-expanded'), label: b.getAttribute('aria-label'), cx: r.left + r.width / 2, edge: side.right, size: r.width }; });
+    assert(toggle.exp === 'true' && /smaller/.test(toggle.label) && Math.abs(toggle.cx - toggle.edge) <= 2 && toggle.size === 28, 'the chevron: ' + JSON.stringify(toggle));
+    await page.click('.tc-side__toggle');
+    await sleep(300);
+    const shut = await probeChrome(page);
+    assert(shut.side[2] === 64 && shut.sideRail && shut.sideW === '64px' && shut.rows.every((r) => !r.drawn), 'collapsed: ' + JSON.stringify([shut.side, shut.sideW, shut.rows.map((r) => r.drawn)]));
+    assert((await mainLeft()) >= 64 && (await mainLeft()) < 260, 'the content did not follow the rail: main starts at ' + await mainLeft());
+    assert(await page.evaluate(() => localStorage.getItem('tc-side')) === '1', 'the state was not remembered');
+    assert(await page.evaluate(() => document.querySelector('.tc-side__row').getAttribute('title')) === 'Home', 'the rail has no tooltips');
+    await page.reload({ waitUntil: 'networkidle2' });
+    assert((await probeChrome(page)).sideRail, 'the rail did not come back after a reload');
+    await page.click('.tc-side__toggle');
+    await sleep(200);
+    assert((await probeChrome(page)).side[2] === 260 && await page.evaluate(() => localStorage.getItem('tc-side')) === '0', 'did not open again');
+    // a browser that refuses localStorage
+    const blocked = await newPage();
+    try {
+      await blocked.evaluateOnNewDocument(() => { const no = () => { throw new DOMException('blocked', 'SecurityError'); }; Storage.prototype.getItem = no; Storage.prototype.setItem = no; });
+      await blocked.goto(base + '/inspiration', { waitUntil: 'networkidle2' });
+      assert((await probeChrome(blocked)).side[2] === 260, 'no sidebar when localStorage throws');
+      await blocked.click('.tc-side__toggle');
+      await sleep(200);
+      assert((await probeChrome(blocked)).side[2] === 64, 'the toggle does not work when localStorage throws');
+      noProblems(blocked, 'localStorage blocked');
+    } finally {
+      await blocked.close();
+    }
+    noProblems(page, 'the sidebar');
+  } finally {
+    await page.close();
+  }
+  // signed out (a stack that does not ask for sign-in): the card says Sign in
+  const free = await startStack({ port: 0, bootMs: 300, env: { AUTH_REQUIRED: 'off' } });
+  const guest = await newPage(undefined, free, { signedIn: false });
+  try {
+    await guest.goto(free.base + '/inspiration', { waitUntil: 'networkidle2' });
+    await sleep(500);
+    const card = await guest.evaluate(() => ({ name: document.querySelector('.tc-side__name').textContent, href: document.querySelector('.tc-side__card').getAttribute('href'), acct: document.querySelector('.tc-hdr__acct').getAttribute('aria-label') }));
+    assert(card.name === 'Sign in' && card.href === '/login' && card.acct === 'Sign in', 'the signed-out card: ' + JSON.stringify(card));
+    // 1000 px wide with nothing remembered: the rail, to leave the content room
+    await guest.setViewport({ width: 1000, height: 800 });
+    await guest.goto(free.base + '/inspiration', { waitUntil: 'networkidle2' });
+    assert((await probeChrome(guest)).sideRail, 'at 1000 px the sidebar should start as a rail');
+  } finally {
+    await guest.close();
+    await free.stop();
+  }
+});
+
+await test('chrome: on a phone or a small tablet (820, 390, 360 px) the pill is logo + account + call to action (the landing page: logo + call to action + Menu), nothing overlaps or leaves it, no sidebar, the dock is the destinations, no sideways scroll', async () => {
+  for (const width of [820, 390, 360]) {
+    for (const route of [...CHROME_BUILT, '/inspiration', '/finder', '/account']) {
+      const view = width === 820 ? { width, height: 1100 } : { ...PHONE, width };
+      const page = await newPage(view);
+      try {
+        await page.goto(base + route, { waitUntil: 'networkidle2' });
+        await sleep(route === '/' ? 1200 : 500);
+        const m = await probeChrome(page);
+        const parts = await page.evaluate(() => { const hdr = document.querySelector('.tc-hdr'); const p = hdr.getBoundingClientRect(); return [...hdr.querySelectorAll('a, button')].filter((e) => e.getBoundingClientRect().width > 0).map((e) => { const r = e.getBoundingClientRect(); return { what: (e.getAttribute('aria-label') || e.textContent || 'logo').trim().slice(0, 18), l: r.left, r: r.right, t: r.top, b: r.bottom, outside: r.left < p.left - 0.5 || r.right > p.right + 0.5 }; }); });
+        const where = `${route} at ${width} px`;
+        assert(m.side === null && m.sideW === '0px', `${where}: a sidebar is drawn`);
+        assert(m.dock || (route === '/my-project' && width < 720), `${where}: the dock is not there`);
+        assert(m.headers === 1 && m.pill[3] === 54, `${where}: headers ${m.headers}, pill ${JSON.stringify(m.pill)}`);
+        for (let i = 0; i < parts.length; i += 1) {
+          assert(!parts[i].outside, `${where}: ${parts[i].what} leaves the pill`);
+          assert(parts[i].b - parts[i].t >= 43.5, `${where}: ${parts[i].what} is shorter than 44 px`);
+          for (let j = i + 1; j < parts.length; j += 1) assert(!(parts[i].l < parts[j].r - 0.5 && parts[j].l < parts[i].r - 0.5), `${where}: ${parts[i].what} overlaps ${parts[j].what}`);
+        }
+        const names = parts.map((x) => x.what);
+        assert(names.includes('Start a project'), `${where}: no call to action: ${names}`);
+        if (route === '/') assert(names.includes('Open menu') && !names.some((n) => /^Account|^Sign in/.test(n)), `${where}: the landing page's phone pill: ${names}`);
+        else assert(!names.includes('Open menu'), `${where}: only the landing page has the Menu button: ${names}`);
+        if (route !== '/') assert(names.some((n) => /^Account|^Sign in/.test(n)), `${where}: no account button: ${names}`);
+        if (route === '/materials') assert(names.some((n) => /^Cart/.test(n)) && !names.includes('Saved'), `${where}: the shop's pill: ${names}`);
+        assert(m.sideways <= 0, `${where}: sideways scroll ${m.sideways}px`);
+        noProblems(page, where);
+      } finally {
+        await page.close();
+      }
+    }
+  }
+});
+
+await test('chrome: /materials: Saved and Cart are in the pill (only there), mirror the export\'s own counts, forward their clicks to the originals, and no node of the export is moved', async () => {
+  const page = await newPage();
+  try {
+    await page.goto(base + '/materials', { waitUntil: 'networkidle2' });
+    await sleep(1500);
+    const read = () => page.evaluate(() => ({ shop: [...document.querySelectorAll('.tc-hdr__shop button')].map((b) => ({ label: b.getAttribute('aria-label'), n: b.querySelector('.tc-ib__n').getAttribute('data-n'), drawn: b.getBoundingClientRect().width > 0 })), exportHidden: getComputedStyle(document.querySelector('header[data-nav]')).display }));
+    const first = await read();
+    assert(first.shop.length === 2 && first.shop.every((b) => b.drawn) && first.shop[0].label === 'Saved' && /^Cart/.test(first.shop[1].label) && first.shop.every((b) => b.n === '0'), 'the two buttons at the start: ' + JSON.stringify(first.shop));
+    assert(first.exportHidden === 'none', 'the export\'s own header is drawn');
+    const ctaBefore = await page.evaluate(() => { const hdr = document.querySelector('.tc-hdr'); return { shop: hdr.querySelector('.tc-hdr__shop').getBoundingClientRect().right, cta: hdr.querySelector('.tc-cta').getBoundingClientRect().left }; });
+    assert(ctaBefore.shop <= ctaBefore.cta, 'Saved and Cart are not left of the call to action');
+    assert(await page.evaluate(() => { const hdr = document.querySelector('.tc-hdr'); return hdr.parentElement === document.documentElement && !hdr.closest('#dc-root'); }), 'the chrome sits inside the export');
+    // a click on ours is a click on the export's own link
+    await page.click('[data-tc-shop="cart"]');
+    await until(() => page.evaluate(() => location.hash === '#/cart'), 'the cart page', 4000);
+    await page.click('[data-tc-shop="saved"]');
+    await until(() => page.evaluate(() => location.hash === '#/saved'), 'the saved list', 4000);
+    // saving a material and adding one to the cart change the export's counts: ours follow
+    await page.evaluate(() => { location.hash = '#/shop'; });
+    await until(() => page.evaluate(() => [...document.querySelectorAll('button')].some((b) => b.getAttribute('aria-label') === 'Save for later')), 'a "Save for later" button', 8000);
+    await page.evaluate(() => [...document.querySelectorAll('button')].find((b) => b.getAttribute('aria-label') === 'Save for later').click());
+    await page.evaluate(() => [...document.querySelectorAll('button')].find((b) => /^Add 1 .* to cart$/.test(b.getAttribute('aria-label') || '')).click());
+    const after = await until(async () => { const r = await read(); return r.shop[0].n === '1' && r.shop[1].n === '1' ? r : null; }, 'the counts to follow the export', 6000);
+    assert(after.shop[0].label === 'Saved, 1' && /^Cart, 1 /.test(after.shop[1].label), 'the labels after: ' + JSON.stringify(after.shop));
+    const orig = await page.evaluate(() => { const n = document.querySelector('header[data-nav]'); return { saved: n.querySelector('a[href="#/saved"]').textContent.trim(), cart: n.querySelector('a[href="#/cart"]').textContent.trim() }; });
+    assert(/Saved\s*1/.test(orig.saved) && /Cart\s*1/.test(orig.cart), 'the export\'s own counts: ' + JSON.stringify(orig));
+    // only this page has them
+    const other = await newPage();
+    try {
+      await other.goto(base + '/design-studio', { waitUntil: 'networkidle2' });
+      assert(await other.evaluate(() => !document.querySelector('.tc-hdr__shop') || getComputedStyle(document.querySelector('.tc-hdr__shop')).display === 'none'), 'the studio has Saved and Cart in its pill');
+    } finally {
+      await other.close();
+    }
+    noProblems(page, 'the shop');
+  } finally {
+    await page.close();
+  }
+});
+
+await test('chrome: /my-project: the dark top bar is gone, the chrome\'s sidebar starts as a 64 px rail beside the dashboard\'s own rail, the content is not cramped (1280, 1024 px), and the dark-mode switch and the text-size button are still reachable', async () => {
+  for (const [width, minContent] of [[1440, 1050], [1280, 1050], [1024, 800]]) {
+    const page = await newPage({ width, height: 860 });
+    try {
+      await page.goto(base + '/my-project', { waitUntil: 'networkidle2' });
+      await sleep(1500);
+      const m = await probeChrome(page);
+      const d = await page.evaluate(() => {
+        const rail = document.querySelector('nav[data-screen-label="Side menu"]');
+        const r = rail.getBoundingClientRect();
+        const bar = document.querySelector('header[data-screen-label="Top bar"]');
+        return { rail: [r.left, r.top, r.width], bar: getComputedStyle(bar).display, content: innerWidth - r.right, sw: document.documentElement.scrollWidth - innerWidth };
+      });
+      const where = `/my-project at ${width} px`;
+      assert(m.side && m.side[2] === 64 && m.sideRail, `${where}: the chrome's sidebar should start as a rail: ${JSON.stringify(m.side)}`);
+      assert(d.bar === 'none' && m.headers === 1, `${where}: the top bar is drawn (${d.bar}, headers ${m.headers})`);
+      assert(Math.abs(d.rail[0] - 64) < 1 && Math.abs(d.rail[1] - 70) < 2.5, `${where}: the dashboard's rail is at ${JSON.stringify(d.rail)}, not beside the chrome's`);
+      assert(d.content >= minContent, `${where}: the content is ${Math.round(d.content)} px wide (wanted at least ${minContent})`);
+      assert(d.sw <= 0, `${where}: sideways scroll ${d.sw}px`);
+      if (width === 1280) {
+        const sw = await page.evaluate(() => { const b = document.querySelector('nav[data-screen-label="Side menu"] [role="switch"]'); const r = b.getBoundingClientRect(); return { checked: b.getAttribute('aria-checked'), w: r.width, h: r.height, bg: getComputedStyle(document.documentElement).getPropertyValue('--bg') + '|' + getComputedStyle(document.querySelector('[data-dash]') || document.body).backgroundColor }; });
+        assert(sw.checked === 'false' && sw.w >= 44 && sw.h >= 44, 'the dark-mode switch: ' + JSON.stringify(sw));
+        await page.click('nav[data-screen-label="Side menu"] [role="switch"]');
+        await sleep(900);
+        assert(await page.evaluate(() => document.querySelector('nav[data-screen-label="Side menu"] [role="switch"]').getAttribute('aria-checked')) === 'true', 'the dark-mode switch did not switch');
+        await page.click('nav[data-screen-label="Side menu"] [aria-haspopup="menu"]');
+        await until(() => page.evaluate(() => !!document.querySelector('[role="menu"][aria-label="My account"]')), 'the text-size menu', 4000);
+        assert(await page.evaluate(() => /Text size/.test(document.querySelector('[role="menu"][aria-label="My account"]').innerText)), 'the menu has no text-size choice');
+        await page.mouse.click(700, 500); // the menu's own backdrop closes it
+        await until(() => page.evaluate(() => !document.querySelector('[role="menu"][aria-label="My account"]')), 'the menu to close', 4000);
+        // expanding the chrome's sidebar: the dashboard's rail follows it and the page looks at its width again
+        await page.click('.tc-side__toggle');
+        await sleep(900);
+        const wide = await page.evaluate(() => { const r = document.querySelector('nav[data-screen-label="Side menu"]').getBoundingClientRect(); const s = document.querySelector('.tc-side').getBoundingClientRect(); return { railLeft: r.left, sideW: s.width, content: innerWidth - r.right }; });
+        assert(wide.sideW === 260 && Math.abs(wide.railLeft - 260) < 1 && wide.content > 700, 'with the chrome\'s sidebar open: ' + JSON.stringify(wide));
+      }
+      noProblems(page, where);
+    } finally {
+      await page.close();
+    }
+  }
+});
+
+await test('chrome: /design-studio: the studio sits under the pill and right of the sidebar (open or collapsed), the chrome steps aside when the studio goes full screen, and a pointer over the photo still maps to the right place in it', async () => {
+  const open = await startStack({ port: 0, bootMs: 300 });
+  const page = await newPage(undefined, open);
+  try {
+    await page.goto(open.base + '/design-studio', { waitUntil: 'networkidle2' });
+    await until(() => page.evaluate(() => /Add a room photo/.test(document.body.innerText)), 'the studio', 15000);
+    // the studio's loader stays for at least two cycles (site/brand/loader.html) and covers the page until then: a pointer test waits for it to leave
+    await until(() => page.evaluate(() => { const l = document.getElementById('tc-loader'); return !l || getComputedStyle(l).display === 'none'; }), 'the loader to leave the studio', 20000);
+    const place = () => page.evaluate(() => { const s = document.querySelector('swatchroom-app'); const r = s.getBoundingClientRect(); const st = s.querySelector('.sr-studio').getBoundingClientRect(); return { left: r.left, top: r.top, bottom: st.bottom, swr: s.style.getPropertyValue('--swr-top'), h: innerHeight }; });
+    let p = await place();
+    assert(p.left === 260 && Math.abs(p.top - 70) < 1.5 && p.swr === '70px' && Math.abs(p.bottom - p.h) < 1.5, 'the studio at 1440 with the sidebar open: ' + JSON.stringify(p));
+    // a photo
+    const file = path.join(os.tmpdir(), `terucon-chrome-${Date.now()}.jpg`);
+    fs.writeFileSync(file, await makeJpeg(page, 1200, 800));
+    try {
+      await (await page.$('input[data-input="photo"]')).uploadFile(file);
+      await until(() => page.evaluate(() => /Original photo/.test(document.body.innerText)), 'the photo in the studio', 30000);
+      await sleep(600);
+      const probe = async (label) => {
+        const pts = [[0.25, 0.3], [0.5, 0.5], [0.8, 0.7]];
+        for (const [fx, fy] of pts) {
+          const g = await page.evaluate(() => { const st = document.querySelector('swatchroom-app').studio.stage; const img = st.element.querySelector('img'); const r = img.getBoundingClientRect(); return [r.left, r.top, r.width, r.height]; });
+          const x = g[0] + g[2] * fx, y = g[1] + g[3] * fy;
+          await page.mouse.move(x, y);
+          const got = await page.evaluate((cx, cy) => {
+            const st = document.querySelector('swatchroom-app').studio.stage;
+            const top = document.elementFromPoint(cx, cy);
+            const p = st.pointFromEvent({ clientX: cx, clientY: cy });
+            return { fx: p[0], fy: p[1], inStage: !!top && st.element.contains(top) };
+          }, x, y);
+          assert(got.inStage, `${label}: something other than the studio's stage is at (${Math.round(x)}, ${Math.round(y)})`);
+          assert(Math.abs(got.fx - fx) < 0.01 && Math.abs(got.fy - fy) < 0.01, `${label}: the stage maps (${fx}, ${fy}) of the photo to (${got.fx.toFixed(3)}, ${got.fy.toFixed(3)})`);
+        }
+      };
+      await probe('sidebar open');
+      await page.click('.tc-side__toggle');
+      await sleep(600);
+      p = await place();
+      assert(p.left === 64, 'the studio did not follow the rail: ' + JSON.stringify(p));
+      await probe('sidebar collapsed');
+    } finally {
+      fs.rmSync(file, { force: true });
+    }
+    // full screen: the chrome steps aside, like the dock
+    await page.evaluate(() => document.documentElement.classList.add('swr-immersive'));
+    const hidden = await page.evaluate(() => ({ hdr: getComputedStyle(document.querySelector('.tc-hdr')).display, side: getComputedStyle(document.querySelector('.tc-side')).display, v: getComputedStyle(document.documentElement).getPropertyValue('--tc-hdr-h').trim() }));
+    assert(hidden.hdr === 'none' && hidden.side === 'none' && hidden.v === '0px', 'the chrome stayed during full screen: ' + JSON.stringify(hidden));
+    await page.evaluate(() => document.documentElement.classList.remove('swr-immersive'));
+    assert(await page.evaluate(() => getComputedStyle(document.querySelector('.tc-hdr')).display !== 'none'), 'the chrome did not come back');
+    // on a phone: the pill above the studio, the dock below
+    await page.setViewport(PHONE);
+    await page.goto(open.base + '/design-studio', { waitUntil: 'networkidle2' });
+    await until(() => page.evaluate(() => /Add a room photo/.test(document.body.innerText)), 'the studio on a phone', 15000);
+    p = await place();
+    assert(p.left === 0 && Math.abs(p.top - 64) < 2 && p.swr === '64px', 'the studio on a phone: ' + JSON.stringify(p));
+  } finally {
+    await page.close();
+    await open.stop();
+  }
+});
+// ==== chrome (end) ====
+
+// ==== terubot widget (begin) ====
+// TeruBot, the one assistant of the site (site/brand/terubot.{js,css}; how it works: site/brand/terubot.md). The server it talks to is not
+// part of these tests: /api/terubot/chat and /api/terubot/status are answered by the stubs below (puppeteer request interception).
+// A stubbed 4xx/5xx is not a problem of the page, so the checks below leave /api/terubot/ out of page.problems.
+const TB_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/q842iQAAAABJRU5ErkJggg==', 'base64');
+const tbState = (over = {}) => ({ calls: [], chat: null, status: { aiOn: true, model: 'gemini-test', signedIn: true }, statusDown: false, ...over });
+const tbAnswer = (reply, extra = {}) => ({ json: { aiOn: true, reply, cards: [], actions: [], model: 'gemini-test', ...extra } });
+const tbProblems = (page) => page.problems.filter((p) => !/\/api\/terubot\/|\/assets\/tb-/.test(p));
+/** A signed-in page with the TeruBot endpoints stubbed by `st` (st.chat(body, n) -> {status?, json}, or a promise of one; st.status; st.statusDown). */
+const tbPage = async (viewport, st, { speech = null } = {}) => {
+  const page = await newPage(viewport);
+  if (speech === 'none') await page.evaluateOnNewDocument(() => { delete window.SpeechRecognition; delete window.webkitSpeechRecognition; });
+  if (speech === 'fake') {
+    await page.evaluateOnNewDocument(() => {
+      window.__heard = 'show me terracotta';
+      window.SpeechRecognition = class { start() { this.onstart && this.onstart(); setTimeout(() => { this.onresult({ resultIndex: 0, results: [Object.assign([{ transcript: window.__heard }], { isFinal: true })] }); this.onend(); }, 50); } stop() {} abort() {} };
+    });
+  }
+  await page.setRequestInterception(true);
+  page.on('request', (req) => {
+    const u = new URL(req.url());
+    if (u.pathname === '/api/terubot/chat' && req.method() === 'POST') {
+      let body = null;
+      try { body = JSON.parse(req.postData() || 'null'); } catch { /* stays null */ }
+      st.calls.push(body);
+      Promise.resolve(st.chat ? st.chat(body, st.calls.length) : tbAnswer('Hello.')).then((x) => (x.abort ? req.abort('failed') : req.respond({ status: x.status || 200, contentType: 'application/json', headers: x.headers || {}, body: JSON.stringify(x.json ?? {}) })));
+    } else if (u.pathname === '/api/terubot/status') {
+      if (st.statusDown) req.abort('failed'); else req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify(st.status) });
+    } else if (/^\/assets\/tb-/.test(u.pathname)) { // the card pictures the stubs name: built-site assets look like /assets/<name>-<hash>.webp
+      if (/404/.test(u.pathname)) req.respond({ status: 404, body: 'no' }); else req.respond({ status: 200, contentType: 'image/png', body: TB_PNG });
+    } else req.continue();
+  });
+  return page;
+};
+const tbGo = async (page, route) => {
+  await page.goto(base + route, { waitUntil: 'domcontentloaded' });
+  await until(() => page.evaluate(() => !!window.TeruBot && !!document.querySelector('.tb-launch')), `TeruBot on ${route}`, 15000);
+};
+/** The shop answers the "terucon:shop" event once its catalogue is loaded: poll with a harmless probe. */
+const tbShopReady = (page) => until(() => page.evaluate(() => { const d = { op: 'saved_remove', id: 'no-such-item', handled: false }; window.dispatchEvent(new CustomEvent('terucon:shop', { detail: d })); return d.handled; }), 'the shop to answer', 20000);
+const tbOpen = async (page) => { await page.evaluate(() => window.TeruBot.open()); await until(() => page.evaluate(() => { const p = document.getElementById('terubot-panel'); return !!p && !p.hidden; }), 'the panel to open'); };
+const tbSend = async (page, text) => { await page.type('.tb-input', text); await page.keyboard.press('Enter'); };
+const tbBotTexts = (page) => page.evaluate(() => [...document.querySelectorAll('.tb-msg--bot .tb-text')].map((n) => n.textContent));
+const tbNotes = (page) => page.evaluate(() => [...document.querySelectorAll('.tb-note .tb-note__text')].map((n) => n.textContent));
+const tbWaitBot = (page, n) => until(async () => (await page.evaluate(() => document.querySelectorAll('.tb-msg--bot:not([data-greeting])').length)) >= n && !(await page.$('.tb-typing')), `bot message ${n}`, 8000);
+const TB_CART_KEY = 'terucon.store.v1.cart';
+
+await test('terubot: one "Ask TeruBot" launcher on every page, nothing built until it opens; it opens, closes with the button and with Escape, and gives the focus back', async () => {
+  const st = tbState();
+  const page = await tbPage(null, st);
+  for (const route of ['/', '/materials', '/design-studio', '/my-project', '/inspiration', '/finder', '/account']) {
+    await tbGo(page, route);
+    const got = await page.evaluate(() => ({ launchers: document.querySelectorAll('.tb-launch').length, label: document.querySelector('.tb-launch').textContent.trim(), panel: !!document.getElementById('terubot-panel'), api: Object.keys(window.TeruBot).sort().join() }));
+    assert(got.launchers === 1 && got.label === 'Ask TeruBot', `${route}: ${JSON.stringify(got)}`);
+    assert(!got.panel, `${route}: the panel was built before anyone opened it`);
+    assert(got.api === 'ask,close,isOpen,open', `${route}: window.TeruBot is ${got.api}`);
+  }
+  assert(st.calls.length === 0, 'the page load alone talked to the chat endpoint');
+  await tbGo(page, '/finder');
+  await page.click('.tb-launch');
+  await until(() => page.evaluate(() => { const p = document.getElementById('terubot-panel'); return p && !p.hidden; }), 'the panel to open');
+  await until(() => page.evaluate(() => document.querySelector('.tb-log').getAttribute('aria-live') === 'polite'), 'the live region to settle');
+  const open = await page.evaluate(() => { const p = document.getElementById('terubot-panel'); return { role: p.getAttribute('role'), name: document.getElementById('terubot-title').textContent, live: document.querySelector('.tb-log').getAttribute('aria-live'), logRole: document.querySelector('.tb-log').getAttribute('role'), expanded: document.querySelector('.tb-launch').getAttribute('aria-expanded'), focusIn: p.contains(document.activeElement), launcherShown: getComputedStyle(document.querySelector('.tb-launch')).display !== 'none', chips: [...document.querySelectorAll('.tb-chip')].map((c) => c.textContent) }; });
+  assert(open.role === 'dialog' && open.name === 'TeruBot' && open.logRole === 'log' && open.live === 'polite' && open.expanded === 'true' && open.focusIn, 'the open panel: ' + JSON.stringify(open));
+  assert(!open.launcherShown, 'the launcher stays on screen under the open panel');
+  assert(JSON.stringify(open.chips) === JSON.stringify(['Find a material', 'Try the Design Studio with my photo', 'Start a project']), 'the suggestions: ' + open.chips);
+  await page.keyboard.press('Escape');
+  await until(() => page.evaluate(() => document.getElementById('terubot-panel').hidden), 'Escape to close the panel');
+  assert(await page.evaluate(() => document.activeElement === document.querySelector('.tb-launch')), 'the focus did not return to the launcher');
+  await page.click('.tb-launch');
+  await until(() => page.evaluate(() => !document.getElementById('terubot-panel').hidden), 'a second open');
+  await page.click('[aria-label="Close TeruBot"]');
+  await until(() => page.evaluate(() => document.getElementById('terubot-panel').hidden), 'the close button');
+  assert(await page.evaluate(() => document.activeElement === document.querySelector('.tb-launch')), 'the focus did not return after the close button');
+  noProblems(page, 'TeruBot opening and closing');
+  await page.close();
+});
+
+await test('terubot: a message goes out with the page context and nothing else; the reply and the cards are shown as text, never as HTML; Enter sends and Shift+Enter makes a new line', async () => {
+  const st = tbState({
+    chat: () => tbAnswer('Two options.\n<img src=x onerror="window.__pwned=1"><script>window.__pwned=2</script>', { cards: [
+      { kind: 'material', id: 'superbond-fr-metallic--acp-bronze-4-1220x2440', pid: 'superbond-fr-metallic', vid: 'superbond-fr-metallic--acp-bronze-4-1220x2440', fid: 'acp-bronze', variant: 'Brushed Bronze · 4 mm', name: '<b>Bronze</b> ACP', price: '₹2,050 / sq ft', image: '/assets/tb-bronze-abc123.webp', href: '/materials#/p/superbond-fr-metallic?v=superbond-fr-metallic--acp-bronze-4-1220x2440' },
+      { kind: 'material', id: 'no-picture--a-1x1', pid: 'no-picture', vid: 'no-picture--a-1x1', fid: 'a', variant: '', name: 'Picture is missing', price: '', image: '/assets/tb-missing-404.webp', href: '/materials#/p/no-picture?v=no-picture--a-1x1' },
+      { kind: 'material', id: 'fixing--b-1x1', pid: 'fixing', vid: 'fixing--b-1x1', fid: 'b', variant: '', name: 'Fixing without a photo', price: '', image: '', href: '/materials#/p/fixing?v=fixing--b-1x1' },
+      { kind: 'material', id: 'evil', name: 'Elsewhere', price: '', image: 'https://evil.example/x.jpg', href: 'https://evil.example/' },
+      { kind: 'banner', id: 'x', name: 'Not a material', href: '/finder' },
+    ] }),
+  });
+  const page = await tbPage(null, st);
+  await tbGo(page, '/materials');
+  await page.evaluate((k) => { localStorage.setItem(k, JSON.stringify([{ vid: 'superbond-fr-metallic--acp-bronze-4-1220x2440', qty: 2 }])); localStorage.setItem('terucon.store.v1.saved', JSON.stringify([{ pid: 'terracotta-x', vid: 'terracotta-x--a-1x1' }])); }, TB_CART_KEY);
+  await tbOpen(page);
+  await page.type('.tb-input', 'a');
+  await page.keyboard.down('Shift'); await page.keyboard.press('Enter'); await page.keyboard.up('Shift');
+  await page.type('.tb-input', 'b');
+  assert(st.calls.length === 0, 'Shift+Enter sent the message');
+  await page.keyboard.press('Enter');
+  await tbWaitBot(page, 1);
+  const call = st.calls[0];
+  assert(JSON.stringify(Object.keys(call).sort()) === '["context","messages"]', 'the request has more than messages and context: ' + Object.keys(call));
+  assert(JSON.stringify(Object.keys(call.context).sort()) === '["cart","path","saved","title","viewport"]', 'the context has more than the five fields: ' + Object.keys(call.context));
+  assert(call.context.path === '/materials' && call.context.viewport === 'desktop' && /Materials/.test(call.context.title), 'the context: ' + JSON.stringify(call.context));
+  assert(JSON.stringify(call.context.cart) === '[{"id":"superbond-fr-metallic--acp-bronze-4-1220x2440","qty":2}]' && JSON.stringify(call.context.saved) === '["terracotta-x--a-1x1"]', 'cart and saved as the shop keeps them: ' + JSON.stringify(call.context));
+  assert(JSON.stringify(call.messages) === '[{"role":"user","text":"a\\nb"}]', 'the messages: ' + JSON.stringify(call.messages));
+  const shown = await page.evaluate(() => ({
+    reply: document.querySelector('.tb-msg--bot:not([data-greeting]) .tb-text').textContent,
+    imgs: [...document.querySelectorAll('.tb-log img')].map((i) => i.getAttribute('src')),
+    scripts: document.querySelectorAll('.tb-log script').length,
+    pwned: window.__pwned,
+    cards: [...document.querySelectorAll('.tb-card')].map((c) => ({ name: c.querySelector('.tb-card__name').textContent, variant: c.querySelector('.tb-card__variant')?.textContent || '', price: c.querySelector('.tb-card__price')?.textContent || '', href: c.getAttribute('href'), bold: c.querySelectorAll('b').length })),
+    user: document.querySelector('.tb-bubble').textContent,
+  }));
+  assert(/<img src=x onerror="window.__pwned=1"><script>/.test(shown.reply) && shown.pwned === undefined && shown.scripts === 0, 'the reply was treated as HTML: ' + JSON.stringify(shown));
+  assert(shown.user === 'a\nb', 'the typed text: ' + JSON.stringify(shown.user));
+  assert(shown.cards.length === 3 && shown.cards[0].name === '<b>Bronze</b> ACP' && shown.cards[0].bold === 0 && shown.cards[0].variant === 'Brushed Bronze · 4 mm' && shown.cards[0].price === '₹2,050 / sq ft' && shown.cards[0].href === '/materials#/p/superbond-fr-metallic?v=superbond-fr-metallic--acp-bronze-4-1220x2440', 'the cards: ' + JSON.stringify(shown.cards));
+  assert(shown.imgs.length === 2 && shown.imgs[0] === '/assets/tb-bronze-abc123.webp', 'images: ' + shown.imgs + ' (three cards kept, one without a picture; the one from another site and the unknown kind were dropped)');
+  await until(() => page.evaluate(() => document.querySelectorAll('.tb-card__img--none').length === 2), 'the card without a picture and the card whose picture is missing to show a plain tile');
+  assert(await page.evaluate(() => document.querySelector('.tb-chips').hidden), 'the suggestions should go once the person has written');
+  noProblems({ problems: tbProblems(page) }, 'a TeruBot answer');
+  await page.close();
+});
+
+await test('terubot: actions: navigate, open_studio and prefill_enquiry leave a "Done:" line and go; the conversation is still open on the next page; addresses that are not paths of this site are ignored', async () => {
+  const st = tbState();
+  const page = await tbPage(null, st);
+  await tbGo(page, '/finder');
+  // refused: another site, protocol-relative, a script, the API, a backslash trick, an unknown action
+  st.chat = () => tbAnswer('Going nowhere.', { actions: [{ type: 'navigate', to: 'https://evil.example/' }, { type: 'navigate', to: '//evil.example/x' }, { type: 'navigate', to: 'javascript:alert(1)' }, { type: 'navigate', to: '/api/auth/me' }, { type: 'navigate', to: '/\\evil.example' }, { type: 'run_script', code: 'x' }] });
+  await tbOpen(page);
+  await tbSend(page, 'take me somewhere');
+  await tbWaitBot(page, 1);
+  await sleep(500);
+  assert(new URL(page.url()).pathname === '/finder', 'the page left for ' + page.url());
+  assert((await tbNotes(page)).length === 0, 'a refused action left a "Done:" line: ' + (await tbNotes(page)));
+  // navigate
+  st.chat = () => tbAnswer('Opening the shop for you.', { actions: [{ type: 'navigate', to: '/materials' }] });
+  const nav = page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+  await tbSend(page, 'open the shop');
+  await nav;
+  await until(() => page.evaluate(() => !!document.getElementById('terubot-panel') && !document.getElementById('terubot-panel').hidden), 'the conversation to be open on the next page', 15000);
+  assert(new URL(page.url()).pathname === '/materials', 'navigate went to ' + page.url());
+  const kept = await page.evaluate(() => ({ users: [...document.querySelectorAll('.tb-bubble')].map((n) => n.textContent), notes: [...document.querySelectorAll('.tb-note__text')].map((n) => n.textContent) }));
+  assert(JSON.stringify(kept.users) === '["take me somewhere","open the shop"]' && kept.notes.length === 1 && /^Done: opening the shop/.test(kept.notes[0]), 'the conversation did not survive the page change: ' + JSON.stringify(kept));
+  // open_studio
+  st.chat = () => tbAnswer('The studio.', { actions: [{ type: 'open_studio' }] });
+  const nav2 = page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+  await tbSend(page, 'try it with my photo');
+  await nav2;
+  await until(() => new URL(page.url()).pathname === '/design-studio', 'the studio');
+  // prefill_enquiry: the form data waits in sessionStorage under a documented key; the project form is opened
+  await until(() => page.evaluate(() => !!document.querySelector('.tb-launch')), 'TeruBot in the studio', 15000);
+  st.chat = () => tbAnswer('I have filled in what you told me.', { actions: [{ type: 'prefill_enquiry', fields: { type: 'Façade / elevation', name: 'Meera Rao', company: '', phone: '9800000000', email: 'meera@example.com', city: 'Bengaluru', area: '1200 sq ft', timeline: '3–6 months', message: 'Reception and waiting area', evil: '<script>' } }] });
+  await tbOpen(page);
+  const nav3 = page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+  await tbSend(page, 'I want a clinic in Bengaluru');
+  await nav3;
+  await until(() => new URL(page.url()).pathname === '/start-project', 'the project form address');
+  // the Start a project page takes the hand-over (sessionStorage "terucon.enquiry.prefill") and fills its form with the allowed values only
+  const filled = await until(() => page.evaluate(() => {
+    const f = document.getElementById('form');
+    if (!f) return null;
+    const val = (n) => (f.elements[n] ? f.elements[n].value : null);
+    const radio = (n) => { const c = f.querySelector(`input[name="${n}"]:checked`); return c ? c.value : ''; };
+    const o = { type: radio('type'), timeline: radio('timeline'), name: val('name'), phone: val('phone'), email: val('email'), city: val('city'), message: val('message'), company: val('company'), area: val('area'), key: sessionStorage.getItem('terucon.enquiry.prefill'), note: !document.getElementById('prefill-note').hidden };
+    return o.name ? o : null;
+  }), 'the project form filled in from TeruBot', 8000);
+  assert(filled.type === 'Façade / elevation' && filled.timeline === '3–6 months' && filled.name === 'Meera Rao' && filled.phone === '9800000000' && filled.email === 'meera@example.com' && filled.city === 'Bengaluru' && filled.message === 'Reception and waiting area', 'the filled form: ' + JSON.stringify(filled));
+  // (company: empty, or the signed-in test account's own firm, which the page may add a moment later: that is the account's data, not TeruBot's)
+  assert((filled.company === '' || filled.company === 'Test Firm') && filled.area === '' && filled.key === null && filled.note === true, 'nothing invented, the hand-over used once, the "please check it" note shown: ' + JSON.stringify(filled));
+  // the chat does not sit on top of the form it has just filled in; it is one tap away and still has the conversation
+  assert(await page.evaluate(() => !!document.querySelector('.tb-launch') && !document.querySelector('.tb-root.is-open')), 'the chat panel should stay closed on the project form');
+  await page.evaluate(() => document.querySelector('.tb-launch').click());
+  await until(() => page.evaluate(() => !!document.querySelector('.tb-root.is-open') && /I want a clinic in Bengaluru/.test(document.querySelector('.tb-panel').innerText)), 'the conversation to be there when the chat is opened again', 5000);
+  await page.close();
+});
+
+await test('terubot: cart and saved list: on the shop the page itself changes (and Undo works); from another page the change is queued, said so in words, and applied when the shop opens', async () => {
+  const st = tbState();
+  const page = await tbPage(null, st);
+  await tbGo(page, '/materials');
+  await tbShopReady(page);
+  st.chat = () => tbAnswer('Adding it.', { actions: [{ type: 'cart_add', id: 'superbond-fr-metallic--acp-bronze-4-1220x2440', qty: 2 }, { type: 'saved_add', id: 'superbond-fr-metallic--acp-bronze-4-1220x2440', pid: 'superbond-fr-metallic' }, { type: 'cart_add', id: 'no-such-thing--x-1x1', qty: 1 }] });
+  await tbOpen(page);
+  await tbSend(page, 'add the bronze ACP');
+  await tbWaitBot(page, 1);
+  await until(async () => (await tbNotes(page)).length === 3, 'three lines for three actions');
+  const notes = await tbNotes(page);
+  assert(/^Done: added 2 .*FR Façade ACP, Metallic.* to your cart\.$/.test(notes[0]) && /^Done: .* is in your saved list\.$/.test(notes[1]) && /^I could not do that: .*could not find/.test(notes[2]), 'the lines: ' + JSON.stringify(notes));
+  const ls = await page.evaluate(() => ({ cart: JSON.parse(localStorage.getItem('terucon.store.v1.cart')), saved: JSON.parse(localStorage.getItem('terucon.store.v1.saved')) }));
+  assert(ls.cart.length === 1 && ls.cart[0].vid === 'superbond-fr-metallic--acp-bronze-4-1220x2440' && ls.cart[0].qty === 2 && ls.saved.length === 1 && ls.saved[0].pid === 'superbond-fr-metallic', 'what the shop stored: ' + JSON.stringify(ls));
+  // the shop's own header is hidden behind the site chrome, which mirrors its counts: the live React state shows in both
+  assert(await page.evaluate(() => { const own = document.querySelector('[data-nav]'); const mirror = document.querySelector('.tc-hdr__saved .tc-ib__n'); return !!own && /Saved\s*1\b/.test(own.textContent.replace(/\s+/g, ' ')) && !!mirror && mirror.getAttribute('data-n') === '1'; }), 'the shop\'s Saved count (its own header and the chrome\'s button) did not show the saved item (the live page state was not updated)');
+  await page.evaluate(() => document.querySelectorAll('.tb-note button')[0].click());
+  await until(async () => (await page.evaluate(() => JSON.parse(localStorage.getItem('terucon.store.v1.cart')).length)) === 0, 'Undo to empty the cart');
+  assert(/^Undone: 2 .* is out of your cart again/.test((await tbNotes(page))[0]), 'the Undo line: ' + (await tbNotes(page))[0]);
+  // from another page: queued
+  st.chat = () => tbAnswer('I will add it.', { cards: [{ kind: 'material', id: 'superbond-fr-metallic--acp-bronze-4-1220x2440', pid: 'superbond-fr-metallic', vid: 'superbond-fr-metallic--acp-bronze-4-1220x2440', fid: 'acp-bronze', variant: 'Brushed Bronze', name: 'FR Façade ACP', price: '₹', image: '', href: '/materials#/p/superbond-fr-metallic?v=superbond-fr-metallic--acp-bronze-4-1220x2440' }], actions: [{ type: 'cart_add', id: 'superbond-fr-metallic--acp-bronze-4-1220x2440', qty: 3 }, { type: 'saved_remove', id: 'superbond-fr-metallic--acp-bronze-4-1220x2440', pid: 'superbond-fr-metallic' }] });
+  await tbGo(page, '/finder');
+  await tbOpen(page);
+  await page.click('.tb-head .tb-textbtn'); // New chat: the lines of the shop part above are not under test here
+  await tbSend(page, 'put the bronze in my cart');
+  await until(async () => (await tbNotes(page)).length === 2, 'two lines for two queued changes');
+  const q = await tbNotes(page);
+  assert(q.every((t) => /^Not done yet: I will .* when you open the shop\. Nothing in your .* has changed so far\.$/.test(t)), 'a queued change was reported as done: ' + JSON.stringify(q));
+  assert(await page.evaluate(() => JSON.parse(localStorage.getItem('terucon.store.v1.cart')).length === 0 && JSON.parse(sessionStorage.getItem('terucon.terubot.pending')).length === 2), 'the cart changed from another page, or the queue is not there');
+  await page.evaluate(() => document.querySelectorAll('.tb-note button')[1].click()); // Undo the second one before the shop opens
+  await until(() => page.evaluate(() => JSON.parse(sessionStorage.getItem('terucon.terubot.pending')).length === 1), 'Undo to take it out of the queue');
+  const nav = page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => [...document.querySelectorAll('.tb-note a')].find((a) => /shop/i.test(a.textContent)).click());
+  await nav;
+  await tbShopReady(page);
+  await until(() => page.evaluate(() => JSON.parse(localStorage.getItem('terucon.store.v1.cart')).length === 1), 'the shop to apply the queue');
+  const applied = await page.evaluate(() => ({ cart: JSON.parse(localStorage.getItem('terucon.store.v1.cart')), pending: sessionStorage.getItem('terucon.terubot.pending') }));
+  assert(applied.cart[0].qty === 3 && applied.pending === null, 'applied: ' + JSON.stringify(applied));
+  await tbOpen(page);
+  const after = await tbNotes(page);
+  assert(after.some((t) => /^Done: added 3 /.test(t)) && !after.some((t) => /^Not done yet/.test(t)), 'the chat after the shop opened: ' + JSON.stringify(after));
+  // the card link of the server (/materials#/p/<pid>?v=<vid>) opens that product, and so does a bare /materials#<id>
+  await page.goto(base + '/materials#/p/superbond-fr-metallic?v=superbond-fr-metallic--acp-bronze-4-1220x2440', { waitUntil: 'domcontentloaded' });
+  await until(() => page.evaluate(() => /^FR Façade ACP, Metallic/.test(document.querySelector('h1')?.textContent || '')), 'the product page for the card link', 15000);
+  await page.goto(base + '/materials#acp-bronze', { waitUntil: 'domcontentloaded' });
+  await until(() => page.evaluate(() => /^FR Façade ACP, Metallic/.test(document.querySelector('h1')?.textContent || '')), 'the product page for a bare id', 15000);
+  noProblems({ problems: tbProblems(page) }, 'the shop and TeruBot');
+  await page.close();
+});
+
+await test('terubot: the honest states: AI off, a slowed-down visitor with the time to wait, a failed AI service with Try again, a server that cannot be reached, a refused message', async () => {
+  const st = tbState({ status: { aiOn: false, model: null, signedIn: true } });
+  const page = await tbPage(null, st);
+  await tbGo(page, '/finder');
+  await tbOpen(page);
+  await until(() => page.evaluate(() => !document.querySelector('.tb-notice').hidden), 'the AI-off notice');
+  assert(/not set up/.test(await page.evaluate(() => document.querySelector('.tb-notice__text').textContent)) && /AI is off/.test(await page.evaluate(() => document.querySelector('.tb-sub').textContent)), 'the AI-off state is not said in words');
+  st.chat = () => ({ json: { aiOn: false, reply: 'TeruBot\'s AI is not set up yet.', cards: [], actions: [] } });
+  await tbSend(page, 'hello');
+  await tbWaitBot(page, 1);
+  assert((await tbBotTexts(page)).includes('TeruBot\'s AI is not set up yet.'), 'the server\'s explanation is not shown');
+  // 429
+  st.chat = () => ({ status: 429, json: { error: 'slow down', retryAfterSec: 41 } });
+  await tbSend(page, 'again');
+  await until(() => page.evaluate(() => /41 seconds|40 seconds/.test(document.querySelector('.tb-notice__text').textContent)), 'the time to wait', 5000);
+  assert(await page.evaluate(() => document.querySelector('.tb-send').disabled), 'the send button is not held back while the person is slowed down');
+  assert((await tbBotTexts(page)).some((t) => /try again in (41|40) seconds/.test(t)), 'the answer does not say when to try again');
+  await page.close();
+  // 502 -> Try again; then it works
+  const st2 = tbState();
+  const page2 = await tbPage(null, st2);
+  await tbGo(page2, '/finder');
+  await tbOpen(page2);
+  st2.chat = () => ({ status: 502, json: { error: 'upstream' } });
+  await tbSend(page2, 'one');
+  await until(() => page2.$('.tb-msg--err .tb-textbtn'), 'Try again after a 502');
+  assert(/not answering/.test((await tbBotTexts(page2)).at(-1)), 'the 502 message: ' + (await tbBotTexts(page2)).at(-1));
+  st2.chat = () => tbAnswer('Back again.');
+  await page2.click('.tb-msg--err .tb-textbtn');
+  await until(async () => (await tbBotTexts(page2)).includes('Back again.'), 'the answer after Try again');
+  assert(st2.calls.length === 2 && st2.calls[1].messages.length === 1 && st2.calls[1].messages[0].text === 'one', 'Try again should send the same message once more, not a second copy: ' + JSON.stringify(st2.calls[1]));
+  assert(!(await page2.$('.tb-msg--err')), 'the failure message stayed after Try again');
+  // 400
+  st2.chat = () => ({ status: 400, json: { error: 'The message is empty.' } });
+  await tbSend(page2, 'two');
+  await until(async () => (await tbBotTexts(page2)).some((t) => /The message is empty\./.test(t)), 'the 400 text');
+  // the site's own guards answer in the nested shape, and without a sign-in matter
+  st2.chat = () => ({ status: 403, json: { error: { code: 403, status: 'PERMISSION_DENIED', message: 'Cross-site requests are not allowed.' } } });
+  await tbSend(page2, 'three');
+  await until(async () => (await tbBotTexts(page2)).some((t) => /^Cross-site requests are not allowed\.$/.test(t)), 'the nested error text');
+  assert(!(await page2.$('.tb-note a')), 'a 403 from a guard is not a sign-in matter');
+  // 429 with only the Retry-After header
+  st2.chat = () => ({ status: 429, headers: { 'Retry-After': '12' }, json: { error: 'busy' } });
+  await tbSend(page2, 'four');
+  await until(async () => (await tbBotTexts(page2)).some((t) => /try again in 12 seconds/.test(t)), 'the header\'s time to wait');
+  await page2.close();
+  // the server cannot be reached (status and chat)
+  const st3 = tbState({ statusDown: true, chat: () => ({ abort: true }) });
+  const page3 = await tbPage(null, st3);
+  await tbGo(page3, '/finder');
+  await tbOpen(page3);
+  await until(() => page3.evaluate(() => /can.t be reached/.test(document.querySelector('.tb-notice__text').textContent)), 'the unreachable notice');
+  await tbSend(page3, 'anyone there?');
+  await until(() => page3.$('.tb-msg--err .tb-textbtn'), 'Try again after the network failure');
+  assert(/can.t be reached/.test((await tbBotTexts(page3)).at(-1)), 'the unreachable message');
+  noProblems({ problems: tbProblems(page3) }, 'TeruBot with the server down');
+  await page3.close();
+});
+
+await test('terubot: the conversation survives a reload in the same tab; New chat clears it (and what was queued for the shop); the suggestions send what they say', async () => {
+  const st = tbState({ chat: (body) => tbAnswer('You said: ' + body.messages.at(-1).text, { actions: [{ type: 'cart_add', id: 'acp-bronze', qty: 1 }] }) });
+  const page = await tbPage(null, st);
+  await tbGo(page, '/finder');
+  await tbOpen(page);
+  await page.click('.tb-chip');
+  await tbWaitBot(page, 1);
+  assert(st.calls[0].messages[0].text === 'Find a material', 'the first suggestion sent ' + JSON.stringify(st.calls[0]));
+  await tbSend(page, 'second');
+  await tbWaitBot(page, 2);
+  assert(st.calls[1].messages.length === 3 && st.calls[1].messages[1].role === 'assistant', 'the history sent with the second message: ' + JSON.stringify(st.calls[1].messages));
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await until(() => page.evaluate(() => !!window.TeruBot), 'TeruBot after the reload');
+  assert(await page.evaluate(() => !document.getElementById('terubot-panel')), 'a reload opened the panel (only a trip TeruBot made itself does that)');
+  await tbOpen(page);
+  assert(JSON.stringify(await page.evaluate(() => [...document.querySelectorAll('.tb-bubble')].map((n) => n.textContent))) === '["Find a material","second"]', 'the conversation after the reload');
+  assert(await page.evaluate(() => JSON.parse(sessionStorage.getItem('terucon.terubot.pending')).length) === 2, 'nothing queued');
+  await page.click('.tb-head .tb-textbtn');
+  await until(() => page.evaluate(() => document.querySelectorAll('.tb-bubble').length === 0 && !!document.querySelector('[data-greeting]')), 'New chat to clear the list');
+  assert(await page.evaluate(() => sessionStorage.getItem('terucon.terubot.pending') === null && !document.querySelector('.tb-chips').hidden), 'New chat should drop what was queued for the shop and bring the suggestions back');
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await until(() => page.evaluate(() => !!window.TeruBot), 'TeruBot');
+  await tbOpen(page);
+  assert(await page.evaluate(() => document.querySelectorAll('.tb-bubble').length === 0), 'the cleared chat came back after a reload');
+  await page.close();
+});
+
+await test('terubot: only ONE assistant on the shop and on My project; the old mic buttons and "Ask Saathi" buttons open TeruBot', async () => {
+  const st = tbState();
+  const page = await tbPage(null, st);
+  await tbGo(page, '/materials');
+  await tbShopReady(page);
+  const shop = await page.evaluate(() => ({ old: document.querySelectorAll('[aria-label="Ask the Terucon assistant"], [role="dialog"][aria-label="Terucon assistant"]').length, text: /Ask Terucon|Demo · on device/.test(document.body.innerText), launchers: [...document.querySelectorAll('.tb-launch')].filter((b) => getComputedStyle(b).display !== 'none').length }));
+  assert(shop.old === 0 && !shop.text && shop.launchers === 1, 'the shop: ' + JSON.stringify(shop));
+  await page.evaluate(() => [...document.querySelectorAll('button')].find((b) => b.getAttribute('aria-label') === 'Ask by voice').click());
+  await until(() => page.evaluate(() => window.TeruBot.isOpen()), 'the search bar\'s mic button to open TeruBot');
+  assert(await page.evaluate(() => document.querySelectorAll('[role="dialog"]').length === 1 && !document.querySelector('[aria-label="Terucon assistant"]')), 'the shop shows a second dialog beside TeruBot');
+  await page.keyboard.press('Escape');
+  // the search overlay's own "Ask by voice" button
+  await page.evaluate(() => [...document.querySelectorAll('button')].find((b) => /^Search (sheets|materials)/.test(b.textContent.trim()))?.click());
+  await until(() => page.evaluate(() => [...document.querySelectorAll('button')].some((b) => /^Ask by voice$/.test(b.textContent.trim()))), 'the search overlay');
+  await page.evaluate(() => [...document.querySelectorAll('button')].find((b) => /^Ask by voice$/.test(b.textContent.trim())).click());
+  await until(() => page.evaluate(() => window.TeruBot.isOpen()), 'the search overlay\'s "Ask by voice" to open TeruBot');
+  await page.close();
+  // My project, on a laptop
+  const dash = await tbPage(null, st);
+  await tbGo(dash, '/my-project');
+  await sleep(1500);
+  for (const view of ['', 'add', 'help', 'quote', 'studio', 'decide']) {
+    await dash.evaluate((v) => { location.hash = '#/' + v; }, view);
+    await sleep(500);
+    const seen = await dash.evaluate(() => ({ saathi: /Saathi/i.test(document.body.innerText), aria: document.querySelectorAll('[aria-label*="Saathi"]').length, launchers: [...document.querySelectorAll('.tb-launch')].filter((b) => getComputedStyle(b).display !== 'none').length }));
+    assert(!seen.saathi && seen.aria === 0 && seen.launchers === 1, `My project #/${view}: ${JSON.stringify(seen)}`);
+  }
+  await dash.evaluate(() => { location.hash = '#/add'; });
+  await sleep(500);
+  await dash.evaluate(() => [...document.querySelectorAll('button, label')].find((b) => /Tell TeruBot about it/.test(b.textContent)).click());
+  await until(() => dash.evaluate(() => window.TeruBot.isOpen()), 'the "Tell TeruBot about it" button to open TeruBot');
+  assert(await dash.evaluate(() => !document.querySelector('aside[aria-label*="Saathi"]')), 'a Saathi tray is in the page');
+  await dash.close();
+  // My project, on a phone: the page's own bottom bar has the one launcher
+  const phone = await tbPage(PHONE, st);
+  await tbGo(phone, '/my-project');
+  await sleep(1500);
+  const bar = await phone.evaluate(() => ({ floating: getComputedStyle(document.querySelector('.tb-launch')).display, buttons: document.querySelectorAll('nav button[aria-label="Ask TeruBot"]').length, saathi: /Saathi/i.test(document.body.innerText) }));
+  assert(bar.floating === 'none' && bar.buttons === 1 && !bar.saathi, 'My project at 390 px: ' + JSON.stringify(bar));
+  await phone.evaluate(() => document.querySelector('nav button[aria-label="Ask TeruBot"]').click());
+  await until(() => phone.evaluate(() => window.TeruBot.isOpen()), 'the bottom bar\'s centre button to open TeruBot');
+  await phone.close();
+});
+
+await test('terubot: a phone gets a bottom sheet above the dock, a launcher that clears the dock and the shop\'s cart bar, and every control is at least 44 px', async () => {
+  const st = tbState();
+  const page = await tbPage(PHONE, st);
+  await tbGo(page, '/finder');
+  const geo = () => page.evaluate(() => { const r = (s) => { const e = document.querySelector(s); if (!e) return null; const b = e.getBoundingClientRect(); return { top: b.top, bottom: b.bottom, left: b.left, right: b.right, w: b.width, h: b.height }; }; return { vh: innerHeight, vw: innerWidth, dock: r('.tc-dock'), launch: r('.tb-launch'), panel: r('#terubot-panel') }; });
+  const g = await geo();
+  assert(g.dock && g.launch.bottom <= g.dock.top - 8 && g.launch.right <= g.vw, 'the launcher is not clear of the dock: ' + JSON.stringify(g));
+  await tbOpen(page);
+  await sleep(500); // the sheet slides in
+  const o = await geo();
+  assert(Math.abs(o.panel.bottom - o.dock.top) <= 1 && o.panel.left === 0 && o.panel.w === o.vw && o.panel.h <= o.vh * 0.81, 'the sheet is not a bottom sheet above the dock: ' + JSON.stringify(o));
+  const small = await page.evaluate(() => [...document.querySelectorAll('#terubot-panel button, #terubot-panel textarea, #terubot-panel a')].filter((e) => e.offsetParent !== null).map((e) => [e.className || e.tagName, Math.round(e.getBoundingClientRect().width), Math.round(e.getBoundingClientRect().height)]).filter(([, w, h]) => w < 44 || h < 44));
+  assert(small.length === 0, 'controls under 44 px: ' + JSON.stringify(small));
+  assert(await page.evaluate(() => getComputedStyle(document.querySelector('.tb-input')).fontSize === '16px'), 'the box must be 16 px or iOS zooms the page');
+  assert(await page.evaluate(() => document.getElementById('terubot-panel').getAttribute('aria-modal') === 'true' && !document.querySelector('.tb-scrim').hidden), 'a phone sheet is modal with a scrim');
+  await page.click('.tb-scrim', { offset: { x: 20, y: 20 } });
+  await until(() => page.evaluate(() => document.getElementById('terubot-panel').hidden), 'a tap on the scrim to close the sheet');
+  // the shop on a phone: above the cart bar and the dock
+  await tbGo(page, '/materials');
+  await tbShopReady(page);
+  await page.evaluate(() => { location.hash = '#/shop'; });
+  await sleep(900);
+  const shop = await page.evaluate(() => ({ lift: document.documentElement.style.getPropertyValue('--tb-bottom'), vh: innerHeight, launch: document.querySelector('.tb-launch').getBoundingClientRect().bottom, dock: document.querySelector('.tc-dock').getBoundingClientRect().top }));
+  assert(shop.lift === '88px' && shop.launch <= shop.dock - 88 + 1, 'the shop list on a phone: ' + JSON.stringify(shop));
+  noProblems({ problems: tbProblems(page) }, 'TeruBot on a phone');
+  await page.close();
+});
+
+await test('terubot: a laptop: the launcher and the panel sit at the bottom right at 1440 and 1280 px, clear of the shop\'s Cart and of every control of the studio (with a photo loaded)', async () => {
+  const st = tbState();
+  for (const width of [1440, 1280]) {
+    const page = await tbPage({ width, height: 800 }, st);
+    for (const route of ['/materials', '/design-studio']) {
+      if (route === '/design-studio') await page.evaluate(async (code) => { await fetch('/api/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ passcode: code }) }); }, PASSCODE); // the studio's own passcode
+      await tbGo(page, route);
+      if (route === '/design-studio') {
+        // the working view has its Share button, zoom control and status line along the bottom edge
+        const input = await until(() => page.$('input[type=file]'), 'the studio\'s photo box');
+        await input.uploadFile(path.join(root, 'media', 'p02-lobby.jpg'));
+        await until(() => page.evaluate(() => [...document.querySelectorAll('button')].some((b) => /^Share$/.test(b.textContent.trim()) && b.offsetParent !== null)), 'the studio\'s working view (its Share button)', 20000);
+      }
+      await sleep(600);
+      const r = await page.evaluate((everything) => {
+        // what is really under the launcher: hit-test a grid of points inside it (a menu that is clipped away does not count)
+        const l = document.querySelector('.tb-launch').getBoundingClientRect();
+        const found = new Set();
+        for (let ix = 0; ix <= 6; ix += 1) for (let iy = 0; iy <= 2; iy += 1) {
+          const x = l.left + 4 + ((l.width - 8) * ix) / 6, y = l.top + 4 + ((l.height - 8) * iy) / 2;
+          for (const e of document.elementsFromPoint(x, y)) {
+            if (e.closest('#terubot')) continue;
+            const c = e.closest('a, button, input, select, [role="button"]');
+            if (c) found.add((c.getAttribute('aria-label') || c.textContent).trim().slice(0, 30));
+          }
+        }
+        return { right: innerWidth - l.right, hit: [...found].filter((t) => everything || /^(Cart|Checkout|View cart|Compare|Menu)\b/i.test(t)) };
+      }, route === '/design-studio');
+      assert(r.right >= 12 && r.right <= 40, `${route} at ${width}: the launcher is not at the right edge: ${JSON.stringify(r)}`);
+      assert(r.hit.length === 0, `${route} at ${width}: the launcher covers ${r.hit.join(', ')}`);
+      await tbOpen(page);
+      const p = await page.evaluate(() => { const b = document.getElementById('terubot-panel').getBoundingClientRect(); const cart = [...document.querySelectorAll('a, button')].filter((e) => !e.closest('#terubot') && /^Cart\b/.test(e.textContent.trim()) && e.offsetParent !== null).map((e) => e.getBoundingClientRect()); return { w: b.width, top: b.top, bottom: innerHeight - b.bottom, cartHidden: cart.some((c) => c.right > b.left && c.left < b.right && c.bottom > b.top && c.top < b.bottom) }; });
+      assert(p.w >= 370 && p.w <= 390 && p.top >= 0 && p.bottom >= 12 && !p.cartHidden, `${route} at ${width}: the panel: ${JSON.stringify(p)}`);
+      await page.keyboard.press('Escape');
+    }
+    await page.close();
+  }
+});
+
+await test('terubot: keys typed in the panel never reach the page; Tab stays inside it; the studio\'s full-screen view hides it; reduced motion stills it', async () => {
+  const st = tbState();
+  const page = await tbPage(null, st);
+  await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+  await tbGo(page, '/materials');
+  await page.evaluate(() => { window.__keys = 0; window.addEventListener('keydown', () => { window.__keys += 1; }); });
+  await tbOpen(page);
+  await page.type('.tb-input', 'hello');
+  await page.keyboard.press('Escape');
+  assert(await page.evaluate(() => window.__keys) === 0, 'the page saw ' + (await page.evaluate(() => window.__keys)) + ' key presses typed inside TeruBot');
+  await tbOpen(page);
+  for (let i = 0; i < 12; i += 1) {
+    await page.keyboard.press('Tab');
+    assert(await page.evaluate(() => document.getElementById('terubot-panel').contains(document.activeElement)), `Tab ${i + 1} left the panel`);
+  }
+  for (let i = 0; i < 4; i += 1) {
+    await page.keyboard.down('Shift'); await page.keyboard.press('Tab'); await page.keyboard.up('Shift');
+    assert(await page.evaluate(() => document.getElementById('terubot-panel').contains(document.activeElement)), `Shift+Tab ${i + 1} left the panel`);
+  }
+  const still = await page.evaluate(() => ({ panel: getComputedStyle(document.getElementById('terubot-panel')).animationName, ring: getComputedStyle(document.querySelector('.tb-launch__mark'), '::after').animationName }));
+  assert(still.panel === 'none' && still.ring === 'none', 'reduced motion: ' + JSON.stringify(still));
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => document.documentElement.classList.add('swr-immersive'));
+  assert(await page.evaluate(() => getComputedStyle(document.querySelector('.tb-launch')).display === 'none' || getComputedStyle(document.getElementById('terubot')).display === 'none'), 'the launcher is shown while the studio works full screen');
+  await page.close();
+});
+
+await test('terubot: voice: the microphone button uses the browser\'s speech recognition and sends what was heard; it is hidden where there is none and where the page forbids the microphone', async () => {
+  const st = tbState({ chat: (body) => tbAnswer('Heard: ' + body.messages.at(-1).text) });
+  const page = await tbPage(null, st, { speech: 'fake' });
+  await tbGo(page, '/materials');
+  await tbOpen(page);
+  assert(await page.evaluate(() => !document.querySelector('[aria-label="Speak your message"]').hidden), 'no microphone button where speech recognition exists');
+  await page.click('[aria-label="Speak your message"]');
+  await tbWaitBot(page, 1);
+  assert((await tbBotTexts(page)).includes('Heard: show me terracotta'), 'what was heard was not sent: ' + (await tbBotTexts(page)));
+  await tbGo(page, '/design-studio');
+  await tbOpen(page);
+  assert(await page.evaluate(() => document.querySelector('.tb-roundbtn[aria-pressed]').hidden), 'the studio sends Permissions-Policy: microphone=(): the button must be hidden there');
+  await page.close();
+  const none = await tbPage(null, st, { speech: 'none' });
+  await tbGo(none, '/materials');
+  await tbOpen(none);
+  assert(await none.evaluate(() => document.querySelector('.tb-roundbtn[aria-pressed]').hidden), 'no microphone button should show where the browser has no speech recognition');
+  await none.close();
+});
+// ==== terubot widget (end) ====
+
+// ==== motion (begin) ====
+// The loader, its curtain, the landing hero's louvres and the one continuous loader on the way into the Design Studio
+// (site/brand/{loader.html,loader.css,transition.js,studio-entry.js}, site/patches/home.json "hero-curtain-*").
+// Every page here opens without sign-in (AUTH_REQUIRED=off); bootMs is how long the mock GPU services take to wake.
+{
+  const STUDIO = '/design-studio';
+  const MIN_MS = 650 + 2 * 2200; // the curtain closing + two cycles, from the click (site/brand/loader.html: CLOSE_MS, CYCLE_MS, MIN_CYCLES)
+  const CAP_MS = 10000;
+
+  // in every document: what is on screen at every frame (a row only when it changes), the frame times, and the moment the curtain starts
+  const MOTION_PROBE = () => {
+    const M = (window.__m = { s: [], f: [], last: '', exit: null, exitPerf: null, gone: null, iter: null, note: null, noteAt: null, ldexit: null, prev: null });
+    try { M.prev = JSON.parse(sessionStorage.getItem('__m_prev') || 'null'); sessionStorage.removeItem('__m_prev'); } catch (e) {}
+    addEventListener('pagehide', () => { try { sessionStorage.setItem('__m_prev', JSON.stringify(M.s.slice(-60))); } catch (e) {} });
+    addEventListener('tc-ld-exit', () => { M.ldexit = performance.now(); });
+    const vis = (el) => !!el && getComputedStyle(el).display !== 'none' && getComputedStyle(el).visibility !== 'hidden';
+    (function loop() {
+      requestAnimationFrame((ts) => {
+        M.f.push(ts);
+        const q = (x) => document.querySelector(x);
+        const ld = document.getElementById('tc-loader');
+        const cls = ld ? ld.className.replace(/tc-ld-/g, '') : '-';
+        if (!ld && M.exitPerf !== null && M.gone === null) M.gone = ts;
+        const st = [location.pathname, cls, !!q('.sr-studio, .sr-gate'), vis(q('.sc-placeholder[title="swatchroom-app"]')), vis(q('.swr-splash'))].join('|');
+        if (st !== M.last) {
+          M.last = st;
+          const now = Date.now();
+          if (ld && /(^| )out( |$)/.test(cls) && M.exit === null) {
+            M.exit = now;
+            M.exitPerf = ts;
+            try { M.iter = ld.querySelector('.tc-ld-mark').getAnimations()[0].effect.getComputedTiming().currentIteration; } catch (e) {}
+          }
+          if (ld && /(^| )noted( |$)/.test(cls) && M.note === null) { M.note = ld.querySelector('.tc-ld-status').textContent; M.noteAt = now; }
+          M.s.push([now, st]);
+        }
+        loop();
+      });
+    })();
+  };
+  const motionPage = async (stk, viewport, { reduce = false, throttle = 0, slow = false } = {}) => {
+    const context = await browser.createBrowserContext();
+    const p = await context.newPage();
+    const closePage = p.close.bind(p);
+    p.close = async () => { await closePage(); await context.close(); };
+    await p.setViewport(viewport);
+    if (reduce) await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+    if (throttle || slow) {
+      const cdp = await p.createCDPSession();
+      if (throttle) await cdp.send('Emulation.setCPUThrottlingRate', { rate: throttle });
+      // Slow-4G (1.6 Mbit/s, 150 ms), as in the speed pass: the page then takes longer than the loader's 700 ms "quick" limit
+      if (slow) { await cdp.send('Network.enable'); await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 150, downloadThroughput: (1.6 * 1024 * 1024) / 8, uploadThroughput: (750 * 1024) / 8 }); }
+    }
+    await p.evaluateOnNewDocument(MOTION_PROBE);
+    p.problems = [];
+    p.on('pageerror', (e) => p.problems.push('script error: ' + String(e).slice(0, 200)));
+    p.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) p.problems.push('console error: ' + m.text().slice(0, 200)); });
+    return p;
+  };
+  const MOTION_ENV = { AUTH_REQUIRED: 'off' };
+  const DESK = { width: 1280, height: 800 };
+  // polling checks run while a page may be navigating: a lost execution context is "not yet", not an error
+  const poll = (p, fn) => p.evaluate(fn).catch(() => false);
+  const loaderGone = (p) => poll(p, () => !document.getElementById('tc-loader'));
+  /** Click the first visible link to the studio on the page; returns the time of the click. */
+  const clickStudio = (p) => p.evaluate(() => { const a = [...document.querySelectorAll('a[href="/design-studio"]')].find((x) => x.offsetParent !== null); const t = Date.now(); a.click(); return t; });
+  const studioUsable = (p, ms = 40000) => until(() => poll(p, () => location.pathname === '/design-studio' && !document.getElementById('tc-loader') && !!document.querySelector('.sr-studio')), 'the studio usable and the loader gone', ms);
+  /** What the visitor saw, frame by frame, from the origin page's samples and the studio page's: any frame that is neither origin page nor loader. */
+  const reviewFrames = (m) => {
+    const rows = [...(m.prev || []), ...m.s];
+    let exitSeen = false;
+    const bad = [];
+    for (const [, st] of rows) {
+      const [path, cls, , placeholder, splash] = st.split('|');
+      if (/(^| )out( |$)/.test(cls)) exitSeen = true;
+      if (path === STUDIO && cls === '-' && !exitSeen) bad.push(`the studio page with no loader before the curtain opened: ${st}`);
+      if (cls === '-' && (placeholder === 'true' || splash === 'true')) bad.push(`the placeholder or the studio's own splash on screen without the loader: ${st}`);
+    }
+    return { rows, bad };
+  };
+
+  await test('motion: from the click to a usable studio the visitor sees the origin page or the loader, never the empty shell; two full cycles first (container wakes in 4 s)', async () => {
+    const stk = await startStack({ port: 0, bootMs: 4000, env: MOTION_ENV });
+    const p = await motionPage(stk, DESK);
+    try {
+      await p.goto(stk.base + '/', { waitUntil: 'load' });
+      await until(() => loaderGone(p), 'the landing loader to leave', 15000);
+      const clickAt = await clickStudio(p);
+      // immediately: the loader is on the current page
+      // (a page that navigated away in those two frames, as the old link did, loses its execution context: null)
+      const shown = await p.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(!!document.getElementById('tc-loader') && document.documentElement.classList.contains('tc-ld-lock')))))).catch(() => null);
+      assert(shown === true, `the loader was not on the current page two frames after the click (${shown === null ? 'the page had already navigated away' : 'no loader'})`);
+      await studioUsable(p);
+      const m = await p.evaluate(() => window.__m);
+      const { rows, bad } = reviewFrames(m);
+      assert(bad.length === 0, bad.slice(0, 3).join('; '));
+      assert(rows.some(([, st]) => st.startsWith('/|') && /(^| )in( |$)/.test(st.split('|')[1])), 'no frame of the origin page showed the closing curtain');
+      assert(m.exit !== null, 'the curtain never opened');
+      assert(m.exit - clickAt >= MIN_MS - 250, `the loader left ${m.exit - clickAt} ms after the click; the minimum is ${MIN_MS}`);
+      assert(m.iter >= 2, `only ${m.iter} full cycles were shown`);
+      assert(m.exit - clickAt <= MIN_MS + 2200, `with a 4 s wake-up the loader took ${m.exit - clickAt} ms`);
+      // nothing wrong with the studio itself
+      assert(await p.evaluate(() => !!document.querySelector('.sr-studio, .sr-gate')), 'the studio is not there');
+      noProblems(p, 'cold path');
+    } finally { await p.close(); await stk.stop(); }
+  });
+
+  await test('motion: with the container already warm the two-cycle minimum still holds (and no more than a cycle is added)', async () => {
+    const stk = await startStack({ port: 0, bootMs: 300, env: MOTION_ENV });
+    const p = await motionPage(stk, DESK);
+    try {
+      await p.goto(stk.base + '/', { waitUntil: 'load' });
+      await until(() => loaderGone(p), 'the landing loader to leave', 15000);
+      await sleep(1500); // the landing page's own wake-up has finished
+      assert(stk.pools.oneformer.hits.length > 0, 'the landing page did not start the wake-up');
+      const clickAt = await clickStudio(p);
+      await studioUsable(p);
+      const m = await p.evaluate(() => window.__m);
+      const { bad } = reviewFrames(m);
+      assert(bad.length === 0, bad.slice(0, 3).join('; '));
+      assert(m.exit - clickAt >= MIN_MS - 250 && m.exit - clickAt <= MIN_MS + 1400, `warm: the loader left ${m.exit - clickAt} ms after the click (the minimum is ${MIN_MS})`);
+      assert(m.iter >= 2, `only ${m.iter} full cycles`);
+    } finally { await p.close(); await stk.stop(); }
+  });
+
+  await test('motion: the studio opened directly (no click) shows two cycles too, and the click moment is not reused by a later visit', async () => {
+    const stk = await startStack({ port: 0, bootMs: 300, env: MOTION_ENV });
+    const p = await motionPage(stk, DESK);
+    try {
+      const t0 = Date.now();
+      await p.goto(stk.base + STUDIO, { waitUntil: 'domcontentloaded' });
+      await studioUsable(p);
+      const m = await p.evaluate(() => window.__m);
+      assert(m.exit - t0 >= 2 * 2200 - 400, `direct visit: the loader left after ${m.exit - t0} ms`);
+      assert(m.iter >= 2, `only ${m.iter} cycles`);
+      // a stale click time (older than the loader accepts) is ignored: the loader starts from the page, not from the old click
+      await p.evaluate(() => sessionStorage.setItem('tc-go', JSON.stringify({ t: Date.now() - 60000, to: '/design-studio' })));
+      const t1 = Date.now();
+      await p.goto(stk.base + STUDIO, { waitUntil: 'domcontentloaded' });
+      await studioUsable(p);
+      const m2 = await p.evaluate(() => window.__m);
+      assert(m2.exit - t1 >= 2 * 2200 - 400, `a stale click time shortened the wait: ${m2.exit - t1} ms`);
+      assert((await p.evaluate(() => sessionStorage.getItem('tc-go'))) === null, 'the click time is used once');
+    } finally { await p.close(); await stk.stop(); }
+  });
+
+  await test('motion: reduced motion: no curtain and no animation, the two-cycle minimum is skipped, the loader leaves as soon as the studio is ready', async () => {
+    const stk = await startStack({ port: 0, bootMs: 300, env: MOTION_ENV });
+    const p = await motionPage(stk, DESK, { reduce: true });
+    try {
+      await p.goto(stk.base + '/', { waitUntil: 'load' });
+      await until(() => loaderGone(p), 'the landing loader to leave', 15000);
+      const clickAt = await clickStudio(p);
+      await until(() => poll(p, () => location.pathname === '/design-studio' && !!document.getElementById('tc-loader')), 'the loader on the studio page', 8000);
+      const seen = await p.evaluate(() => {
+        const el = document.getElementById('tc-loader');
+        return { curtain: getComputedStyle(el.querySelector('.tc-ld-curtain')).display, running: el.getAnimations({ subtree: true }).filter((a) => a.animationName && a.animationName !== 'tc-pu' && a.playState === 'running').map((a) => a.animationName), mark: getComputedStyle(el.querySelector('.tc-ld-mark')).opacity };
+      });
+      assert(seen.curtain === 'none', 'a curtain is on screen with reduced motion');
+      assert(seen.running.length === 0, 'animations running with reduced motion: ' + seen.running.join(','));
+      await studioUsable(p);
+      const m = await p.evaluate(() => window.__m);
+      assert(m.exit - clickAt < MIN_MS - 800, `reduced motion: the loader left ${m.exit - clickAt} ms after the click (the full minimum is ${MIN_MS})`);
+    } finally { await p.close(); await stk.stop(); }
+  });
+
+  await test('motion: a container that wakes in 14 s does not hold the visitor past the cap: a quiet status line, then the studio at about 10 s', async () => {
+    const stk = await startStack({ port: 0, bootMs: 14000, env: MOTION_ENV });
+    const p = await motionPage(stk, DESK);
+    try {
+      await p.goto(stk.base + '/', { waitUntil: 'load' });
+      await until(() => loaderGone(p), 'the landing loader to leave', 15000);
+      const clickAt = await clickStudio(p);
+      await studioUsable(p, 30000);
+      const m = await p.evaluate(() => window.__m);
+      const { bad } = reviewFrames(m);
+      assert(bad.length === 0, bad.slice(0, 3).join('; '));
+      assert(/The studio is still waking its models; you can start now/.test(m.note || ''), 'no status line: ' + m.note);
+      assert(m.noteAt - clickAt >= CAP_MS - 2300 && m.noteAt - clickAt <= CAP_MS, `the status line came ${m.noteAt - clickAt} ms after the click`);
+      assert(m.exit - clickAt >= CAP_MS - 300 && m.exit - clickAt <= CAP_MS + 2600, `the loader left ${m.exit - clickAt} ms after the click (cap ${CAP_MS})`);
+      assert(m.exit - clickAt < 14000, 'the visitor was held until the container woke');
+    } finally { await p.close(); await stk.stop(); }
+  });
+
+  await test('motion: when the studio itself does not load, the loader shows the existing "taking longer than usual" screen with Retry; Retry works', async () => {
+    const stk = await startStack({ port: 0, bootMs: 300, env: MOTION_ENV });
+    const p = await motionPage(stk, DESK);
+    try {
+      let block = true;
+      await p.setRequestInterception(true);
+      p.on('request', (r) => (block && /\/js\/swatchroom-app\.js/.test(r.url()) ? r.abort('failed') : r.continue()));
+      await p.goto(stk.base + '/', { waitUntil: 'load' });
+      await until(() => loaderGone(p), 'the landing loader to leave', 15000);
+      await clickStudio(p);
+      await until(() => poll(p, () => location.pathname === '/design-studio' && !!document.querySelector('#tc-loader.tc-ld-failed')), 'the failure screen', 20000);
+      const f = await p.evaluate(() => {
+        const el = document.getElementById('tc-loader');
+        const vis = (s) => { const e = el.querySelector(s); const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(e).visibility !== 'hidden'; };
+        return { title: el.querySelector('.tc-ld-ft').textContent, retry: vis('.tc-ld-retry'), home: vis('.tc-ld-home'), placeholder: !!document.querySelector('.sc-placeholder[title="swatchroom-app"]') && getComputedStyle(document.querySelector('.sc-placeholder')).visibility !== 'hidden' };
+      });
+      assert(/taking longer than usual/.test(f.title) && f.retry && f.home, 'failure screen: ' + JSON.stringify(f));
+      assert(!f.placeholder, 'the grey "swatchroom-app" placeholder is visible');
+      block = false;
+      const nav = p.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 20000 });
+      await p.click('#tc-loader .tc-ld-retry');
+      await nav;
+      await studioUsable(p, 30000);
+    } finally { await p.close(); await stk.stop(); }
+  });
+
+  await test('motion: Ctrl/Cmd/Shift/Alt clicks, the middle button, target=_blank and downloads are left alone; a plain click is taken over; the studio\'s own links are not', async () => {
+    const stk = await startStack({ port: 0, bootMs: 300, env: MOTION_ENV });
+    const p = await motionPage(stk, DESK);
+    try {
+      await p.goto(stk.base + '/', { waitUntil: 'load' });
+      await until(() => loaderGone(p), 'the landing loader to leave', 15000);
+      const r = await p.evaluate(() => {
+        const a = [...document.querySelectorAll('a[href="/design-studio"]')].find((x) => x.offsetParent !== null);
+        const seen = [];
+        // a bubbling listener on window runs after transition.js's capture listener: it records what that did, then stops the navigation
+        addEventListener('click', (e) => { seen.push(e.defaultPrevented); e.preventDefault(); });
+        const click = (init, target) => { const old = a.getAttribute('target'); if (target) a.setAttribute('target', target); a.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0, ...init })); if (target) { if (old === null) a.removeAttribute('target'); else a.setAttribute('target', old); } return { prevented: seen.at(-1), overlay: !!document.getElementById('tc-loader'), stored: sessionStorage.getItem('tc-go') }; };
+        const out = {
+          ctrl: click({ ctrlKey: true }), meta: click({ metaKey: true }), shift: click({ shiftKey: true }), alt: click({ altKey: true }),
+          middle: click({ button: 1 }), blank: click({}, '_blank'),
+        };
+        const dl = a.hasAttribute('download'); a.setAttribute('download', ''); out.download = click({}); if (!dl) a.removeAttribute('download');
+        return out;
+      });
+      for (const [kind, v] of Object.entries(r)) assert(v.prevented === false && !v.overlay && v.stored === null, `${kind}: the click was taken over: ${JSON.stringify(v)}`);
+      // a plain click is taken over: the page's own navigation is prevented, the loader is up, the click time is stored
+      const plain = await p.evaluate(() => {
+        const a = [...document.querySelectorAll('a[href="/design-studio"]')].find((x) => x.offsetParent !== null);
+        let prevented = null;
+        addEventListener('click', (e) => { prevented = e.defaultPrevented; }, false);
+        a.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
+        return { prevented, overlay: !!document.getElementById('tc-loader'), stored: !!sessionStorage.getItem('tc-go'), locked: document.documentElement.classList.contains('tc-ld-lock') };
+      });
+      assert(plain.prevented && plain.overlay && plain.stored && plain.locked, 'a plain click: ' + JSON.stringify(plain));
+      await studioUsable(p);
+      // on the studio page a link to the studio is not taken over
+      const own = await p.evaluate(() => {
+        const a = [...document.querySelectorAll('a[href="/design-studio"]')].find((x) => x.offsetParent !== null);
+        if (!a) return { skipped: true };
+        let prevented = null;
+        addEventListener('click', (e) => { prevented = e.defaultPrevented; e.preventDefault(); });
+        a.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
+        return { prevented, overlay: !!document.getElementById('tc-loader') };
+      });
+      assert(own.skipped || (own.prevented === false && !own.overlay), 'inside the studio: ' + JSON.stringify(own));
+    } finally { await p.close(); await stk.stop(); }
+  });
+
+  await test('motion: a page with a strict Content-Security-Policy and no loader of its own gets the same overlay from transition.js (style sheet linked, no inline code), and the studio page continues it', async () => {
+    const stk = await startStack({ port: 0, bootMs: 300, env: MOTION_ENV });
+    const p = await motionPage(stk, DESK);
+    const csp = [];
+    p.on('console', (m) => { if (/Content Security Policy/i.test(m.text())) csp.push(m.text().slice(0, 160)); });
+    try {
+      await p.goto(stk.base + '/inspiration', { waitUntil: 'load' });
+      assert(await p.evaluate(() => !document.getElementById('tc-loader') && !window.TeruconLoader), 'the hand-written page has a loader of its own');
+      await p.addScriptTag({ url: stk.base + '/brand/transition.js' });
+      await until(() => poll(p, () => [...document.styleSheets].some((s) => /\/brand\/loader\.css/.test(s.href || ''))), 'loader.css to load', 5000);
+      await p.evaluate(() => { const a = document.createElement('a'); a.href = '/design-studio'; a.id = 'tc-test-link'; a.textContent = 'Design Studio'; document.body.prepend(a); a.click(); });
+      const up = await p.evaluate(() => { const el = document.getElementById('tc-loader'); return !!el && getComputedStyle(el).display === 'flex' && el.querySelectorAll('.tc-ld-curtain i').length >= 5; });
+      assert(up, 'the overlay did not come up on the strict page');
+      await studioUsable(p);
+      const m = await p.evaluate(() => window.__m);
+      assert(reviewFrames(m).bad.length === 0, reviewFrames(m).bad.slice(0, 3).join('; '));
+      assert(csp.length === 0, 'Content-Security-Policy violations: ' + csp.join(' | '));
+    } finally { await p.close(); await stk.stop(); }
+  });
+
+  await test('motion: a studio that is ready late (about 11 s) while the container is still cold never flashes the "taking longer than usual" screen', async () => {
+    // the loader's own failure timer is 12 s from the click; the studio is ready at about 11 s, the status line is held for 1.2 s, so the
+    // release lands after the 12 s mark: the timer must have been cancelled when the studio came up (TeruconLoader.hold)
+    const stk = await startStack({ port: 0, bootMs: 14000, env: MOTION_ENV });
+    const p = await motionPage(stk, DESK);
+    try {
+      await p.setRequestInterception(true);
+      p.on('request', (r) => (/\/js\/swatchroom-app\.js/.test(r.url()) ? setTimeout(() => r.continue().catch(() => {}), 9500) : r.continue()));
+      await p.goto(stk.base + '/', { waitUntil: 'load' });
+      await until(() => loaderGone(p), 'the landing loader to leave', 15000);
+      const clickAt = await clickStudio(p);
+      await studioUsable(p, 40000);
+      const m = await p.evaluate(() => window.__m);
+      const rows = [...(m.prev || []), ...m.s];
+      assert(rows.every(([, st]) => !/(^| )failed( |$)/.test(st.split('|')[1])), 'the failure screen appeared although the studio was up');
+      assert(m.exit - clickAt > 11500, `the studio was not late enough for this test (the loader left ${m.exit - clickAt} ms after the click)`);
+    } finally { await p.close(); await stk.stop(); }
+  });
+
+  await test('motion: Back from the studio does not leave the closed curtain on the page it came from', async () => {
+    const stk = await startStack({ port: 0, bootMs: 300, env: MOTION_ENV });
+    const p = await motionPage(stk, DESK);
+    try {
+      await p.goto(stk.base + '/', { waitUntil: 'load' });
+      await until(() => loaderGone(p), 'the landing loader to leave', 15000);
+      await clickStudio(p);
+      await studioUsable(p);
+      await p.goBack({ waitUntil: 'domcontentloaded' });
+      // from the cache the overlay (data-tc-from) must be gone at once; a fresh load shows the page's own loader, which then leaves
+      await until(() => poll(p, () => location.pathname === '/' && !document.querySelector('#tc-loader[data-tc-from]')), 'the click overlay to be gone after Back', 3000);
+      await until(() => loaderGone(p), 'the landing loader to leave after Back', 15000);
+      assert(await poll(p, () => !document.documentElement.classList.contains('tc-ld-lock') && !!document.querySelector('[data-hero-copy]')), 'the landing page is locked or empty after Back');
+    } finally { await p.close(); await stk.stop(); }
+  });
+
+  // ---- the frame budget ----------------------------------------------------------------------------------------------------------
+  // Measured on this Mac (headless Chrome, 4x CPU slowdown, Slow-4G, 3 runs each, interleaved with the unchanged code): over the 3.6 s from
+  // the start of the loader's exit, the worst rAF gap was 33.4 ms after the change (390 and 1280 px) and 83-116 ms before it, where a
+  // 107-131 ms long animation frame (three.js starting, inside the hero's opening) sat in every run. In the full browser suite, on a busy
+  // machine, one isolated frame of 83 ms did appear after the change (once, in one full-suite run), so the numbers below are generous on purpose:
+  // a budget tight enough to tell the old code from the new would be a flaky test. What separates them reliably is structural (what
+  // runs on animations, what waits for what), and those checks come first.
+  const gaps = (frames, from, to) => { const w = frames.filter((t) => t >= from && t <= to); const d = []; for (let i = 1; i < w.length; i++) d.push(w[i] - w[i - 1]); d.sort((a, b) => a - b); return { n: d.length, p95: d[Math.floor(d.length * 0.95)] ?? 0, max: d.at(-1) ?? 0, over50: d.filter((x) => x > 50).length }; };
+
+  await test('motion: the hero\'s louvres open when the loader leaves, as Web Animations, the 3D façade waits, and the opening keeps to the frame budget at 4x CPU slowdown', async () => {
+    const stk = await startStack({ port: 0, bootMs: 300, env: MOTION_ENV });
+    const p = await motionPage(stk, DESK, { throttle: 4 });
+    try {
+      await p.evaluateOnNewDocument(() => { window.__fin = { before: null, three: null }; addEventListener('tc-ld-exit', () => { window.__fin.before = document.querySelectorAll('[data-louvres] div').length ? [...document.querySelectorAll('[data-louvres] div')].flatMap((d) => d.getAnimations()).length : -1; window.__fin.three = performance.getEntriesByType('resource').some((r) => /three-/.test(r.name)); }); });
+      await p.goto(stk.base + '/', { waitUntil: 'load' });
+      await until(() => poll(p, () => window.__m.ldexit !== null), 'the loader to hand over', 30000);
+      const fin = await p.evaluate(() => window.__fin);
+      assert(fin.before === 0, `the fins were already animating (${fin.before}) before the loader left`);
+      assert(fin.three === false, 'three.js was fetched before the loader left');
+      await sleep(600);
+      const mid = await p.evaluate(() => ({ anims: [...document.querySelectorAll('[data-louvres] div')].flatMap((d) => d.getAnimations()).filter((a) => a.playState === 'running').length, fins: document.querySelectorAll('[data-louvres] > div').length - 1, three: performance.getEntriesByType('resource').some((r) => /three-/.test(r.name)) }));
+      assert(mid.fins === 9, `${mid.fins} fins on a laptop (9 expected)`);
+      assert(mid.anims >= 9, `only ${mid.anims} running animations 600 ms into the opening`);
+      assert(mid.three === false, 'three.js started in the middle of the hero\'s opening');
+      await sleep(3600);
+      const done = await p.evaluate(() => new Promise((r) => {
+        // after the opening, with nobody scrolling, nothing in the louvres changes (a guard: the old loop did not change anything either once its values settled)
+        let n = 0; const host = document.querySelector('[data-louvres]');
+        const mo = new MutationObserver((l) => { n += l.length; }); mo.observe(host, { attributes: true, subtree: true, childList: true });
+        setTimeout(() => { mo.disconnect(); const m = window.__m; r({ writes: n, ldexit: m.ldexit, f: m.f }); }, 1200);
+      }));
+      assert(done.writes === 0, `${done.writes} style or DOM writes in the louvres while the page was idle`);
+      const g = gaps(done.f, done.ldexit - 400, done.ldexit + 3000);
+      assert(g.max <= 130 && g.p95 <= 34 && g.over50 <= 2, `the dissolve and the opening at 4x slowdown: ${JSON.stringify(g)} (budget: max <= 130 ms, p95 <= 34 ms, at most two frames over 50 ms)`);
+      noProblems(p, 'landing hero');
+    } finally { await p.close(); await stk.stop(); }
+  });
+
+  await test('motion: the loader\'s curtain exit on a page without its own curtain (Materials) keeps to the frame budget at 4x slowdown, on a laptop and on a phone, with 9 and 5 slats', async () => {
+    const stk = await startStack({ port: 0, bootMs: 300, env: MOTION_ENV });
+    try {
+      for (const [name, vp, slats] of [['laptop', DESK, 9], ['phone', PHONE, 5]]) {
+        const p = await motionPage(stk, vp, { throttle: 4, slow: true });
+        try {
+          await p.evaluateOnNewDocument(() => { new MutationObserver(() => { const l = document.querySelector('#tc-loader .tc-ld-curtain'); if (l && l.querySelectorAll('i').length && !window.__slats) window.__slats = l.querySelectorAll('i').length; }).observe(document, { childList: true, subtree: true, attributes: true }); });
+          await p.goto(stk.base + '/materials', { waitUntil: 'load' });
+          await until(() => loaderGone(p), `the ${name} loader to leave`, 30000);
+          const m = await p.evaluate(() => ({ exitPerf: window.__m.exitPerf, gone: window.__m.gone, f: window.__m.f, slats: window.__slats }));
+          assert(m.slats === slats, `${name}: ${m.slats} slats (${slats} expected)`);
+          assert(m.exitPerf !== null && m.gone !== null && m.f.length > 60, `${name}: the exit was not seen`);
+          assert(m.gone - m.exitPerf >= 1000 && m.gone - m.exitPerf <= 2400, `${name}: the curtain took ${Math.round(m.gone - m.exitPerf)} ms`);
+          const g = gaps(m.f, m.exitPerf - 50, m.gone);
+          assert(g.max <= 130 && g.p95 <= 34 && g.over50 <= 2, `${name} exit at 4x slowdown: ${JSON.stringify(g)} (budget: max <= 130 ms, p95 <= 34 ms, at most two frames over 50 ms)`);
+          noProblems(p, name + ' materials');
+        } finally { await p.close(); }
+      }
+    } finally { await stk.stop(); }
+  });
+}
+// ==== motion (end) ====
+
 
 await browser.close();
 await stack.stop();

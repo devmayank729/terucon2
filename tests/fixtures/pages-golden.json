@@ -4,8 +4,8 @@
   "pages": {
     "home": {
       "templates": {
-        "route": "d8cd837395a36b27447954b5e7acb86e4ca9544d9b58ce2ea6e23698715de722",
-        "file": "54a4d68fc246e8b92643cde522e0e1e192f4dba8dc737d36500b61df89b1867e"
+        "route": "2c6892f1110fdfd76ff5b556468dd4ef915d6b881eaed1461689f6df292c542f",
+        "file": "f06829124225e5d0f004659d13941e53361cf21602bb7933063c29e3f390ed0f"
       },
       "assets": {
         "a909a13d-7e0e-434b-8f1b-972f0f2fc46d": "dc1c6912756f1b72d05f44c5db851d442ad7dae0bd8eda0f9806a3adc7a58d47",
@@ -41,8 +41,8 @@
     },
     "materials": {
       "templates": {
-        "route": "d671ad93e43aeb1e4abf93db08ed14996dac85c827fd7c1568349398b86bcf55",
-        "file": "3358c9dc6a2148399711e17b6d4d095390d3d428981fa1e01e4ac08595b593d4"
+        "route": "c67154e28cd0b19e5102b796ef8a479f2f9d99586441bb21a11777044060c802",
+        "file": "8a840a73cbefa3bbe6f4e719b2654993722dd7028f15bfe23508b8fff08d620c"
       },
       "assets": {
         "8b258c0f-56a3-4503-bfb0-6cdfc49283c0": "801a99f606b8e8da42b562ad101a9ac90368bbdfa3cf6b34435d6e6934470f7b",
@@ -126,8 +126,8 @@
     },
     "studio": {
       "templates": {
-        "route": "7f805677c2c98a88306b1363559f5e5a24be40b8e230c0505a46c0ec76666de0",
-        "file": "e0459da8acfe6859bc723f4642442630d8a4a0ceb1988a558eeb9f4a1f927235"
+        "route": "ff57d8bc9b9d3a06cb054df9fb481fc428054a9632c1a9d3abadd78445a4421e",
+        "file": "4d47f1ddf89445b3337115240a83b3d7c47f0ac157feca768b26ce3351e482fc"
       },
       "assets": {
         "8374d943-7b04-4b96-9ca0-83a2d686decd": "d949f1c3687aedadcedac85261865f29b17cd273997e7f6b2bfc53b2f9d4c4dd",
@@ -156,8 +156,8 @@
     },
     "dashboard": {
       "templates": {
-        "route": "653274f3315192fd039de69d85209a4e5b6f40f0a2ba04baa97cb2f92139f7c6",
-        "file": "e49fb22f8e6c404fc1dc0ab7454c6a4ffe01b08fd21c18d753034354c7274e66"
+        "route": "ef8c649a41dea4789f0d503ebe357dc085fd6d077143a2d2394baff3a7733766",
+        "file": "078be5ae5f704fdf9a1af7489d4aa2b94b6dafb7134f310aa7d0be60dad1e123"
       },
       "assets": {
         "75f571be-b3e6-4873-a1b5-fcaa3bb4ae49": "6642282c751543bf00e244588beae703fd4ffcb95735065565b24250555b7af8",

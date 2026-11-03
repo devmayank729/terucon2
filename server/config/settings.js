@@ -34,6 +34,19 @@ function int(value, fallback, lo, hi) {
 /** Requests per visitor per hour. The per-address limit is `perAddress` times these (a shared address: an office, a phone network). */
 export const LIMIT_DEFAULTS = { ai: 60, vision: 60, pipeline: 40, check: 10, rooms: 600, perAddress: 4 };
 
+/** TeruBot's starting values. Limits are per hour; see server/lib/terubot/limits.js. */
+export const TERUBOT_DEFAULTS = {
+  enabled: true,
+  model: '', // blank: the first model of the studio's text model chain (swatchroom/server/google/vertex.js), which falls back to the next when it is not available
+  maxOutputTokens: 1024,
+  historyLimit: 12, // messages of the conversation sent to the model (the widget sends at most 12)
+  toolRounds: 4, // rounds of tool calls in one answer, after which the model must answer in words
+  timeoutMs: 30000, // the whole answer, tool rounds included
+  limitAccount: 60, // chat messages per signed-in account per hour
+  limitAddress: 120, // per network address per hour, signed in or not (an office or a phone network shares one)
+  limitAnonymous: 20, // per network address per hour for visitors who are not signed in
+};
+
 /** Plain objects with the defaults; loadSettings fills them in. */
 function emptySettings(envPath) {
   return {
@@ -60,6 +73,8 @@ function emptySettings(envPath) {
     // Catalogue search (server/catalogue/): the non-secret half of what .env says, filled in by loadSettings. The keys are in `catalogueSecrets`,
     // which is not enumerable.
     catalogue: {},
+    // TeruBot, the website's assistant (server/lib/terubot/): Gemini through the studio's Google key (swatchroom/server/google).
+    terubot: { ...TERUBOT_DEFAULTS },
     warnings: [],
   };
 }
@@ -121,6 +136,20 @@ export function loadSettings(envPath, environ, root = ROOT) {
   const catalogue = readCatalogueEnv(get, s.warnings, root);
   s.catalogue = catalogue.pub;
   Object.defineProperty(s, 'catalogueSecrets', { value: Object.freeze(catalogue.secrets), enumerable: false });
+
+  // --- TeruBot (the assistant on every page)
+  const bot = s.terubot;
+  bot.enabled = flag(get('TERUBOT'), TERUBOT_DEFAULTS.enabled);
+  const model = get('TERUBOT_MODEL');
+  if (model && !/^[A-Za-z0-9._-]{1,80}$/.test(model)) s.warnings.push('TERUBOT_MODEL is not a model id (letters, digits, . _ -): the default model is used.');
+  else bot.model = model;
+  bot.maxOutputTokens = int(get('TERUBOT_MAX_OUTPUT_TOKENS'), TERUBOT_DEFAULTS.maxOutputTokens, 128, 4096);
+  bot.historyLimit = int(get('TERUBOT_HISTORY_LIMIT'), TERUBOT_DEFAULTS.historyLimit, 2, 20);
+  bot.toolRounds = int(get('TERUBOT_TOOL_ROUNDS'), TERUBOT_DEFAULTS.toolRounds, 1, 6);
+  bot.timeoutMs = int(get('TERUBOT_TIMEOUT_SECONDS'), TERUBOT_DEFAULTS.timeoutMs / 1000, 1, 120) * 1000;
+  bot.limitAccount = int(get('TERUBOT_LIMIT_ACCOUNT'), TERUBOT_DEFAULTS.limitAccount, 1, 100000);
+  bot.limitAddress = int(get('TERUBOT_LIMIT_ADDRESS'), TERUBOT_DEFAULTS.limitAddress, 1, 100000);
+  bot.limitAnonymous = int(get('TERUBOT_LIMIT_ANONYMOUS'), TERUBOT_DEFAULTS.limitAnonymous, 1, 100000);
   s.nodeEnv = get('NODE_ENV');
   return s;
 }
@@ -135,6 +164,9 @@ export function describe(settings) {
       ? 'Studio passcode: ON (STUDIO_REQUIRE_PASSCODE=on, the passcode is STUDIO_PASSCODE in swatchroom/.env)'
       : 'Studio passcode: off - the studio is open; each browser only sees its own rooms and every visitor is rate limited (README, "Keeping the open studio safe")',
     ...describeCatalogue(settings),
+    settings.terubot.enabled
+      ? `TeruBot (the assistant): on - ${settings.terubot.limitAccount} messages an hour per account, ${settings.terubot.limitAnonymous} per address for visitors not signed in (TERUBOT=off switches it off)`
+      : 'TeruBot (the assistant): off (TERUBOT=off)',
   ];
 }
 

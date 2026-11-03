@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-tc-title="Catalogue admin">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -13,8 +13,13 @@
 <!-- Zodiak and Switzer, the site's fonts (served with the Design Studio); the page reads fine in Georgia / Helvetica without them -->
 <link rel="stylesheet" href="/css/fonts.css">
 <link rel="stylesheet" href="/brand/brand.css">
+<link rel="stylesheet" href="/brand/chrome.css">
+<script src="/brand/chrome.js"></script>
 <link rel="stylesheet" href="/brand/dock.css">
 <script src="/brand/dock.js" defer></script>
+<link rel="stylesheet" href="/brand/terubot.css">
+<script src="/brand/terubot.js" defer></script>
+<script src="/brand/transition.js" defer></script>
 <link rel="stylesheet" href="/catalogue-ui/assets/catalogue-ui.css">
 <style>
   :root { --bg:#E1D4C2; --card:#EFE6D8; --ink:#291C0E; --ink2:#6E473B; --sand:#A78D78; --line:rgba(41,28,14,.16); --line2:rgba(41,28,14,.34); --bad:#8C2F1B; --good:#3B5B2E; --night:#1F150A; --gx:clamp(16px, 5vw, 72px); }
@@ -27,14 +32,6 @@
   :focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
   [hidden] { display:none !important; }
 
-  /* the frame, the same on every signed-in page: a dark header band with the logo, a dark footer band */
-  header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0 16px; min-height:calc(64px + env(safe-area-inset-top)); padding:calc(8px + env(safe-area-inset-top)) max(var(--gx), env(safe-area-inset-right)) 8px max(var(--gx), env(safe-area-inset-left)); background:var(--night); color:#E1D4C2; border-bottom:1px solid rgba(225,212,194,.14); }
-  header :focus-visible, footer :focus-visible { outline-color:#E1D4C2; }
-  nav { display:flex; flex-wrap:wrap; align-items:center; gap:0 clamp(14px, 2.2vw, 28px); font:500 13px/1 Switzer, Helvetica, Arial, sans-serif; }
-  nav a { display:inline-flex; align-items:center; min-height:44px; text-decoration:none; opacity:.82; transition:opacity .25s; }
-  nav a:hover, nav a[aria-current="page"] { opacity:1; }
-  nav a[aria-current="page"] { text-decoration:underline; text-underline-offset:6px; text-decoration-thickness:1px; }
-  @media (max-width:899px) { html.tc-dock-on header nav a:not(.keep) { display:none; } } /* on a phone the dock at the bottom carries the destinations */
 
   main { flex:1; padding:clamp(28px, 6vh, 72px) max(var(--gx), env(safe-area-inset-right)) clamp(40px, 8vh, 96px) max(var(--gx), env(safe-area-inset-left)); }
   .wrap { width:100%; max-width:860px; margin:0 auto; display:flex; flex-direction:column; gap:22px; }
@@ -82,23 +79,9 @@
   .card.inset { background:#F9F4EA; }
   .h-sub { font-size:17px; }
   .empty { padding:18px; text-align:center; color:var(--ink2); font-size:13.5px; }
-  footer { display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; padding:20px max(var(--gx), env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) max(var(--gx), env(safe-area-inset-left)); background:var(--night); border-top:1px solid rgba(225,212,194,.14); color:rgba(225,212,194,.72); font:400 12px/1.5 Switzer, Helvetica, Arial, sans-serif; }
-  html.tc-dock-on footer { padding-bottom:20px; } /* the phone dock brings its own room (and the home-bar inset) below the footer */
 </style>
 </head>
 <body>
-<header>
-  <a class="tc-logo-link" href="/" aria-label="Terucon India, home"><img class="tc-logo tc-logo--header" src="/brand/logo-header-320.webp" srcset="/brand/logo-header-160.webp 160w, /brand/logo-header-320.webp 320w, /brand/logo-header-480.webp 480w" sizes="210px" width="210" height="36" alt="Terucon India" decoding="async"></a>
-  <nav aria-label="Pages">
-    <a href="/">Home</a>
-    <a href="/materials">Materials</a>
-    <a href="/design-studio">Design Studio</a>
-    <a href="/finder">Finder</a>
-    <a class="keep" href="/account">Account</a>
-    <a href="/admin/catalogue" aria-current="page">Catalogue admin</a>
-  </nav>
-</header>
-
 <main>
   <div class="wrap">
     <p class="eyebrow">Catalogue admin</p>
@@ -236,9 +219,9 @@
   </div>
 </main>
 
-<footer>
+<footer class="tc-foot">
   <img class="tc-footer-logo" src="/brand/logo-header-320.webp" srcset="/brand/logo-header-320.webp 320w, /brand/logo-header-480.webp 480w" sizes="257px" width="257" height="44" alt="" loading="lazy" decoding="async">
-  <span>Terucon India Private Limited — admin only</span>
+  <span>© 2026 Terucon India Private Limited · CIN U45400KA2021PTC153053</span>
 </footer>
 
 <noscript><p class="notice bad">This page needs JavaScript.</p></noscript>

@@ -33,10 +33,12 @@ import { mountBrand } from './server/routes/brand.js';
 import { mountCatalogue } from './server/routes/catalogue.js';
 import { mountCatalogueUi } from './server/routes/catalogueUi.js';
 import { mountDocs } from './server/routes/docs.js';
+import { mountEnquiry } from './server/routes/enquiry.js';
 import { mountInspiration } from './server/routes/inspiration.js';
 import { mountMedia } from './server/routes/media.js';
 import { comingSoon, mountPages } from './server/routes/pages.js';
 import { mountStudioRoutes } from './server/routes/studio.js';
+import { mountTerubot } from './server/routes/terubot.js';
 
 /*
  * DELIVERY POLICY: what is cached for how long, and what is compressed how. Each rule is set in the file named in the last column;
@@ -95,13 +97,15 @@ function resolveEnvFile(envPath, environ, root) {
  * @param {object} [options.auth] sign-in overrides for tests (server/auth/index.js: db, providers, google, firm, zoho, secret)
  * @param {object} [options.inspiration] inspiration-import overrides for tests (server/routes/inspiration.js: fetcher, gallery)
  * @param {object} [options.catalogue] catalogue-search overrides for tests (server/catalogue/index.js: modal, db, signer, now), all optional
+ * @param {object} [options.terubot] TeruBot overrides for tests (server/lib/terubot/index.js: gemini, shop, form, now; googleDir; rooms), all optional
  * @returns {import('express').Express} with `app.locals.terucon = {settings(), site, studio, studioDir, requirePasscode, auth, close()}`
  */
-export function createApp({ root = ROOT, envPath, environ, log = createLogger(), swatchroom = false, auth: authOverrides = {}, inspiration: inspirationOverrides = {}, catalogue: catalogueOverrides = {} } = {}) {
+export function createApp({ root = ROOT, envPath, environ, log = createLogger(), swatchroom = false, auth: authOverrides = {}, inspiration: inspirationOverrides = {}, catalogue: catalogueOverrides = {}, terubot: terubotOverrides = {} } = {}) {
   root = path.resolve(root);
-  // The studio reads swatchroom/.env into process.env when it is loaded (that is how it is configured). Take this server's
-  // view of the environment first, so the studio's PORT, HOST, ... can never become this server's own.
-  if (swatchroom && !environ) environ = { ...process.env };
+  // The studio reads swatchroom/.env into process.env when it is loaded (that is how it is configured), and so does TeruBot, whose
+  // Google connection is the studio's (server/lib/terubot/gemini.js). Take this server's view of the environment first, so the
+  // studio's PORT, HOST, ... can never become this server's own.
+  if (!environ) environ = { ...process.env };
   const envFile = resolveEnvFile(envPath, environ, root);
   const manager = new SettingsManager(envFile, environ, root);
   const site = SiteMap.load(root);
@@ -122,6 +126,7 @@ export function createApp({ root = ROOT, envPath, environ, log = createLogger(),
     swatchroom: studio,
     inspirationOverrides,
     catalogueOverrides,
+    terubotOverrides,
   };
   // Sign-in: accounts live in the studio's MongoDB when the studio is mounted, else in memory (AUTH_STORE). The routes a person may be
   // sent to after signing in are exactly the pages of the site map.
@@ -156,10 +161,12 @@ export function createApp({ root = ROOT, envPath, environ, log = createLogger(),
   mountAnalytics(app, ctx);
   mountStudioRoutes(app, ctx);
   mountAuthRoutes(app, ctx);
+  mountEnquiry(app, ctx); // before the admin API, which lists what it keeps
   mountAuthAdmin(app, ctx);
   mountInspiration(app, ctx);
   mountCatalogue(app, ctx);
   mountCatalogueUi(app, ctx);
+  ctx.terubot = mountTerubot(app, ctx); // after the catalogue: it uses ctx.catalogue when the catalogue is on
   // The website's own /api answers its own misses (404 / 405 in its error shape); the studio's /api paths pass on to it.
   ctx.api.fallback();
   // The Design Studio: its /api/* (behind studioShield, or its own passcode when STUDIO_REQUIRE_PASSCODE=on), /js, /css, /fonts, /textures, /admin. After the pages and the
@@ -189,10 +196,12 @@ export function createApp({ root = ROOT, envPath, environ, log = createLogger(),
     dist,
     auth: ctx.auth,
     catalogue: ctx.catalogue,
+    terubot: ctx.terubot,
     close: async () => {
       shield?.close();
       ctx.inspiration.close();
       ctx.catalogue.close();
+      ctx.terubot.close();
       ctx.auth.close();
       await studio?.close();
     },
@@ -278,6 +287,8 @@ function printBanner({ app, port }) {
   const ways = [auth.channels.email && 'e-mail codes', auth.channels.sms && 'text-message codes', auth.channels.google && 'Google'].filter(Boolean);
   lines.push(`  Sign-in:           ${auth.ready ? `ready (${ways.join(', ')})` : 'NOT READY - nobody can sign in'}; ${auth.gate ? 'every page but the landing page needs it' : 'GATE OFF (AUTH_REQUIRED=off): every page is open'}; accounts kept ${auth.store === 'mongo' ? 'in MongoDB' : 'in memory only (lost at restart)'}`);
   lines.push(`  CRM:               ${auth.crm.mode === 'off' ? 'off (AUTH_CRM=off)' : auth.crm.credentials ? 'Zoho connected' : 'Zoho credentials not in .env yet - new sign-ups wait in a queue and are sent once they are'}`);
+  const bot = app.locals.terucon.terubot.bot.state();
+  lines.push(`  TeruBot:           ${bot.on ? `ready (model ${bot.model}, through the studio's Google key)` : s.terubot.enabled ? 'NOT READY - ' + bot.problem : 'off (TERUBOT=off)'}`);
   for (const problem of auth.problems) lines.push('  ! ' + problem);
   if (auth.developmentCodes) lines.push('  ! One-time codes are printed in this window instead of being sent (development only: this computer, not production). To send real ones set AUTH_EMAIL_PROVIDER / AUTH_SMS_PROVIDER in .env.');
   if (auth.developmentSecret) lines.push('  ! AUTH_SECRET is not set: a temporary one is used (development only), so sign-ins end at every restart.');

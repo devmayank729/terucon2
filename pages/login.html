@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-tc-sidebar="off" data-tc-account="off" data-tc-title="Sign in">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -13,8 +13,13 @@
 <!-- Zodiak and Switzer, the site's fonts (served with the Design Studio); the page reads fine in Georgia / Helvetica without them -->
 <link rel="stylesheet" href="/css/fonts.css">
 <link rel="stylesheet" href="/brand/brand.css">
+<link rel="stylesheet" href="/brand/chrome.css">
+<script src="/brand/chrome.js"></script>
 <link rel="stylesheet" href="/brand/dock.css">
 <script src="/brand/dock.js" defer></script>
+<link rel="stylesheet" href="/brand/terubot.css">
+<script src="/brand/terubot.js" defer></script>
+<script src="/brand/transition.js" defer></script>
 <style>
   :root { --bg:#E1D4C2; --card:#EFE6D8; --ink:#291C0E; --ink2:#6E473B; --line:rgba(41,28,14,.16); --line2:rgba(41,28,14,.34); --bad:#8C2F1B; --good:#3B5B2E; --night:#1F150A; --gx:clamp(16px, 5vw, 72px); }
   * { box-sizing:border-box; }
@@ -26,11 +31,6 @@
   :focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
   [hidden] { display:none !important; }
 
-  /* the frame, the same on every signed-in page: a dark header band with the logo, a dark footer band */
-  header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:4px 16px; min-height:calc(64px + env(safe-area-inset-top)); padding:calc(8px + env(safe-area-inset-top)) max(var(--gx), env(safe-area-inset-right)) 8px max(var(--gx), env(safe-area-inset-left)); background:var(--night); color:#E1D4C2; border-bottom:1px solid rgba(225,212,194,.14); }
-  header :focus-visible, footer :focus-visible { outline-color:#E1D4C2; }
-  .back { display:inline-flex; align-items:center; min-height:44px; font:500 13px/1.2 Switzer, Helvetica, Arial, sans-serif; text-decoration:none; opacity:.86; transition:opacity .25s; }
-  .back:hover { opacity:1; }
 
   main { flex:1; display:flex; align-items:center; justify-content:center; padding:clamp(20px, 5vh, 64px) max(var(--gx), env(safe-area-inset-right)) clamp(28px, 6vh, 72px) max(var(--gx), env(safe-area-inset-left)); }
   .stage { width:100%; max-width:480px; display:flex; flex-direction:column; gap:clamp(20px, 3.5vh, 32px); }
@@ -94,8 +94,6 @@
   .wait::before { content:""; width:18px; height:18px; flex:none; border-radius:50%; border:2px solid currentColor; border-right-color:transparent; animation:spin .8s linear infinite; }
   @keyframes spin { to { transform:rotate(360deg); } }
 
-  footer { display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; padding:20px max(var(--gx), env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) max(var(--gx), env(safe-area-inset-left)); background:var(--night); border-top:1px solid rgba(225,212,194,.14); color:rgba(225,212,194,.72); font:400 12px/1.5 Switzer, Helvetica, Arial, sans-serif; }
-  html.tc-dock-on footer { padding-bottom:20px; } /* the phone dock brings its own room (and the home-bar inset) below the footer */
 
   @media (min-width:900px) {
     main { padding-top:clamp(32px, 7vh, 80px); }
@@ -107,11 +105,6 @@
 </style>
 </head>
 <body>
-<header>
-  <a class="tc-logo-link" href="/" aria-label="Terucon India, home"><img class="tc-logo tc-logo--header" src="/brand/logo-header-320.webp" srcset="/brand/logo-header-160.webp 160w, /brand/logo-header-320.webp 320w, /brand/logo-header-480.webp 480w" sizes="210px" width="210" height="36" alt="Terucon India" decoding="async"></a>
-  <a class="back" href="/">← Back to home</a>
-</header>
-
 <main>
   <div class="stage">
     <div class="plate"><img src="/brand/logo-full-640.webp" srcset="/brand/logo-full-320.webp 320w, /brand/logo-full-640.webp 640w, /brand/logo-full-1200.webp 1200w" sizes="(min-width:900px) 380px, 224px" width="640" height="407" alt="Terucon India Pvt. Ltd. Interiors for businesses" decoding="async" fetchpriority="high"></div>
@@ -222,9 +215,9 @@
   </div>
 </main>
 
-<footer>
+<footer class="tc-foot">
   <img class="tc-footer-logo" src="/brand/logo-header-320.webp" srcset="/brand/logo-header-320.webp 320w, /brand/logo-header-480.webp 480w" sizes="257px" width="257" height="44" alt="" loading="lazy" decoding="async">
-  <span>Terucon India Private Limited</span>
+  <span>© 2026 Terucon India Private Limited · CIN U45400KA2021PTC153053</span>
 </footer>
 
 <script>
@@ -249,10 +242,21 @@
     del: function (k) { try { sessionStorage.removeItem(k); } catch (e) {} }
   };
 
+  // what the first screen says follows what is switched on (/api/auth/config): the live site may offer Google only, and then promising a
+  // one-time code by e-mail or text would be wrong
+  function startLead() {
+    var ch = (config && config.channels) || { email: true, sms: true };
+    if (ch.email && ch.sms) return 'Use your e-mail address or mobile number. We will send you a one-time code, so there is no password to remember.';
+    if (ch.email) return 'Use your e-mail address. We will send you a one-time code, so there is no password to remember.';
+    if (ch.sms) return 'Use your mobile number. We will send you a one-time code, so there is no password to remember.';
+    if (ch.google) return 'Continue with your Google account. There is no password to remember.';
+    return 'Sign in to continue.';
+  }
+
   function show(step) {
     ['loading', 'unavailable', 'start', 'code', 'profile', 'confirm'].forEach(function (s) { $('step-' + s).hidden = s !== step; });
     var copy = {
-      start: ['Welcome', 'Sign in or <em>create your account</em>', 'Use your e-mail address or mobile number. We will send you a one-time code, so there is no password to remember.'],
+      start: ['Welcome', 'Sign in or <em>create your account</em>', startLead()],
       code: ['Check your messages', 'Enter your <em>code</em>', ''],
       profile: ['One last step', 'Tell us <em>about you</em>', 'This helps our team look after your project.'],
       confirm: ['Almost there', 'One more <em>code</em>', 'We confirm this so that you can sign in with either one later.'],

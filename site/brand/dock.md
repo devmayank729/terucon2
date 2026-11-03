@@ -2,19 +2,22 @@
 
 A bottom tab bar for phones: the five destinations (Materials, Design Studio, Inspiration, Finder, My project) one tap away
 on every page, like the header links on a laptop. Built by `dock.js`, styled by `dock.css`; there is no markup to write.
+The five destinations are not listed here: there is ONE list, in `chrome.js` (`window.TeruconChrome.destinations`, the entries with `dock: true`), so a page that includes the dock must include `/brand/chrome.js` first (see `chrome.md`); without it there is no dock.
 
 ## Include it (hand-written pages, strict CSP)
 
 In `<head>` (or anywhere in the page; the script waits for `<body>`):
 
 ```html
+<link rel="stylesheet" href="/brand/chrome.css">
+<script src="/brand/chrome.js"></script>
 <link rel="stylesheet" href="/brand/dock.css">
 <script src="/brand/dock.js" defer></script>
 ```
 
-Nothing else. Both files are same-origin, so `style-src 'self'` and `script-src 'self'` allow them; there is no inline code, no
-external host, no `style=""` attribute (the script only sets properties through the DOM). The bundled pages get the same two
-lines from `site/patches/*.json`.
+Nothing else. All four files are same-origin, so `style-src 'self'` and `script-src 'self'` allow them; there is no inline code, no
+external host, no `style=""` attribute (the script only sets properties through the DOM). The bundled pages get the dock's two
+lines from `site/patches/*.json` and the chrome's two from `site/brand/head.html`.
 
 ## What it does
 
@@ -46,7 +49,7 @@ does not include the inset).
 
 * `<html data-tc-dock="off">` or `<meta name="tc-dock" content="off">`: the bar is not built.
 * `window.TeruconDock.hide()` / `.show()`: for a page that wants the bar out of the way for a while.
-* `window.TeruconDock.items`: the five destinations, if a page needs the list.
+* `window.TeruconDock.items`: the five destinations, if a page needs the list (the full list is `window.TeruconChrome.destinations`).
 
 ## Where it is not used
 

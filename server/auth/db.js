@@ -45,6 +45,8 @@ export const INDEXES = {
   events: [{ keys: { t: -1 }, options: { name: 'recent' } }, ttl],
   settings: [],
   outbox: [{ keys: { status: 1, nextAt: 1 }, options: { name: 'due' } }, { keys: { userId: 1 }, options: { name: 'user' } }],
+  // "Start a project" enquiries (server/lib/enquiry.js): business records, so no expiry
+  enquiries: [{ keys: { createdAt: -1 }, options: { name: 'recent' } }, { keys: { ownerId: 1 }, options: { name: 'owner' } }],
 };
 
 /**

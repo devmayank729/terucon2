@@ -42,6 +42,16 @@
       "id": "catalogue",
       "title": "Catalogue search",
       "blurb": "Find real catalogue materials by photo, colour or words (targets C3, C4, C5, C7), and the admin side of uploading a catalogue and choosing what is live (D1, server/catalogue/, catalogue/ARCHITECTURE.md). A gateway only: the website mints signed GCS URLs and forwards small requests to Modal; it never parses a PDF or touches a vector itself. With CATALOGUE=off or nothing configured, every route but status answers 503 catalogue-off and the rest of the site is untouched."
+    },
+    {
+      "id": "enquiry",
+      "title": "Start a project",
+      "blurb": "The enquiry form on /start-project and on the landing page (server/routes/enquiry.js, server/lib/enquiry.js). Open to everybody, so it is limited per address; an enquiry is kept in the account database and is NOT sent to a CRM yet."
+    },
+    {
+      "id": "terubot",
+      "title": "TeruBot (the assistant)",
+      "blurb": "The assistant on every page (server/routes/terubot.js, server/lib/terubot/). Public, so it is limited per account and per address. Gemini is called through the Design Studio's own Google key; without a usable key the answer is {aiOn:false}. Errors are flat {error}. It can look things up (the shop's 24 products, what each page does, the catalogue when it is on) and hand the browser a short list of allowed actions; it never changes anything itself."
     }
   ],
   "routes": [
@@ -785,6 +795,111 @@
       "curl": "curl -s -X POST -H 'Content-Type: application/json' -b 'terucon_session=...' -d '{\"challengeId\":\"...\",\"code\":\"123456\",\"confirm\":true}' http://localhost:8080/api/auth/delete/confirm"
     },
     {
+      "method": "POST",
+      "path": "/api/enquiry",
+      "owner": "JS",
+      "group": "enquiry",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "Send a \"Start a project\" enquiry. Open to everybody (somebody asking has no account); if the visitor is signed in it is tied to their account. A hidden field a person never fills in turns a bot's enquiry into a thank-you that keeps nothing.",
+      "request": "{type, name, company, phone, email, city, area, timeline, message, source?: 'landing', website?}. A name and a phone number or e-mail address are needed. `type`, `area` and `timeline` must be one of the values the form offers (or empty). Text is cut to length (name 120, company 160, phone 32, e-mail 254, city 120, message 2000).",
+      "response": "201 {ok: true, reference: 'TR-XXXXXX'}",
+      "errors": [
+        {
+          "status": 415,
+          "when": "Not application/json"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site"
+        },
+        {
+          "status": 400,
+          "when": "A field is missing or not valid: the error carries `field` (type, area, timeline, name, phone, email) so the page can point at it"
+        },
+        {
+          "status": 413,
+          "when": "Body over 16 KB"
+        },
+        {
+          "status": 429,
+          "when": "Five enquiries an hour, or twenty a day, from one address (retryAfter)"
+        },
+        {
+          "status": 503,
+          "when": "The account database is down: nothing was kept"
+        },
+        {
+          "status": 421,
+          "when": "Unexpected Host header"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -d '{\"name\":\"Asha Rao\",\"phone\":\"+91 98765 43210\",\"type\":\"Office interior\"}' http://localhost:8080/api/enquiry"
+    },
+    {
+      "method": "GET",
+      "path": "/api/terubot/status",
+      "owner": "JS",
+      "group": "terubot",
+      "guards": [
+        "Host"
+      ],
+      "summary": "Is the assistant's AI on, and which model would answer. Never calls Gemini.",
+      "request": "No body.",
+      "response": "{aiOn: boolean, model: string|null, signedIn: boolean}",
+      "errors": [
+        {
+          "status": 421,
+          "when": "Unexpected Host header"
+        }
+      ],
+      "curl": "curl -s http://localhost:8080/api/terubot/status"
+    },
+    {
+      "method": "POST",
+      "path": "/api/terubot/chat",
+      "owner": "JS",
+      "group": "terubot",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "One turn of the chat. The server asks Gemini (up to four look-up rounds), checks everything the model proposes, and returns the reply, material cards and the actions the browser may carry out (navigate, open_studio, cart_add, saved_add, saved_remove, prefill_enquiry). Cards come only from the data tools; a visitor who is not signed in gets public data only.",
+      "request": "{messages: [{role: 'user'|'assistant', text}] (the last 12, 2000 characters each, the last one from the user), context: {path, title, cart: [{id, qty}], saved: [id], viewport}}. The context is untrusted and validated field by field.",
+      "response": "200 {aiOn: true, reply (plain text, at most 1800 characters), cards: [{kind:'material', id, pid, vid, fid, name, variant, price, image, href}] (at most 6), actions: [...] (at most 8), model} or 200 {aiOn: false, reply, cards: [], actions: []} when the AI is off.",
+      "errors": [
+        {
+          "status": 415,
+          "when": "Not application/json"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site"
+        },
+        {
+          "status": 421,
+          "when": "Unexpected Host header"
+        },
+        {
+          "status": 400,
+          "when": "Not the shape above, or a message over 2000 characters, or a body over 64 KB"
+        },
+        {
+          "status": 429,
+          "when": "Too many messages: 60 an hour per account, 120 per address, 20 per address when not signed in, or 16 chats in flight (retryAfterSec)"
+        },
+        {
+          "status": 502,
+          "when": "Google answered with an error, or too slowly (timeout 30 s)"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -d '{\"messages\":[{\"role\":\"user\",\"text\":\"Which bronze sheets do you have?\"}],\"context\":{\"path\":\"/\"}}' http://localhost:8080/api/terubot/chat"
+    },
+    {
       "method": "GET",
       "path": "/api/auth/admin/settings",
       "owner": "JS",
@@ -885,6 +1000,38 @@
         }
       ],
       "curl": "curl -s -H 'Authorization: Bearer $AUTH_ADMIN_TOKEN' 'http://localhost:8080/api/auth/admin/events?limit=20'"
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/admin/enquiries",
+      "owner": "JS",
+      "group": "authAdmin",
+      "guards": [
+        "Host",
+        "Admin token"
+      ],
+      "summary": "The \"Start a project\" enquiries, newest first, as kept (reference as `_id`, createdAt, status, source, ownerId or null, and the fields of the form).",
+      "request": "?limit=50&before=<ms>  (limit at most 200)",
+      "response": "{enquiries:[{_id, createdAt, status, source, ownerId, type, name, company, phone, email, city, area, timeline, message}]}",
+      "errors": [
+        {
+          "status": 404,
+          "when": "No AUTH_ADMIN_TOKEN is set: the admin API is off"
+        },
+        {
+          "status": 401,
+          "when": "A valid admin token is needed (reason unauthorized)"
+        },
+        {
+          "status": 429,
+          "when": "Twenty wrong tokens an hour from this address"
+        },
+        {
+          "status": 503,
+          "when": "The account database is down (reason unavailable)"
+        }
+      ],
+      "curl": "curl -s -H 'Authorization: Bearer $AUTH_ADMIN_TOKEN' 'http://localhost:8080/api/auth/admin/enquiries?limit=20'"
     },
     {
       "method": "GET",

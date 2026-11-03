@@ -9,7 +9,9 @@
 // Three checks, on the page template inside each bundle (assets are not looked at):
 //   links        every same-site href/src is a known route, alias or existing media file (or, in the `file` link style, a page file)
 //   connections  every page links to each page listed for it in site.json `connections`
-//                (the whole template is searched: the dashboard keeps some links inside its own views)
+//                (the whole template is searched: the dashboard keeps some links inside its own views). The links that count are the ones a
+//                visitor can use: the page's own HTML without the export's hidden header, plus the destinations of the site chrome
+//                (site/brand/chrome.js: JavaScript draws them on every page, so they are read from its list, which head.html must include)
 //   names        no design-time name is left over (".dc.html", "Media%20Brief", the legacy names of site.json)
 //
 // Node built-ins only. tools/build-site.js runs the `links` check after every build.
@@ -101,8 +103,35 @@ export function makeResolver(site, root = ROOT, linkStyle = site.linkStyle || 'r
   };
 }
 
-/** Check one template. Returns {links, linkedPages, problems:[{check, message}]}. */
-export function checkTemplate(pageKey, template, site, { root = ROOT, resolve = makeResolver(site, root) } = {}) {
+/**
+ * The site chrome (site/brand/chrome.js): the ONE list of destinations that the header, the sidebar and the phone dock draw on every
+ * page, and whether the built pages include it (site/brand/head.html). Links made by JavaScript are not in any page's HTML, so this
+ * is how the connections check knows about them. Returns null when there is no chrome in `root`.
+ * The list sits in chrome.js between "// BEGIN destinations" and "// END destinations" as plain JSON.
+ */
+export function loadChrome(root = ROOT) {
+  const js = path.join(root, 'site', 'brand', 'chrome.js');
+  if (!fs.existsSync(js)) return null;
+  const text = fs.readFileSync(js, 'utf8');
+  const block = /\/\/ BEGIN destinations[^\n]*\n\s*var DEST = (\[[\s\S]*?\]);\s*\n\s*\/\/ END destinations/.exec(text);
+  let destinations = null;
+  let error = null;
+  try {
+    if (!block) throw new Error('the "// BEGIN destinations" ... "// END destinations" block is missing');
+    destinations = JSON.parse(block[1]);
+  } catch (e) {
+    error = `site/brand/chrome.js: the list of destinations cannot be read (${e.message})`;
+  }
+  const headFile = path.join(root, 'site', 'brand', 'head.html');
+  const head = fs.existsSync(headFile) ? fs.readFileSync(headFile, 'utf8') : '';
+  return { destinations, error, inHead: /\/brand\/chrome\.js/.test(head) && /\/brand\/chrome\.css/.test(head) };
+}
+
+// The export's own headers: in the page, but not drawn while the chrome is on (the patches hide them), so their links are not the page's links.
+const HIDDEN_EXPORT_HEADER = /<header\b[^>]*\b(?:data-nav|data-screen-label="Top bar")[^>]*>[\s\S]*?<\/header>/g;
+
+/** Check one template. Returns {links, linkedPages, problems:[{check, message}]}. `chrome` (from loadChrome) makes the connections check chrome-aware. */
+export function checkTemplate(pageKey, template, site, { root = ROOT, resolve = makeResolver(site, root), chrome = null } = {}) {
   const problems = [];
   const linkedPages = new Set();
   let count = 0;
@@ -117,12 +146,33 @@ export function checkTemplate(pageKey, template, site, { root = ROOT, resolve = 
     else if (r.page) linkedPages.add(r.page);
   }
 
-  // 2. connections
+  // 2. connections. With the chrome on, the links that count are the ones a visitor can use: the page's own (not those in the hidden
+  // export header) and the chrome's destinations, which it draws on every page that includes it.
+  let connected = linkedPages;
+  if (chrome) {
+    connected = new Set();
+    for (const target of collectLinks(template.replace(HIDDEN_EXPORT_HEADER, ''))) {
+      const r = resolve(target);
+      if (r.page) connected.add(r.page);
+    }
+    if (chrome.error) problems.push({ check: 'chrome', message: chrome.error });
+    else if (chrome.inHead) {
+      for (const d of chrome.destinations) {
+        const r = resolve(d.href);
+        if (r.page) connected.add(r.page);
+        else if (r.kind === 'doc' || r.kind === 'route' || r.kind === 'alias') continue;
+        else problems.push({ check: 'chrome', message: `the chrome's destination ${JSON.stringify(d.href)} (${d.label}) is not a known page` });
+      }
+    } else {
+      problems.push({ check: 'chrome', message: 'site/brand/head.html does not include /brand/chrome.css and /brand/chrome.js, so the built pages would have no header' });
+    }
+  }
   for (const wanted of site.connections?.[pageKey] || []) {
-    if (!linkedPages.has(wanted)) {
+    if (!connected.has(wanted)) {
       problems.push({ check: 'connections', message: `does not link to '${wanted}' (${site.pages[wanted]?.route ?? '?'}), site.json connections require it` });
     }
   }
+  if (chrome) for (const p of connected) linkedPages.add(p);
 
   // 3. design-time names (a name inside a longer leftover name, such as ".dc.html" in "Design%20Studio.dc.html", is reported once)
   const names = new Set(DESIGN_TIME_FRAGMENTS);
@@ -148,6 +198,8 @@ export function checkTemplate(pageKey, template, site, { root = ROOT, resolve = 
  */
 export function checkPages({ root = ROOT, site = loadSite(root), linkStyle = site.linkStyle || 'route', keys = null, dir = null, templates = null, checks = null } = {}) {
   const resolve = makeResolver(site, root, linkStyle);
+  // pages read from disk are checked together with the chrome that every one of them draws; templates handed in (tests, the site build) are checked as they are
+  const chrome = templates ? null : loadChrome(root);
   const pages = {};
   const problems = [];
   for (const key of keys || Object.keys(site.pages)) {
@@ -163,7 +215,7 @@ export function checkPages({ root = ROOT, site = loadSite(root), linkStyle = sit
       problems.push({ page: key, check: 'links', message: `page file not found: ${file}` });
       continue;
     }
-    const r = checkTemplate(key, template, site, { root, resolve });
+    const r = checkTemplate(key, template, site, { root, resolve, chrome });
     const mine = checks ? r.problems.filter((p) => checks.includes(p.check)) : r.problems;
     pages[key] = { file: spec.file, exists: true, links: r.links, linkedPages: r.linkedPages, problems: mine };
     for (const p of mine) problems.push({ page: key, ...p });

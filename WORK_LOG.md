@@ -6,6 +6,55 @@ This file is not `TARGETS.md` (that tracks the quotation's targets and their sta
 
 ---
 
+## 2026-11-03: What the Design Studio calls, and why (one verified document)
+
+**Asked:** "what is the exact architecture? means how many calls it made to whom? suppose I upload a photo it make a call to oneformer, and in what scenerio the MoGe, SAM and all are called? and what if the photo is loaded from history then what happen? and why it take noticable time to load the selected design on the object? it freshly call moge and all or why? and sometime suppose I tap on floor and tap a design it get loaded like 2D and after sometimes it feels ki yes this is 3d otherwise it looks bad? what is the reason? give me a proper doc which give me detail about this AI design studio (if any .md file is already there copy them and add more answer to all the questions, given all the answer should be verified properly nothings should be pre-asumed or false claim", plus a console screenshot and "why it is showing too much calls? even though one times it was already completed?".
+
+**Serves:** C1 (the Design Studio), and in passing F1a and I3 (read-only). No target status or count changes.
+
+### What exactly I did, in order
+
+1. Read `TARGETS.md`, `CLAUDE.md`, my memory notes (the studio is a verbatim copy: never edit `swatchroom/`; facts only; never print env values) and this file. Listed every `.md` in the repo: six belong to the studio (`swatchroom/{ARCHITECTURE,modal-latency-audit,swatchflow,DEPLOY,UPGRADE_SUMMARY,README}.md`).
+2. Read the code that answers each question: the browser's scan, polling, history, calibration, version and render code (`studio.js`, `stage.js`, `detect.js`, `segmentRace.js`, `previewScene.js`, `fastrender/*`, `startupGate.js`, `swatchroom-app.js`), the server's routes and runner (`routes/{pipeline,vision,ai,rooms,session}.js`, `lib/{pipelineRunner,jobs,wake,warmth,fusionStore}.js`, `remoteModels/*`, `google/vertex.js`, `config.js`, the two models), and the website's own wake-up (`server/lib/swatchroom.js`, `server/routes/studio.js`, `site/patches/snippets/warmup.js`). Read all six existing guides.
+3. Decoded the two job ids in your screenshot (they hold the creation time in base 36): `job-mw0nvkma-…` = 2026-11-03T12:25:49.090Z, `job-mw0nw8kd-…` = 12:26:20.125Z, 31.0 s apart.
+4. Did a **names-only** check of both `.env` files (which model URLs are set, and only the Modal function label of each address, never a value): all five set, on five different Modal services; `ANALYZE_URL` set, so the three separate pools are not used by the pipeline.
+5. Asked the advisor tool to review my plan. Its points that I followed: do not copy the old guides as if still true (they got a corrections table); run the real route and runner with stubs, with the addresses pointed at a closed local port **before** the config loads and `fetch` blocked; check the "history", "render version" and "reopen" cases; do not guess which action started the second job.
+6. Wrote `docs/design-studio-checks/verify_pipeline.cjs` (loads the real `routes/pipeline.js` and `lib/pipelineRunner.js`; stubs the database models, storage, `fusionStore`, `fusion.runFitRegions` and the four model adapters) and `verify_preview.mjs` (loads the real `previewScene.js` and `fastrender/tiers.js`). **My first run gave wrong counts:** jobs queued by the route tests kept running in the background into the next test (it showed `analyze: 1` in a case that should have been 0). I fixed it by stubbing the runner during the route tests and re-ran everything; a later run also found a fifth route case (a second request during the local fitting stage creates a second job).
+7. Wrote the document (`docs/DESIGN_STUDIO_ARCHITECTURE.md`): sections 1 to 11, then the six guides as appendices, copied by a script. Checked every `file:line` range I cited against the files (about a dozen ranges were off by a few lines and were corrected), and proved by script that each appendix equals its source once the heading shift is undone.
+8. Copied the two scripts into `docs/design-studio-checks/` with project-relative paths and re-ran them from there (same results). Added both to `docs/overview/catalog/files.json` (my first tag, "Test", is not in the allowed list; used "Dev" and "Run"), rebuilt the overview, updated `TARGETS.md` (C1 "Remaining", the header line, the change log) and rebuilt the overview again.
+
+### Files changed
+
+- New: `docs/DESIGN_STUDIO_ARCHITECTURE.md`, `docs/design-studio-checks/verify_pipeline.cjs`, `docs/design-studio-checks/verify_preview.mjs`
+- Edited: `docs/overview/catalog/files.json` (two entries), `TARGETS.md` (C1 Remaining, header, change log), `WORK_LOG.md` (this entry), and the file `node tools/build-overview.js` regenerates (`docs/PROJECT_OVERVIEW.html`)
+- **Nothing under `swatchroom/` was touched; nothing committed.**
+
+### Checked
+
+- The call counts, the route's decisions and the runner's behaviour for five route cases and four runner cases (see section 4 of the document), by running the real code with stubs; 0 `fetch` attempts in the whole run.
+- The estimate-versus-real-fit selection rule and the confidence bands, by running the real `previewScene.js` and `tiers.js` (the outline estimator itself is a stand-in).
+- The six appendices are identical to their sources (script).
+- Every cited line range.
+
+### Not checked
+
+- Anything live: no Modal, Gemini, MongoDB, PostHog or Render call.
+- **Any browser behaviour.** I did not open the studio. So the client-side findings (a render version keeps the preview on the estimate; reopening the open room can skip the reload) are from reading the code, not reproduced.
+- Which action started the second job in your screenshot, and whether the screenshot came from your Mac or from Render.
+- Your Render settings (only your Mac's `.env` layout was read), and any latency (none measured).
+
+### Noticed, left alone
+
+- The older guides contradict the code in several places (poll interval, number of `ensureFusion` triggers, "nothing wakes on page load", the "0-byte" `modalBlueprint.py`); they are tabulated in section 10 of the document, not edited.
+- The website wakes two different Modal services on page open, so "one cold start, one idle tail" does not hold with the current `.env` layout.
+- Three possible gaps in the studio's 3D-data handling are in `TARGETS.md` under C1 "Remaining". They belong in your separate Swatchroom project, not in the copy here.
+
+### What I did (summary)
+
+I read the Design Studio's code end to end for the questions you asked, ran its real pipeline route and runner with every outside call stubbed to count what would be called, and wrote one document with the answers (each tagged by how it was checked) and your six existing guides copied in as appendices. The short version: a new photo costs two Modal requests (OneFormer for the scan, one combined MoGe-2 + Marigold + SAM 3 request for depth), one Gemini request and one local request; tapping, picking a finish and the repeated console lines never call Modal. The second job in your screenshot was a local-only refit. Opening a room whose saved current version is a render does call Modal again, and after a render the preview can stay on the estimate; both are from reading the code and still need a browser check.
+
+---
+
 ## 2026-11-03: Sign-in page showed a huge Google logo for a moment, then shrank
 
 **Asked:** "as soon as user land on login page, it show a very big google logo and after that it get adjusted. I know that is the time it take to load the css but I don't want that bad experience for that, resolve it properly", and from now on to keep a `.md` file of what exactly I did, ending with a summary.

@@ -1,0 +1,781 @@
+/* TeruBot: the one assistant of the site. A launcher at the bottom right ("Ask TeruBot") and a chat panel (a docked card on a laptop,
+   a bottom sheet above the phone dock). Built by /brand/terubot.js (no markup to write); this file styles it.
+   Include: <link rel="stylesheet" href="/brand/terubot.css"> + <script src="/brand/terubot.js" defer></script>. How it works: /brand/terubot.md.
+   Strict-CSP safe: no inline style, no external host, no web fonts of its own (it uses the page's Zodiak and Switzer when they are loaded).
+
+   Variables it READS (all optional, with fallbacks; other parts of the site set them, TeruBot never assumes a value):
+     --tc-dock-h   the phone dock's height (0 when there is none)                      dock.css
+     --tc-hdr-h    the height of the site header / pill header, to keep the panel clear of it
+     --tc-side-w   the width of a left sidebar, to keep the panel clear of it
+     --tb-bottom   extra room a page needs under the launcher (the shop's cart bar, the project page's own tab bar); default 20px
+   Variables it SETS on its own root (only while the on-screen keyboard is up): --tb-kb, --tb-vvh. */
+
+:root {
+  --tb-bg: #1f150a;
+  --tb-bg-2: #291c0e;
+  --tb-card: #2a1d10;
+  --tb-ink: #e1d4c2;
+  --tb-ink-2: #beb5a9;
+  --tb-ink-3: #a78d78;
+  --tb-line: rgba(225, 212, 194, 0.16);
+  --tb-line-2: rgba(225, 212, 194, 0.32);
+  --tb-amber: #f5b357;
+  --tb-brown: #6e473b;
+  --tb-bad: #e39a80;
+  --tb-ok: #9fbf8f;
+}
+
+.tb-root {
+  position: static;
+  font-family: Switzer, "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  color: var(--tb-ink);
+  text-align: left;
+  letter-spacing: normal;
+  text-transform: none;
+  line-height: 1.4;
+}
+.tb-root *,
+.tb-root *::before,
+.tb-root *::after {
+  box-sizing: border-box;
+}
+.tb-root [hidden] {
+  display: none !important;
+}
+:where(.tb-root) button,
+:where(.tb-root) textarea {
+  font: inherit;
+  color: inherit;
+  margin: 0;
+}
+:where(.tb-root) button {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.tb-root :focus-visible {
+  outline: 2px solid var(--tb-amber);
+  outline-offset: 2px;
+}
+.tb-sr {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- the launcher ---------------------------------------------------------------------------------------------------- */
+.tb-launch {
+  position: fixed;
+  z-index: 46;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: calc(var(--tc-dock-h, 0px) + var(--tb-bottom, 20px) + env(safe-area-inset-bottom, 0px));
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 18px 0 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(225, 212, 194, 0.26);
+  background: var(--tb-bg-2);
+  color: var(--tb-ink);
+  box-shadow: 0 12px 30px rgba(20, 12, 4, 0.34), 0 0 0 1px rgba(20, 12, 4, 0.2);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1), background-color 0.2s, border-color 0.2s;
+}
+.tb-launch:hover {
+  transform: translateY(-2px);
+  background: #34230f;
+  border-color: rgba(225, 212, 194, 0.5);
+}
+.tb-launch:active {
+  transform: none;
+}
+.tb-launch__mark {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--tb-ink);
+  color: var(--tb-bg-2);
+}
+.tb-launch__mark svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+/* a quiet pulse: three slow rings on the glyph after the page loads, then still */
+.tb-launch__mark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(245, 179, 87, 0.55);
+  animation: tb-pulse 2.8s ease-out 1.2s 3 both;
+  pointer-events: none;
+}
+@keyframes tb-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 179, 87, 0.5);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 12px rgba(245, 179, 87, 0);
+  }
+}
+.tb-root.is-open .tb-launch {
+  display: none;
+}
+/* the Design Studio's working view: its Share button, zoom control and status line run along the bottom edge (checked at 1440 and 1280 px
+   with a photo loaded), so on a laptop the launcher sits above them, at the right edge of the canvas */
+.tb-root.is-studio .tb-launch {
+  bottom: calc(var(--tc-dock-h, 0px) + var(--tb-bottom-studio, 172px) + env(safe-area-inset-bottom, 0px));
+}
+/* a reply arrived while the panel was closed */
+.tb-launch.is-unread .tb-launch__mark::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--tb-amber);
+  border: 2px solid var(--tb-bg-2);
+}
+
+/* ---- the panel: a docked card ----------------------------------------------------------------------------------------- */
+.tb-scrim {
+  display: none;
+}
+.tb-panel {
+  position: fixed;
+  z-index: 85;
+  right: max(20px, env(safe-area-inset-right, 0px));
+  bottom: calc(var(--tc-dock-h, 0px) + var(--tb-bottom, 20px) + env(safe-area-inset-bottom, 0px));
+  width: min(380px, calc(100vw - var(--tc-side-w, 0px) - 32px));
+  height: min(640px, calc(100vh - var(--tc-hdr-h, 64px) - var(--tc-dock-h, 0px) - var(--tb-bottom, 20px) - 32px));
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid var(--tb-line);
+  background: var(--tb-bg);
+  color: var(--tb-ink);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(20, 12, 4, 0.3);
+  outline: none;
+  animation: tb-in 0.22s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@supports (height: 100dvh) {
+  .tb-panel {
+    height: min(640px, calc(100dvh - var(--tc-hdr-h, 64px) - var(--tc-dock-h, 0px) - var(--tb-bottom, 20px) - 32px));
+    max-height: calc(100dvh - 32px);
+  }
+}
+@keyframes tb-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tb-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 8px 12px 16px;
+  border-bottom: 1px solid var(--tb-line);
+  background: var(--tb-bg-2);
+}
+.tb-head__mark {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--tb-ink);
+  color: var(--tb-bg-2);
+}
+.tb-head__mark svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+.tb-head__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.tb-title {
+  margin: 0;
+  font-family: Zodiak, Georgia, "Times New Roman", serif;
+  font-weight: 300;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--tb-ink);
+}
+.tb-title:focus {
+  outline: none;
+}
+.tb-sub {
+  font-size: 12px;
+  line-height: 1.2;
+  color: var(--tb-ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tb-iconbtn,
+.tb-textbtn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--tb-ink-2);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  transition: color 0.15s, background-color 0.15s;
+}
+.tb-iconbtn:hover,
+.tb-textbtn:hover {
+  color: var(--tb-ink);
+  background: rgba(225, 212, 194, 0.08);
+}
+.tb-iconbtn svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* the honest state line: AI off, unreachable, slowed down */
+.tb-notice {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--tb-line);
+  background: rgba(245, 179, 87, 0.1);
+  color: var(--tb-ink);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.tb-notice__text {
+  flex: 1 1 200px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.tb-notice a,
+.tb-notice button {
+  min-height: 44px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--tb-line-2);
+  background: transparent;
+  color: var(--tb-ink);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.tb-notice a:hover,
+.tb-notice button:hover {
+  border-color: var(--tb-ink);
+}
+
+/* the conversation */
+.tb-log {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+}
+.tb-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 100%;
+  min-width: 0;
+}
+.tb-msg--user {
+  align-self: flex-end;
+  align-items: flex-end;
+  max-width: 88%;
+}
+.tb-msg--bot {
+  align-self: flex-start;
+  align-items: flex-start;
+  max-width: 100%;
+}
+.tb-bubble {
+  margin: 0;
+  max-width: 100%;
+  padding: 11px 15px;
+  border-radius: 18px 18px 4px 18px;
+  background: var(--tb-ink);
+  color: var(--tb-bg-2);
+  font-size: 15px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.tb-text {
+  margin: 0;
+  max-width: 100%;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--tb-ink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.tb-msg--err .tb-text {
+  color: var(--tb-bad);
+}
+
+/* the "Done: ..." lines for what TeruBot did on the page */
+.tb-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  max-width: 100%;
+  padding: 7px 12px;
+  border-radius: 12px;
+  background: rgba(159, 191, 143, 0.12);
+  color: var(--tb-ok);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.tb-note--queued,
+.tb-note--info {
+  background: rgba(245, 179, 87, 0.12);
+  color: var(--tb-amber);
+}
+.tb-note--failed {
+  background: rgba(227, 154, 128, 0.12);
+  color: var(--tb-bad);
+}
+.tb-note__text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.tb-note button,
+.tb-note a {
+  min-height: 44px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* material cards */
+.tb-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tb-card {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 8px 12px 8px 8px;
+  border-radius: 14px;
+  border: 1px solid var(--tb-line);
+  background: var(--tb-card);
+  color: var(--tb-ink);
+  text-decoration: none;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+.tb-card:hover {
+  border-color: var(--tb-line-2);
+  background: #33230f;
+}
+.tb-card__img {
+  display: block;
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--tb-brown);
+}
+.tb-card__img--none {
+  background: linear-gradient(135deg, #6e473b, #3a2a1c);
+}
+.tb-card__body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.tb-card__name {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.tb-card__variant {
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--tb-ink-3);
+  overflow-wrap: anywhere;
+}
+.tb-card__price {
+  font-size: 13px;
+  line-height: 1.2;
+  color: var(--tb-ink-2);
+  overflow-wrap: anywhere;
+}
+.tb-card__go {
+  color: var(--tb-ink-3);
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* waiting */
+.tb-typing {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(225, 212, 194, 0.08);
+}
+.tb-typing i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--tb-ink-2);
+  animation: tb-dot 1.1s ease-in-out infinite;
+}
+.tb-typing i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.tb-typing i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes tb-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+    transform: none;
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+/* suggestions */
+.tb-chips {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px 12px;
+}
+.tb-chip {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px dashed rgba(225, 212, 194, 0.4);
+  background: transparent;
+  color: var(--tb-ink-2);
+  font-size: 13.5px;
+  line-height: 1.2;
+  text-align: left;
+  transition: color 0.15s, border-color 0.15s;
+}
+.tb-chip:hover {
+  color: var(--tb-ink);
+  border-color: var(--tb-ink);
+}
+
+/* the box */
+.tb-form {
+  flex: none;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--tb-line);
+  background: #241809;
+}
+.tb-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  max-height: 132px;
+  padding: 11px 14px;
+  resize: none;
+  overflow-y: auto;
+  border-radius: 22px;
+  border: 1px solid rgba(225, 212, 194, 0.26);
+  background: rgba(225, 212, 194, 0.06);
+  color: var(--tb-ink);
+  /* 16px: below that, iOS zooms the page when the box is focused */
+  font-size: 16px;
+  line-height: 1.35;
+}
+.tb-input::placeholder {
+  color: var(--tb-ink-3);
+}
+.tb-input:focus {
+  outline: 2px solid var(--tb-amber);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+.tb-roundbtn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(225, 212, 194, 0.3);
+  background: transparent;
+  color: var(--tb-ink);
+  transition: background-color 0.15s, color 0.15s;
+}
+.tb-roundbtn svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tb-roundbtn:hover {
+  background: rgba(225, 212, 194, 0.1);
+}
+.tb-roundbtn[aria-pressed="true"] {
+  background: var(--tb-amber);
+  border-color: var(--tb-amber);
+  color: var(--tb-bg);
+}
+.tb-send {
+  border-color: transparent;
+  background: var(--tb-ink);
+  color: var(--tb-bg-2);
+}
+.tb-send:hover {
+  background: #fff6e8;
+}
+.tb-send:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.tb-foot {
+  flex: none;
+  margin: 0;
+  padding: 0 14px calc(8px + env(safe-area-inset-bottom, 0px));
+  background: #241809;
+  color: var(--tb-ink-3);
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+.tb-form + .tb-foot {
+  padding-top: 0;
+}
+.tb-mic-status {
+  flex: none;
+  margin: 0;
+  padding: 6px 16px 0;
+  background: #241809;
+  color: var(--tb-amber);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+/* ---- a phone: the panel is a bottom sheet above the dock -------------------------------------------------------------- */
+@media (max-width: 719px) {
+  .tb-launch,
+  .tb-root.is-studio .tb-launch {
+    right: max(12px, env(safe-area-inset-right, 0px));
+    bottom: calc(var(--tc-dock-h, 0px) + var(--tb-bottom, 16px) + env(safe-area-inset-bottom, 0px));
+  }
+  /* on a phone the launcher is a round button, so it does not sit on top of the page's own buttons and chips; the words stay for a
+     screen reader (clipped, not removed) and the panel's header says who it is */
+  .tb-launch {
+    gap: 0;
+    width: 52px;
+    height: 52px;
+    min-height: 52px;
+    padding: 0;
+    justify-content: center;
+  }
+  .tb-launch__mark {
+    width: 40px;
+    height: 40px;
+  }
+  .tb-launch__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+  .tb-scrim {
+    display: block;
+    position: fixed;
+    z-index: 84;
+    inset: 0;
+    background: rgba(8, 5, 2, 0.5);
+    animation: tb-fade 0.2s ease both;
+  }
+  .tb-panel {
+    left: 0;
+    right: 0;
+    width: auto;
+    bottom: calc(var(--tc-dock-h, 0px) + env(safe-area-inset-bottom, 0px));
+    height: min(80vh, 640px);
+    max-height: calc(100vh - var(--tc-hdr-h, 0px) - 12px);
+    border-radius: 20px 20px 0 0;
+    border-bottom: 0;
+    animation-name: tb-sheet;
+  }
+  @supports (height: 100dvh) {
+    .tb-panel {
+      height: min(80dvh, 640px);
+      max-height: calc(100dvh - var(--tc-hdr-h, 0px) - 12px);
+    }
+  }
+  /* the on-screen keyboard is up: the sheet sits on top of it and is no taller than what is left (the dock hides itself then) */
+  .tb-root.is-kb .tb-panel {
+    bottom: var(--tb-kb, 0px);
+    height: min(80vh, 640px, calc(var(--tb-vvh, 100vh) - 12px));
+    max-height: calc(var(--tb-vvh, 100vh) - 12px);
+  }
+  .tb-form {
+    padding-bottom: 10px;
+  }
+  .tb-foot {
+    padding-bottom: 8px;
+  }
+  .tb-root:not(.is-kb) .tb-form {
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+}
+@keyframes tb-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes tb-sheet {
+  from {
+    opacity: 0.6;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* the Design Studio's working view takes the whole screen (it sets html.swr-immersive): nothing of ours there */
+html.swr-immersive .tb-root {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tb-launch,
+  .tb-launch:hover {
+    transition: none;
+    transform: none;
+  }
+  .tb-launch__mark::after {
+    animation: none;
+    box-shadow: none;
+  }
+  .tb-panel,
+  .tb-scrim {
+    animation: none;
+  }
+  .tb-typing i {
+    animation: none;
+    opacity: 0.8;
+  }
+  .tb-card,
+  .tb-chip,
+  .tb-iconbtn,
+  .tb-textbtn,
+  .tb-roundbtn {
+    transition: none;
+  }
+}
+
+@media print {
+  .tb-root {
+    display: none !important;
+  }
+}

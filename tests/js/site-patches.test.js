@@ -73,10 +73,11 @@ test('every step has a why, ids are unique, every file passes validation', () =>
   }
 });
 
-test('home: header, menu and footer entries are added once each, as route links', () => {
+test('home: the menu and footer entries are added once each, as route links (the header entries are retired: the site chrome is the header)', () => {
   const t = memoBuild('route').results.find((r) => r.key === 'home').bundle.template;
-  assert.equal(countOccurrences(t, '<a href="/materials" data-m="display:none" style="display:flex;align-items:center;gap:8px'), 1);
-  assert.equal(countOccurrences(t, '<a href="/my-project" data-m="display:none" style="display:flex;align-items:center;gap:8px'), 1);
+  // the export's header links are retired: the site chrome (site/brand/chrome.js) is the header now and draws these links itself
+  assert.equal(countOccurrences(t, '<a href="/materials" data-m="display:none" style="display:flex;align-items:center;gap:8px'), 0);
+  assert.equal(countOccurrences(t, '<a href="/my-project" data-m="display:none" style="display:flex;align-items:center;gap:8px'), 0);
   assert.equal(countOccurrences(t, '>Open My project →</span>'), 1);
   assert.equal(countOccurrences(t, '>Shop materials →</span>'), 1);
   assert.equal(countOccurrences(t, '>Shop materials</a>'), 1);
@@ -427,8 +428,12 @@ test('makeContext defaults: link style from site.json, overridable', () => {
 test('the snippets are plain JavaScript that parses on its own (as a module)', () => {
   const dir = path.join(ROOT, 'site', 'patches', 'snippets');
   const files = fs.readdirSync(dir).filter((f) => f.endsWith('.js'));
-  assert.deepEqual(files.sort(), ['analytics.js', 'auth.js', 'warmup.js']);
-  for (const f of files) checkSyntax(fs.readFileSync(path.join(dir, f), 'utf8'), f.replace(/\.js$/, '.mjs'), `[${f}] `);
+  assert.deepEqual(files.sort(), ['analytics.js', 'auth.js', 'hero-curtain.js', 'warmup.js']);
+  for (const f of files) {
+    const code = fs.readFileSync(path.join(dir, f), 'utf8');
+    // hero-curtain.js is a fragment of the landing component's class body (spliced in by the home patch), so it parses inside a class
+    checkSyntax(f === 'hero-curtain.js' ? `class HeroCurtain {\n${code}\n}` : code, f.replace(/\.js$/, '.mjs'), `[${f}] `);
+  }
 });
 
 test('no snippet has a camelCase name straight before an "=": the exported pages\' runtime rewrites those inside inline scripts', () => {
@@ -437,7 +442,9 @@ test('no snippet has a camelCase name straight before an "=": the exported pages
   // dies with "Unexpected token '-'". A name after a dot (`nav.doNotTrack === '1'`) is not touched.
   const dir = path.join(ROOT, 'site', 'patches', 'snippets');
   const hazard = /(\s)([a-z]+[A-Z][A-Za-z0-9]*)(\s*=)/g;
-  for (const f of fs.readdirSync(dir).filter((name) => name.endsWith('.js'))) {
+  // hero-curtain.js is spliced into the landing component's own script (the x-dc script), whose members are named the same way
+  // (`buildFins = () => {`), not into an inline script of the page text, so the rewrite does not apply to it
+  for (const f of fs.readdirSync(dir).filter((name) => name.endsWith('.js') && name !== 'hero-curtain.js')) {
     const code = fs.readFileSync(path.join(dir, f), 'utf8').split('\n').filter((line) => !/^\s*\/\//.test(line)).join('\n'); // comments are text, not code
     assert.deepEqual([...code.matchAll(hazard)].map((m) => m[2]), [], `${f}: rename these to all-lowercase names`);
   }

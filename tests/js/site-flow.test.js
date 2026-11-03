@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { Bundle } from '../../tools/bundle.js';
-import { collectLinks, makeResolver } from '../../tools/check-links.js';
+import { collectLinks, loadChrome, makeResolver } from '../../tools/check-links.js';
 import { ROOT, SITE, memoBuild } from './site-helpers.js';
 
 // The path a visitor takes: landing page -> Design Studio (Swatchroom) -> the rest of the site, and a page that does not
@@ -69,6 +69,9 @@ test('the Coming soon page: registered, themed, and every link on it leads somew
     assert.ok(r.kind === 'route' || r.kind === 'alias', `${target} -> ${r.kind}`);
     pages.add(r.page);
   }
+  // the page has no navigation of its own any more: the site chrome (site/brand/chrome.js, in its <head>) draws the header, and the link checker reads its list
+  assert.match(html, /<script src="\/brand\/chrome\.js"><\/script>/);
+  for (const d of loadChrome(ROOT).destinations) pages.add(resolve(d.href).page);
   for (const key of ['home', 'materials', 'studio', 'dashboard']) assert.ok(pages.has(key), `links to ${key}`);
 });
 

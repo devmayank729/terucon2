@@ -94,6 +94,10 @@ Design Studio's GPU services as soon as the page opens (`POST /api/studio/warmup
 once a minute per tab, and never waits for the answer. It is plain JavaScript that parses on its own
 (`tests/js/site-patches.test.js` checks that).
 
+`snippets/shop-terubot-members.txt` is not a `.js` file on purpose: it is a set of members of the shop's component class (TeruBot's bridge to the cart and the
+saved list), inserted by the `terubot-bridge` step of `materials.json`, and only parses inside that class. `tests/js/terubot-widget.test.js` wraps it in a fake
+shop class and tests it. (The two rules above, "parses on its own" and "no camelCase name before `=`", are for the plain scripts that go into the page head.)
+
 ## What each patch does
 
 * `home`, `materials`, `studio`: relink the design-time names; add the missing entry points (Materials and "My project" on
@@ -104,4 +108,20 @@ once a minute per tab, and never waits for the answer. It is plain JavaScript th
   wake-up script.
 * `studio` also: the footer line (the export says photos and key stay in the browser; the studio saves rooms on the server),
   and the wake-up script. The studio inside the page is not patched.
+* `home` also (`hero-curtain-*`): the hero's louvres. `snippets/hero-curtain.js` is not a standalone script: it is a fragment of the landing
+  component's class body (new `buildFins`, `playFins`, `waitIntro`, `lazy3D`, `fxFins`), spliced in front of the export's own `buildFins`
+  (kept as `buildFinsOld`, unused); `hero-curtain-start` and `hero-curtain-scroll` swap two call sites. The opening is a Web Animation per
+  fin that starts when the page loader fires `tc-ld-exit` (site/brand/loader.html); the 3D façade starts after it.
+* `studio` also (`one-loader`): hides the runtime's grey placeholder for the `<x-import>` and the studio's own splash, so the page loader
+  (held by site/brand/studio-entry.js until the studio's first screen exists) is the only screen on the way in.
 * `dashboard`: the relink, and the Design Studio link in "My design" is named "Open the Design Studio" (the export says "Open the full design studio (for advanced users)").
+
+## The site chrome (header and sidebar)
+
+The header of every page is the site chrome (`site/brand/chrome.js`, see `site/brand/chrome.md`), included by `site/brand/head.html`. The patches no longer
+add links to the exports' own headers (the `header-*`, `logo-header` and `header-fit` steps are retired); a `chrome-fit` step per page hides the export's
+header (`html.tc-chrome-on [data-nav]`, and `header[data-screen-label="Top bar"]` on the dashboard) only while the chrome is on, so a page that loads
+without chrome.js keeps its own header. The header stays in the page (the chrome's Menu, Saved and Cart buttons click its originals), and its links
+no longer count for `tools/check-links.js`: the connections check counts the page's other links and the chrome's list of destinations.
+`dashboard.json` also moves the dashboard's dark-mode switch and text-size button into its side rail (`tools-in-rail`), starts its rail beside the chrome's
+sidebar (`rail-lift`, `rail-top`) and lays its breakpoints out from the width beside that sidebar (`vw-helper`, `vw-initial`, `vw-resize`).

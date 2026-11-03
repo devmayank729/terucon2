@@ -7,6 +7,7 @@
  *   PUT  /api/auth/admin/settings      {settings: {"limits.otpStartPerIpPerHour": 20, "crm.module": null}}  null puts one back to its default
  *   GET  /api/auth/admin/events        ?limit=100&before=<ms>  the security log, newest first
  *   GET  /api/auth/admin/status        is sign-in ready, what is missing, counts, the CRM queue
+ *   GET  /api/auth/admin/enquiries     ?limit=50&before=<ms>  the "Start a project" enquiries, newest first (server/lib/enquiry.js)
  *   POST /api/auth/admin/unlock        {identifier}  lift the lock on an e-mail address or number
  *   POST /api/auth/admin/crm/flush     deliver what is waiting to Zoho now
  *   POST /api/auth/admin/crm/retry     put failed CRM jobs back in the queue
@@ -92,6 +93,15 @@ export function mountAuthAdmin(app, ctx) {
         sessions: await sessions.countDocuments({}),
         crmQueue: await auth.crm.stats(),
       });
+    }),
+  );
+
+  api.get(
+    '/api/auth/admin/enquiries',
+    admin(async (req, res) => {
+      if (!ctx.enquiries) return refuse(res, 503, 'unavailable', 'Enquiries are not available.');
+      const before = Number(req.query.before);
+      res.json({ enquiries: await ctx.enquiries.recent({ limit: Number(req.query.limit) || 50, before: Number.isFinite(before) && before > 0 ? before : undefined }) });
     }),
   );
 

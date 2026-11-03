@@ -1,0 +1,96 @@
+
+  // ---------- TeruBot: the site's one assistant (site/brand/terubot.js) ----------
+  // It lives outside this page. It changes the cart or the saved list by dispatching a "terucon:shop" event, which tbMount() answers;
+  // a change it was asked for while another page was open waits in sessionStorage ("terucon.terubot.pending") and is applied here
+  // as soon as the catalogue is loaded (tbReady). Either way the change goes through this page's own state and persistence
+  // (terucon.store.v1.cart / .saved), and the answer says what really happened.
+  tbFind = key => {
+    const S = this.S; key = String(key || '');
+    if (!S || !key) return null;
+    let v = S.byV[key]; // a variant id
+    if (!v && S.byP[key]) { const p = S.byP[key]; v = p.variants.find(x => x.id === p.defaultVid && x.stock > 0) || p.variants.find(x => x.stock > 0) || S.byV[p.defaultVid]; } // a product id
+    if (!v) v = S.variants.find(x => x.fid === key && x.stock > 0) || S.variants.find(x => x.fid === key); // a finish id
+    return v || null;
+  }
+  tbLabel = v => { const p = this.S.byP[v.pid]; return p.name + (v.label ? ' (' + v.label + ')' : ''); }
+  tbApplyAll = list => {
+    let cart = this.state.cart.slice(), saved = this.state.saved.slice(), cartChanged = false, savedChanged = false;
+    const out = [];
+    for (const it of list) {
+      const v = this.tbFind(it.id) || (it.pid ? this.tbFind(it.pid) : null); // the variant id first; the product id the server also sends is the fallback
+      if (!v) { out.push({ ok: false, text: 'I could not find that item in the shop.' }); continue; }
+      const label = this.tbLabel(v), pid = v.pid;
+      if (it.op === 'cart_add') {
+        if (v.stock <= 0) { out.push({ ok: false, label, text: label + ' is out of stock.' }); continue; }
+        const i = cart.findIndex(l => l.vid === v.id), cur = i >= 0 ? cart[i].qty : 0, want = Math.max(1, it.qty | 0);
+        const n = Math.min(v.stock, cur + want), added = n - cur;
+        if (added <= 0) { out.push({ ok: false, label, text: 'all ' + v.stock + ' ' + v.units + ' in stock are already in your cart.' }); continue; }
+        if (i >= 0) cart[i] = { ...cart[i], qty: n }; else cart.unshift({ vid: v.id, qty: n });
+        cartChanged = true;
+        out.push({ ok: true, label, vid: v.id, added, capped: added < want, text: 'added ' + added + ' × ' + label + ' to your cart' + (added < want ? ' (that is all the stock there is)' : '') + '.', undo: { op: 'cart_remove', vid: v.id, qty: added, label } });
+      } else if (it.op === 'saved_add') {
+        if (saved.some(x => x.pid === pid)) { out.push({ ok: true, label, text: label + ' was already in your saved list.' }); continue; }
+        saved.unshift({ pid, vid: v.id }); savedChanged = true;
+        out.push({ ok: true, label, text: label + ' is in your saved list.', undo: { op: 'saved_remove', pid, label } });
+      } else if (it.op === 'saved_remove') {
+        const had = saved.find(x => x.pid === pid);
+        if (!had) { out.push({ ok: true, label, text: label + ' was not in your saved list.' }); continue; }
+        saved = saved.filter(x => x.pid !== pid); savedChanged = true;
+        out.push({ ok: true, label, text: label + ' is out of your saved list.', undo: { op: 'saved_restore', pid, vid: had.vid, label } });
+      }
+    }
+    if (cartChanged) { this.setState({ cart }); this.persistCart(cart); }
+    if (savedChanged) { this.setState({ saved }); this.S.persist.set('saved', saved); }
+    return out;
+  }
+  tbUndo = u => {
+    if (u.op === 'cart_remove') {
+      const cart = this.state.cart.map(l => l.vid === u.vid ? { ...l, qty: l.qty - u.qty } : l).filter(l => l.qty > 0);
+      this.setState({ cart }); this.persistCart(cart);
+      return { ok: true, text: 'Undone: ' + u.qty + ' × ' + u.label + ' is out of your cart again.' };
+    }
+    if (u.op === 'saved_remove') {
+      const saved = this.state.saved.filter(x => x.pid !== u.pid);
+      this.setState({ saved }); this.S.persist.set('saved', saved);
+      return { ok: true, text: 'Undone: ' + u.label + ' is out of your saved list.' };
+    }
+    if (u.op === 'saved_restore') {
+      const saved = this.state.saved.some(x => x.pid === u.pid) ? this.state.saved : [{ pid: u.pid, vid: u.vid }, ...this.state.saved];
+      this.setState({ saved }); this.S.persist.set('saved', saved);
+      return { ok: true, text: 'Undone: ' + u.label + ' is back in your saved list.' };
+    }
+    return { ok: false, text: 'I could not undo that.' };
+  }
+  tbMount = () => {
+    this._tbOn = e => {
+      const d = e && e.detail;
+      if (!this._tbReady || !d || d.handled || !['cart_add', 'saved_add', 'saved_remove'].includes(d.op)) return;
+      const r = this.tbApplyAll([{ op: d.op, id: String(d.id || ''), pid: String(d.pid || ''), qty: d.qty }])[0];
+      d.handled = true; d.ok = !!r.ok; d.label = r.label || ''; d.message = r.text || '';
+      d.undo = r.undo ? () => this.tbUndo(r.undo) : null;
+      if (r.ok && r.added) this.toast({ kind: 'added', vid: r.vid, qty: r.added, capped: r.capped });
+    };
+    window.addEventListener('terucon:shop', this._tbOn);
+  }
+  tbReady = () => {
+    this._tbReady = true;
+    let list = [];
+    try {
+      const raw = sessionStorage.getItem('terucon.terubot.pending'); sessionStorage.removeItem('terucon.terubot.pending');
+      const arr = raw ? JSON.parse(raw) : [];
+      list = (Array.isArray(arr) ? arr : []).filter(q => q && ['cart_add', 'saved_add', 'saved_remove'].includes(q.op) && typeof q.id === 'string' && /^[A-Za-z0-9][A-Za-z0-9_.:\-]{0,119}$/.test(q.id) && typeof q.at === 'number' && Date.now() - q.at < 7200000).slice(0, 20);
+    } catch (_) { list = []; }
+    if (!list.length) return;
+    const res = this.tbApplyAll(list), ok = res.filter(r => r.ok).length, bad = res.length - ok;
+    this.toast({ kind: 'info', text: 'TeruBot: ' + ok + (ok === 1 ? ' change' : ' changes') + ' applied' + (bad ? ', ' + bad + ' not possible' : '') + '.', cart: true });
+    try { window.dispatchEvent(new CustomEvent('terucon:shop-applied', { detail: { items: res.map(r => ({ ok: !!r.ok, text: r.text })) } })); } catch (_) {}
+  }
+  // TeruBot keeps clear of the shop's own floating bars: the room under its button is the room the old Ask button left (barH, minus the phone dock it adds itself)
+  tbSync = () => {
+    try {
+      const s = this.state, name = s.route.name, mob = s.vw < 820, dk = s.vw <= 899 ? 58 : 0;
+      const tray = s.compare.length && !['compare', 'checkout', 'order'].includes(name);
+      const v = (Math.max(0, this.barH(name) - dk) + (mob && tray ? 64 : 0)) + 'px';
+      if (this._tbB !== v) { this._tbB = v; document.documentElement.style.setProperty('--tb-bottom', v); }
+    } catch (_) {}
+  }
