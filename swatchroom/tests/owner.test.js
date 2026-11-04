@@ -168,6 +168,40 @@ function call(extra) {
     assert.equal(s.overallState({ models: [off, model("scene", "Scene model", "warm")] }), "warm");
   });
 
+  test("a model that runs inside the room analysis is not reported as 'no calls yet'", function () {
+    const inside = { key: "analyze", label: "Room analysis", last: null };
+    const none = s.describeModel(model("sam3", "SAM 3", "unknown", { runsInside: inside }));
+    assert.match(none.text, /^runs inside Room analysis \(one request, not on its own\)/);
+    assert.match(none.text, /no analysis since this server started/);
+    assert.doesNotMatch(none.text, /no calls yet/);
+    inside.last = call({ cold: false, processMs: 3200, agoMs: 4 * 60 * 1000 });
+    const ran = s.describeModel(model("moge2", "MoGe-2", "unknown", { runsInside: inside }));
+    assert.match(ran.text, /last analysis warm, processing 3\.2 s/);
+    assert.match(ran.text, /4 min ago/);
+    inside.last = call({ status: "error", error: "502", agoMs: 20000 });
+    assert.match(s.describeModel(model("marigold", "Marigold-IID", "unknown", { runsInside: inside })).text, /last analysis failed: 502/);
+    // a model that DID make its own call is described by that call as before
+    const own = s.describeModel(model("sam3", "SAM 3", "warm", { runsInside: inside, last: call() }));
+    assert.doesNotMatch(own.text, /runs inside/);
+  });
+
+  test("a warm-up that replaced the analysis does not hide it", function () {
+    const warmup = call({ kind: "warmup", cold: true, coldMs: 4700, processMs: null, agoMs: 48000, gpu: "NVIDIA L40S" });
+    const withWork = s.describeModel(
+      model("analyze", "Room analysis", "cold", {
+        last: warmup,
+        lastWork: call({ cold: false, processMs: 2100, agoMs: 16 * 60 * 1000 }),
+      }),
+    );
+    assert.match(withWork.text, /warm-up/);
+    assert.match(withWork.text, /last analysis warm, processing 2\.1 s 16 min ago/);
+    const noWork = s.describeModel(model("analyze", "Room analysis", "cold", { last: warmup, lastWork: null }));
+    assert.match(noWork.text, /no analysis yet/);
+    assert.match(s.describeModel(model("oneformer", "OneFormer", "cold", { last: warmup, lastWork: null })).text, /no scan yet/);
+    // when the latest call is real work nothing extra is added
+    assert.doesNotMatch(s.describeModel(model("analyze", "Room analysis", "warm", { last: call(), lastWork: call() })).text, /last analysis/);
+  });
+
   for (const entry of pending) {
     try {
       await entry.fn();

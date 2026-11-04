@@ -16,8 +16,8 @@ const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /**
  * @param {{dir: string} | null} dist the object createDist() returns (only `dir` is used)
- * @param {{mediaDir?: string | null}} [options] `mediaDir`: the folder media/materials. A photograph that is a file there (the catalogue designs'
- *   pictures, tools/build-shop-catalogue.js) is served from /media/materials/<name>.jpg, which needs no built site.
+ * @param {{mediaDir?: string | null}} [options] `mediaDir`: the folder media/materials. A photograph that is a file there is served from
+ *   /media/materials/<name>.jpg, which needs no built site. (The catalogue designs' pictures, tipl-*, are no longer files there: see below.)
  */
 export function createImageResolver(dist, { mediaDir = null } = {}) {
   let checkedAt = 0;
@@ -56,6 +56,9 @@ export function createImageResolver(dist, { mediaDir = null } = {}) {
     if (!name) return '';
     load();
     if (cache.has(name)) return cache.get(name);
+    // a catalogue design's picture is not a file: /media/materials/tipl-*.jpg is read from Cloud Storage through MongoDB (server/routes/catalogueMedia.js);
+    // the 320 px thumbnail is the one a chat card needs
+    if (/^tipl-[a-z]{2,4}\d{2,5}$/.test(name)) return `/media/materials/${name}.jpg?w=320`;
     if (mediaDir && fs.existsSync(path.join(mediaDir, `${name}.jpg`))) {
       cache.set(name, `/media/materials/${name}.jpg`);
       return cache.get(name);

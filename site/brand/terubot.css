@@ -806,9 +806,32 @@
   }
 }
 
-/* the Design Studio's working view takes the whole screen (it sets html.swr-immersive): nothing of ours there */
-html.swr-immersive .tb-root {
-  display: none !important;
+/* the Design Studio's working view takes the whole screen: it sets html.swr-immersive and gives its host z-index 90, which sits over the launcher (46) and
+   the panel (85). TeruBot used to be switched off there, so on a phone (where the working view is always full screen) the assistant was missing from the
+   AI visualizer. It is now raised above the studio; on a laptop the launcher keeps the place `.is-studio` gives it (above the studio's Share button, zoom
+   and status line), on a phone it is a small round button under the studio's top bar, where the bottom sheet and its handle are never. */
+html.swr-immersive .tb-launch {
+  z-index: 95;
+}
+html.swr-immersive .tb-scrim {
+  z-index: 95;
+}
+html.swr-immersive .tb-panel {
+  z-index: 96;
+}
+@media (max-width: 719px) {
+  html.swr-immersive .tb-root .tb-launch {
+    top: calc(env(safe-area-inset-top, 0px) + 60px);
+    bottom: auto;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    opacity: 0.94;
+  }
+  html.swr-immersive .tb-root .tb-launch .tb-launch__mark {
+    width: 34px;
+    height: 34px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

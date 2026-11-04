@@ -148,6 +148,11 @@ function createRegistry(options) {
   const isConfigured = (options && options.configured) || function () {
     return true;
   };
+  // true for a model whose work is done INSIDE another service's request (the combined room analysis runs SAM 3, MoGe-2 and
+  // Marigold in one call): such a model is never called on its own, so "no calls yet" would be misleading for it.
+  const runsInside = (options && options.runsInside) || function () {
+    return null;
+  };
   const models = {};
   const recent = [];
   let counter = 0;
@@ -157,6 +162,7 @@ function createRegistry(options) {
       models[model] = {
         inflight: new Map(),
         last: null,
+        lastWork: null, // the last call that was not a warm-up ping (a warm-up replaces `last` and would hide the analysis)
         lastCold: null,
         lastOkAt: null, // when the last call that really reached the service ended (see isWarm())
         warm: {}, // kind -> recent warm overheads (ms)
@@ -172,6 +178,9 @@ function createRegistry(options) {
 
   function record(held, sample) {
     held.last = sample;
+    if (sample.kind !== "warmup") {
+      held.lastWork = sample;
+    }
     if (sample.status === "ok") {
       held.lastOkAt = sample.endedAt;
     }
@@ -358,6 +367,7 @@ function createRegistry(options) {
         held.inflight.forEach(function (call) {
           inflight.push({ kind: call.kind, elapsedMs: now - call.startedAt });
         });
+        const host = runsInside(key);
         return {
           key: key,
           label: LABELS[key],
@@ -365,7 +375,13 @@ function createRegistry(options) {
           state: stateOf(held, now),
           inflight: inflight,
           last: summarize(held.last, now),
+          lastWork: summarize(held.lastWork, now),
           lastCold: summarize(held.lastCold, now),
+          // { key, label, last } of the service whose request carries this model's work; its own `last` stays null on purpose
+          // (this model made no call of its own), so nothing is invented for it
+          runsInside: host
+            ? { key: host, label: LABELS[host], last: summarize(entry(host).lastWork, now) }
+            : null,
         };
       }),
       recent: recent.slice(0, 12).map(function (sample) {
@@ -410,6 +426,11 @@ const registry = createRegistry({
       return true;
     }
     return !!(config[key] && config[key].url);
+  },
+  // the same condition as pipelineRunner.useCombinedAnalysis(), read at call time
+  runsInside: function (key) {
+    const combined = !!(config.analyze && config.analyze.url) && config.pipeline.mock !== "on";
+    return combined && (key === "sam3" || key === "moge2" || key === "marigold") ? "analyze" : null;
   },
 });
 

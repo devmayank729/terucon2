@@ -13,6 +13,7 @@
 import { createAdmin } from './admin.js';
 import { catalogueConfig } from './config.js';
 import { createCatalogueDb } from './db.js';
+import { createDesigns } from './designs.js';
 import { createGcsSigner } from './gcsSigner.js';
 import { createModalClient } from './modalClient.js';
 import { createService } from './service.js';
@@ -24,7 +25,7 @@ import { createService } from './service.js';
  * @param {import('mongoose').Mongoose | null} [options.mongoose] the studio's mongoose; without it the catalogue lives in memory (tests, no database)
  * @param {{info: Function, warn: Function, error: Function}} options.log
  * @param {() => number} [options.now]
- * @param {object} [options.overrides] tests: `modal` (a fake Modal client), `db` (a catalogue db), `signer` (a fake signer)
+ * @param {object} [options.overrides] tests: `modal` (a fake Modal client), `db` (a catalogue db), `signer` (a fake signer), `designs` (the designs store), `fetch` (what the designs store reads Cloud Storage with)
  */
 export function createCatalogue({ settings, auth, mongoose = null, log, now = Date.now, overrides = {} }) {
   const config = () => catalogueConfig(settings());
@@ -33,6 +34,8 @@ export function createCatalogue({ settings, auth, mongoose = null, log, now = Da
   const modal = overrides.modal ?? createModalClient({ target: config, log, now });
   const service = createService({ settings, auth, db, modal, signer, log, now });
   const admin = createAdmin({ db, modal, signer, service, auth, log, now });
+  // the designs as products with their pictures, read from MongoDB and Cloud Storage on demand (nothing on this server's disk)
+  const designs = overrides.designs ?? createDesigns({ db, signer, log, now, fetchImpl: overrides.fetch });
   return {
     config,
     db,
@@ -40,6 +43,7 @@ export function createCatalogue({ settings, auth, mongoose = null, log, now = Da
     modal,
     service,
     admin,
+    designs,
     now,
     close() {
       service.close();

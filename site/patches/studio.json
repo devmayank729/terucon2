@@ -284,6 +284,19 @@
       "anchor": "href=\"/#enquire\"",
       "with": "href=\"/start-project\"",
       "count": 4
+    },
+    {
+      "id": "catalogue-loader",
+      "op": "replace",
+      "target": "asset:swatchroomApp",
+      "why": "the studio's own loader only imports /js/swatchroom-app.js. This one first adds the catalogue's designs to the studio's finish list (site/catalogue-ui/studio-finishes.js: a group \"Terucon catalogue\" for wall, door and furniture, read from MongoDB), waits at most 4 s for it, and then starts the studio whatever happened. The studio builds its index of finishes only when it first looks one up, so they have to be in its list before it starts. swatchroom/ is not touched",
+      "anchor": "import(new URL(\"/js/swatchroom-app.js\", window.location.href).href);",
+      "with": [
+        {
+          "file": "snippets/studio-loader.js",
+          "chomp": true
+        }
+      ]
     }
   ]
 }

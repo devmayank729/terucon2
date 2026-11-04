@@ -33,7 +33,7 @@
       "file": "pages/studio.html",
       "aliases": ["/design-studio.html", "/Terucon Swatchroom.html", "/studio", "/swatchroom"],
       "headers": {
-        "Permissions-Policy": "camera=(self), microphone=(), geolocation=()"
+        "Permissions-Policy": "camera=(self), microphone=(self), geolocation=()"
       },
       "access": "signed-in"
     },
@@ -121,7 +121,7 @@
       "route": "/finder",
       "file": "pages/finder.html",
       "aliases": ["/finder.html", "/point-to-find"],
-      "headers": { "Permissions-Policy": "camera=(self), microphone=(), geolocation=()" },
+      "headers": { "Permissions-Policy": "camera=(self), microphone=(self), geolocation=()" },
       "access": "signed-in",
       "csp": "strict+catalogue"
     },

@@ -2,7 +2,7 @@
  * The browser code of the catalogue's client-facing and admin pages (targets C3, C4, C5, C7, D1): the finder page
  * (camera / point-to-find / colour-match / text search) and the admin catalogue screen. The inspiration import's
  * "find similar materials" hook and the shop's link to the Finder need no script of their own (site/inspiration/
- * handoff.js and a plain patch-inserted link, respectively). surfaces.js/.css are the shop's "Find it from a photo" (tap a surface, see the closest designs). Plain static files, served the same way
+ * handoff.js and a plain patch-inserted link, respectively). surfaces.js/.css are the shop's "Find it from a photo" (tap a surface, see the closest designs); studio-finishes.js adds the designs to the Design Studio's finish list. Plain static files, served the same way
  * server/routes/inspiration.js serves site/inspiration/: a fixed list of names, nothing else in the folder.
  *
  *   GET /catalogue-ui/assets/:name
@@ -13,7 +13,7 @@
 import path from 'node:path';
 
 /** The browser files, by the name they are served under. Nothing else in the folder is ever served. */
-export const ASSETS = ['client.js', 'finder.js', 'admin.js', 'catalogue-ui.css', 'surfaces.js', 'surfaces.css'];
+export const ASSETS = ['client.js', 'finder.js', 'admin.js', 'catalogue-ui.css', 'surfaces.js', 'surfaces.css', 'studio-finishes.js'];
 
 export function mountCatalogueUi(app, ctx) {
   const assetRoot = path.join(ctx.root, 'site', 'catalogue-ui');

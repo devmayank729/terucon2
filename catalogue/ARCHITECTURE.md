@@ -129,6 +129,11 @@ terucon_catalogue_items   { _id: "<cat>|<itemId>", catalogue, itemId, status: "o
                                       method, matchType, matchRelation, matchCost, inpainted: bool, pdfProductId: string|null },
                             images: { crop: { key, width, height, sha256, bytes }, thumb: { key, width, height, bytes } },
                             attributes: { },                                      // admin free-form (string/number/bool/null values); nothing reads it yet
+                            shopImage: { key, width, height, bytes, sha256, uploadedAt }|absent,   // the 800 px picture of the design: bucket cards/<cat>/<itemId>.jpg (2026-11-04,
+                                                                                  //   tools/publish-shop-images.js). OWNED BY THE WEBSITE: not in PUBLISHER_OWNED, so a re-ingest keeps it
+                            studio: { look, colours: [..], pattern, grain, scale, sheen, relief, render, model, generatedAt, basis: "photo" }|absent,
+                                                                                  // what Gemini SAW in the picture (appearance only; tools/describe-designs.js). Also website-owned.
+                                                                                  // Read by server/catalogue/designs.js; see docs/CATALOGUE_STUDIO.md
                             releaseFirst: releaseId, jobId: string|null, createdAt, updatedAt }
 terucon_catalogue_releases { _id: releaseId, catalogue, createdAt, createdBy: "ingest"|"cli"|"import", jobId: string|null, parent: releaseId|null,
                             nItems, featureVersions: {…}, pillars: { name: { count, dim } }, gcsPrefix: "releases/<cat>/<id>/", manifestSha256 }

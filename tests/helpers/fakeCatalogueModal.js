@@ -405,11 +405,12 @@ export function makeWebp({ width = 800, height = 600, extra = 600, cut = false }
  * @param {boolean} [options.signIn] sign a visitor in (default true)
  * @param {object} [options.db] a catalogue database of your own (then nothing is seeded)
  */
-export async function startCatalogueApp({ modal = {}, seed = {}, env = {}, rawEnv = '', signer = createFakeSigner(), now, environ = {}, signIn = true, db: dbOverride } = {}) {
+export async function startCatalogueApp({ modal = {}, seed = {}, env = {}, rawEnv = '', signer = createFakeSigner(), now, environ = {}, signIn = true, db: dbOverride, fetch: fetchOverride } = {}) {
   const fake = await startFakeCatalogueModal(modal);
   const { db, reads } = dbOverride ? { db: dbOverride, reads: [] } : makeMemoryDb({ now });
   if (seed && !dbOverride) await seedCatalogue(db, seed);
-  const app = await startTestApp({ env: fake.env(env) + rawEnv, environ, catalogue: { db, signer, ...(now ? { now } : {}) } });
+  // `fetch` stands in for Cloud Storage when the designs' pictures are read (server/catalogue/designs.js)
+  const app = await startTestApp({ env: fake.env(env) + rawEnv, environ, catalogue: { db, signer, ...(now ? { now } : {}), ...(fetchOverride ? { fetch: fetchOverride } : {}) } });
   const me = signIn ? await app.signIn() : null;
   const photo = (body = makeJpeg(), { query = '', type = 'image/jpeg', headers = {}, as = me } = {}) =>
     app.request(`/api/catalogue/search${query ? `?${query}` : ''}`, { method: 'POST', headers: { ...(as?.headers ?? {}), 'Content-Type': type, ...headers }, body });

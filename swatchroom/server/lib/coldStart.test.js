@@ -251,4 +251,58 @@ test("snapshot: lists the newest calls first and caps the list", async function 
   assert.equal(snapshot.recent[0].model, "scene");
 });
 
+test("a warm-up replaces `last` but not `lastWork`: the analysis stays visible", async function () {
+  const f = fixture();
+  await f.registry.track("analyze", "analyze", null, async function () {
+    f.time.now += 3000;
+    return { response: modalResponse({ gpuMs: 900, totalMs: 1000, served: 4, age: 500 }), value: 1 };
+  });
+  f.time.now += 60000;
+  await f.registry.track("analyze", "warmup", null, async function () {
+    f.time.now += 200;
+    return { response: modalResponse({ gpuMs: 1, totalMs: 2, served: 5, age: 560 }), value: 1 };
+  });
+  const row = f.registry.snapshot().models.find(function (model) {
+    return model.key === "analyze";
+  });
+  assert.equal(row.last.kind, "warmup");
+  assert.equal(row.lastWork.kind, "analyze");
+});
+
+test("snapshot: a model whose work runs inside the combined analysis says so, and invents no call of its own", async function () {
+  const time = { now: 1000000 };
+  let combined = true;
+  const registry = coldStart.createRegistry({
+    now: function () {
+      return time.now;
+    },
+    runsInside: function (key) {
+      return combined && (key === "sam3" || key === "moge2" || key === "marigold") ? "analyze" : null;
+    },
+  });
+  await registry.track("analyze", "analyze", null, async function () {
+    time.now += 2500;
+    return { response: modalResponse({ gpuMs: 800, totalMs: 900, served: 3, age: 400 }), value: 1 };
+  });
+  time.now += 30000;
+  let snapshot = registry.snapshot();
+  const find = function (key) {
+    return snapshot.models.find(function (model) {
+      return model.key === key;
+    });
+  };
+  ["sam3", "moge2", "marigold"].forEach(function (key) {
+    assert.equal(find(key).last, null, key + " made no call of its own");
+    assert.equal(find(key).runsInside.key, "analyze");
+    assert.equal(find(key).runsInside.label, "Room analysis");
+    assert.equal(find(key).runsInside.last.kind, "analyze");
+    assert.equal(find(key).runsInside.last.agoMs, 30000);
+  });
+  assert.equal(find("analyze").runsInside, null);
+  assert.equal(find("oneformer").runsInside, null);
+  combined = false; // separate pools: nothing is "inside" anything
+  snapshot = registry.snapshot();
+  assert.equal(find("sam3").runsInside, null);
+});
+
 runAll();

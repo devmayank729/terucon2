@@ -31,8 +31,11 @@ that only `prefill_enquiry` was excepted).
 
 ## Where it sits, and the variables it reads
 
-Bottom right, 20 px from the edges, `z-index` 46 (the panel 85). Hidden while the studio works full screen (`html.swr-immersive`), when printing, and
-when a page opts out. All variables are optional; TeruBot never assumes a value:
+Bottom right, 20 px from the edges, `z-index` 46 (the panel 85). Hidden when printing and when a page opts out. **In the studio's full-screen working view**
+(`html.swr-immersive`: always on a phone once a photo is loaded, and on a laptop after "Full screen"; the studio's host then has `z-index: 90`) TeruBot used to be
+switched off. It is now raised above the studio (launcher 95, scrim 95, panel 96); on a laptop the launcher keeps the place `.is-studio` gives it, on a phone it is a
+44 px round button under the studio's top bar (`top: 60px`), where the bottom sheet and its handle never are. Checked in headless Chrome at 390, 360 and 1440 px
+(`tests/e2e/run.mjs`, "the studio's full-screen working view on a phone"); not on a real phone. All variables are optional; TeruBot never assumes a value:
 
 | Variable | Meaning | Set by |
 |---|---|---|
@@ -115,8 +118,10 @@ as an ordinary message, **reads the answer aloud**, and listens again. Controls:
   that is not an answer (too many messages, sign in, the AI is off, the server cannot be reached): the chat says why. **An answer that opens another
   page is not read out and ends it:** a new page starts without the microphone or a turn to speak (iPhone Safari allows speech only inside a tap), so
   the visitor taps Talk again there.
-* **Where it shows:** only where the browser has both speech recognition and speech synthesis and the page allows the microphone. The Design Studio
-  and the Finder send `Permissions-Policy: microphone=()`, so there Talk is hidden (typing works; so does nothing spoken).
+* **Where it shows:** on every page that carries TeruBot, where the browser has both speech recognition and speech synthesis and the page allows the microphone.
+  Until 2026-11-04 the Design Studio page and the Finder sent `Permissions-Policy: microphone=()` (the studio's own header, copied into `site/site.json`), so Talk and the
+  microphone button were hidden there; both pages now send `microphone=(self)` (the widget still hides itself on any page that forbids the microphone).
+  `tests/e2e/run.mjs` has a test that opens every page and compares the controls: launcher, panel, Talk, dictation, attach, New chat.
 * **Privacy:** in Chrome and Edge the browser's speech recognition sends the audio to the browser maker's online speech service to turn it into
   text (how that API is documented to work); other browsers differ and were not checked here. The microphone is open only between the Talk tap and End.
   The site's privacy text was not checked: it should say this before launch.
@@ -138,8 +143,7 @@ A visitor can show TeruBot a picture and ask about it ("what material is used in
 The panel is `role="dialog"` (`aria-modal` on a phone), the list is `role="log"` with `aria-live="polite"` (switched off while an old chat is drawn), Escape closes,
 Tab and Shift+Tab stay inside, focus returns to what opened it, keys typed inside never reach the page's own shortcuts. Controls are at least 44 px; the box is
 16 px (iOS). `prefers-reduced-motion` switches off the pulse, the slide and the typing dots. The microphone button (dictation: one thing said, one message sent) uses the browser's speech recognition
-(`en-IN`), sends what was heard, and is hidden where there is none and where the page forbids the microphone (the studio and the Finder send
-`Permissions-Policy: microphone=()`). Talk (above) is the continuous version. `prefers-reduced-motion` also stills the orb in the live strip.
+(`en-IN`), sends what was heard, and is hidden where there is none and where a page forbids the microphone (none of ours does now). Talk (above) is the continuous version. `prefers-reduced-motion` also stills the orb in the live strip.
 
 ## Storage keys
 

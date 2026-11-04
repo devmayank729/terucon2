@@ -98,8 +98,17 @@ test('studio: the shell is patched (links, footer wording, warm-up) and the stud
   const { bundle } = memoBuild('route').results.find((r) => r.key === 'studio');
   const exported = Bundle.load(path.join(ROOT, SITE.pages.studio.source));
   const id = exported.extUuid('swatchroomApp');
-  assert.ok(bundle.asset(id).equals(exported.asset(id)), 'the swatchroomApp asset (a loader for /js/swatchroom-app.js) is not patched');
-  assert.match(bundle.assetText(id), /import\(new URL\("\/js\/swatchroom-app\.js", window\.location\.href\)\.href\);/);
+  // The studio inside is the swatchroom's own and is not patched. Its LOADER (the one asset, which only imports /js/swatchroom-app.js) is: it first adds the
+  // catalogue's designs to the studio's finish list (site/catalogue-ui/studio-finishes.js), then starts the studio whatever happened.
+  assert.ok(!bundle.asset(id).equals(exported.asset(id)), 'the loader is patched (catalogue-loader step)');
+  assert.match(exported.assetText(id), /import\(new URL\("\/js\/swatchroom-app\.js", window\.location\.href\)\.href\);/, 'the export\'s own loader is the one the step anchors on');
+  const loader = bundle.assetText(id);
+  // the loader runs from a blob address, where a bare "/path" specifier cannot be resolved: the address must be made absolute with new URL (a bare one
+  // failed silently in the browser, the studio opened without the group)
+  assert.match(loader, /import\(new URL\("\/catalogue-ui\/assets\/studio-finishes\.js", window\.location\.href\)\.href\)/, 'the loader asks for the catalogue\'s finishes first, by an absolute address');
+  assert.ok(!/import\("\//.test(loader), 'no import in the loader has a bare path');
+  assert.match(loader, /\.catch\(function \(\) \{\}\)\.then\(begin\)/, 'and starts the studio after them, whatever the outcome');
+  assert.match(loader, /import\(new URL\("\/js\/swatchroom-app\.js", window\.location\.href\)\.href\)/, 'the studio is still the swatchroom\'s own app');
   for (const uuid of exported.uuids.filter((u) => u !== id)) assert.ok(bundle.asset(uuid).equals(exported.asset(uuid)), `asset ${uuid} is untouched`);
   const t = bundle.template;
   assert.ok(t.includes('/api/studio/warmup'), 'the page wakes the studio services');
@@ -365,7 +374,7 @@ test('a syntax error in code injected into an asset is caught by the node --chec
       why: 'inject a broken snippet into the loader',
       target: 'asset:swatchroomApp',
       steps: [
-        { id: 'inject', op: 'insertBefore', why: 'a snippet with a syntax error', anchor: 'import(new URL(', insert: { file: 'snippets/broken.js' } },
+        { id: 'inject', op: 'insertBefore', why: 'a snippet with a syntax error', anchor: '// Swatchroom loader: the studio comes from the Swatchroom server', insert: { file: 'snippets/broken.js' } }, // the loader's header comment (one occurrence; `import(new URL(` has two since the catalogue-loader step)
         { id: 'check-syntax', op: 'checkSyntax', why: 'parse the patched loader', name: 'app.mjs' },
       ],
     });
@@ -436,7 +445,7 @@ test('makeContext defaults: link style from site.json, overridable', () => {
 test('the snippets are plain JavaScript that parses on its own (as a module)', () => {
   const dir = path.join(ROOT, 'site', 'patches', 'snippets');
   const files = fs.readdirSync(dir).filter((f) => f.endsWith('.js'));
-  assert.deepEqual(files.sort(), ['analytics.js', 'auth.js', 'hero-curtain.js', 'shop-catalogue.js', 'warmup.js']);
+  assert.deepEqual(files.sort(), ['analytics.js', 'auth.js', 'hero-curtain.js', 'shop-catalogue.js', 'studio-loader.js', 'warmup.js']);
   for (const f of files) {
     const code = fs.readFileSync(path.join(dir, f), 'utf8');
     // hero-curtain.js is a fragment of the landing component's class body (spliced in by the home patch), so it parses inside a class

@@ -43,7 +43,7 @@ describe('the product data is read from the shop export, not typed in', () => {
     assert.equal(shop.byVariant.get(BRONZE).variant.priceText, '₹6,960 / sheet');
   });
 
-  test('the catalogue designs are shop products under their catalogue id (TIPL-SB804 is tipl-sb804), with a picture that is a file', () => {
+  test('the catalogue designs are shop products under their catalogue id (TIPL-SB804 is tipl-sb804), with a picture that is NOT a file (it is read from Cloud Storage through MongoDB)', () => {
     const designs = shop.products.filter((p) => p.catalogueId);
     assert.equal(designs.length, 63);
     assert.equal(new Set(designs.map((p) => p.catalogueId)).size, 63);
@@ -54,7 +54,9 @@ describe('the product data is read from the shop export, not typed in', () => {
       assert.equal(p.brand, 'SuperBond');
       assert.equal(p.variants.length, 1);
       assert.equal(p.variants[0].sku, p.catalogueId, 'the SKU is the catalogue id');
-      assert.ok(fs.existsSync(path.join(PROJECT_ROOT, p.variants[0].image)), `${p.id}: ${p.variants[0].image} is a file`);
+      // the address a design's picture is asked for under (server/routes/catalogueMedia.js reads it from the bucket); no file of it is kept on the server
+      assert.equal(p.variants[0].image, `media/materials/${p.id}.jpg`, `${p.id}: the picture's address`);
+      assert.ok(!fs.existsSync(path.join(PROJECT_ROOT, p.variants[0].image)), `${p.id}: ${p.variants[0].image} must not be a file of this server`);
     }
     const sb804 = shop.byProduct.get('tipl-sb804');
     assert.equal(sb804.name, 'Emperador Dark (SB804)');

@@ -398,6 +398,9 @@ export function settingsDialog(props, ui, setUi) {
             ? "Instant preview backend in this browser: " + fastRendererKind.toUpperCase() + "."
             : "No instant preview is active in this browser yet - either none has been needed so far, or it has neither WebGPU nor WebGL2, in which case finishes here always render with AI.",
         ),
+        props.previewNote
+          ? h("p", { class: "sr-settings-text" }, "Instant preview for the selected surface: " + props.previewNote)
+          : null,
         h(
           "p",
           { class: "sr-settings-text" },

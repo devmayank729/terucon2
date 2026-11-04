@@ -93,6 +93,9 @@ export class Stage {
     // regardless of whether any of this ever activates.
     this.fastRenderer = null;
     this.fastRendererPromise = null;
+    // true once creating the renderer has been tried and failed (neither WebGPU nor WebGL2, or an error): the studio then
+    // says so instead of showing no preview without a word (lib/fastrender/previewReason.js)
+    this.fastRendererFailed = false;
     this.fastGeometryKey = null; // which geometry (fused or provisional) is uploaded to the renderer
     this.fastScanToken = null; // which scan's label map is uploaded
     this.fastMaterialKey = "";
@@ -461,10 +464,18 @@ export class Stage {
     this.fastRendererPromise = createFastRenderer(canvas)
       .then(function (renderer) {
         stage.fastRenderer = renderer;
+        if (!renderer) {
+          stage.fastRendererFailed = true;
+          console.warn("[swatchroom] instant preview: this browser has neither WebGPU nor WebGL2 available, so finishes render with AI only.");
+          stage.props && stage.props.onFastRendererFailed && stage.props.onFastRendererFailed();
+        }
         return renderer;
       })
-      .catch(function () {
+      .catch(function (error) {
         stage.fastRenderer = null;
+        stage.fastRendererFailed = true;
+        console.warn("[swatchroom] instant preview: the GPU renderer could not be created:", error);
+        stage.props && stage.props.onFastRendererFailed && stage.props.onFastRendererFailed();
         return null;
       });
     return this.fastRendererPromise;

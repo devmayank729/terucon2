@@ -83,10 +83,12 @@ export function extractProducts(root = ROOT) {
     const m = IMAGE_KEY.exec(key);
     if (m) photos.add(m[1]);
   }
-  // pictures that are files of this project (the catalogue designs': media/materials/tipl-*.jpg) count as photographs too
+  // pictures that are files of this project count as photographs too (none today, but a file dropped into media/materials/ still works)
   const mediaDir = path.join(root, 'media', 'materials');
   if (fs.existsSync(mediaDir)) for (const f of fs.readdirSync(mediaDir)) if (/^[A-Za-z0-9._-]+\.jpg$/.test(f)) photos.add(f.slice(0, -4));
-  const imageOf = (name) => (name && photos.has(name) ? `media/materials/${name}.jpg` : null);
+  // a catalogue design's picture (tipl-sb804) is NOT a file: /media/materials/tipl-sb804.jpg is read from Cloud Storage through MongoDB
+  // (server/routes/catalogueMedia.js), so it counts by its id, whether or not a file of that name exists
+  const imageOf = (name) => (name && (photos.has(name) || /^tipl-[a-z]{2,4}\d{2,5}$/.test(name)) ? `media/materials/${name}.jpg` : null);
 
   const products = store.products.map((p) => {
     const variants = p.variants.map((v) => ({

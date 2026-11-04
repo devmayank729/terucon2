@@ -138,6 +138,25 @@
     },
     {
       "method": "GET",
+      "path": "/media/materials/:file",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host"
+      ],
+      "summary": "The picture of a catalogue design (tipl-sb804.jpg), read from Google Cloud Storage through the design's record in MongoDB when asked for. Not a file of this server. Registered before /media/*name, which answers every other name.",
+      "request": "No body. ?w=320 (any value up to 400) gives the 320 px thumbnail; without it the 800 px picture (the thumbnail while a design has none).",
+      "response": "200 image/jpeg with Cache-Control: public, max-age=3600, stale-while-revalidate=86400 and an ETag (304 on a repeat). When the catalogue is not set up, the database is down or the bucket did not give the picture: 200 with a quiet tile (image/svg+xml, X-Terucon-Picture: unavailable, no-store) so the shop shows a square instead of a broken image.",
+      "errors": [
+        {
+          "status": 404,
+          "when": "The catalogue lists designs and not this one; a name that is not tipl-<code>.jpg falls through to /media/*name"
+        }
+      ],
+      "curl": "curl -sI 'http://localhost:8080/media/materials/tipl-sb804.jpg?w=320' | head -6"
+    },
+    {
+      "method": "GET",
       "path": "/media/*name",
       "owner": "JS",
       "group": "site",
@@ -1442,6 +1461,27 @@
       "response": "{enabled, ready, reasons: [\"off\"|\"modal-not-configured\"|\"storage-not-configured\"|\"database-unavailable\"|\"no-live-catalogue\"], default: id|null, catalogues: [{id, name, kind, items}] (live ones only), limits: {maxPhotoBytes: 6291456, maxSide: 1024}, profile}.",
       "errors": [],
       "curl": "curl -s http://localhost:8080/api/catalogue/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/catalogue/studio-finishes",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host",
+        "Same-site",
+        "Sign-in"
+      ],
+      "summary": "The catalogue's designs as finishes of the Design Studio: name, code, a sub-line and sentence from what Gemini saw in the picture, the brief for the render model (ending in a marker that makes the server attach the design's photograph to the render, server/lib/studioReference.js), the colour and the picture's address. The studio's loader adds them to its finish list as the group \"Terucon catalogue\" for wall, door and furniture.",
+      "request": "No body.",
+      "response": "{group, kinds: [\"wall\",\"door\",\"furniture\"], finishes: [{id, code, productId, name, sub, about, prompt, hex, image, described}], state: \"ok\"|\"off\"|\"unavailable\"}. With the catalogue off or its database away: 200 with finishes: [] and the state, never an error.",
+      "errors": [
+        {
+          "status": 401,
+          "when": "Not signed in"
+        }
+      ],
+      "curl": "curl -s http://localhost:8080/api/catalogue/studio-finishes   # needs a signed-in session"
     },
     {
       "method": "POST",

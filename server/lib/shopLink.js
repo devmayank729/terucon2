@@ -34,7 +34,8 @@ export function shopBlockFor(shop, productId) {
     unit: product.unit,
     stock: variant.stock,
     href: `/materials#/p/${product.id}?v=${encodeURIComponent(variant.id)}`,
-    image: variant.image ? `/${variant.image}` : null,
+    // a design's picture is read from Cloud Storage through MongoDB (server/routes/catalogueMedia.js); a result card needs the 320 px thumbnail
+    image: variant.image ? `/${variant.image}?w=320` : null,
     sample: true,
     note: SAMPLE_PRICE_NOTE,
   };

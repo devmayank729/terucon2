@@ -4151,7 +4151,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "CMT6001 · TIPL-CMT6001 · SuperBond colour catalogue",
-   "description": "Design TIPL-CMT6001 (METAFRAZO TEXTURE) from the SuperBond colour catalogue, catalogue page 2. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-CMT6001 (METAFRAZO TEXTURE) from the SuperBond colour catalogue, catalogue page 2. A rich rust-orange and terracotta surface dappled with dense, dark charcoal-brown mottling. It has the textured, organic look of weathered or rusted metal with a subtle matte finish. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -4177,6 +4177,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "rust orange, terracotta, charcoal brown"
+    ],
+    [
+     "Pattern",
+     "mottled sponge texture"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -4216,7 +4236,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "CMT6002 · TIPL-CMT6002 · SuperBond colour catalogue",
-   "description": "Design TIPL-CMT6002 (CORTERN BROWN) from the SuperBond colour catalogue, catalogue page 3. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-CMT6002 (CORTERN BROWN) from the SuperBond colour catalogue, catalogue page 3. A rusted, weathered surface in deep terracotta and burnt orange tones, covered with dark, corroded blotches and scattered dark brown speckles. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -4242,6 +4262,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "terracotta orange, rust brown, charcoal black"
+    ],
+    [
+     "Pattern",
+     "corroded rust mottling"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -4281,7 +4321,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "CMT6003 · TIPL-CMT6003 · SuperBond colour catalogue",
-   "description": "Design TIPL-CMT6003 (ABSTRACT METAL) from the SuperBond colour catalogue, catalogue page 4. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-CMT6003 (ABSTRACT METAL) from the SuperBond colour catalogue, catalogue page 4. A warm, mottled surface featuring bright orange sponge-like stippling over a pale beige background. The texture has a painterly, abstract feel with random coverage. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -4307,6 +4347,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "bright orange, pale beige, terracotta"
+    ],
+    [
+     "Pattern",
+     "sponged stipple"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "flat"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -4346,7 +4406,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "CMT6004 · TIPL-CMT6004 · SuperBond colour catalogue",
-   "description": "Design TIPL-CMT6004 (LUSTROUS GREY) from the SuperBond colour catalogue, catalogue page 5. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-CMT6004 (LUSTROUS GREY) from the SuperBond colour catalogue, catalogue page 5. A mottled, weathered surface blending muted terracotta rust with cool grey undertones in a dense, granular pattern reminiscent of aged stone or patinated metal. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -4372,6 +4432,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "terracotta rust, medium grey, pale grey"
+    ],
+    [
+     "Pattern",
+     "mottled stone speckle"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -4411,7 +4491,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "CMT6007 · TIPL-CMT6007 · SuperBond colour catalogue",
-   "description": "Design TIPL-CMT6007 (ARCADIAN OCHRE) from the SuperBond colour catalogue, catalogue page 6. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-CMT6007 (ARCADIAN OCHRE) from the SuperBond colour catalogue, catalogue page 6. A richly weathered copper-orange surface covered with organic mottling, dark rust-toned spots, and antique patinated markings. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -4437,6 +4517,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "deep amber orange, burnt ochre, dark brown rust"
+    ],
+    [
+     "Pattern",
+     "mottled patina"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -4476,7 +4576,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "CMT6008 · TIPL-CMT6008 · SuperBond colour catalogue",
-   "description": "Design TIPL-CMT6008 (SAPROPHYTE RUST) from the SuperBond colour catalogue, catalogue page 7. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-CMT6008 (SAPROPHYTE RUST) from the SuperBond colour catalogue, catalogue page 7. A patinated, oxidised surface featuring an irregular mix of warm rust-orange spots and mottling against a soft, pale verdigris-green background. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -4502,6 +4602,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "verdigris green, rust orange, ochre"
+    ],
+    [
+     "Pattern",
+     "mottled oxidation"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "flat"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -4541,7 +4661,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "STC9050 · TIPL-STC9050 · SuperBond colour catalogue",
-   "description": "Design TIPL-STC9050 (TWILIGHT BLACK) from the SuperBond colour catalogue, catalogue page 8. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-STC9050 (TWILIGHT BLACK) from the SuperBond colour catalogue, catalogue page 8. A heavily mottled rust-like surface blending warm terracotta, rich amber, and dark brown speckles into an earthy, weathered texture. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -4567,6 +4687,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "rust orange, terracotta, dark brown, pale ochre"
+    ],
+    [
+     "Pattern",
+     "mottled rust speckle"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -4606,7 +4746,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "STC9067 · TIPL-STC9067 · SuperBond colour catalogue",
-   "description": "Design TIPL-STC9067 (FERRARI RED) from the SuperBond colour catalogue, catalogue page 9. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-STC9067 (FERRARI RED) from the SuperBond colour catalogue, catalogue page 9. A heavily mottled rust-red and charcoal surface with a dense, stippled texture resembling weathered stone or oxidised metal. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -4632,6 +4772,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "rust red, charcoal black, terracotta orange, pale peach"
+    ],
+    [
+     "Pattern",
+     "dense mottled speckle"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -4671,7 +4831,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "STC9092 · TIPL-STC9092 · SuperBond colour catalogue",
-   "description": "Design TIPL-STC9092 (RUSSIAN STONE) from the SuperBond colour catalogue, catalogue page 10. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-STC9092 (RUSSIAN STONE) from the SuperBond colour catalogue, catalogue page 10. A weathered, industrial concrete look with fine fissures and mottling. Ash-grey tones mix with charcoal distressing across a raw, matte surface. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -4697,6 +4857,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "medium grey, ash grey, charcoal grey, off-white"
+    ],
+    [
+     "Pattern",
+     "distressed concrete texture"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -4736,7 +4916,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SBA7001 · TIPL-SBA7001 · SuperBond colour catalogue",
-   "description": "Design TIPL-SBA7001 (PLUTO) from the SuperBond colour catalogue, catalogue page 11. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SBA7001 (PLUTO) from the SuperBond colour catalogue, catalogue page 11. A deep charcoal black surface with an extremely fine, stippled texture that gives off a subtle metallic shimmer. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -4762,6 +4942,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "deep charcoal, graphite black, silver gray"
+    ],
+    [
+     "Pattern",
+     "fine speckle"
+    ],
+    [
+     "Sheen",
+     "metallic"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -4801,7 +5001,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SBA7002 · TIPL-SBA7002 · SuperBond colour catalogue",
-   "description": "Design TIPL-SBA7002 (VENUS) from the SuperBond colour catalogue, catalogue page 12. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SBA7002 (VENUS) from the SuperBond colour catalogue, catalogue page 12. A vibrant, saturated orange surface featuring a very fine, uniform stippled texture with a soft matte finish. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -4827,6 +5027,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "bright orange, warm amber orange"
+    ],
+    [
+     "Pattern",
+     "plain colour"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -4866,7 +5086,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SBA7003 · TIPL-SBA7003 · SuperBond colour catalogue",
-   "description": "Design TIPL-SBA7003 (EARTH) from the SuperBond colour catalogue, catalogue page 13. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SBA7003 (EARTH) from the SuperBond colour catalogue, catalogue page 13. A uniform sage green surface featuring an ultra-fine stippled texture with a soft satin sheen. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -4892,6 +5112,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "sage green, pale olive green"
+    ],
+    [
+     "Pattern",
+     "fine stippled speckle"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -4931,7 +5171,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SBA7004 · TIPL-SBA7004 · SuperBond colour catalogue",
-   "description": "Design TIPL-SBA7004 (SATURN) from the SuperBond colour catalogue, catalogue page 14. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SBA7004 (SATURN) from the SuperBond colour catalogue, catalogue page 14. A uniform light beige surface with an ultra-fine stippled texture that gives it a soft, subtle shimmer. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -4957,6 +5197,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "light warm beige, pale sand"
+    ],
+    [
+     "Pattern",
+     "fine speckle"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -4996,7 +5256,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SBA7005 · TIPL-SBA7005 · SuperBond colour catalogue",
-   "description": "Design TIPL-SBA7005 (MERCURY) from the SuperBond colour catalogue, catalogue page 15. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SBA7005 (MERCURY) from the SuperBond colour catalogue, catalogue page 15. A warm golden amber surface with a delicate, dense mottling of tiny pale flecks, offering a subtle frosted glass or pearlescent finish. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -5022,6 +5282,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "amber gold, pale cream, warm beige"
+    ],
+    [
+     "Pattern",
+     "fine speckle"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -5061,7 +5341,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SBA7006 · TIPL-SBA7006 · SuperBond colour catalogue",
-   "description": "Design TIPL-SBA7006 (MARS) from the SuperBond colour catalogue, catalogue page 16. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SBA7006 (MARS) from the SuperBond colour catalogue, catalogue page 16. A uniform cool grey surface with a finely stippled, pebbled texture that creates subtle light-catching highlights across an all-over cellular grain. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -5087,6 +5367,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "medium grey, silver grey, light grey"
+    ],
+    [
+     "Pattern",
+     "pebbled texture"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -5126,7 +5426,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB005 · TIPL-SB005 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB005 (NATURAL TEAK TX) from the SuperBond colour catalogue, catalogue pages 17 and 64. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB005 (NATURAL TEAK TX) from the SuperBond colour catalogue, catalogue pages 17 and 64. A warm amber-brown surface featuring a natural wood grain with vertical striations, fine pores, and scattered dark rustic cracks and small knots. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -5152,6 +5452,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "amber brown, warm honey, dark brown"
+    ],
+    [
+     "Pattern",
+     "wood grain"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -5191,7 +5511,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB008 · TIPL-SB008 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB008 (BURMESE TEAK) from the SuperBond colour catalogue, catalogue page 18. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB008 (BURMESE TEAK) from the SuperBond colour catalogue, catalogue page 18. A warm golden-brown wood appearance featuring fine vertical grain lines, subtle linear shading, and small rustic knots. The overall surface offers a smooth, rich timber aesthetic. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -5217,6 +5537,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "warm amber brown, golden brown, dark espresso brown"
+    ],
+    [
+     "Pattern",
+     "wood grain"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "flat"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -5256,7 +5596,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB621 · TIPL-SB621 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB621 (AFRICAN EBONY TX) from the SuperBond colour catalogue, catalogue page 19. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB621 (AFRICAN EBONY TX) from the SuperBond colour catalogue, catalogue page 19. A warm, natural wood look featuring rich caramel and honey tones, marked by prominent vertical grain, soft arches, and knot details. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -5282,6 +5622,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "warm caramel brown, golden honey, dark brown"
+    ],
+    [
+     "Pattern",
+     "wood grain"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -5321,7 +5681,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB625 · TIPL-SB625 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB625 (MAHOGANY PREMIUM TX) from the SuperBond colour catalogue, catalogue page 20. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB625 (MAHOGANY PREMIUM TX) from the SuperBond colour catalogue, catalogue page 20. A warm amber and caramel wood look with fine, straight vertical grain and darker espresso streaks running throughout. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -5347,6 +5707,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "warm caramel brown, amber brown, dark espresso brown, honey tan"
+    ],
+    [
+     "Pattern",
+     "wood grain"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -5386,7 +5766,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB921 · TIPL-SB921 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB921 (CONFIER TEAK) from the SuperBond colour catalogue, catalogue page 21. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB921 (CONFIER TEAK) from the SuperBond colour catalogue, catalogue page 21. A warm golden-honey wood grain look with dense, fine vertical graining. The surface appears flat with a subtle matte finish and uniform, linear texture. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -5412,6 +5792,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "golden honey brown, warm amber, light ochre"
+    ],
+    [
+     "Pattern",
+     "straight wood grain"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "flat"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -5451,7 +5851,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB922 · TIPL-SB922 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB922 (CHESTER OAK) from the SuperBond colour catalogue, catalogue page 22. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB922 (CHESTER OAK) from the SuperBond colour catalogue, catalogue page 22. A pale, warm blonde wood look with fine vertical graining and scattered small, soft knots. The surface has a smooth, understated, natural appearance. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -5477,6 +5877,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "blonde beige, warm cream, light tan"
+    ],
+    [
+     "Pattern",
+     "wood grain"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "flat"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -5516,7 +5936,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB923 · TIPL-SB923 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB923 (MACASAR WOOD TX) from the SuperBond colour catalogue, catalogue pages 23 and 67. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB923 (MACASAR WOOD TX) from the SuperBond colour catalogue, catalogue pages 23 and 67. A vibrant macassar wood look with rich amber tones and stark, dark vertical grain lines, creating an exotic, high-contrast surface. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -5542,6 +5962,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "golden amber, warm caramel, dark charcoal brown"
+    ],
+    [
+     "Pattern",
+     "wood grain"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "flat"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -5581,7 +6021,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB902 · TIPL-SB902 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB902 (ROSE WOOD) from the SuperBond colour catalogue, catalogue pages 24 and 65. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB902 (ROSE WOOD) from the SuperBond colour catalogue, catalogue pages 24 and 65. A vibrant terracotta red surface featuring delicate, linear wood grain textures running vertically with subtle variations in tone. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -5607,6 +6047,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "vibrant terracotta red, rust orange, deep reddish brown"
+    ],
+    [
+     "Pattern",
+     "wood grain"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -5646,7 +6106,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB905 · TIPL-SB905 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB905 (BRAZILIAN HULK) from the SuperBond colour catalogue, catalogue page 25. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB905 (BRAZILIAN HULK) from the SuperBond colour catalogue, catalogue page 25. A rich, exotic dark wood look featuring deep espresso and black tones contrasted by warm reddish-brown vertical grain lines with subtle tactile pores. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -5672,6 +6132,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "dark espresso brown, black, warm reddish brown, caramel brown"
+    ],
+    [
+     "Pattern",
+     "linear wood grain"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -5711,7 +6191,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB910 · TIPL-SB910 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB910 (AMERICAN WALNUT) from the SuperBond colour catalogue, catalogue page 26. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB910 (AMERICAN WALNUT) from the SuperBond colour catalogue, catalogue page 26. A warm reddish-brown wood grain with prominent vertical grain lines and subtle knots, offering a classic timber appearance with a soft satin finish. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -5737,6 +6217,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "reddish brown, warm amber, dark espresso brown"
+    ],
+    [
+     "Pattern",
+     "wood grain"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "flat"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -5776,7 +6276,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB912 · TIPL-SB912 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB912 (NATURAL WALNUT) from the SuperBond colour catalogue, catalogue page 27. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB912 (NATURAL WALNUT) from the SuperBond colour catalogue, catalogue page 27. A warm natural wood-grain surface in medium caramel and tan tones, accented by distinct vertical dark brown linear graining and open pore marks. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -5802,6 +6302,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "medium tan, warm caramel brown, dark brown"
+    ],
+    [
+     "Pattern",
+     "wood grain"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -5841,7 +6361,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB913 · TIPL-SB913 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB913 (CREME WALNUT) from the SuperBond colour catalogue, catalogue page 28. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB913 (CREME WALNUT) from the SuperBond colour catalogue, catalogue page 28. A linear wood-grain surface with pale taupe-brown and beige tones, filled with dense, fine vertical pores and subtle striping. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -5867,6 +6387,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "taupe brown, pale beige, warm grey"
+    ],
+    [
+     "Pattern",
+     "linear wood grain"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -5906,7 +6446,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB915 · TIPL-SB915 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB915 (CANADIAN WALNUT) from the SuperBond colour catalogue, catalogue pages 29 and 61. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB915 (CANADIAN WALNUT) from the SuperBond colour catalogue, catalogue pages 29 and 61. A warm reddish-amber surface with a fine, natural wood-grain look and a soft satin sheen. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -5932,6 +6472,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "reddish brown, warm amber, dark rust brown"
+    ],
+    [
+     "Pattern",
+     "wood grain"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -5971,7 +6531,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB920 · TIPL-SB920 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB920 (TIMBER WOOD BURMA) from the SuperBond colour catalogue, catalogue page 30. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB920 (TIMBER WOOD BURMA) from the SuperBond colour catalogue, catalogue page 30. A warm teak-toned wood look with fine, straight vertical grain and subtle tonal striping. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -5997,6 +6557,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "warm golden brown, medium amber brown, dark brown"
+    ],
+    [
+     "Pattern",
+     "wood grain"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "flat"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -6036,7 +6616,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB801 · TIPL-SB801 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB801 (TRAVERTINE CREME) from the SuperBond colour catalogue, catalogue page 31. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB801 (TRAVERTINE CREME) from the SuperBond colour catalogue, catalogue page 31. A warm cream surface with soft, vertical banded striations and delicate porous-looking fissures, resembling vein-cut sedimentary stone. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -6062,6 +6642,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "warm cream, sandy beige, light ochre"
+    ],
+    [
+     "Pattern",
+     "linear sedimentary veining"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -6101,7 +6701,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB804 · TIPL-SB804 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB804 (EMPERADOR DARK) from the SuperBond colour catalogue, catalogue pages 32 and 66. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB804 (EMPERADOR DARK) from the SuperBond colour catalogue, catalogue pages 32 and 66. A rich dark brown marble look dense with complex, web-like pale beige and white veins. The appearance is polished, dramatic, and intricately fractured. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -6127,6 +6727,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "deep espresso brown, warm beige, creamy white, charcoal"
+    ],
+    [
+     "Pattern",
+     "intricate marble veining"
+    ],
+    [
+     "Sheen",
+     "gloss"
+    ],
+    [
+     "Surface",
+     "flat"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -6166,7 +6786,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB825 · TIPL-SB825 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB825 (WILLIAMS GREY) from the SuperBond colour catalogue, catalogue page 33. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB825 (WILLIAMS GREY) from the SuperBond colour catalogue, catalogue page 33. A pale grey and off-white marble look defined by prominent, jagged charcoal veins running diagonally across a finely textured mineral ground. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -6192,6 +6812,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "light grey, charcoal grey, off-white"
+    ],
+    [
+     "Pattern",
+     "marble veining"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "flat"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -6231,7 +6871,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB826 · TIPL-SB826 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB826 (NAXIAN WHITE) from the SuperBond colour catalogue, catalogue page 34. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB826 (NAXIAN WHITE) from the SuperBond colour catalogue, catalogue page 34. A pale, creamy-white marble look covered in a dense network of fine, dark charcoal fractures and branching veins running vertically. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -6257,6 +6897,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "off-white, charcoal grey, pale grey"
+    ],
+    [
+     "Pattern",
+     "fine veined marble"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "flat"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -6296,7 +6956,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB828 · TIPL-SB828 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB828 (BLACK MARQUINA) from the SuperBond colour catalogue, catalogue page 35. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB828 (BLACK MARQUINA) from the SuperBond colour catalogue, catalogue page 35. A deep solid black surface striking with bold, crisp diagonal veins in warm copper-orange and fine hairline white cracks. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -6322,6 +6982,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "solid black, warm copper-orange, bright white"
+    ],
+    [
+     "Pattern",
+     "marble-like veining"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "flat"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -6361,7 +7041,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB829 · TIPL-SB829 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB829 (MARINACE) from the SuperBond colour catalogue, catalogue page 36. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB829 (MARINACE) from the SuperBond colour catalogue, catalogue page 36. A warm taupe-brown marble look patterned with fine, jagged white and pale grey veins traversing across a smooth, polished stone field. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -6387,6 +7067,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "taupe brown, warm grey-brown, bright white"
+    ],
+    [
+     "Pattern",
+     "marble-like veining"
+    ],
+    [
+     "Sheen",
+     "gloss"
+    ],
+    [
+     "Surface",
+     "flat"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -6426,7 +7126,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB8001 · TIPL-SB8001 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB8001 (MARMORIS STAIN) from the SuperBond colour catalogue, catalogue page 37. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB8001 (MARMORIS STAIN) from the SuperBond colour catalogue, catalogue page 37. A dramatic stone-like surface blending deep charcoal and slate blue with rich beige and cream striations. Layered, flowing mineral bands give it a dynamic, natural geological appearance. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -6452,6 +7152,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "slate blue, charcoal black, warm beige, creamy white"
+    ],
+    [
+     "Pattern",
+     "marble-like veining"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -6491,7 +7211,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB8002 · TIPL-SB8002 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB8002 (MARMORIS STEIN) from the SuperBond colour catalogue, catalogue page 38. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB8002 (MARMORIS STEIN) from the SuperBond colour catalogue, catalogue page 38. A dramatic grey stone look featuring bold, jagged fissures and intricate mineral veining. Mottled pale grey and charcoal tones give the surface a rugged, dynamic presence. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -6517,6 +7237,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "mid grey, light grey, charcoal, off-white"
+    ],
+    [
+     "Pattern",
+     "marble-like veining"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -6556,7 +7296,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SD5001 · TIPL-SD5001 · SuperBond colour catalogue",
-   "description": "Design TIPL-SD5001 (GREY SAND STONE) from the SuperBond colour catalogue, catalogue page 39. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SD5001 (GREY SAND STONE) from the SuperBond colour catalogue, catalogue page 39. A deep charcoal-grey surface featuring a very fine, uniform sandy stipple that creates a quiet, subtle stone-like texture with a muted satin sheen. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -6582,6 +7322,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "dark charcoal grey, deep slate brown, muted graphite"
+    ],
+    [
+     "Pattern",
+     "fine speckle"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -6621,7 +7381,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SD5002 · TIPL-SD5002 · SuperBond colour catalogue",
-   "description": "Design TIPL-SD5002 (WHITE BEACH SAND) from the SuperBond colour catalogue, catalogue page 40. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SD5002 (WHITE BEACH SAND) from the SuperBond colour catalogue, catalogue page 40. A warm sandy beige surface with a delicate, fine-grained stippled texture. It features a soft matte appearance reminiscent of fine sand or textured plaster. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -6647,6 +7407,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "sandy beige, pale tan, warm cream"
+    ],
+    [
+     "Pattern",
+     "fine speckle"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -6686,7 +7466,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SD5003 · TIPL-SD5003 · SuperBond colour catalogue",
-   "description": "Design TIPL-SD5003 (ZURICH  BEIGE SAND) from the SuperBond colour catalogue, catalogue page 41. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SD5003 (ZURICH  BEIGE SAND) from the SuperBond colour catalogue, catalogue page 41. A warm beige, sand-toned surface with a subtle, fine stippled texture. It presents a uniform, soft appearance with minimal tonal variation. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -6712,6 +7492,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "warm beige, pale sand, soft cream"
+    ],
+    [
+     "Pattern",
+     "fine stippled speckle"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -6751,7 +7551,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SD5004 · TIPL-SD5004 · SuperBond colour catalogue",
-   "description": "Design TIPL-SD5004 (MAGENTA SAND STONE) from the SuperBond colour catalogue, catalogue page 42. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SD5004 (MAGENTA SAND STONE) from the SuperBond colour catalogue, catalogue page 42. A vibrant solid marigold orange surface featuring an extremely fine, stippled sand-like texture across the entire face with a subtle matte sheen. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -6777,6 +7577,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "marigold orange, warm amber, terracotta"
+    ],
+    [
+     "Pattern",
+     "fine speckle"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -6816,7 +7636,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SD5005 · TIPL-SD5005 · SuperBond colour catalogue",
-   "description": "Design TIPL-SD5005 (VIRDIAN GREEN SAND) from the SuperBond colour catalogue, catalogue page 43. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SD5005 (VIRDIAN GREEN SAND) from the SuperBond colour catalogue, catalogue page 43. A subtle, uniform deep olive green surface with an extremely fine sandy texture and soft satin finish. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -6842,6 +7662,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "deep olive green, muted moss green, dark khaki"
+    ],
+    [
+     "Pattern",
+     "plain colour"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -6881,7 +7721,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SK4001 · TIPL-SK4001 · SuperBond colour catalogue",
-   "description": "Design TIPL-SK4001 (GREY SKIN FEELING) from the SuperBond colour catalogue, catalogue page 44. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SK4001 (GREY SKIN FEELING) from the SuperBond colour catalogue, catalogue page 44. A smooth, deep charcoal grey surface with a warm undertone and a soft, velvety matte finish. It presents a completely uniform and solid appearance without any visible grain or pattern. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -6907,6 +7747,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "charcoal grey, dark slate, warm dark grey"
+    ],
+    [
+     "Pattern",
+     "plain colour"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "flat"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -6946,7 +7806,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SK4002 · TIPL-SK4002 · SuperBond colour catalogue",
-   "description": "Design TIPL-SK4002 (JAISALMER SUNDAY SKIN) from the SuperBond colour catalogue, catalogue page 45. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SK4002 (JAISALMER SUNDAY SKIN) from the SuperBond colour catalogue, catalogue page 45. A warm, uniform sand-yellow surface with an ultra-fine, velvety matte appearance. It offers an even, soft monochrome look with almost imperceptible micro-variations. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -6972,6 +7832,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "sand yellow, pale beige, warm ochre"
+    ],
+    [
+     "Pattern",
+     "plain colour"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "flat"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -7011,7 +7891,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SK4003 · TIPL-SK4003 · SuperBond colour catalogue",
-   "description": "Design TIPL-SK4003 (MOON  SKIN FEELING) from the SuperBond colour catalogue, catalogue page 46. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SK4003 (MOON  SKIN FEELING) from the SuperBond colour catalogue, catalogue page 46. A smooth, ultra-minimal surface in a warm cream tone. It presents a completely solid, uniform appearance with a soft matte touch. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -7037,6 +7917,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "warm cream, soft ivory, pale beige"
+    ],
+    [
+     "Pattern",
+     "plain colour"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "flat"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -7076,7 +7976,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SK4004 · TIPL-SK4004 · SuperBond colour catalogue",
-   "description": "Design TIPL-SK4004 (BEIGE SKIN) from the SuperBond colour catalogue, catalogue page 47. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SK4004 (BEIGE SKIN) from the SuperBond colour catalogue, catalogue page 47. A smooth, uniform surface in a warm caramel brown tone with subtle leather-like tactile depth and a low-sheen finish. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -7102,6 +8002,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "caramel brown, warm beige, tan"
+    ],
+    [
+     "Pattern",
+     "plain colour"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -7141,7 +8061,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB2001 · TIPL-SB2001 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB2001 (EROSIVE METAL) from the SuperBond colour catalogue, catalogue page 48. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB2001 (EROSIVE METAL) from the SuperBond colour catalogue, catalogue page 48. A weathered, oxidised metal appearance dominated by deep rust-red and terracotta tones, mottled with patches of verdigris green and warm ochre yellow running vertically. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -7167,6 +8087,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "rust red, terracotta, verdigris green, ochre yellow"
+    ],
+    [
+     "Pattern",
+     "mottled weathering"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -7206,7 +8146,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB2002 · TIPL-SB2002 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB2002 (VINTAGE CORROSIVE METAL) from the SuperBond colour catalogue, catalogue page 49. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB2002 (VINTAGE CORROSIVE METAL) from the SuperBond colour catalogue, catalogue page 49. A weathered, oxidised metal appearance with rich rust orange, verdigris green, and warm ochre tones. Vertical streaks and mottled patches create an aged industrial patina. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -7232,6 +8172,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "rust orange, verdigris green, olive brown, mustard ochre"
+    ],
+    [
+     "Pattern",
+     "mottled rust streaks"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -7271,7 +8231,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB2003 · TIPL-SB2003 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB2003 (ANILE GREEN) from the SuperBond colour catalogue, catalogue page 50. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB2003 (ANILE GREEN) from the SuperBond colour catalogue, catalogue page 50. A deep forest green surface with an aged patina of oxidized bronze speckles, fine scratches, and mottled rust-brown undertones. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -7297,6 +8257,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "forest green, deep olive green, rusty brown, sage green"
+    ],
+    [
+     "Pattern",
+     "mottled oxidized patina"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -7336,7 +8316,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB2004 · TIPL-SB2004 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB2004 (RUSTIC TIMBER) from the SuperBond colour catalogue, catalogue page 51. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB2004 (RUSTIC TIMBER) from the SuperBond colour catalogue, catalogue page 51. A deep charcoal and slate-grey surface with a weathered, textured look reminiscent of aged concrete or charred timber. Soft vertical brush-like streaks and mottled tonal shifts give it depth. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -7362,6 +8342,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "dark charcoal grey, slate grey, ashen black"
+    ],
+    [
+     "Pattern",
+     "weathered stucco texture"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -7401,7 +8401,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB2005 · TIPL-SB2005 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB2005 (EXQUISITE TITANIUM) from the SuperBond colour catalogue, catalogue page 52. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB2005 (EXQUISITE TITANIUM) from the SuperBond colour catalogue, catalogue page 52. A weathered, industrial surface blending warm titanium and pewter tones with dark charcoal patches, featuring subtle vertical brushing and a mottled patina. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -7427,6 +8427,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "titanium grey, charcoal grey, pewter, bronze undertones"
+    ],
+    [
+     "Pattern",
+     "weathered patina streaks"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -7466,7 +8486,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB2006 · TIPL-SB2006 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB2006 (GUN METAL) from the SuperBond colour catalogue, catalogue page 53. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB2006 (GUN METAL) from the SuperBond colour catalogue, catalogue page 53. A deep charcoal-black surface overlaid with dense, irregular stippling and faint hairline fissures in dark slate grey, creating a weathered, cast-iron metal appearance. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -7492,6 +8512,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "dark charcoal, slate grey, matte black"
+    ],
+    [
+     "Pattern",
+     "mottled stipple texture"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -7531,7 +8571,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB3001 · TIPL-SB3001 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB3001 (FIERY COPPER) from the SuperBond colour catalogue, catalogue page 54. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB3001 (FIERY COPPER) from the SuperBond colour catalogue, catalogue page 54. A warm, uniform copper tone with an extremely fine metallic shimmer and subtle grain. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -7557,6 +8597,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "warm copper, terracotta peach, rose gold"
+    ],
+    [
+     "Pattern",
+     "plain colour"
+    ],
+    [
+     "Sheen",
+     "metallic"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -7596,7 +8656,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB3002 · TIPL-SB3002 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB3002 (OBSOLETE COPPER) from the SuperBond colour catalogue, catalogue page 55. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB3002 (OBSOLETE COPPER) from the SuperBond colour catalogue, catalogue page 55. A warm oxidized copper appearance combining earthy brown tones with subtle greyish undertones. A dense, stippled micro-texture covers faint, cloudy underlying mottling. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -7622,6 +8682,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "warm copper brown, slate grey, tan"
+    ],
+    [
+     "Pattern",
+     "mottled stipple"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -7661,7 +8741,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB3003 · TIPL-SB3003 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB3003 (PROFUSE COPPER RUST) from the SuperBond colour catalogue, catalogue page 56. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB3003 (PROFUSE COPPER RUST) from the SuperBond colour catalogue, catalogue page 56. A weathered, verdigris copper surface featuring patches of chalky turquoise-green beneath stippled areas of warm, muted tan-copper tones with a matte finish. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -7687,6 +8767,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "muted turquoise green, warm tan copper, soft olive grey"
+    ],
+    [
+     "Pattern",
+     "oxidized metal patina"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -7726,7 +8826,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB3004 · TIPL-SB3004 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB3004 (LUSTRE TITANIUM) from the SuperBond colour catalogue, catalogue page 57. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB3004 (LUSTRE TITANIUM) from the SuperBond colour catalogue, catalogue page 57. A smooth, uniform surface in muted greenish olive and dark greyish bronze tones with a soft, brushed metallic lustre. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -7752,6 +8852,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "dark olive grey, muted bronze"
+    ],
+    [
+     "Pattern",
+     "plain colour"
+    ],
+    [
+     "Sheen",
+     "metallic"
+    ],
+    [
+     "Surface",
+     "flat"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -7791,7 +8911,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB101 · TIPL-SB101 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB101 (RICH WOOL CHECKS) from the SuperBond colour catalogue, catalogue page 58. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB101 (RICH WOOL CHECKS) from the SuperBond colour catalogue, catalogue page 58. A refined grey Prince of Wales glen plaid fabric look with a subtle woven crosshatch grid, offering an elegant tailored appearance. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -7817,6 +8937,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "medium grey, light grey, charcoal grey"
+    ],
+    [
+     "Pattern",
+     "glen plaid check"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -7856,7 +8996,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB103 · TIPL-SB103 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB103 (BLACK GREY LOUVERS) from the SuperBond colour catalogue, catalogue page 59. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB103 (BLACK GREY LOUVERS) from the SuperBond colour catalogue, catalogue page 59. A regular fluted surface of alternating vertical slats in charcoal grey and dark slate, offering a bold architectural ribbed effect with a subtle satin texture. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -7882,6 +9022,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "charcoal grey, deep slate black, soft medium grey"
+    ],
+    [
+     "Pattern",
+     "vertical fluted slats"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "embossed"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -7921,7 +9081,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB104 · TIPL-SB104 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB104 (BLACK BROWN LOUVERS) from the SuperBond colour catalogue, catalogue page 60. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB104 (BLACK BROWN LOUVERS) from the SuperBond colour catalogue, catalogue page 60. A structured wall surface featuring narrow vertical louvres in a rich warm brown tone, creating an elegant linear rhythm of light and shadow. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -7947,6 +9107,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "warm brown, dark brown, caramel brown"
+    ],
+    [
+     "Pattern",
+     "vertical fluted slats"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "pronounced texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -7986,7 +9166,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB940 · TIPL-SB940 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB940 (DARK WALNUT) from the SuperBond colour catalogue, catalogue page 62. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB940 (DARK WALNUT) from the SuperBond colour catalogue, catalogue page 62. A warm, deep walnut wood look with expressive vertical graining, dramatic dark brown pores, and an organic knot feature. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -8012,6 +9192,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "warm medium brown, dark espresso brown, blackish brown"
+    ],
+    [
+     "Pattern",
+     "wood grain"
+    ],
+    [
+     "Sheen",
+     "satin"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -8051,7 +9251,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB950 · TIPL-SB950 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB950 (AMITRAGO WOOD) from the SuperBond colour catalogue, catalogue page 63. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB950 (AMITRAGO WOOD) from the SuperBond colour catalogue, catalogue page 63. A warm honey-amber wood look with dense, pronounced vertical grain lines, weathered knots, and deep dark brown fissures. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -8077,6 +9277,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "warm amber brown, dark espresso brown, golden honey"
+    ],
+    [
+     "Pattern",
+     "rustic wood grain"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "fine texture"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -8116,7 +9336,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB960 · TIPL-SB960 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB960 (CREME OAK) from the SuperBond colour catalogue, catalogue page 68. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB960 (CREME OAK) from the SuperBond colour catalogue, catalogue page 68. A pale cream oak-look surface with tight, fine vertical wood graining in contrasting dark grey-brown striations across a smooth, flat ground. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -8142,6 +9362,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "pale cream, light beige, dark grey-brown"
+    ],
+    [
+     "Pattern",
+     "wood grain"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "flat"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],
@@ -8181,7 +9421,7 @@
    "units": "sheets",
    "gst": 0.18,
    "tagline": "SB830 · TIPL-SB830 · SuperBond colour catalogue",
-   "description": "Design TIPL-SB830 (WHITE MARBLE) from the SuperBond colour catalogue, catalogue page 69. The size, thickness and price shown are sample values until the price list is loaded.",
+   "description": "Design TIPL-SB830 (WHITE MARBLE) from the SuperBond colour catalogue, catalogue page 69. A crisp white marble look patterned with branching grey veining that runs diagonally across a smooth, matte surface. (Written by AI from the catalogue picture: it describes how the design looks.) The size, thickness and price shown are sample values until the price list is loaded.",
    "applications": [
     "interior",
     "joinery",
@@ -8207,6 +9447,26 @@
     [
      "Size and price",
      "Sample values until the price list is loaded"
+    ],
+    [
+     "Colours",
+     "white, charcoal grey, pale grey"
+    ],
+    [
+     "Pattern",
+     "marble-like veining"
+    ],
+    [
+     "Sheen",
+     "matte"
+    ],
+    [
+     "Surface",
+     "flat"
+    ],
+    [
+     "About these four",
+     "Written by AI from the catalogue picture: how the design looks, not what it is made of."
     ]
    ],
    "accessories": [],

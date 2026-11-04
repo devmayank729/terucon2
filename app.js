@@ -23,6 +23,7 @@ import { compress } from './server/middleware/compress.js';
 import { guards } from './server/middleware/guards.js';
 import { securityHeaders } from './server/middleware/headers.js';
 import { longLived, TEXTURE_CACHE } from './server/middleware/studioCache.js';
+import { studioReference } from './server/lib/studioReference.js';
 import { studioShield } from './server/lib/studioShield.js';
 import { mountAnalytics } from './server/routes/analytics.js';
 import { createApiRegistry, mountApi } from './server/routes/api.js';
@@ -179,6 +180,8 @@ export function createApp({ root = ROOT, envPath, environ, log = createLogger(),
     shield = studioShield({ store: studio.roomStore(), limits: () => ctx.auth.studioLimits(), log, identify: (req) => req.terucon?.user?.ownerId ?? null });
     app.use(shield);
   }
+  // a render of a catalogue design gets the design's own photograph as one more image (after the shield has counted it, before the studio reads it)
+  if (studio) app.use(studioReference({ designs: () => ctx.catalogue?.designs ?? null, limit: studio.aiBodyLimit(), log }));
   // the studio's textures are not worth a round trip per visit (server/middleware/studioCache.js); its other files keep its own policy
   if (studio) app.use(longLived(['/textures'], TEXTURE_CACHE));
   if (studio) app.use(studio.app);

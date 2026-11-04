@@ -1057,6 +1057,14 @@
       "desc": "Setting up the catalogue (Finder, catalogue admin) step by step: the Google Cloud bucket, two service accounts and the CORS rule, MongoDB, the three Modal secrets, deploy, the website settings, three ways to bring a catalogue in, how to check it, and what is not verified."
     },
     {
+      "match": "docs/CATALOGUE_STUDIO.md",
+      "owner": "docs",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "How the catalogue's designs reach the Design Studio and where their pictures live: the finish group, the render prompt and the reference photograph, what Gemini may write, the before/after evidence, the undo paths and what was not checked."
+    },
+    {
       "match": "docs/DESIGN_STUDIO_ARCHITECTURE.md",
       "owner": "docs",
       "tags": [

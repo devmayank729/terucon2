@@ -2201,12 +2201,162 @@ await test('terubot: keys typed in the panel never reach the page; Tab stays ins
   const still = await page.evaluate(() => ({ panel: getComputedStyle(document.getElementById('terubot-panel')).animationName, ring: getComputedStyle(document.querySelector('.tb-launch__mark'), '::after').animationName }));
   assert(still.panel === 'none' && still.ring === 'none', 'reduced motion: ' + JSON.stringify(still));
   await page.keyboard.press('Escape');
+  // the studio's full-screen working view (html.swr-immersive, its host at z-index 90) used to switch TeruBot off; it is now raised above the studio
   await page.evaluate(() => document.documentElement.classList.add('swr-immersive'));
-  assert(await page.evaluate(() => getComputedStyle(document.querySelector('.tb-launch')).display === 'none' || getComputedStyle(document.getElementById('terubot')).display === 'none'), 'the launcher is shown while the studio works full screen');
+  assert(await page.evaluate(() => { const l = document.querySelector('.tb-launch'); const b = l.getBoundingClientRect(); const top = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return getComputedStyle(l).display !== 'none' && !!top && l.contains(top); }), 'the launcher is not reachable while the studio works full screen');
   await page.close();
 });
 
-await test('terubot: voice: the microphone button uses the browser\'s speech recognition and sends what was heard; it is hidden where there is none and where the page forbids the microphone', async () => {
+await test('studio: the catalogue designs are added to the finish list before the studio starts (a group "Terucon catalogue" for wall, door and furniture, one item per surface kind), a card gets the design\'s photo, and the studio opens as it always did when the catalogue is off, down or slow', async () => {
+  const finishes = [
+    { id: 'tipl-sb804', code: 'SB804', productId: 'TIPL-SB804', name: 'Emperador Dark', sub: 'SB804 · marble-like veining, gloss', about: 'Emperador Dark, Terucon catalogue design TIPL-SB804. A dark brown surface.', prompt: 'Apply the design. [[terucon-design:TIPL-SB804]]', hex: '#271c1c', image: '/media/materials/tipl-sb804.jpg?w=320', described: true },
+    { id: 'tipl-sb008', code: 'SB008', productId: 'TIPL-SB008', name: 'Burmese Teak', sub: 'SB008', about: 'Burmese Teak, Terucon catalogue design TIPL-SB008.', prompt: 'Apply the design. [[terucon-design:TIPL-SB008]]', hex: '#7b4312', image: '/media/materials/tipl-sb008.jpg?w=320', described: false },
+  ];
+  const open = async (answer) => {
+    const page = await newPage({ width: 1440, height: 900 });
+    const asked = { finishes: 0, pictures: [] };
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      const u = new URL(req.url());
+      if (u.pathname === '/api/catalogue/studio-finishes') { asked.finishes += 1; return answer(req); }
+      if (/^\/media\/materials\/tipl-/.test(u.pathname)) { asked.pictures.push(u.pathname + u.search); return req.respond({ status: 200, contentType: 'image/png', body: TB_PNG }); }
+      req.continue();
+    });
+    await page.goto(base + '/design-studio', { waitUntil: 'domcontentloaded' });
+    await until(() => page.evaluate(() => /Add a room photo/.test(document.body.innerText)), 'the studio', 25000);
+    return { page, asked };
+  };
+  const catalog = (page) => page.evaluate(async () => {
+    const { CATALOG, findItem, findItemKind } = await import('/js/data/catalog.js');
+    const group = (kind) => (CATALOG[kind][0] || {}).group;
+    return { wall: group('wall'), door: group('door'), furniture: group('furniture'), floor: group('floor'), ceiling: group('ceiling'), window: group('window'), paint: CATALOG.wall.some((g) => g.group === 'Paint'),
+      wallItems: CATALOG.wall[0].items.map((i) => i.id), doorItems: (CATALOG.door[0].items || []).map((i) => i.id),
+      kinds: { wall: findItemKind('tipl-sb804'), door: findItemKind('tipl-sb804-door'), furniture: findItemKind('tipl-sb008-furniture') },
+      found: (() => { const i = findItem('tipl-sb804-door'); return i && { name: i.name, mode: i.mode, hasTexture: !!i.texture, marker: /\[\[terucon-design:TIPL-SB804\]\]$/.test(i.prompt), swatch: i.swatch }; })() };
+  });
+
+  // 1. the catalogue answers
+  let { page, asked } = await open((req) => req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify({ group: 'Terucon catalogue', kinds: ['wall', 'door', 'furniture'], finishes, state: 'ok' }) }));
+  try {
+    assert(asked.finishes === 1, 'the finish list was asked for ' + asked.finishes + ' times');
+    const c = await catalog(page);
+    assert(c.wall === 'Terucon catalogue' && c.door === 'Terucon catalogue' && c.furniture === 'Terucon catalogue', 'the group is not first for wall, door and furniture: ' + JSON.stringify(c));
+    assert(c.floor !== 'Terucon catalogue' && c.ceiling !== 'Terucon catalogue' && c.window !== 'Terucon catalogue', 'a decorative sheet is not offered for a floor, a ceiling or a window: ' + JSON.stringify(c));
+    assert(c.paint, 'the studio\'s own finishes are still there');
+    assert(JSON.stringify(c.wallItems) === '["tipl-sb804","tipl-sb008"]' && JSON.stringify(c.doorItems) === '["tipl-sb804-door","tipl-sb008-door"]', 'ids: ' + JSON.stringify([c.wallItems, c.doorItems]));
+    assert(c.kinds.wall === 'wall' && c.kinds.door === 'door' && c.kinds.furniture === 'furniture', 'the studio forgets a finish whose kind is not the surface\'s (itemFitsKind): ' + JSON.stringify(c.kinds));
+    assert(c.found && c.found.name === 'Emperador Dark' && c.found.mode === 'surface' && c.found.marker && !c.found.hasTexture && c.found.swatch.hex === '#271c1c', 'the studio finds the item as one of its own: ' + JSON.stringify(c.found));
+    // the studio draws its cards in code; the design's photograph is put on the card by the loader's observer
+    await page.evaluate(() => {
+      const tile = document.createElement('button');
+      tile.className = 'sr-tile';
+      tile.title = 'Emperador Dark, Terucon catalogue design TIPL-SB804. A dark brown surface.';
+      tile.innerHTML = '<span class="sr-tile-swatch"><span class="sr-tile-art"><svg></svg></span></span>';
+      tile.id = 'tc-fake-tile';
+      document.querySelector('swatchroom-app').appendChild(tile);
+      const other = tile.cloneNode(true); other.id = 'tc-other-tile'; other.title = 'Limewash. A soft cloudy wall.'; document.querySelector('swatchroom-app').appendChild(other);
+    });
+    await until(() => page.evaluate(() => !!document.querySelector('#tc-fake-tile img.tc-design-photo')), 'the design\'s photograph on its card');
+    const img = await page.evaluate(() => { const i = document.querySelector('#tc-fake-tile img.tc-design-photo'); return { src: i.getAttribute('src'), w: i.style.width, fit: i.style.objectFit, svg: !!document.querySelector('#tc-fake-tile svg'), other: !!document.querySelector('#tc-other-tile img') }; });
+    assert(img.src === '/media/materials/tipl-sb804.jpg?w=320' && img.w === '100%' && img.fit === 'cover' && !img.svg, 'the card: ' + JSON.stringify(img));
+    assert(!img.other, 'a card of the studio\'s own finishes is left alone');
+    // the studio redraws a card's art: the photograph comes back
+    await page.evaluate(() => { document.querySelector('#tc-fake-tile .sr-tile-art').innerHTML = '<svg></svg>'; });
+    await until(() => page.evaluate(() => !!document.querySelector('#tc-fake-tile img.tc-design-photo')), 'the photograph after a redraw');
+    assert(page.problems.length === 0, 'problems: ' + page.problems.join(' | '));
+  } finally {
+    await page.close();
+  }
+
+  // 2. the catalogue is off (an empty list), refused, unreachable or too slow: the studio opens, with no group and nothing logged
+  for (const [what, answer, ms] of [
+    ['off', (req) => req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify({ group: 'Terucon catalogue', kinds: ['wall', 'door', 'furniture'], finishes: [], state: 'off' }) }), 0],
+    ['refused', (req) => req.respond({ status: 401, contentType: 'application/json', body: '{"error":"no"}' }), 0],
+    ['unreachable', (req) => req.abort('failed'), 0],
+    ['slow', () => {}, 4000],
+  ]) {
+    const t0 = Date.now();
+    ({ page, asked } = await open(answer));
+    try {
+      const c = await catalog(page);
+      assert(c.wall !== 'Terucon catalogue' && c.door !== 'Terucon catalogue' && c.paint, `${what}: the studio must be as it always was: ` + JSON.stringify(c));
+      assert(c.found === null, `${what}: no catalogue item`);
+      if (ms) assert(Date.now() - t0 < ms + 8000, `${what}: the studio waited too long (${Date.now() - t0} ms)`);
+      const real = page.problems.filter((p) => !/studio-finishes|ERR_FAILED/.test(p));
+      assert(real.length === 0, `${what}: problems: ` + real.join(' | '));
+    } finally {
+      await page.close();
+    }
+  }
+});
+
+await test('terubot: the same assistant on every page: the launcher, the panel, Talk, dictation, attach and New chat are all there, in the studio and the Finder too', async () => {
+  // Pages that carry TeruBot (the offline and error pages and the sign-in-free coming-soon page excepted by design are not in this list). One signature per
+  // page; they must all be the same. A control that is missing on one page (Talk used to be, on the studio and the Finder) makes the signatures differ.
+  const routes = ['/', '/materials', '/design-studio', '/my-project', '/inspiration', '/finder', '/start-project', '/account', '/admin/catalogue'];
+  const st = tbState();
+  const page = await tbPage({ width: 1440, height: 900 }, st, { speech: 'live' });
+  const signatures = {};
+  for (const route of routes) {
+    await tbGo(page, route);
+    // the studio's page loader holds for the GPU services (tbLoaderGone does not wait for it): here it is waited for, because the panel is checked to be on top
+    await until(() => page.evaluate(() => { const l = document.getElementById('tc-loader'); return !l || getComputedStyle(l).display === 'none' || getComputedStyle(l).pointerEvents === 'none'; }), 'the loader to leave ' + route, 25000);
+    await tbOpen(page);
+    signatures[route] = await page.evaluate(() => {
+      const visible = (el) => !!el && !el.hidden && getComputedStyle(el).display !== 'none';
+      const panel = document.getElementById('terubot-panel');
+      const b = (sel) => visible(panel.querySelector(sel));
+      return {
+        title: (panel.querySelector('.tb-title') || {}).textContent || null,
+        talk: b('.tb-talk'),
+        dictation: b('.tb-roundbtn[aria-pressed]'),
+        attach: !!panel.querySelector('.tb-form input[type=file]'),
+        newChat: [...panel.querySelectorAll('button')].some((x) => /new chat/i.test(x.textContent) && visible(x)),
+        close: !!panel.querySelector('[aria-label="Close TeruBot"], [aria-label="Close"]') || [...panel.querySelectorAll('button')].some((x) => /close/i.test(x.getAttribute('aria-label') || '')),
+        input: visible(panel.querySelector('.tb-input')),
+        panelOnTop: (() => { const r = panel.getBoundingClientRect(); const e = document.elementFromPoint(r.left + r.width / 2, r.top + 60); return !!e && panel.contains(e); })(),
+      };
+    });
+  }
+  await page.close();
+  const first = signatures[routes[0]];
+  assert(first.talk && first.dictation && first.attach && first.newChat && first.input && first.panelOnTop, 'the reference page lacks a control: ' + JSON.stringify(first));
+  for (const route of routes) assert(JSON.stringify(signatures[route]) === JSON.stringify(first), `${route} offers a different TeruBot from ${routes[0]}: ${JSON.stringify(signatures[route])} instead of ${JSON.stringify(first)}`);
+});
+
+await test('terubot: the studio\'s full-screen working view on a phone: the launcher is under the top bar, above the studio (z-index 90) and clear of its bottom sheet, and the panel opens over the studio', async () => {
+  const open = await startStack({ port: 0, bootMs: 300 });
+  const page = await newPage(PHONE, open);
+  const file = path.join(os.tmpdir(), `terucon-tb-immersive-${Date.now()}.jpg`);
+  try {
+    await page.goto(open.base + '/design-studio', { waitUntil: 'networkidle2' });
+    await until(() => page.evaluate(() => /Add a room photo/.test(document.body.innerText)), 'the studio', 15000);
+    await until(() => page.evaluate(() => { const l = document.getElementById('tc-loader'); return !l || getComputedStyle(l).display === 'none'; }), 'the loader to leave the studio', 25000);
+    fs.writeFileSync(file, await makeJpeg(page, 1200, 800));
+    await (await page.$('input[data-input="photo"]')).uploadFile(file);
+    await until(() => page.evaluate(() => document.documentElement.classList.contains('swr-immersive') && !!document.querySelector('.sr-studio.has-photo')), 'the studio to go full screen with a photo', 30000);
+    const at = await page.evaluate(() => {
+      const l = document.querySelector('.tb-launch');
+      const b = l.getBoundingClientRect();
+      const top = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+      const sheet = document.querySelector('.sr-sheet');
+      const sb = sheet ? sheet.getBoundingClientRect() : null;
+      const header = document.querySelector('.sr-studio header, .sr-top, .sr-bar');
+      return { shown: getComputedStyle(l).display !== 'none', reachable: !!top && l.contains(top), box: [b.left, b.top, b.width, b.height], sheetTop: sb ? sb.top : null, innerWidth: window.innerWidth };
+    });
+    assert(at.shown && at.reachable, 'the launcher cannot be reached in the studio\'s full-screen view: ' + JSON.stringify(at));
+    assert(at.box[1] > 52 && at.box[1] + at.box[3] < (at.sheetTop ?? 9999) && at.box[0] + at.box[2] <= at.innerWidth, 'the launcher is not under the top bar, above the bottom sheet and inside the screen: ' + JSON.stringify(at));
+    await page.click('.tb-launch');
+    await until(() => page.evaluate(() => { const p = document.getElementById('terubot-panel'); if (!p || p.hidden) return false; const r = p.getBoundingClientRect(); const e = document.elementFromPoint(r.left + r.width / 2, r.top + 60); return !!e && p.contains(e); }), 'the panel to open above the studio');
+    assert(await page.evaluate(() => !document.querySelector('.tb-talk').hidden), 'no Talk in the studio on a phone');
+  } finally {
+    fs.rmSync(file, { force: true });
+    await page.close();
+    await open.stop();
+  }
+});
+
+await test('terubot: voice: the microphone button uses the browser\'s speech recognition and sends what was heard; it is hidden where the browser has none (and shown on the studio and the Finder, which allow the microphone)', async () => {
   const st = tbState({ chat: (body) => tbAnswer('Heard: ' + body.messages.at(-1).text) });
   const page = await tbPage(null, st, { speech: 'fake' });
   await tbGo(page, '/materials');
@@ -2215,10 +2365,13 @@ await test('terubot: voice: the microphone button uses the browser\'s speech rec
   await page.click('[aria-label="Speak your message"]');
   await tbWaitBot(page, 1);
   assert((await tbBotTexts(page)).includes('Heard: show me terracotta'), 'what was heard was not sent: ' + (await tbBotTexts(page)));
-  await tbGo(page, '/design-studio');
-  await tbOpen(page);
-  assert(await page.evaluate(() => document.querySelector('.tb-roundbtn[aria-pressed]').hidden), 'the studio sends Permissions-Policy: microphone=(): the button must be hidden there');
-  assert(await page.evaluate(() => document.querySelector('.tb-talk').hidden), 'Talk needs the microphone too: hidden in the studio');
+  // the studio page and the Finder used to send Permissions-Policy: microphone=() (the studio's own header, copied), which hid dictation and Talk there
+  for (const route of ['/design-studio', '/finder']) {
+    await tbGo(page, route);
+    await tbOpen(page);
+    assert(await page.evaluate(() => !document.querySelector('.tb-roundbtn[aria-pressed]').hidden), route + ': no microphone button, although the page allows the microphone');
+    assert(await page.evaluate(() => !document.querySelector('.tb-talk').hidden), route + ': no Talk button, although the page allows the microphone');
+  }
   await page.close();
   const none = await tbPage(null, st, { speech: 'none' });
   await tbGo(none, '/materials');
@@ -2956,13 +3109,26 @@ await test('shop: "Find it from a photo": the surfaces of the photo are outlined
   await off.close();
 });
 
-await test('shop: the SuperBond colour designs are listed under their catalogue ids: the product page, the category, the SKU, the price and the picture', async () => {
+await test('shop: the SuperBond colour designs are listed under their catalogue ids: the product page, the category, the SKU, the price and the picture (asked of the catalogue route, which reads it from Cloud Storage; a quiet tile when it cannot)', async () => {
   const page = await newPage({ width: 1280, height: 900 });
+  // The design's picture is not a file of the server: /media/materials/tipl-sb804.jpg is read from Cloud Storage through MongoDB (server/routes/catalogueMedia.js).
+  // This stack has no catalogue, so one address is answered by a stand-in for that route and the shop's request for it is recorded; another is left to the real
+  // route, which must answer with the quiet tile (never a broken image) when nothing can be read.
+  const askedFor = [];
+  await page.setRequestInterception(true);
+  page.on('request', (req) => {
+    const u = new URL(req.url());
+    if (u.pathname === '/media/materials/tipl-sb804.jpg') { askedFor.push(u.pathname + u.search); return req.respond({ status: 200, contentType: 'image/png', body: TB_PNG }); }
+    req.continue();
+  });
   await page.goto(base + '/materials#/p/tipl-sb804', { waitUntil: 'domcontentloaded' });
   await until(() => page.evaluate(() => /Emperador Dark \(SB804\)/.test(document.body.innerText)), 'the product page', 20000);
   const got = await page.evaluate(() => ({ text: document.body.innerText, sku: /SKU\s*\n?\s*TIPL-SB804/.test(document.body.innerText), crumb: /SuperBond colours/.test(document.body.innerText) }));
   assert(got.sku && got.crumb && /₹6,020/.test(got.text) && /Sample values until the price list is loaded/.test(got.text), 'the page: sku ' + got.sku + ', category ' + got.crumb + ', sample note ' + /Sample values/.test(got.text));
-  await until(() => page.evaluate(() => [...document.images].some((i) => /\/media\/materials\/tipl-sb804\.jpg$/.test(i.currentSrc || i.src) && i.naturalWidth > 100)), 'the design\'s own picture to load');
+  await until(() => page.evaluate(() => [...document.images].some((i) => /\/media\/materials\/tipl-sb804\.jpg(\?|$)/.test(i.currentSrc || i.src) && i.complete && i.naturalWidth > 0)), 'the design\'s own picture to load (from the catalogue route, here a stand-in)');
+  assert(askedFor.length > 0 && askedFor.every((a) => a.startsWith('/media/materials/tipl-sb804.jpg')), 'the shop did not ask the catalogue route for the picture: ' + JSON.stringify(askedFor));
+  const quiet = await page.evaluate(async () => { const r = await fetch('/media/materials/tipl-sb805.jpg'); return { status: r.status, type: r.headers.get('content-type'), mark: r.headers.get('x-terucon-picture'), cache: r.headers.get('cache-control'), svg: (await r.text()).includes('SB805') }; });
+  assert(quiet.status === 200 && /image\/svg\+xml/.test(quiet.type) && quiet.mark === 'unavailable' && quiet.cache === 'no-store' && quiet.svg, 'with nothing to read the route must answer a quiet tile, never cached: ' + JSON.stringify(quiet));
   await page.goto(base + '/materials#/shop?cat=colour', { waitUntil: 'domcontentloaded' });
   await until(() => page.evaluate(() => /63 materials/.test(document.body.innerText)), 'the category to list the 63 designs', 20000);
   const r = await page.evaluate(() => ({ chip: /Colour catalogue/.test(document.body.innerText), twentyFour: /\b24 materials\b/.test(document.body.innerText) }));
