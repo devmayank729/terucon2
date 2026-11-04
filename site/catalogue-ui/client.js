@@ -80,11 +80,13 @@ export async function warm() {
  * @param {[number, number]} [p.point] [x, y] 0..1, relative to the photo: search one spot on it, not the whole thing (target C4)
  * @param {number} [p.radius] 0..0.5, goes with `point` only (server default 0.12)
  * @param {[number, number, number, number]} [p.box] [x0, y0, x1, y1] 0..1, instead of `point`
+ * @param {boolean} [p.patch] true when `photo` is already a patch cut out of a bigger picture (a tapped item): the server searches all of it instead of looking for
+ *   a card in it and trimming its edges (catalogue/ARCHITECTURE.md section 5.1). Not together with `point` or `box`.
  * @param {number} [p.k] 1..20 results (server default 8)
  * @param {string} [p.catalogue] a catalogue id; default: the site's live default
  * @param {string[]} [p.category] @param {string[]} [p.finish]
  */
-export async function searchPhoto({ photo, mode, point, box, radius, k, catalogue, category, finish } = {}) {
+export async function searchPhoto({ photo, mode, point, box, radius, k, catalogue, category, finish, patch } = {}) {
   if (!(photo instanceof Blob)) throw new CatalogueClientError('No photo to search with.', { reason: 'client' });
   const q = new URLSearchParams();
   if (catalogue) q.set('catalogue', catalogue);
@@ -93,6 +95,7 @@ export async function searchPhoto({ photo, mode, point, box, radius, k, catalogu
   if (point) q.set('point', `${point[0]},${point[1]}`);
   if (radius) q.set('radius', String(radius));
   if (box) q.set('box', box.join(','));
+  if (patch) q.set('patch', '1');
   if (category?.length) q.set('category', category.join(','));
   if (finish?.length) q.set('finish', finish.join(','));
   const type = photo.type || 'image/jpeg';

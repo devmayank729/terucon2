@@ -552,7 +552,7 @@ async function searchRegion(region) {
   try {
     const { blob, clean } = await cutPatch(await patchSource(), r.ids, r.w, r.h, region);
     if (stale()) return;
-    const res = await client.searchPhoto({ photo: blob, mode: currentMode === 'colour' ? 'colour' : 'look', k: 8 });
+    const res = await client.searchPhoto({ photo: blob, mode: currentMode === 'colour' ? 'colour' : 'look', k: 8, patch: true });
     if (stale()) return;
     renderResults(res, { forWhat: `the ${what}`, scroll: true });
     setOutlineStatus(`Showing materials like the ${what}${clean ? '' : ' (this item is small or broken up, so the match is rougher)'}. Tap another item to search again.`);

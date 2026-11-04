@@ -1,0 +1,614 @@
+Instant-preview quality: lighting, soft edges and sharper floors, a level-camera guess for floors / ceilings / head-on walls, fewer tile seams.
+
+FOR YOUR OWN SWATCHROOM PROJECT. The Terucon website does not edit its copy of swatchroom/ for this: it serves
+the files this patch produces from site/overlays/studio/ instead, ahead of the studio's own (docs/DESIGN_STUDIO_ARCHITECTURE.md, section 12). This
+patch is the same code, as a change to the 8 studio files it replaces, so you can take it into your project if you like the result. The 8 files are
+byte-identical in your original folder and in the website's copy (checked with diff -rq on 2026-11-05), so it applies to yours as it does to the copy.
+
+  Changes (against the studio files as they are in the website's copy of swatchroom/, which was made on 2026-10-28 from your project; the sha256 of
+  all the files it was made against are in site/overlays/studio/manifest.json):
+    public/js/lib/fastrender/geometry.js                  shading clamp 0.35..1.65 -> 0.2..2.5; exposure exponent 0.35 -> 0.6, bounds 0.7..1.25 -> 0.45..1.5; the photo's light colour
+    public/js/lib/fastrender/provisional.js               the light read inside each surface (a guided filter on the surface's own mask); the level-camera guess for floors, ceilings and head-on walls
+    public/js/lib/fastrender/renderer.js                  passes the light colour on (30% of it); repairs the seams of the catalogue's tile images on load
+    public/js/lib/fastrender/shaders/swap.glsl.js         soft edge on both sides of a boundary; light colour; highlight roll-off; the new clamp
+    public/js/lib/fastrender/shaders/swap.wgsl.js         the same, for WebGPU
+    public/js/lib/fastrender/webgl2.js                    the light colour uniform; 8x anisotropic filtering
+    public/js/lib/fastrender/webgpu.js                    the light colour in the globals block; 8x anisotropic sampler
+    public/js/lib/previewScene.js                         passes the light colour through for a fitted scene
+
+  Apply from the folder that CONTAINS your swatchroom/ folder (the paths start with swatchroom/):
+      git apply --check docs/design-studio-checks/instant-preview-quality.patch      (nothing changes; says whether it fits)
+      git apply docs/design-studio-checks/instant-preview-quality.patch
+  (or: patch -p1 < the file). It applies only to the files as they were on that date: if your copy has moved on, merge by hand.
+
+  Three of the studio's own tests assert the old numbers on purpose and fail afterwards: tests/fastrender.test.js, "the shading multiplier ... [0.35, 1.65]",
+  "exposureFor()" (0.7 / 1.25) and "buildProvisionalScene() ..." ("shading is smooth where the photo flickers" < 0.02, and a wall is 2.6 m tall: the second
+  assertion is hidden behind the first). The new expectations are in the website's tests/js/studio-overlay-behaviour.test.js, marked CHANGED.
+  The comments in the code that start with "DRAFT:" mark the changes; rename or drop them when you adopt it.
+
+  Measured, not guaranteed: tests and a real-browser check of WebGL2 and WebGPU on one computer (an Apple M5): docs/design-studio-checks/render-preview/.
+  Not verified: a real fused fit from the live room analysis (the level-camera guess was only tried on the estimate path), other GPUs, phones.
+
+diff --git a/swatchroom/public/js/lib/fastrender/geometry.js b/swatchroom/public/js/lib/fastrender/geometry.js
+index 35ef70d..1c7945b 100644
+--- a/swatchroom/public/js/lib/fastrender/geometry.js
++++ b/swatchroom/public/js/lib/fastrender/geometry.js
+@@ -74,8 +74,8 @@ export function maskedMedian(values, mask, limit) {
+ // nothing; what it does carry is the pattern of light across the surface. Dividing by the surface's own median keeps that
+ // pattern around 1.0 (so the new finish keeps its catalogue brightness on average and still gets the room's light falloff
+ // and shadows), and the clamp keeps a deep shadow or a bright spot from turning the texture black or white.
+-export const SHADING_MIN = 0.35;
+-export const SHADING_MAX = 1.65;
++export const SHADING_MIN = 0.2; // DRAFT: was 0.35 / 1.65 - the clamp flattened sun-to-shade contrast
++export const SHADING_MAX = 2.5;
+ export function normalisedShading(shading, median) {
+   if (!(median > 0)) {
+     return 1;
+@@ -91,7 +91,8 @@ export function exposureFor(medianPhotoLinear) {
+   if (!(medianPhotoLinear > 0)) {
+     return 1;
+   }
+-  return Math.min(1.25, Math.max(0.7, Math.pow(medianPhotoLinear / EXPOSURE_REFERENCE, 0.35)));
++  // DRAFT: exponent 0.35 -> 0.6 and the clamp 0.7..1.25 -> 0.45..1.5, so a dim room can darken a bright finish far enough
++  return Math.min(1.5, Math.max(0.45, Math.pow(medianPhotoLinear / EXPOSURE_REFERENCE, 0.6)));
+ }
+ 
+ // sRGB byte value (0..255) -> linear light 0..1
+@@ -104,14 +105,30 @@ export function srgbToLinear(byte) {
+ export function lumaFromRgba(rgba, width, height) {
+   const luma = new Float32Array(width * height);
+   const linear = new Float32Array(width * height);
++  const lr = new Float32Array(256);
++  for (let v = 0; v < 256; v += 1) {
++    lr[v] = srgbToLinear(v);
++  }
++  // DRAFT: also the colour of the room's light, as linear RGB scaled to luminance 1 ("gray world": the mean colour of the photo),
++  // clamped to 0.55..1.7 per channel. The renderer applies only part of it (TINT_STRENGTH): the photo's mean colour mixes the
++  // light with the colour of its biggest surfaces, so a room that is mostly one strong colour would be tinted wrongly.
++  let sr = 0;
++  let sg = 0;
++  let sb = 0;
+   for (let i = 0, o = 0; i < luma.length; i += 1, o += 4) {
+     const r = rgba[o];
+     const g = rgba[o + 1];
+     const b = rgba[o + 2];
+     luma[i] = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+-    linear[i] = 0.2126 * srgbToLinear(r) + 0.7152 * srgbToLinear(g) + 0.0722 * srgbToLinear(b);
++    linear[i] = 0.2126 * lr[r] + 0.7152 * lr[g] + 0.0722 * lr[b];
++    sr += lr[r];
++    sg += lr[g];
++    sb += lr[b];
+   }
+-  return { luma: luma, linear: linear };
++  const y = 0.2126 * sr + 0.7152 * sg + 0.0722 * sb;
++  const clampTint = (v) => Math.min(1.7, Math.max(0.55, v));
++  const tint = y > 0 ? [clampTint(sr / y), clampTint(sg / y), clampTint(sb / y)] : [1, 1, 1];
++  return { luma: luma, linear: linear, tint: tint };
+ }
+ 
+ // How shiny a finish should look. The catalogue has no gloss field, only words, so the finish's own description decides:
+diff --git a/swatchroom/public/js/lib/fastrender/provisional.js b/swatchroom/public/js/lib/fastrender/provisional.js
+index 9583f8f..cd2573c 100644
+--- a/swatchroom/public/js/lib/fastrender/provisional.js
++++ b/swatchroom/public/js/lib/fastrender/provisional.js
+@@ -13,7 +13,7 @@
+ // region instead of a fitted plane, so the same shaders draw both. When the pipeline finishes, the studio swaps the real
+ // scene in and the preview sharpens in place. It is marked "flagged" (confidence 0.6) so the studio keeps nudging toward
+ // the AI render for the final image, and its sizes are guesses, which is why it is called provisional.
+-import { applyHomography } from "./geometry.js";
++import { applyHomography, planeHomography } from "./geometry.js";
+ 
+ export const ASSUMED_FOV_DEG = 62; // horizontal field of view of a phone's main camera across the photo's long side
+ export const WALL_HEIGHT_M = 2.6;
+@@ -213,8 +213,106 @@ function clamp(value, low, high) {
+   return Math.min(high, Math.max(low, value));
+ }
+ 
++// DRAFT: a level-camera prior for floors, ceilings and head-on walls, used instead of the four-corner estimate below.
++// Why: the four corners are the hull's extreme points. A floor that runs out of the frame on the left and the right (almost
++// every floor) has a hull that is a plain rectangle, so the estimate was a flat, perspective-free poster 4 m wide (measured:
++// the vanishing term of its homography is ~1e-6); and a wall with furniture in front of it has a hull whose corners are
++// picked from the furniture's cut-out, which shears the mapping (bricks sloping 15 degrees on a head-on wall).
++// The prior: the camera is CAMERA_HEIGHT_M above the floor and looks (nearly) horizontally; the floor / ceiling are planes
++// at that height / CEILING_HEIGHT_M, a head-on wall is a plane standing on the floor at the row where the wall meets it.
++// It gives real perspective and a real scale from one assumed number, but it is a prior, not a measurement.
++export const CAMERA_HEIGHT_M = 1.5;
++export const CEILING_HEIGHT_M = 2.6;
++const HORIZON_MARGIN = 0.06; // of the picture's height
++
++// The camera pitch (radians, + = looking down) that puts the horizon row above the highest floor pixel (or the lowest ceiling
++// pixel), and at the picture's centre when nothing forces it elsewhere.
++function pitchFor(scan, intrinsics) {
++  let horizon = intrinsics.cy;
++  scan.regions.forEach(function (region) {
++    if (region.kind === "floor" && region.areaShare >= 0.004) {
++      horizon = Math.min(horizon, region.bbox.y0 - HORIZON_MARGIN * scan.height);
++    }
++  });
++  return Math.atan((intrinsics.cy - horizon) / intrinsics.fy);
++}
++
++// camera axes in world coordinates (Y up, Z forward), camera pitched down by p: x = (1,0,0), y (down) = (0,-cos p,-sin p), z (forward) = (0,-sin p,cos p)
++function levelPlane(kind, p, intrinsics) {
++  const cp = Math.cos(p);
++  const sp = Math.sin(p);
++  if (kind === "floor") {
++    return { origin: [0, CAMERA_HEIGHT_M * cp, CAMERA_HEIGHT_M * sp], normal: [0, -cp, -sp], u: [1, 0, 0], v: [0, -sp, cp] };
++  }
++  const c = CEILING_HEIGHT_M - CAMERA_HEIGHT_M; // the ceiling's height above the camera
++  return { origin: [0, -c * cp, -c * sp], normal: [0, cp, sp], u: [1, 0, 0], v: [0, -sp, cp] };
++}
++
++function wallPlaneFromBase(baseRow, p, intrinsics) {
++  const cp = Math.cos(p);
++  const sp = Math.sin(p);
++  const ry = (baseRow - intrinsics.cy) / intrinsics.fy;
++  const t = CAMERA_HEIGHT_M / (cp * ry + sp); // the ray through the wall's foot meets the floor here
++  if (!(t > 0)) {
++    return null; // the foot is at or above the horizon: no floor under it
++  }
++  const distance = t * (cp - sp * ry); // horizontal distance of the wall
++  return { origin: [0, -distance * sp, distance * cp], normal: [0, sp, -cp], u: [1, 0, 0], v: [0, cp, sp] };
++}
++
++// -> { homography, widthM, heightM, prior: true } or null (use the four-corner estimate)
++function priorRegion(region, scan, intrinsics, p) {
++  let plane = null;
++  const horizonRow = intrinsics.cy - intrinsics.fy * Math.tan(p);
++  if (region.kind === "floor" || region.kind === "ceiling") {
++    // the plane only exists on its own side of the horizon (a ceiling that dips below it, or a floor above it: no prior)
++    if (region.kind === "floor" ? region.bbox.y0 <= horizonRow : region.bbox.y1 >= horizonRow) {
++      return null;
++    }
++    plane = levelPlane(region.kind, p, intrinsics);
++  } else if (region.kind === "wall") {
++    // only a wall that faces the camera: with a level camera, verticals stay vertical for every wall, but the horizontal edges
++    // of a head-on wall are horizontal in the picture (those of an oblique wall slope toward the horizon). Use the top edge of
++    // the outline; if that is the picture's own border, the bottom edge; if both are cut off, there is nothing to go on.
++    const bbox = region.bbox;
++    const quad = quadFromMask(region.mask, scan.width, scan.height, bbox);
++    if (!quad) {
++      return null;
++    }
++    const tolerance = 0.03 * scan.height;
++    let horizontal;
++    if (bbox.y0 > 1) {
++      horizontal = Math.abs(quad.tl[1] - quad.tr[1]) <= tolerance;
++    } else if (bbox.y1 < scan.height - 1) {
++      horizontal = Math.abs(quad.bl[1] - quad.br[1]) <= tolerance;
++    } else {
++      return null;
++    }
++    if (!horizontal) {
++      return null;
++    }
++    plane = wallPlaneFromBase(bbox.y1, p, intrinsics);
++  }
++  if (!plane) {
++    return null;
++  }
++  const homography = planeHomography(plane, intrinsics);
++  const corners = [
++    applyHomography(homography, region.bbox.x0, region.bbox.y0),
++    applyHomography(homography, region.bbox.x1, region.bbox.y1),
++  ];
++  if (!corners[0] || !corners[1]) {
++    return null;
++  }
++  return { homography: homography, widthM: Math.abs(corners[1][0] - corners[0][0]), heightM: Math.abs(corners[1][1] - corners[0][1]) };
++}
++
+ // -> { homography: [9] (scan px -> metres), widthM, heightM, quad } for one wall / floor / ceiling region
+ export function provisionalRegion(region, scan, intrinsics) {
++  const prior = priorRegion(region, scan, intrinsics, pitchFor(scan, intrinsics));
++  if (prior) {
++    return prior;
++  }
+   const bbox = region.bbox;
+   let quad = quadFromMask(region.mask, scan.width, scan.height, bbox);
+   let aspect;
+@@ -285,6 +383,84 @@ export function boxBlur(source, width, height, radius) {
+   return out;
+ }
+ 
++// DRAFT: the light of ONE region, edge-preserving and confined to that region. The old estimate blurred the whole photo with
++// one box (radius 3% of the long side), which (a) erased the sun / shadow edges that carry most of a room's look and (b) mixed
++// the brightness of the neighbouring surfaces (a cove light, a window, a dark sofa) into the surface's edge. Here: a guided
++// filter (He, Sun, Tang 2010, the guide is the image itself) on log luminance, computed with the region's mask as weights so
++// nothing outside the region contributes. Detail weaker than ~sqrt(EPS) (plank grain, grout, brush marks: the OLD material)
++// is flattened, edges stronger than that (a sunbeam, a shadow, the fall-off toward a window) stay sharp.
++const GUIDE_EPS = 0.25 * 0.25; // log-luminance variance below this is flattened (~25%: old grain, grout), above it is kept
++const GUIDE_RADIUS = 8; // scan pixels
++const PRE_BLUR = 4; // scan pixels: detail finer than about this is the old finish's pattern, not the light
++function maskedGuided(linear, region, width, height, out) {
++  const pad = GUIDE_RADIUS * 2 + 2;
++  const x0 = Math.max(0, region.bbox.x0 - pad);
++  const y0 = Math.max(0, region.bbox.y0 - pad);
++  const x1 = Math.min(width, region.bbox.x1 + pad);
++  const y1 = Math.min(height, region.bbox.y1 + pad);
++  const w = x1 - x0;
++  const h = y1 - y0;
++  const m = new Float32Array(w * h);
++  const I = new Float32Array(w * h);
++  for (let y = 0; y < h; y += 1) {
++    for (let x = 0; x < w; x += 1) {
++      const src = (y + y0) * width + (x + x0);
++      m[y * w + x] = region.mask[src] ? 1 : 0;
++      I[y * w + x] = Math.log(Math.max(linear[src], 1e-3));
++    }
++  }
++  // fine, regular detail (wood slats, grout lines, plank grain: all the OLD finish) is removed first by a small masked blur, so
++  // that the edge test below only has to tell a sunbeam from a shadow, not from a pattern a few pixels wide
++  const preM = boxBlur(m, w, h, PRE_BLUR);
++  const preI = boxBlur(I.map((v, i) => v * m[i]), w, h, PRE_BLUR);
++  for (let i = 0; i < I.length; i += 1) {
++    if (m[i] && preM[i] > 1e-4) {
++      I[i] = preI[i] / preM[i];
++    }
++  }
++  const Im = new Float32Array(w * h);
++  const II = new Float32Array(w * h);
++  for (let i = 0; i < m.length; i += 1) {
++    Im[i] = I[i] * m[i];
++    II[i] = I[i] * I[i] * m[i];
++  }
++  const r = GUIDE_RADIUS;
++  const sw = boxBlur(m, w, h, r);
++  const sI = boxBlur(Im, w, h, r);
++  const sII = boxBlur(II, w, h, r);
++  const a = new Float32Array(w * h);
++  const b = new Float32Array(w * h);
++  for (let i = 0; i < a.length; i += 1) {
++    const weight = Math.max(sw[i], 1e-4);
++    const mean = sI[i] / weight;
++    const variance = Math.max(0, sII[i] / weight - mean * mean);
++    a[i] = (variance / (variance + GUIDE_EPS)) * m[i];
++    b[i] = (mean - (variance / (variance + GUIDE_EPS)) * mean) * m[i];
++  }
++  const sa = boxBlur(a, w, h, r);
++  const sb = boxBlur(b, w, h, r);
++  for (let y = 0; y < h; y += 1) {
++    for (let x = 0; x < w; x += 1) {
++      const i = y * w + x;
++      if (m[i]) {
++        const weight = Math.max(sw[i], 1e-4);
++        out[(y + y0) * width + (x + x0)] = Math.exp((sa[i] / weight) * I[i] + sb[i] / weight);
++      }
++    }
++  }
++}
++
++export function regionShading(scan, linear) {
++  // outside every surface that will be painted, the old whole-photo blur (those pixels are never drawn)
++  const out = boxBlur(linear, scan.width, scan.height, Math.max(scan.width, scan.height) * 0.03);
++  scan.regions.forEach(function (region) {
++    if ((region.kind === "wall" || region.kind === "floor" || region.kind === "ceiling") && region.areaShare >= 0.004 && region.mask) {
++      maskedGuided(linear, region, scan.width, scan.height, out);
++    }
++  });
++  return out;
++}
++
+ // ---------------------------------------------------------------- the scene
+ // scan: the studio's scan (width, height, labelMap, regions with mask / bbox / kind / id). photo: { luma, linear } from
+ // geometry.lumaFromRgba() at the scan's size. -> a scene for renderer.uploadScene(), kind "provisional".
+@@ -313,10 +489,11 @@ export function buildProvisionalScene(scan, photo) {
+     fusionRegions: fusionRegions,
+     depth: null,
+     // the lighting alone: the photo's linear luminance with the surface's own texture blurred out
+-    shading: boxBlur(photo.linear, scan.width, scan.height, Math.max(scan.width, scan.height) * 0.03),
++    shading: regionShading(scan, photo.linear),
+     residual: null,
+     luma: photo.luma,
+     photoLinear: photo.linear,
++    tint: photo.tint || null,
+     intrinsics: intrinsics,
+   };
+ }
+diff --git a/swatchroom/public/js/lib/fastrender/renderer.js b/swatchroom/public/js/lib/fastrender/renderer.js
+index 2031777..d96fb2b 100644
+--- a/swatchroom/public/js/lib/fastrender/renderer.js
++++ b/swatchroom/public/js/lib/fastrender/renderer.js
+@@ -26,6 +26,7 @@ import { exposureFor, maskedMedian, planeHomography, specularFor } from "./geome
+ // Every layer of the material texture array must share one size. Half the native 1280x896 textures
+ // scripts/build-textures.js writes (same 10:7 aspect, so UV = (U/tileWidthM, V/tileHeightM) samples them with no
+ // distortion) - plenty for a tiled, usually-partial-screen surface, at a sixth of the GPU memory.
++const TINT_STRENGTH = 0.3; // 0.6 overshot (peach floors) on both test photos
+ const MATERIAL_TILE_WIDTH = 640;
+ const MATERIAL_TILE_HEIGHT = 448;
+ // decoded textures kept in memory (1.1 MB each): fewer on a phone
+@@ -43,6 +44,31 @@ async function createBackend(canvas) {
+   return null;
+ }
+ 
++// DRAFT (experiment): the catalogue's texture PNGs are not seamless (oak planks, teak, herringbone, slate, kota, terrazzo and
++// checker show a hard seam at every tile border, see out/tile-seams.png). A cheap repair on load: within SEAM_BAND of each border
++// the tile is cross-faded into a copy of itself shifted by half a tile (which is continuous across those borders). It hides
++// the line, it cannot repair a pattern whose structure is cut at the border (it ghosts there), so the real fix is seamless files.
++const SEAM_BAND = 0.12;
++function makeSeamless(context, w, h) {
++  const src = context.getImageData(0, 0, w, h);
++  const out = context.createImageData(w, h);
++  const smooth = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
++  for (let y = 0; y < h; y += 1) {
++    const wy = smooth(Math.min(y + 0.5, h - y - 0.5) / h / SEAM_BAND);
++    const sy = (y + (h >> 1)) % h;
++    for (let x = 0; x < w; x += 1) {
++      const weight = smooth(Math.min(x + 0.5, w - x - 0.5) / w / SEAM_BAND) * wy;
++      const a = (y * w + x) * 4;
++      const b = (sy * w + ((x + (w >> 1)) % w)) * 4;
++      for (let c = 0; c < 3; c += 1) {
++        out.data[a + c] = src.data[a + c] * weight + src.data[b + c] * (1 - weight);
++      }
++      out.data[a + 3] = 255;
++    }
++  }
++  context.putImageData(out, 0, 0);
++}
++
+ // Fetches, decodes and resizes a catalog item's texture to the shared material-array tile size.
+ async function loadMaterialBitmap(url) {
+   const response = await fetch(url);
+@@ -55,6 +81,7 @@ async function loadMaterialBitmap(url) {
+   const context = canvas.getContext("2d");
+   context.drawImage(raw, 0, 0, MATERIAL_TILE_WIDTH, MATERIAL_TILE_HEIGHT);
+   raw.close();
++  makeSeamless(context, MATERIAL_TILE_WIDTH, MATERIAL_TILE_HEIGHT);
+   return createImageBitmap(canvas);
+ }
+ 
+@@ -185,7 +212,10 @@ export async function createFastRenderer(canvas, options) {
+       });
+     });
+ 
++    // DRAFT: the room's light colour, applied at TINT_STRENGTH (the photo's own colour mixes the old finish with the light)
++    const tint = next.tint ? next.tint.map(function (c) { return 1 + (c - 1) * TINT_STRENGTH; }) : [1, 1, 1];
+     backend.uploadScene({
++      tint: tint,
+       width: scan.width,
+       height: scan.height,
+       labelMap: remapLabels(scan),
+diff --git a/swatchroom/public/js/lib/fastrender/shaders/swap.glsl.js b/swatchroom/public/js/lib/fastrender/shaders/swap.glsl.js
+index 79da463..17ab869 100644
+--- a/swatchroom/public/js/lib/fastrender/shaders/swap.glsl.js
++++ b/swatchroom/public/js/lib/fastrender/shaders/swap.glsl.js
+@@ -44,6 +44,7 @@ precision highp usampler2D;
+ 
+ uniform vec4 u_sizes;      // sceneWidth, sceneHeight, canvasWidth, canvasHeight
+ uniform float u_regionCount;
++uniform vec4 u_tint;       // DRAFT: the room's light colour relative to white (luminance 1), already mixed toward white
+ // per region, 5 vec4s:
+ //   0: H row 0 (x,y,z), invTileWidthM        1: H row 1 (x,y,z), invTileHeightM     2: H row 2 (x,y,z), materialLayer
+ //   3: cosRot, sinRot, active, medianShading 4: exposure, specStrength, _, _
+@@ -59,8 +60,8 @@ uniform sampler2DArray u_materialTex;
+ 
+ out vec4 fragColor;
+ 
+-const float SHADING_MIN = 0.35;
+-const float SHADING_MAX = 1.65;
++const float SHADING_MIN = 0.2;   // DRAFT: was 0.35 / 1.65
++const float SHADING_MAX = 2.5;
+ const float LUMA_SIGMA = 0.07;
+ 
+ float linearToSrgbChannel(float c) {
+@@ -124,9 +125,24 @@ void main() {
+ 
+   ivec2 centre = clampTexel(ivec2(floor(sp)));
+   int labelId = int(texelFetch(u_labelTex, centre, 0).r);
+-  if (labelId <= 0 || labelId > int(u_regionCount)) {
+-    fragColor = vec4(0.0);
+-    return;
++  bool ownActive = labelId > 0 && labelId <= int(u_regionCount) && u_regionData[(labelId - 1) * 5 + 3].z > 0.5;
++  if (!ownActive) {
++    // DRAFT: a pixel that belongs to no region, or to a region that has no finish (the wall next to a painted floor), takes the
++    // label of a neighbour that does, so the soft edge below can run on BOTH sides of the boundary (before, it could only fade
++    // inward, which left a staircase one scan pixel wide on every edge)
++    int owner = 0;
++    for (int k = 0; k < 4; k++) {
++      ivec2 d = k == 0 ? ivec2(1, 0) : (k == 1 ? ivec2(-1, 0) : (k == 2 ? ivec2(0, 1) : ivec2(0, -1)));
++      int other = int(texelFetch(u_labelTex, clampTexel(centre + d), 0).r);
++      if (owner == 0 && other > 0 && other <= int(u_regionCount) && u_regionData[(other - 1) * 5 + 3].z > 0.5) {
++        owner = other;
++      }
++    }
++    if (owner == 0) {
++      fragColor = vec4(0.0);
++      return;
++    }
++    labelId = owner;
+   }
+   int base = (labelId - 1) * 5;
+   vec4 r0 = u_regionData[base];
+@@ -184,7 +200,13 @@ void main() {
+   float residual = bilinear(u_residualTex, sp);
+   float highlight = r4.y * smoothstep(0.25, 0.8, residual);
+ 
+-  vec3 lit = material * lightScale + vec3(highlight);
++  vec3 lit = material * lightScale * u_tint.rgb + vec3(highlight);
++  // DRAFT: roll the highlights off smoothly, keeping the hue, instead of letting each channel clip on its own (a sunbeam on a
++  // pale finish used to become flat white or flat yellow)
++  float peak = max(lit.r, max(lit.g, lit.b));
++  if (peak > 0.85) {
++    lit *= (0.85 + 0.15 * (1.0 - exp(-(peak - 0.85) / 0.15))) / peak;
++  }
+   vec3 litSrgb = vec3(
+     linearToSrgbChannel(lit.x),
+     linearToSrgbChannel(lit.y),
+diff --git a/swatchroom/public/js/lib/fastrender/shaders/swap.wgsl.js b/swatchroom/public/js/lib/fastrender/shaders/swap.wgsl.js
+index 49cafe8..a0de593 100644
+--- a/swatchroom/public/js/lib/fastrender/shaders/swap.wgsl.js
++++ b/swatchroom/public/js/lib/fastrender/shaders/swap.wgsl.js
+@@ -16,9 +16,9 @@ struct Globals {
+   canvasWidth: f32,
+   canvasHeight: f32,
+   regionCount: f32,
+-  _pad0: f32,
+-  _pad1: f32,
+-  _pad2: f32,
++  tintR: f32, // DRAFT: the room's light colour relative to white (luminance 1), already mixed toward white
++  tintG: f32,
++  tintB: f32,
+ };
+ 
+ @group(0) @binding(0) var<uniform> globals: Globals;
+@@ -36,8 +36,8 @@ struct Globals {
+ @group(0) @binding(9) var lumaTex: texture_2d<f32>;
+ 
+ const TRANSPARENT = vec4<f32>(0.0, 0.0, 0.0, 0.0);
+-const SHADING_MIN = 0.35;
+-const SHADING_MAX = 1.65;
++const SHADING_MIN = 0.2; // DRAFT: was 0.35 / 1.65
++const SHADING_MAX = 2.5;
+ const LUMA_SIGMA = 0.07;
+ 
+ @vertex
+@@ -125,9 +125,32 @@ fn fs_main(@builtin(position) fragCoord: vec4<f32>) -> @location(0) vec4<f32> {
+   let sp = fragCoord.xy / canvasSize * sceneSize; // position in scan pixels
+ 
+   let centre = clampTexel(vec2<i32>(floor(sp)));
+-  let labelId = i32(textureLoad(labelTex, centre, 0).r);
+-  if (labelId <= 0 || labelId > i32(globals.regionCount)) {
+-    return TRANSPARENT;
++  var labelId = i32(textureLoad(labelTex, centre, 0).r);
++  var ownActive = false;
++  if (labelId > 0 && labelId <= i32(globals.regionCount)) {
++    ownActive = regionData[(labelId - 1) * 5 + 3].z > 0.5;
++  }
++  if (!ownActive) {
++    // DRAFT: a pixel that belongs to no region, or to a region that has no finish (the wall next to a painted floor), takes the
++    // label of a neighbour that does, so the soft edge below can run on both sides of the boundary (before, it could only fade
++    // inward, which left a staircase one scan pixel wide on every edge)
++    var owner = 0;
++    for (var k = 0; k < 4; k = k + 1) {
++      var d = vec2<i32>(0, -1);
++      if (k == 0) { d = vec2<i32>(1, 0); }
++      if (k == 1) { d = vec2<i32>(-1, 0); }
++      if (k == 2) { d = vec2<i32>(0, 1); }
++      let other = i32(textureLoad(labelTex, clampTexel(centre + d), 0).r);
++      if (owner == 0 && other > 0 && other <= i32(globals.regionCount)) {
++        if (regionData[(other - 1) * 5 + 3].z > 0.5) {
++          owner = other;
++        }
++      }
++    }
++    if (owner == 0) {
++      return TRANSPARENT;
++    }
++    labelId = owner;
+   }
+   let base = (labelId - 1) * 5;
+   let r0 = regionData[base];
+@@ -179,7 +202,13 @@ fn fs_main(@builtin(position) fragCoord: vec4<f32>) -> @location(0) vec4<f32> {
+   let residual = bilinear(residualTex, sp);
+   let highlight = r4.y * smoothstep(0.25, 0.8, residual);
+ 
+-  let lit = material * lightScale + vec3<f32>(highlight, highlight, highlight);
++  var lit = material * lightScale * vec3<f32>(globals.tintR, globals.tintG, globals.tintB) + vec3<f32>(highlight, highlight, highlight);
++  // DRAFT: roll the highlights off smoothly, keeping the hue, instead of letting each channel clip on its own (a sunbeam on a
++  // pale finish used to become flat white or flat yellow)
++  let peak = max(lit.x, max(lit.y, lit.z));
++  if (peak > 0.85) {
++    lit = lit * ((0.85 + 0.15 * (1.0 - exp(-(peak - 0.85) / 0.15))) / peak);
++  }
+   let litSrgb = vec3<f32>(
+     linearToSrgbChannel(lit.x),
+     linearToSrgbChannel(lit.y),
+diff --git a/swatchroom/public/js/lib/fastrender/webgl2.js b/swatchroom/public/js/lib/fastrender/webgl2.js
+index 4640a4e..7d85637 100644
+--- a/swatchroom/public/js/lib/fastrender/webgl2.js
++++ b/swatchroom/public/js/lib/fastrender/webgl2.js
+@@ -55,6 +55,7 @@ export function createWebGL2Backend(gl) {
+ 
+   const uniforms = {
+     sizes: gl.getUniformLocation(program, "u_sizes"),
++    tint: gl.getUniformLocation(program, "u_tint"),
+     regionCount: gl.getUniformLocation(program, "u_regionCount"),
+     regionData: gl.getUniformLocation(program, "u_regionData"),
+     labelTex: gl.getUniformLocation(program, "u_labelTex"),
+@@ -68,6 +69,7 @@ export function createWebGL2Backend(gl) {
+ 
+   let width = 0;
+   let height = 0;
++  let tint = [1, 1, 1];
+   let regionCount = 0;
+   const regionData = new Float32Array(MAX_REGIONS * FLOATS_PER_REGION);
+ 
+@@ -95,6 +97,7 @@ export function createWebGL2Backend(gl) {
+     disposeSceneTextures();
+     width = scene.width;
+     height = scene.height;
++    tint = scene.tint || [1, 1, 1];
+     labelTexture = createDataTexture(gl, gl.R16UI, gl.RED_INTEGER, gl.UNSIGNED_SHORT, width, height, scene.labelMap);
+     depthTexture = createDataTexture(gl, gl.R32F, gl.RED, gl.FLOAT, width, height, scene.depth);
+     shadingTexture = createDataTexture(gl, gl.R32F, gl.RED, gl.FLOAT, width, height, scene.shading);
+@@ -168,6 +171,12 @@ export function createWebGL2Backend(gl) {
+     gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+     gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.REPEAT);
+     gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.REPEAT);
++    // DRAFT: anisotropic filtering. The shader hands textureGrad() the exact, very unequal, per-axis footprint of a floor
++    // receding in perspective; without this the GPU filters over a square of the longer side and the far floor turns to mush.
++    const aniso = gl.getExtension("EXT_texture_filter_anisotropic");
++    if (aniso) {
++      gl.texParameterf(gl.TEXTURE_2D_ARRAY, aniso.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(8, gl.getParameter(aniso.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
++    }
+     gl.texStorage3D(gl.TEXTURE_2D_ARRAY, levels, gl.SRGB8_ALPHA8, tileWidth, tileHeight, MAX_REGIONS);
+   }
+ 
+@@ -201,6 +210,7 @@ export function createWebGL2Backend(gl) {
+ 
+     gl.uniform4f(uniforms.sizes, width, height, gl.canvas.width, gl.canvas.height);
+     gl.uniform1f(uniforms.regionCount, regionCount);
++    gl.uniform4f(uniforms.tint, tint[0], tint[1], tint[2], 1);
+     gl.uniform4fv(uniforms.regionData, regionData);
+ 
+     const bindings = [
+diff --git a/swatchroom/public/js/lib/fastrender/webgpu.js b/swatchroom/public/js/lib/fastrender/webgpu.js
+index 8157110..6160165 100644
+--- a/swatchroom/public/js/lib/fastrender/webgpu.js
++++ b/swatchroom/public/js/lib/fastrender/webgpu.js
+@@ -62,6 +62,7 @@ export function createWebGPUBackend(device, context, format) {
+     magFilter: "linear",
+     minFilter: "linear",
+     mipmapFilter: "linear",
++    maxAnisotropy: 8, // DRAFT: anisotropic filtering for floors in perspective (needs all three filters linear)
+   });
+ 
+   const globalsBuffer = device.createBuffer({
+@@ -75,6 +76,7 @@ export function createWebGPUBackend(device, context, format) {
+ 
+   let width = 0;
+   let height = 0;
++  let tint = [1, 1, 1];
+   let regionCount = 0;
+   const regionData = new Float32Array(MAX_REGIONS * FLOATS_PER_REGION);
+   const globalsData = new Float32Array(GLOBALS_FLOATS);
+@@ -151,6 +153,9 @@ export function createWebGPUBackend(device, context, format) {
+     globalsData[2] = context.canvas.width;
+     globalsData[3] = context.canvas.height;
+     globalsData[4] = regionCount;
++    globalsData[5] = tint[0];
++    globalsData[6] = tint[1];
++    globalsData[7] = tint[2];
+     device.queue.writeBuffer(globalsBuffer, 0, globalsData);
+   }
+ 
+@@ -159,6 +164,7 @@ export function createWebGPUBackend(device, context, format) {
+     disposeSceneTextures();
+     width = scene.width;
+     height = scene.height;
++    tint = scene.tint || [1, 1, 1];
+ 
+     labelTexture = createDataTexture(device, "r16uint", width, height);
+     depthTexture = createDataTexture(device, "r32float", width, height);
+diff --git a/swatchroom/public/js/lib/previewScene.js b/swatchroom/public/js/lib/previewScene.js
+index b9db834..e99e6c7 100644
+--- a/swatchroom/public/js/lib/previewScene.js
++++ b/swatchroom/public/js/lib/previewScene.js
+@@ -73,6 +73,7 @@ export function createSceneComposer(buildProvisional) {
+       geometryKey: geometryKey,
+       luma: fused.luma || (light && light.luma) || null,
+       photoLinear: fused.photoLinear || (light && light.linear) || null,
++      tint: fused.tint || (light && light.tint) || null, // DRAFT: the room's light colour (fastrender/geometry.js lumaFromRgba)
+     });
+     composed = { fused: fused, scan: scan, light: light, weakBelow: weakBelow, scene: scene };
+     return scene;

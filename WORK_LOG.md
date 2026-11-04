@@ -6,6 +6,69 @@ This file is not `TARGETS.md` (that tracks the quotation's targets and their sta
 
 ---
 
+## 2026-11-05 (seventh session): the Finder's "Search the whole photo", the accuracy of the closest-item search, the instant 3D preview's quality
+
+**Asked** (your message, shortened): (1) tapping "Search the whole photo" only showed the caption "Searching the whole photo ..." and did nothing; it should separate the things in the photo and, when the visitor taps one, fetch similar products from the catalogue; (2) the accuracy of fetching the closest item is very bad (two screenshots: grey concrete and white marble for a tan wooden floor); (3) the WebGL/WebGPU 3D rendering is low quality (lighting, texture, fitting); fix them, note down every action, update the earlier `.md` files that hold the architecture, and use multiple agents.
+
+**Serves:** C4 (point-and-identify: bugs 1 and 2, also D1 for the catalogue engine's notes) and C1 (bug 3). Statuses and counts did not change (C4 and C1 stay Partly done).
+
+### How the work was split
+
+I read `TARGETS.md`, the memory notes and the code, then asked the advisor tool to review my plan before spawning anything. Its guardrails, which I followed: do not use git worktrees (the tree had dozens of uncommitted changes); only I edit `TARGETS.md`, `WORK_LOG.md`, the overview files and `docs/overview/**`; bug 3 lives inside `swatchroom/` so its agent is read-only and I ask you first; for bug 1 reuse `surfaces.js`; for bug 2 measure before changing weights, and do not redeploy Modal or re-ingest without asking. Four agents ran, in the same checkout, on files that do not overlap: **Finder** (bug 1), **Accuracy** (bug 2), **Render** (bug 3, read-only), and, after you chose, **Overlay** (built the 3D change). The Overlay agent was cut off once by the 5-hour usage limit before it had written anything; I resumed it after the reset and checked that nothing half-written was left.
+
+### What I found
+
+- **Bug 1.** The old button only set a flag (`wholePhoto = true`) and wrote the caption; "Find it" then searched the whole photo with no spot. The shop's "Find it from a photo" (`surfaces.js`) already had the whole flow (outline with OneFormer, name the regions, cut a patch, search).
+- **Bug 2.** Cause found by 39 live searches (read-only): the website's default profile `fast` (DINOv2 + SigLIP + colour) has no signal that tells wood from stone; the profile `balanced` adds a Vertex AI image embedding and puts Chester Oak first for your floor patch. Also: a pre-cut patch sent with no region took the whole-photo path (card search, 80 % centre crop); the index holds whole catalogue pages (71 % picture, the rest white margin and label), so result thumbnails showed white margins; weights and fusion are not the problem; colour alone cannot tell pale tan wood from pale marble. I only partly reproduced your list (from a 134 px crop of a screenshot).
+- **Bug 3.** Reproduced with the studio's real renderer modules in headless Chrome: the estimate path draws a floor as a flat skewed poster, the estimate's light is one unmasked box blur, no anisotropic filtering, hard tile seams, a one-pixel edge staircase; WebGL2 and WebGPU give the same pixels. Possible live root cause, not checked: the studio's pipeline answers a MOCK geometry when its model addresses are unset (see `TARGETS.md` C1).
+
+### What exactly I did, in order
+
+1. Read `TARGETS.md` (header, C1, C4, C5, D1), `CLAUDE.md`, the memory notes; located the Finder, the catalogue search, `fastrender/`; asked the advisor (above).
+2. Started the Finder, Accuracy and Render agents in the background with written briefs (file ownership, no commits, no secrets printed, no live deploys, targeted tests only).
+3. **Finder agent's work (verified by me):** new `site/catalogue-ui/regions.js` (shared outlining, regions, patch, overlay painting, moved out of `surfaces.js`), `finder.js` (four photo states: spot / outlining / regions / fallback; busy state, Cancel, plain failure messages, "Search the whole photo anyway"), `pages/finder.html`, `catalogue-ui.css`, `server/routes/catalogueUi.js` (the route serves only a list of names: `regions.js` added), 8 + 10 + 2 tests. I re-ran `tests/js/catalogue-regions.test.js` (8/8) and looked at its phone screenshot (the lobby outlined, a button per item).
+4. **Render agent's report:** read it, and looked at two of its before/after pictures myself (lobby floor, clinic floor: the old floor is a flat skewed poster, the new one follows the sun and shadows). Because the fix changes files that come from your separate project, I asked you (the question tool); you chose "Overlay, all 4 fixes". Started the Overlay agent with the drafts' location and the guard-test requirements.
+5. **Accuracy agent's report:** read it; then wired `patch=1` into the client (`site/catalogue-ui/client.js`: `searchPhoto({patch})`), the Finder's tap and the shop's tap; updated the four browser assertions that pinned `?mode=look&k=8`; ran "Finder page" (10/10) and "Find it from a photo" (2/2) and the catalogue JS tests (50/50).
+6. **My own live experiment (24 searches):** the live lobby run had sent a thin 640 x 123 strip, and the encoders squash (SigLIP resizes any input to a square), so I suspected thin patches hurt. I cut 6 designs' own pictures into 4 shapes (strip 5:1, 2:1, 1.5:1, square), searched each with profile `balanced`, `patch=1`, through `tools/catalogue-probe.mjs`: 5 of 6 designs ranked first in every shape. No change made; recorded in `TARGETS.md`.
+7. Changed the local `.env`'s one line `CATALOGUE_SEARCH_PROFILE=fast` to `balanced` with a single `sed` (counted matches; nothing else read or printed; the file is git-ignored). **Render's value is yours to change.**
+8. Updated `docs/overview/catalog/env.json` (new default text; the new `STUDIO_PREVIEW_OVERLAY`), `api.json` (`patch=1`, the picture in `thumbUrl`), `files.json` (the overlay files, tools, the checks folder, `regions.js`, the `site/overlays/` directory line).
+9. Verified the Overlay agent's work: `git status` shows nothing under `swatchroom/`, `node tools/studio-overlay-manifest.js --check` passes, the 57 overlay tests pass (13 + 44).
+10. Wrote the `TARGETS.md` entries (C1, C4, D1, header, "Where we stand", the deploy notes, the change log) and this entry; rebuilt the overview; ran the full suites.
+11. Architecture notes updated (by the agents, read by me): `catalogue/ARCHITECTURE.md` (new section 5.1 and edits to 5, 7, 8, 9), `docs/CATALOGUE_SETUP.md` (a "Checking how well the search finds things" section), `docs/DESIGN_STUDIO_ARCHITECTURE.md` (new section 12, pointers in 3.5, 7.1, 0 and 10), `README.md` (the Finder, the settings, the layout), `.env.example`.
+
+### Files changed
+
+Finder: `site/catalogue-ui/{regions.js (new), finder.js, surfaces.js, client.js, catalogue-ui.css}`, `pages/finder.html`, `server/routes/catalogueUi.js`, `tests/js/catalogue-regions.test.js` (new), `tests/e2e/run.mjs`.
+Accuracy: `server/catalogue/{config,validate,service}.js`, `tests/js/{catalogue-search,catalogue-settings,catalogue-probe}.test.js`, `catalogue/terucon_catalogue/accuracy.py`, `catalogue/tools/accuracy_eval.py`, `tools/catalogue-probe.mjs`, `catalogue/tests/test_accuracy*.py`, `catalogue/data/accuracy-eval/*` (the named set, saved live answers, three crops of your screenshots), `catalogue/ARCHITECTURE.md`, `docs/CATALOGUE_SETUP.md`.
+3D: `site/overlays/studio/js/**` (8 files), `site/overlays/studio/manifest.json`, `server/middleware/studioOverlay.js`, `tools/studio-overlay-manifest.js`, `app.js`, `server/config/settings.js`, `tests/js/studio-overlay*.test.js`, `tests/js/server-studio-parity.test.js`, `docs/design-studio-checks/{instant-preview-quality.patch, render-preview/}`, `docs/DESIGN_STUDIO_ARCHITECTURE.md`.
+Shared: `.env.example`, `README.md`, `docs/overview/catalog/{env,api,files}.json`, `TARGETS.md`, this file, the files `node tools/build-overview.js` regenerates, the local `.env` (one line).
+
+### Checked
+
+- Finder: 8 JavaScript + 10 browser tests (stubbed models and catalogue), 7 of the 10 fail on the old `finder.js`; one live local run, 3 real OneFormer calls on the lobby photo (warm GPU: 7.0 / 3.0 / 2.7 s) and 3 catalogue searches, no CSP violation.
+- Accuracy: 39 + 1 live searches by the agent, 24 by me; Python tests 835 pass; the named set re-runs offline (`python -I catalogue/tools/accuracy_eval.py table`).
+- 3D: 57 overlay tests (re-run by me), real Chrome renders on one Apple M5 (16 pictures equal to the drafter's reference), the real website serving the 14 module addresses, `E2E_ONLY=studio` 26/26 and `"Design Studio"` 5/5 (the agent's runs).
+- Full suites: `node tools/run-tests.js --e2e` (run by me after all the edits): site build check ok, links ok, optimized images ok, **JavaScript tests 1185 run, 1180 passed, 0 failed, 5 skipped** (the skips need a real MongoDB or a path from another computer), **browser tests 102 of 102 passed** (518 s); the "project overview is current" step failed at that moment, as expected (it was stale until I rebuilt it; re-checked below). The Python catalogue tests: **835 passed** (re-run by me with the agent's scratch environment, `catalogue/`, `pytest`).
+
+### Not checked
+
+A real phone, Safari, a cold GPU, sign-in switched on; any accuracy figure (none exists: no photo of a real sample with an agreed answer); a real fused fit or real scan masks for the 3D preview; whether the 3D preview looks better to you on your own photos; any GPU but one Apple M5; the live site (nothing deployed, nothing committed by me; you committed the earlier work yourself at 23:28 on 2026-11-04).
+
+### Noticed, left alone
+
+- The accuracy fix is not live until `CATALOGUE_SEARCH_PROFILE` is `balanced` or removed on Render, then a redeploy.
+- The hidden cover page is still in Modal's pool (rank 2 for the gym photo); the items' category and finish are old AI labels; `TIPL-STC9092` is near many queries (hub). All three need a re-publish; none changed.
+- `/api/vision/*` shares one 60-an-hour limit with the studio's scans.
+- `swatchroom/` was already not byte-identical to your original folder (the 2026-11-04 approved edits); the overlay added nothing there. The studio's own `tests/fastrender.test.js` still asserts the old constants (3 tests) because it was not touched; the site's version of those checks is `tests/js/studio-overlay-behaviour.test.js`.
+- A pre-existing race in `tests/js/server-startup.test.js` ("SIGTERM stops it cleanly") failed in a few runs under load and passes alone; not reproduced, not changed.
+- The textures are flat illustrated swatches, not photographs: no shader change fixes that.
+
+### What I did (summary)
+
+I fixed the Finder so "Search the whole photo" outlines the photo with the real model and a tap on an item searches the catalogue for it, with a plain message and a fallback when anything fails. For the bad matches I measured instead of guessing: the default search profile could not tell wood from stone, so the website default is now the better one, a tapped patch is searched whole, and results show the design's own picture; I could not produce an accuracy figure, and the change only takes effect on the live site once you change one setting on Render. For the 3D preview I had the problems reproduced and drafted, asked you before touching your project, and, on your choice, shipped the four improvements as an overlay the site serves ahead of the studio's own files (one switch turns it off, a guard test catches a re-copy). Nothing was committed or deployed.
+
+---
+
 ## 2026-11-04 (sixth session): capture from a phone (QR code and WhatsApp link, photos back to the requester)
 
 **Asked** (from your message, shortened): when a person lands on the Design Studio, Inspiration or the Finder, offer two ways to capture photos with a phone: (1) a QR code that opens a page with a single upload option (one or several photos) where the capturer adds tags (room, cabin...), location details, name, address and phone number, which go to the requester, with the photos saved in the cloud and readable only by the requester; (2) the link sent on WhatsApp to a number typed in. A location button that captures the phone's real coordinates; do not send the person to the camera app (uploads fail that way); the same theme and the same lazy loader; when photos are uploaded the requester gets a WhatsApp message and a pop-up on the site, sees them on the service they asked from, and can move a photo to Inspiration or the Design Studio; mobile, handy, robust, "without preassuming or hallucination", complete system secured.

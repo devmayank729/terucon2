@@ -36,7 +36,8 @@
     "site/catalogue-ui/": "The browser side of the Finder page and the catalogue admin screen (targets C3, C4, C5, C7, D1): client.js (the shared API client, camera and photo-resize helpers), finder.js, admin.js, catalogue-ui.css. Served from /catalogue-ui/assets/ by a fixed list of names (server/routes/catalogueUi.js), the same pattern as site/inspiration/.",
     "catalogue/": "The real-catalogue retrieval engine (Python), ported from terucon-cat-1.ipynb: extraction, encoders, the Vertex/Gemini captions, the publisher (MongoDB + GCS + a Modal cache), the search service and the Modal app. Not shipped in the website's Docker image. Start with catalogue/ARCHITECTURE.md.",
     "server/capture/": "Capture from a phone: the settings, the in-memory or MongoDB store, the sessions and photos logic, the metadata stripper, the WhatsApp client and the routes.",
-    "site/capture/": "The browser code of the phone page /capture (take or choose photos, labels, location, a queue that survives a reload and a lost connection). Served from /capture-ui/assets/ by a fixed list of names."
+    "site/capture/": "The browser code of the phone page /capture (take or choose photos, labels, location, a queue that survives a reload and a lost connection). Served from /capture-ui/assets/ by a fixed list of names.",
+    "site/overlays/": "Improved copies of some of the studio's own browser files, served ahead of the studio's own (STUDIO_PREVIEW_OVERLAY)."
   },
   "files": [
     {
@@ -928,7 +929,7 @@
       "tags": [
         "Edit"
       ],
-      "desc": "A browser file of the Finder page or the catalogue admin screen (targets C3, C4, C5, C7, D1): served from /catalogue-ui/assets/ (server/routes/catalogueUi.js). No inline script or style attribute on the pages that load these."
+      "desc": "A browser file of the Finder page, the catalogue admin screen or the shop's Find it from a photo (regions.js is the outlining and patch code the Finder and the shop share) (targets C3, C4, C5, C7, D1): served from /catalogue-ui/assets/ (server/routes/catalogueUi.js). No inline script or style attribute on the pages that load these."
     },
     {
       "match": "terucon-cat-1.ipynb",
@@ -1145,7 +1146,7 @@
         "Dev",
         "Run"
       ],
-      "desc": "Two scripts that back docs/DESIGN_STUDIO_ARCHITECTURE.md: they run the studio's real pipeline route and runner (verify_pipeline.cjs) and its pure preview modules (verify_preview.mjs) with every database, storage, model and network call stubbed, and print what would have been called. Nothing leaves the machine."
+      "desc": "Checks that back docs/DESIGN_STUDIO_ARCHITECTURE.md: two scripts that run the studio's real pipeline route and runner (verify_pipeline.cjs) and its pure preview modules (verify_preview.mjs) with every database, storage, model and network call stubbed; render-preview/, a real-browser before/after of the instant preview (no network, no live service; section 12); instant-preview-quality.patch, the same preview change for the user's own Swatchroom project; and the catalogue-reference/ render comparison. Nothing leaves the machine."
     },
     {
       "match": "SESSION_OVERVIEW.md",
@@ -1989,6 +1990,39 @@
         "Run"
       ],
       "desc": "Makes the WebP copies in site/optimized/ using the installed Chrome. --check (plain Node) fails when the index is stale; --report lists coverage."
+    },
+    {
+      "match": "site/overlays/studio/js/**",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Improved copies of 8 of the Design Studio's instant-preview files, at the addresses they replace (served at /js/... ahead of the studio's own by server/middleware/studioOverlay.js). swatchroom/ is not edited. STUDIO_PREVIEW_OVERLAY=off serves the studio's own. DESIGN_STUDIO_ARCHITECTURE.md section 12."
+    },
+    {
+      "match": "site/overlays/studio/manifest.json",
+      "owner": "site-data",
+      "tags": [
+        "Generated"
+      ],
+      "desc": "SHA-256 of every file of swatchroom/public/js/lib/fastrender/ and previewScene.js the overlay was merged with, and of the overlay's own files. tests/js/studio-overlay.test.js fails when swatchroom/ no longer matches (re-merge, then run node tools/studio-overlay-manifest.js)."
+    },
+    {
+      "match": "server/middleware/studioOverlay.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Serves site/overlays/studio/js at /js ahead of the studio's own files, from a fixed list of names, with the studio's cache policy and an X-Terucon-Overlay header. STUDIO_PREVIEW_OVERLAY=off (read per request) or no folder passes everything on."
+    },
+    {
+      "match": "tools/studio-overlay-manifest.js",
+      "owner": "tooling",
+      "tags": [
+        "Dev",
+        "Run"
+      ],
+      "desc": "Writes site/overlays/studio/manifest.json; --check says what differs between swatchroom/, the overlay and the manifest (exit 1)."
     }
   ]
 }

@@ -1568,8 +1568,8 @@
         "Signed in (unless sign-in is off)"
       ],
       "summary": "Point-to-find or colour-match: find the catalogue materials closest to a photo (targets C3/C4/C7). The exempt route of the JSON rule (guards.js): the body is the photo itself.",
-      "request": "The raw photo bytes, Content-Type image/jpeg, image/png or image/webp, at most 6 MB. Query: catalogue?, release?, mode=look|colour, k=1..20 (default 8), point=x,y (0..1) with radius? (default 0.12) or box=x0,y0,x1,y1, category?, finish? (comma lists).",
-      "response": "{ok: true, catalogue, release, mode, items: [ResultItem], query: {preprocessing, dominantHex, profile, signals: [..], timingsMs: {total}}, warnings: [..]}. ResultItem: {rank, itemId, catalogue, title, titleSource, productId, productIdSource, category, finish, subtype, dominantHex, source: {name, page}, image: {thumbUrl, fullUrl, width, height} (signed GCS GET URLs, valid 1 hour), scores: {final, signals} (final is relative: never a percentage), attributes}.",
+      "request": "The raw photo bytes, Content-Type image/jpeg, image/png or image/webp, at most 6 MB. Query: catalogue?, release?, mode=look|colour, k=1..20 (default 8), point=x,y (0..1) with radius? (default 0.12) or box=x0,y0,x1,y1, patch=1? (the photo is an already cut-out patch of a bigger picture: searched as a whole, with no card search and no edge trim; not together with point or box), category?, finish? (comma lists).",
+      "response": "{ok: true, catalogue, release, mode, items: [ResultItem], query: {preprocessing, dominantHex, profile, signals: [..], timingsMs: {total}}, warnings: [..]}. ResultItem: {rank, itemId, catalogue, title, titleSource, productId, productIdSource, category, finish, subtype, dominantHex, source: {name, page}, image: {thumbUrl, fullUrl, width, height} (signed GCS GET URLs, valid 1 hour; thumbUrl is the design's picture alone when it has a card picture, else the page thumbnail, and width/height describe it; fullUrl is the page crop), scores: {final, signals} (final is relative: never a percentage), attributes}.",
       "errors": [
         {
           "status": 400,

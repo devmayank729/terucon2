@@ -913,7 +913,7 @@ await test('Finder page: tapping an item sends a JPEG patch of it (smaller than 
     // a tap on the wall
     await page.mouse.click(box.x + box.width * 0.12, box.y + box.height * 0.3);
     await until(() => page.evaluate(() => document.querySelectorAll('#results .result').length === 3), 'the closest materials for the wall');
-    assert(seen.search.length === 1 && seen.search[0].type === 'image/jpeg' && seen.search[0].query === '?mode=look&k=8', 'one catalogue search, with a JPEG, with no spot (the patch is the spot): ' + JSON.stringify(seen.search));
+    assert(seen.search.length === 1 && seen.search[0].type === 'image/jpeg' && seen.search[0].query === '?mode=look&k=8&patch=1', 'one catalogue search, with a JPEG, with no spot (the patch is the spot) and marked as a patch: ' + JSON.stringify(seen.search));
     let st = await finderState(page);
     assert(/3 matches for the wall/.test(st.meta) && /Showing materials like the wall/.test(st.text), 'it says what the results are for: ' + st.meta + ' / ' + st.text);
     assert(await page.evaluate(() => document.querySelector('#outline-chips .chip[aria-pressed="true"]')?.textContent) === 'Wall', 'the chip of the tapped item is marked');
@@ -925,13 +925,13 @@ await test('Finder page: tapping an item sends a JPEG patch of it (smaller than 
     // "Find it" while the items are showing: the whole photo, as before
     await page.click('#go-photo');
     await until(() => seen.search.length === 3, 'the whole photo to be searched');
-    assert(seen.search.every((q) => q.query === '?mode=look&k=8'), 'no spot in any of them: ' + JSON.stringify(seen.search));
+    assert(seen.search[0].query === '?mode=look&k=8&patch=1' && seen.search[1].query === '?mode=look&k=8&patch=1' && seen.search[2].query === '?mode=look&k=8', 'the two taps are patches, "Find it" is the whole photo (no spot, not a patch): ' + JSON.stringify(seen.search));
     assert(seen.search[0].size > 2000 && seen.search[0].size < seen.search[2].size * 0.85 && seen.search[1].size < seen.search[2].size * 0.85, 'a patch of the wall and of the floor is smaller than the whole photo: ' + seen.search.map((x) => x.size));
     // colour: the tap searches by colour
     await page.click('#mode-colour');
     await page.evaluate(() => [...document.querySelectorAll('#outline-chips .chip')].find((c) => c.textContent === 'Window').click());
     await until(() => seen.search.length === 4, 'the window to be searched by colour');
-    assert(seen.search[3].query === '?mode=colour&k=8', 'colour mode: ' + seen.search[3].query);
+    assert(seen.search[3].query === '?mode=colour&k=8&patch=1', 'colour mode: ' + seen.search[3].query);
     await page.click('#mode-photo');
     // pick a spot instead: the box is back, nothing of the items is left on the photo
     await page.click('#outline-spot');
@@ -3489,7 +3489,7 @@ await test('shop: "Find it from a photo": the surfaces of the photo are outlined
   assert(lit.wall > 40 && lit.floor === 0, 'the wall is lit and the floor is not: ' + JSON.stringify(lit));
   await page.mouse.click(box.x + box.width * 0.12, box.y + box.height * 0.3);
   await until(() => page.evaluate(() => document.querySelectorAll('.tcs__card').length === 3), 'the closest designs');
-  assert(seen.search.length === 1 && seen.search[0].type === 'image/jpeg' && seen.search[0].query === '?mode=look&k=8', 'one catalogue search with a JPEG patch: ' + JSON.stringify(seen.search));
+  assert(seen.search.length === 1 && seen.search[0].type === 'image/jpeg' && seen.search[0].query === '?mode=look&k=8&patch=1', 'one catalogue search with a JPEG patch, marked as a patch: ' + JSON.stringify(seen.search));
   const cards = await page.$$eval('.tcs__card', (els) => els.map((e) => ({ name: e.querySelector('.tcs__cardName').textContent, code: e.querySelector('.tcs__cardCode').textContent, price: e.querySelector('.tcs__cardPrice').textContent, img: e.querySelector('img').getAttribute('src'), badge: !!e.querySelector('.tcs__badge') })));
   assert(cards[0].name === 'Emperador Dark (SB804)' && cards[0].code === 'TIPL-SB804' && cards[0].price === '₹6,020 / sheet' && cards[0].badge && !cards[1].badge && cards[0].img === '/media/materials/tipl-sb804.jpg', 'the first card: ' + JSON.stringify(cards));
   assert(/Closest designs to the wall/.test(await page.$eval('.tcs__status', (e) => e.textContent)), 'the status names what was searched');
