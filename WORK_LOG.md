@@ -6,6 +6,55 @@ This file is not `TARGETS.md` (that tracks the quotation's targets and their sta
 
 ---
 
+## 2026-11-04 (fourth session): TeruBot speaks with Google's voice (English, Hindi, Hinglish) instead of the browser's
+
+**Asked:** first, "which TTS (text to speech converter) you are using?" (answer: the browser's built-in speech synthesis); then "the text to speech is not good, hence I want you to think and make that proper, and move to Google's TTS instead of using the browser's inbuilt TTS API and make sure it can talk naturally in English / Hindi / Hinglish, all of these properly, and the pronunciations should be nice".
+
+**Serves:** C9 (the live voice conversation, "Talk"). Status stays 🟡 Partly done; no count changed.
+
+### What exactly I did, in order
+
+1. Read `TARGETS.md`, `CLAUDE.md` and my memory notes; searched the code for the speech engine (`site/brand/terubot.js`, "live conversation": `speechSynthesis` / `SpeechSynthesisUtterance`) and answered the first question.
+2. Read the Talk code, `server/lib/terubot/{gemini,index,limits}.js`, `server/routes/terubot.js`, `server/config/settings.js`, `server/lib/csp.js`, the studio's `swatchroom/server/google/token.js` and the existing TeruBot tests and browser-test stubs. Found: the chat already has a Google service-account connection (the studio's), so the voice can reuse it; the hand-written pages' policy has `default-src 'none'` and no `media-src` (TeruBot runs on `/account`), so playing audio needs one added directive.
+3. **A mistake of mine, said plainly:** my first probe script ran with `node --env-file=.env`. The root `.env` holds the Google key as inline JSON in `GOOGLE_APPLICATION_CREDENTIALS`, which the studio reads as a file path, and the error text the studio produced **echoed the start of that JSON into this session's output (the project id and the private key's id; not the private key itself)**. I stopped, re-ran without the flag (the studio then reads its own `swatchroom/.env`), and made my scratch scripts withhold any error text that contains a brace or a quote. Nothing was written anywhere else.
+4. Live probe, read-only: `GET texttospeech.googleapis.com/v1/voices` with the studio's token: 46 `hi-IN` and 49 `en-IN` voices, 30 Chirp 3 HD in each, the same 30 names. So the Cloud Text-to-Speech API is enabled for the project and the key can use it.
+5. Experiments before choosing a design (all in the scratchpad, a Gemini transcription of each clip standing in for an ear): Chirp 3 HD English, Hindi, Roman Hinglish and Devanagari-with-English; numbers with and without commas; the Hindi voice on an English reply; respellings of the brand name; Gemini's own text-to-speech model for latency. Findings are listed in `TARGETS.md` C9 and at the top of `server/lib/terubot/speech.js`.
+6. Asked the advisor tool before building. Points followed: speak only what TeruBot wrote (no open text-to-speech endpoint), a staged-reply id per reply; Chirp 3 HD by default with the voice in a setting; strip digit-group commas; end sentences at the Hindi danda; localise the fixed lines; the CSP; unlock the player inside the Talk tap; never play late sound; the browser voice as the fallback; verify once through the real server path with the real credentials. Points not followed: Web Audio instead of an `<audio>` element (an `<audio>` element keeps playing with the iPhone's silent switch on, Web Audio does not; so I added `media-src` instead).
+7. Built (files below): `speech.js` (what is said, in which language, in which pieces), `voice.js` (staging, Google calls, memory cache, retries, a switch-off when Google refuses), the `GET /api/terubot/speech` route, `speak: true` on the chat, `voice` on the status, the `TERUBOT_VOICE` setting, the player in `terubot.js` with the browser voice as the per-piece fallback.
+8. Tests: 29 new JavaScript tests (`tests/js/terubot-voice.test.js`); 4 new browser tests (the sequence and look-ahead, per-piece fallback and a bad id, late sound after Skip and End, Talk offered without a browser voice); three existing expectations updated on purpose (the status reply has `voice`, the settings object has `voice`, and the spoken browser text now says "1200 rupees per square foot", without the comma). **Broke the code on purpose three ways and saw the new tests fail, restoring `terubot.js` byte for byte each time (`md5`):** (a) removing the late-sound guard alone left the test green, because aborting the fetch on Skip is a second defence; (b) removing the guard and the abort together made "a late sound played after End" fail; (c) opening the microphone while a sound plays made the "never listening while a sound plays" check fail.
+9. **Ran it live through the real server code** (`startServer` on a free port, the real `swatchroom/.env` key, a throw-away env file): status said `voice: true`; the greeting came from Google; one English, one Hindi and one Hinglish question were asked of the real TeruBot (3 chat turns, real Gemini) with `speak: true`, every piece was fetched as MP3 and transcribed back by Gemini. Found two small text problems in the real replies ("Wire-cut" heard as "Wyatt", a stray " ," after a bracket) and fixed them with tests.
+10. Wrote `tools/voice-samples.mjs` (a clip of 8 candidate voices x English, Hindi, Hinglish, and an `index.html` to click through) and ran it: 24 clips, in the scratchpad `voices/` folder.
+11. Docs: `site/brand/terubot.md` ("Google's voice"), `.env.example`, `docs/overview/catalog/{api,env}.json`, `TARGETS.md`, this entry; `node tools/build-overview.js`.
+
+### Files changed
+
+- Code: new `server/lib/terubot/speech.js`, `server/lib/terubot/voice.js`; changed `server/lib/terubot/{gemini,index}.js`, `server/routes/terubot.js`, `server/config/settings.js`, `server/lib/csp.js`, `site/brand/terubot.js`; new tool `tools/voice-samples.mjs`.
+- Tests: new `tests/js/terubot-voice.test.js`; changed `tests/js/{terubot-chat,terubot-vertex,terubot-tools}.test.js`, `tests/e2e/run.mjs`.
+- Docs: `site/brand/terubot.md`, `.env.example`, `docs/overview/catalog/api.json`, `docs/overview/catalog/env.json`, `TARGETS.md`, `WORK_LOG.md`, `docs/PROJECT_OVERVIEW.html` (regenerated).
+- **Nothing under `swatchroom/` was touched; nothing committed or deployed.** `dist/` (git-ignored) is rebuilt by `npm start`: **restart the server to get the new voice**. Scratch scripts and clips are in the session's scratchpad, not in the project.
+
+### Checked
+
+- JavaScript suite: 1,076 tests run, 1,072 pass, 0 fail, 4 skipped (the same four skips as in the earlier updates; I did not look at which they are). The earlier run in this session had one failure, `tests/js/terubot-tools.test.js` (the settings object now has `voice`): fixed on purpose and re-run.
+- Browser suite: 90 of 90 pass (full run); after one last small change in `terubot.js` (a live chat asks for staged speech whenever the player exists, and the voice comes back by itself after a pause) the 7 live-conversation tests were run again: 7 of 7.
+- 29 new JavaScript tests and 4 new browser tests for the voice; three deliberate breaks (details in `TARGETS.md` C9), each time restoring `terubot.js` byte for byte (`md5`).
+- Live, through the real server code with the real key: status `voice: true`; the greeting; an English, a Hindi and a Hinglish TeruBot answer, every piece fetched as MP3 (0.6 to 2.7 s each) and transcribed back by Gemini; a repeated phrase from memory. The Google voice list: 46 `hi-IN` and 49 `en-IN` voices.
+- `node tools/voice-samples.mjs` ran: 24 clips and an `index.html` in the scratchpad's `voices/` folder.
+- `node tools/build-overview.js`, then `npm test` (all five steps).
+
+### Not checked
+
+- **Nobody has heard it.** I cannot listen; "natural" and "nice pronunciation" so far means Gemini's transcript of Google's audio matched the text and called it natural. The sample clips and the voice choice are yours to judge.
+- **No real device:** not an iPhone (the silent-clip unlock for the audio element is the part most likely to need a fix), not an Android phone, not speakers (echo into the microphone). The browser tests use a stand-in player.
+- **Hindi speech in:** listening is still `en-IN` only.
+- Google's price, a spend cap, Render (the key there must reach `swatchroom` the way it does for the chat), load, and the site's privacy text.
+
+### What I did
+
+I replaced the browser's voice in TeruBot's live conversation with Google Cloud Text-to-Speech (Chirp 3 HD): English goes to the Indian-English voice, Hindi and Hinglish to the Hindi voice, with numbers, money, sizes, codes and the brand name made readable first. It only speaks answers TeruBot has just written, falls back to the browser's voice for any piece that fails, and was run once live through the real server for all three languages. The default speaker (Aoede) and the "Teru Bot" respelling are guesses for you to settle by ear with `node tools/voice-samples.mjs`; the microphone side is still English only.
+
+---
+
 ## 2026-11-04 (third session): the catalogue in the AI Design Studio, pictures from Cloud Storage and MongoDB, Gemini details and a better render prompt, TeruBot the same everywhere
 
 **Asked:** (1) the catalogue is not in the AI Design Studio (only a few built-in finishes are): put it there, properly, with its photos; (2) the photos must not live on the server: fetch them from GCP and MongoDB; (3) use Gemini to add a little more detail about each product, and make the render prompt so good that texture and design come out right; (4) TeruBot is not the same everywhere (Talk is missing in the AI visualizer): make it constant.

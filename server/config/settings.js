@@ -38,6 +38,7 @@ export const LIMIT_DEFAULTS = { ai: 60, vision: 60, pipeline: 40, check: 10, roo
 export const TERUBOT_DEFAULTS = {
   enabled: true,
   model: '', // blank: the first model of the studio's text model chain (swatchroom/server/google/vertex.js), which falls back to the next when it is not available
+  voice: 'Aoede', // the speaker of the spoken answers (Google Chirp 3 HD, in Hindi and English); '' = off: the browser's own voice is used
   maxOutputTokens: 1024,
   historyLimit: 12, // messages of the conversation sent to the model (the widget sends at most 12)
   toolRounds: 4, // rounds of tool calls in one answer, after which the model must answer in words
@@ -143,6 +144,10 @@ export function loadSettings(envPath, environ, root = ROOT) {
   const model = get('TERUBOT_MODEL');
   if (model && !/^[A-Za-z0-9._-]{1,80}$/.test(model)) s.warnings.push('TERUBOT_MODEL is not a model id (letters, digits, . _ -): the default model is used.');
   else bot.model = model;
+  const voice = get('TERUBOT_VOICE') || TERUBOT_DEFAULTS.voice;
+  if (/^(off|no|false|0)$/i.test(voice)) bot.voice = '';
+  else if (/^[A-Za-z]{3,24}$/.test(voice)) bot.voice = voice.charAt(0).toUpperCase() + voice.slice(1).toLowerCase();
+  else s.warnings.push('TERUBOT_VOICE is not a voice name (letters only, for example Aoede, or off): the default voice is used.');
   bot.maxOutputTokens = int(get('TERUBOT_MAX_OUTPUT_TOKENS'), TERUBOT_DEFAULTS.maxOutputTokens, 128, 4096);
   bot.historyLimit = int(get('TERUBOT_HISTORY_LIMIT'), TERUBOT_DEFAULTS.historyLimit, 2, 20);
   bot.toolRounds = int(get('TERUBOT_TOOL_ROUNDS'), TERUBOT_DEFAULTS.toolRounds, 1, 6);
@@ -167,6 +172,11 @@ export function describe(settings) {
     settings.terubot.enabled
       ? `TeruBot (the assistant): on - ${settings.terubot.limitAccount} messages an hour per account, ${settings.terubot.limitAnonymous} per address for visitors not signed in (TERUBOT=off switches it off)`
       : 'TeruBot (the assistant): off (TERUBOT=off)',
+    ...(settings.terubot.enabled
+      ? [settings.terubot.voice
+        ? `TeruBot voice: Google Chirp 3 HD, speaker ${settings.terubot.voice} (needs the Cloud Text-to-Speech API enabled for the Google project; TERUBOT_VOICE=off uses the browser's own voice)`
+        : 'TeruBot voice: the browser\'s own (TERUBOT_VOICE=off)']
+      : []),
   ];
 }
 

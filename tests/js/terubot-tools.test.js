@@ -434,7 +434,7 @@ describe('settings', () => {
     assert.deepEqual(read({}).terubot, TERUBOT_DEFAULTS);
     assert.deepEqual(read({}).warnings, []);
     const t = read({ TERUBOT: 'off', TERUBOT_MODEL: 'gemini-x.1', TERUBOT_MAX_OUTPUT_TOKENS: '99999', TERUBOT_HISTORY_LIMIT: '0', TERUBOT_TOOL_ROUNDS: '50', TERUBOT_TIMEOUT_SECONDS: 'abc', TERUBOT_LIMIT_ACCOUNT: '5', TERUBOT_LIMIT_ADDRESS: '-3', TERUBOT_LIMIT_ANONYMOUS: '2.9' }).terubot;
-    assert.deepEqual(t, { enabled: false, model: 'gemini-x.1', maxOutputTokens: 4096, historyLimit: 2, toolRounds: 6, timeoutMs: 30000, limitAccount: 5, limitAddress: 1, limitAnonymous: 2 });
+    assert.deepEqual(t, { enabled: false, model: 'gemini-x.1', voice: 'Aoede', maxOutputTokens: 4096, historyLimit: 2, toolRounds: 6, timeoutMs: 30000, limitAccount: 5, limitAddress: 1, limitAnonymous: 2 });
     const bad = read({ TERUBOT_MODEL: 'x; rm -rf /' });
     assert.equal(bad.terubot.model, '');
     assert.equal(bad.warnings.length, 1);

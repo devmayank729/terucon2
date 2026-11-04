@@ -85,7 +85,7 @@ describe('the real connection, with a mock Vertex', () => {
     reset((entry, res, n) => send(res, n === 1 ? answer([functionCallPart]) : answer([{ text: 'Brushed Bronze is the one.' }])));
     const app = await startReal();
     try {
-      assert.deepEqual((await app.status()).json(), { aiOn: true, model: TEXT_MODEL_CHAIN[0], signedIn: false });
+      assert.deepEqual((await app.status()).json(), { aiOn: true, model: TEXT_MODEL_CHAIN[0], signedIn: false, voice: true });
       assert.equal(mock.calls.length, 0, 'the status route did not call Gemini');
       assert.equal(mock.tokens, 0, 'nor did it ask for a token');
 

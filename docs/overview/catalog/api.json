@@ -866,9 +866,9 @@
       "guards": [
         "Host"
       ],
-      "summary": "Is the assistant's AI on, and which model would answer. Never calls Gemini.",
+      "summary": "Is the assistant's AI on, which model would answer, and is Google's voice on. Never calls Gemini or Google's voice.",
       "request": "No body.",
-      "response": "{aiOn: boolean, model: string|null, signedIn: boolean}",
+      "response": "{aiOn: boolean, model: string|null, signedIn: boolean, voice: boolean}",
       "errors": [
         {
           "status": 421,
@@ -888,8 +888,8 @@
         "Same origin"
       ],
       "summary": "One turn of the chat. The server asks Gemini (up to four look-up rounds), checks everything the model proposes, and returns the reply, material cards and the actions the browser may carry out (navigate, open_studio, cart_add, saved_add, saved_remove, prefill_enquiry). Cards come only from the data tools; a visitor who is not signed in gets public data only.",
-      "request": "{messages: [{role: 'user'|'assistant', text}] (the last 12, 2000 characters each, the last one from the user), context: {path, title, cart: [{id, qty}], saved: [id], viewport}}. The context is untrusted and validated field by field.",
-      "response": "200 {aiOn: true, reply (plain text, at most 1800 characters), cards: [{kind:'material', id, pid, vid, fid, name, variant, price, image, href}] (at most 6), actions: [...] (at most 8), model} or 200 {aiOn: false, reply, cards: [], actions: []} when the AI is off.",
+      "request": "{messages: [{role: 'user'|'assistant', text}] (the last 12, 2000 characters each, the last one from the user), context: {path, title, cart: [{id, qty}], saved: [id], viewport}, speak?: true}. The context is untrusted and validated field by field. speak: true (a live conversation) asks for the reply to be made ready for Google's voice.",
+      "response": "200 {aiOn: true, reply (plain text, at most 1800 characters), cards: [{kind:'material', id, pid, vid, fid, name, variant, price, image, href}] (at most 6), actions: [...] (at most 8), model, speech?: {id, parts: [{text, lang: 'en'|'hi'}]} (only with speak: true and Google's voice on)} or 200 {aiOn: false, reply, cards: [], actions: []} when the AI is off.",
       "errors": [
         {
           "status": 415,
@@ -917,6 +917,42 @@
         }
       ],
       "curl": "curl -s -X POST -H 'Content-Type: application/json' -d '{\"messages\":[{\"role\":\"user\",\"text\":\"Which bronze sheets do you have?\"}],\"context\":{\"path\":\"/\"}}' http://localhost:8080/api/terubot/chat"
+    },
+    {
+      "method": "GET",
+      "path": "/api/terubot/speech",
+      "owner": "JS",
+      "group": "terubot",
+      "guards": [
+        "Host",
+        "Same origin"
+      ],
+      "summary": "The sound (MP3, Google Cloud Text-to-Speech, Chirp 3 HD) of piece n of a reply that a chat with speak: true has just staged, or of the greeting (id=hello). There is no way to have other text spoken. Kept 15 minutes; the same words in the same voice are made once.",
+      "request": "Query: id (from the chat reply's speech.id, or hello), n (the piece, 0 to 99).",
+      "response": "200 audio/mpeg",
+      "errors": [
+        {
+          "status": 403,
+          "when": "A foreign Sec-Fetch-Site"
+        },
+        {
+          "status": 404,
+          "when": "No such reply or piece (expired, or fetched too many times), or a malformed id or n"
+        },
+        {
+          "status": 429,
+          "when": "Too many sounds being made at once (Retry-After)"
+        },
+        {
+          "status": 502,
+          "when": "Google's voice failed or was too slow"
+        },
+        {
+          "status": 503,
+          "when": "The voice is off: TERUBOT_VOICE=off, no Google key, or Google refused (the Text-to-Speech API is not enabled for the project); the browser then uses its own voice"
+        }
+      ],
+      "curl": "curl -s -o hello.mp3 'http://localhost:8080/api/terubot/speech?id=hello&n=0'"
     },
     {
       "method": "GET",

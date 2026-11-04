@@ -42,6 +42,8 @@ export function pageCsp(html, { google = false, images = [], connect = [] } = {}
     `style-src ${style.join(' ')}`,
     `img-src 'self' data:${images.length ? ' blob:' : ''}${images.map((host) => ` https://${host}`).join('')}`,
     "font-src 'self'",
+    // TeruBot's spoken answers are audio fetched from /api/terubot/speech and played from a blob: address
+    "media-src 'self' blob:",
     // the web-app manifest (/site.webmanifest, linked from site/brand/head.html and the hand-written pages): same site only
     "manifest-src 'self'",
     `connect-src 'self'${google ? ' https://accounts.google.com/gsi/' : ''}${connect.map((host) => ` https://${host}`).join('')}`,

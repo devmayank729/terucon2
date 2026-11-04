@@ -2,7 +2,8 @@
  * TeruBot, the assistant on every page.
  *
  *   GET  /api/terubot/status   {aiOn, model, signedIn}                         never calls Gemini
- *   POST /api/terubot/chat     {messages, context}  ->  {aiOn, reply, cards, actions, model}
+ *   POST /api/terubot/chat     {messages, context, speak?}  ->  {aiOn, reply, cards, actions, model, speech?}
+ *   GET  /api/terubot/speech?id=<id>&n=<n>                   ->  audio/mpeg: piece n of a reply that was staged for speaking (see below)
  *
  * Public: a visitor who is not signed in may use it (the landing page is public) and then it knows public data only. Signed in, it also
  * knows the visitor's first name. Who is asking is decided HERE from the session cookie; nothing in the request body can name an account.
@@ -17,6 +18,13 @@
  *   500 {error}                                         a bug (details in the server log only)
  * The status codes that come from the guards in front of every /api write (415 not JSON, 403 cross-origin) keep the site's nested shape.
  *
+ * The voice (server/lib/terubot/voice.js, speech.js): a chat that sends `speak: true` (a live conversation) gets `speech: {id, parts: [{text,
+ * lang}]}` back when Google's voice is on: the pieces the reply will be said in, already cleaned for the ear. The browser asks for each
+ * piece as audio. There is no endpoint that speaks arbitrary text: only replies TeruBot has just written (and the greeting, id `hello`).
+ *   200 audio/mpeg                      the sound of the piece
+ *   404 {error}                         no such reply or piece (expired after 15 minutes, or fetched too many times)
+ *   429 {error}                         the voice is busy; 502 {error} Google failed; 503 {error} the voice is off (the browser then uses its own)
+ *
  * Logging: one line per chat with lengths, model, time, tool names and the status. Never the text of a message or a reply.
  */
 import path from 'node:path';
@@ -25,6 +33,7 @@ import { StoreUnavailableError } from '../auth/index.js';
 import { RateLimiter } from '../lib/rateLimit.js';
 import { catalogueBridge } from '../lib/terubot/catalogue.js';
 import { GeminiError } from '../lib/terubot/gemini.js';
+import { VoiceError } from '../lib/terubot/voice.js';
 import { BadRequest, parseContext, parseMessages } from '../lib/terubot/input.js';
 import { createTerubot, OFF_REPLY } from '../lib/terubot/index.js';
 import { linkIn, parseUpload, photoFromLink } from '../lib/terubot/photo.js';
@@ -80,7 +89,7 @@ export function mountTerubot(app, ctx) {
     try {
       const state = bot.state();
       const user = await whoIs(req);
-      res.json({ aiOn: state.on, model: state.on ? state.model : null, signedIn: Boolean(user) });
+      res.json({ aiOn: state.on, model: state.on ? state.model : null, signedIn: Boolean(user), voice: state.on && bot.voice.available() });
     } catch (error) {
       next(error);
     }
@@ -221,7 +230,9 @@ export function mountTerubot(app, ctx) {
       const out = await bot.answer({ messages: parsed.messages, context: parsed.context, account: accountInfo, catalogue, photo, linkNote, signal: controller.signal, timedOut: () => timedOut });
       log.info(`terubot  chat ok  ${signedIn ? 'signed-in' : 'visitor'}  in=${parsed.messages.at(-1).text.length} chars  out=${out.reply.length} chars  model=${out.model}  rounds=${out.rounds}  tools=${out.toolsUsed.join(',') || '-'}  cards=${out.cards.length} actions=${out.actions.length}  tokens=${out.usage.prompt}/${out.usage.output}+${out.usage.thoughts}  ${Date.now() - started} ms`);
       finished = true;
-      return res.json({ aiOn: true, reply: out.reply, cards: out.cards, actions: out.actions, model: out.model, ...(attachment ? { attachment } : {}) });
+      // In a live conversation the reply is staged for Google's voice: the pieces to say, never any text of the visitor's
+      const speech = req.body?.speak === true ? bot.voice.stage({ text: out.reply, hasCards: out.cards.length > 0, hint: parsed.messages.at(-1).text }) : null;
+      return res.json({ aiOn: true, reply: out.reply, cards: out.cards, actions: out.actions, model: out.model, ...(attachment ? { attachment } : {}), ...(speech ? { speech } : {}) });
     } catch (error) {
       if (error instanceof GeminiError) {
         if (error.kind === 'aborted') {
@@ -242,6 +253,34 @@ export function mountTerubot(app, ctx) {
     } finally {
       clearTimeout(timer);
       release?.();
+    }
+  });
+
+  api.get('/api/terubot/speech', async (req, res) => {
+    const started = Date.now();
+    const fail = (status, error) => res.status(status).json({ error });
+    try {
+      const site = req.headers['sec-fetch-site'];
+      if (site && site !== 'same-origin' && site !== 'none') return fail(403, 'Cross-site requests are not allowed.');
+      const id = typeof req.query.id === 'string' ? req.query.id : '';
+      const n = typeof req.query.n === 'string' && /^\d{1,2}$/.test(req.query.n) ? Number(req.query.n) : -1;
+      if (!/^[A-Za-z0-9_-]{4,40}$/.test(id) || n < 0) return fail(404, 'There is no such speech.');
+      if (!ctx.settings().terubot.enabled) return fail(503, 'The voice is off.');
+      const out = await bot.voice.audio(id, n);
+      log.info(`terubot  speech ok  lang=${out.lang}  ${out.chars} chars  ${Math.round(out.bytes.length / 1024)} KB  ${out.cached ? 'from memory' : 'from Google'}  ${Date.now() - started} ms`);
+      res.set({ 'Content-Type': out.type, 'Content-Length': String(out.bytes.length) });
+      return res.end(out.bytes);
+    } catch (error) {
+      if (error instanceof VoiceError) {
+        if (error.kind !== 'gone') log.warn(`terubot  speech failed  kind=${error.kind}${error.status ? ` status=${error.status}` : ''}  ${clip(error.message)}  ${Date.now() - started} ms`);
+        if (error.kind === 'gone') return fail(404, 'That speech is not available any more.');
+        if (error.kind === 'busy') { res.set('Retry-After', '3'); return fail(429, 'The voice is busy right now.'); }
+        if (error.kind === 'unavailable') return fail(503, 'The voice is off right now.');
+        return fail(502, 'The voice could not be made just now.');
+      }
+      log.error(`terubot  speech crashed  ${clip(error?.stack ?? error)}`);
+      if (res.headersSent) return res.destroy();
+      return fail(500, 'Something went wrong on our side.');
     }
   });
 

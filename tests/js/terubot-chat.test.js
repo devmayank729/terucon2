@@ -229,9 +229,9 @@ describe('status', () => {
     try {
       const anon = await app.status();
       assert.equal(anon.status, 200);
-      assert.deepEqual(anon.json(), { aiOn: true, model: 'gemini-fake-1', signedIn: false });
+      assert.deepEqual(anon.json(), { aiOn: true, model: 'gemini-fake-1', signedIn: false, voice: false });
       const me = await app.signIn();
-      assert.deepEqual((await app.status({ as: me })).json(), { aiOn: true, model: 'gemini-fake-1', signedIn: true });
+      assert.deepEqual((await app.status({ as: me })).json(), { aiOn: true, model: 'gemini-fake-1', signedIn: true, voice: false });
       assert.equal(app.fake.requests.length, 0);
       assert.equal((await app.request('/api/terubot/status', { method: 'POST', body: {} })).status, 405);
     } finally {
@@ -257,7 +257,7 @@ describe('when the assistant is not available: 200 aiOn:false', () => {
     const app = await startBotApp({ env: 'TERUBOT=off\n' });
     try {
       assert.match(off(await app.say('hi')), /switched off/);
-      assert.deepEqual((await app.status()).json(), { aiOn: false, model: null, signedIn: false });
+      assert.deepEqual((await app.status()).json(), { aiOn: false, model: null, signedIn: false, voice: false });
       assert.equal(app.fake.requests.length, 0);
       app.writeEnv('TERUBOT=on\n'); // picked up on the next request
       assert.equal((await app.say('hi')).json().aiOn, true);
@@ -270,7 +270,7 @@ describe('when the assistant is not available: 200 aiOn:false', () => {
     const app = await startBotApp({ gemini: createFakeGemini([{ text: 'x' }], { configured: false, problem: 'No Google key is configured.' }) });
     try {
       assert.match(off(await app.say('hi')), /isn't set up/);
-      assert.deepEqual((await app.status()).json(), { aiOn: false, model: null, signedIn: false });
+      assert.deepEqual((await app.status()).json(), { aiOn: false, model: null, signedIn: false, voice: false });
       assert.ok(app.log.lines.some((l) => /terubot  not available: No Google key/.test(l)));
     } finally {
       await app.stop();

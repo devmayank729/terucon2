@@ -1682,17 +1682,33 @@ await test('chrome: /design-studio: the studio sits under the pill and right of 
 // part of these tests: /api/terubot/chat and /api/terubot/status are answered by the stubs below (puppeteer request interception).
 // A stubbed 4xx/5xx is not a problem of the page, so the checks below leave /api/terubot/ out of page.problems.
 const TB_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/q842iQAAAABJRU5ErkJggg==', 'base64');
-const tbState = (over = {}) => ({ calls: [], chat: null, status: { aiOn: true, model: 'gemini-test', signedIn: true }, statusDown: false, ...over });
+const tbState = (over = {}) => ({ calls: [], speechCalls: [], speech: null, chat: null, status: { aiOn: true, model: 'gemini-test', signedIn: true }, statusDown: false, ...over });
 const tbAnswer = (reply, extra = {}) => ({ json: { aiOn: true, reply, cards: [], actions: [], model: 'gemini-test', ...extra } });
 const tbProblems = (page) => page.problems.filter((p) => !/\/api\/terubot\/|\/assets\/tb-/.test(p));
 /** A signed-in page with the TeruBot endpoints stubbed by `st` (st.chat(body, n) -> {status?, json}, or a promise of one; st.status; st.statusDown). */
-const tbPage = async (viewport, st, { speech = null } = {}) => {
+const tbPage = async (viewport, st, { speech = null, audio = false } = {}) => {
   const page = await newPage(viewport);
   if (speech === 'none') await page.evaluateOnNewDocument(() => { delete window.SpeechRecognition; delete window.webkitSpeechRecognition; });
   if (speech === 'live' || speech === 'live-nosynth') {
     // a recogniser and a synthesiser the test drives: window.__hear(text) / __silence() play what the microphone heard; __endSpeech() is the end of
     // one spoken piece. What was spoken is also kept in sessionStorage, so it survives a page change.
-    await page.evaluateOnNewDocument((withSynth) => {
+    await page.evaluateOnNewDocument((withSynth, withAudio) => {
+      if (withAudio) {
+        // Google's voice is MP3 played by an <audio> element: a stand-in the test drives. __au.plays lists the size of each sound played (the stub route
+        // answers piece n with 300 + n bytes; the 844-byte one is the silence that unlocks the player); __endAudio() is the end of the sound that is playing.
+        const au = (window.__au = { plays: [], pending: null, sizes: {} });
+        const make = URL.createObjectURL.bind(URL);
+        URL.createObjectURL = (b) => { const u = make(b); au.sizes[u] = b.size; return u; };
+        window.Audio = class {
+          constructor() { this.__src = ''; }
+          set src(v) { this.__src = v; }
+          get src() { return this.__src; }
+          play() { au.plays.push(au.sizes[this.__src]); au.pending = this; return Promise.resolve(); }
+          pause() { if (au.pending === this) au.pending = null; }
+        };
+        window.__endAudio = () => { const a = au.pending; au.pending = null; if (a && a.onended) a.onended(); };
+        window.__failAudio = () => { const a = au.pending; au.pending = null; if (a && a.onerror) a.onerror(new Event('error')); };
+      }
       const sr = (window.__sr = { starts: 0, aborts: 0, active: false, inst: null });
       window.SpeechRecognition = class {
         constructor() { sr.inst = this; }
@@ -1704,16 +1720,16 @@ const tbPage = async (viewport, st, { speech = null } = {}) => {
       window.__hear = (text) => { const r = sr.inst; r.onresult({ resultIndex: 0, results: [Object.assign([{ transcript: text }], { isFinal: true })] }); r.__end(); };
       window.__silence = () => { const r = sr.inst; r.onerror && r.onerror({ error: 'no-speech' }); r.__end(); };
       if (!withSynth) { delete window.speechSynthesis; delete window.SpeechSynthesisUtterance; return; }
-      const tts = (window.__tts = { spoken: [], cancels: 0, pending: [] });
+      const tts = (window.__tts = { spoken: [], langs: [], cancels: 0, pending: [] });
       window.SpeechSynthesisUtterance = class { constructor(t) { this.text = t; this.volume = 1; } };
       Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: {
         getVoices: () => [],
         addEventListener() {},
         cancel() { tts.cancels += 1; const gone = tts.pending.splice(0); gone.forEach((u) => u.onerror && u.onerror({ error: 'canceled' })); },
-        speak(u) { if (u.volume === 0) return; tts.spoken.push(u.text); tts.pending.push(u); try { sessionStorage.setItem('__spoken', JSON.stringify(tts.spoken)); } catch (e) {} },
+        speak(u) { if (u.volume === 0) return; tts.spoken.push(u.text); tts.langs.push(u.lang); tts.pending.push(u); try { sessionStorage.setItem('__spoken', JSON.stringify(tts.spoken)); } catch (e) {} },
       } });
       window.__endSpeech = () => { const u = tts.pending.shift(); if (u && u.onend) u.onend({}); };
-    }, speech === 'live');
+    }, speech === 'live', audio);
   }
   if (speech === 'fake') {
     await page.evaluateOnNewDocument(() => {
@@ -1729,6 +1745,11 @@ const tbPage = async (viewport, st, { speech = null } = {}) => {
       try { body = JSON.parse(req.postData() || 'null'); } catch { /* stays null */ }
       st.calls.push(body);
       Promise.resolve(st.chat ? st.chat(body, st.calls.length) : tbAnswer('Hello.')).then((x) => (x.abort ? req.abort('failed') : req.respond({ status: x.status || 200, contentType: 'application/json', headers: x.headers || {}, body: JSON.stringify(x.json ?? {}) })));
+    } else if (u.pathname === '/api/terubot/speech') { // Google's voice: piece n of reply <id> is 300 + n bytes of "audio" unless the test says otherwise
+      const id = u.searchParams.get('id');
+      const n = u.searchParams.get('n');
+      st.speechCalls.push(id + '/' + n);
+      Promise.resolve(st.speech ? st.speech(id, Number(n)) : { size: 300 + Number(n) }).then((x) => (x.abort ? req.abort('failed') : req.respond(x.status && x.status !== 200 ? { status: x.status, contentType: 'application/json', body: JSON.stringify({ error: 'no' }) } : { status: 200, contentType: 'audio/mpeg', body: Buffer.alloc(x.size ?? 300, 7) })));
     } else if (u.pathname === '/api/terubot/status') {
       if (st.statusDown) req.abort('failed'); else req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify(st.status) });
     } else if (st.route && st.route(u, req) === true) { // a test that answers other addresses itself (the picture of a link, ...)
@@ -2417,7 +2438,7 @@ await test('terubot: live conversation: Talk greets, listens, sends what was hea
   assert(st.calls.at(-1).messages.at(-1).text === 'show me terracotta' && st.calls.length === 1, 'what was heard was not sent as one message: ' + JSON.stringify(st.calls.at(-1)));
   m = await page.evaluate(liveState);
   const said = m.spoken[1];
-  assert(!/https?:|\/materials|\*|₹|^- |\n/.test(said) && /1,200 rupees per square foot/.test(said) && /two terracotta tiles/.test(said), 'the first spoken piece: ' + said);
+  assert(!/https?:|\/materials|\*|₹|^- |\n/.test(said) && /1200 rupees per square foot/.test(said) && /two terracotta tiles/.test(said), 'the first spoken piece: ' + said);
   assert(m.strip === 'Speaking…' && !m.listening, 'listening while it speaks (it would hear itself): ' + JSON.stringify(m));
   assert((await tbBotTexts(page)).some((t) => /Here are \*\*two\*\*/.test(t)), 'the written answer is shown as it came');
   // the whole answer, piece by piece, to its end: nothing in it is an address, a path, markdown or a bullet
@@ -2524,6 +2545,130 @@ await test('terubot: live conversation: three quiet listens end it with a messag
   assert(m.spoken === null && m.starts === 0 && !m.live, 'the new page: ' + JSON.stringify(m));
   noProblems({ problems: tbProblems(page) }, 'ending a live conversation');
   await page.close();
+});
+
+// ---- the live conversation in Google's voice: the server stages the answer in pieces ({speech}) and each piece is fetched as audio and played in
+// order. The player is a stand-in the test drives (see tbPage: window.__au, __endAudio, __failAudio). What is checked is TeruBot's own logic: the order,
+// the look-ahead, never listening while a sound plays, the browser's voice for a piece that fails, and that a late sound is never played.
+const gvState = () => ({ plays: window.__au.plays.filter((n) => n !== 844), playing: !!window.__au.pending, listening: window.__sr.active, starts: window.__sr.starts, strip: document.querySelector('.tb-live') && !document.querySelector('.tb-live').hidden ? document.querySelector('.tb-live__text').textContent : null, browser: window.__tts ? window.__tts.spoken.slice() : [], langs: window.__tts ? window.__tts.langs.slice() : [], pendingBrowser: window.__tts ? window.__tts.pending.length : 0 });
+const GV_PARTS = [{ text: 'Here are two tiles.', lang: 'en' }, { text: 'यह टाइल अच्छी है।', lang: 'hi' }, { text: 'Baaki details aapki screen par hain.', lang: 'hi' }];
+const gvStart = async (st, opts = { speech: 'live' }) => {
+  const page = await tbPage(null, st, { ...opts, audio: true });
+  await tbGo(page, '/inspiration');
+  await tbOpen(page);
+  await tbSettled(page);
+  return page;
+};
+const gvGreet = async (page) => {
+  await page.click('.tb-talk');
+  await liveWait(page, () => window.__au.plays.filter((n) => n !== 844).length === 1, 'the greeting to play');
+  await page.evaluate(() => window.__endAudio());
+  await liveWait(page, () => window.__sr.active, 'the microphone to open after the greeting');
+};
+
+await test('terubot: live conversation: Google voice: the greeting and the answer are fetched as audio and played piece by piece, the next piece already on its way, never listening while a sound plays; the browser voice stays silent', async () => {
+  const st = tbState({ status: { aiOn: true, model: 'gemini-test', signedIn: true, voice: true } });
+  const page = await gvStart(st);
+  await page.click('.tb-talk');
+  await liveWait(page, () => window.__au.plays.length === 2, 'the silence that unlocks the player and then the greeting');
+  let m = await page.evaluate(gvState);
+  assert(JSON.stringify(m.plays) === '[300]' && st.speechCalls.join() === 'hello/0' && m.browser.length === 0 && !m.listening && m.strip === 'Speaking…', 'the greeting: ' + JSON.stringify(m) + ' ' + st.speechCalls);
+  await page.evaluate(() => window.__endAudio());
+  await liveWait(page, () => window.__sr.active, 'listening after the greeting');
+  st.chat = () => tbAnswer('Here are two tiles. यह टाइल अच्छी है। Baaki details aapki screen par hain.', { speech: { id: 'abc12345', parts: GV_PARTS } });
+  await page.evaluate(() => window.__hear('show me tiles'));
+  await liveWait(page, () => window.__au.plays.filter((n) => n !== 844).length === 2, 'the first piece of the answer to play');
+  assert(st.calls.at(-1).speak === true, 'a live chat did not ask for the answer to be staged for the voice: ' + JSON.stringify(st.calls.at(-1)));
+  assert(st.calls[0].speak === true && st.calls.length === 1, 'calls: ' + JSON.stringify(st.calls));
+  m = await page.evaluate(gvState);
+  assert(JSON.stringify(m.plays) === '[300,300]' && m.strip === 'Speaking…' && !m.listening, 'the first piece: ' + JSON.stringify(m));
+  assert(st.speechCalls.join() === 'hello/0,abc12345/0,abc12345/1', 'the next piece should be on its way while the first plays, and no more than that: ' + st.speechCalls);
+  await page.evaluate(() => window.__endAudio());
+  await liveWait(page, () => window.__au.plays.filter((n) => n !== 844).length === 3, 'the second piece to play');
+  assert(!(await page.evaluate(gvState)).listening, 'listening while the second piece plays');
+  await until(() => st.speechCalls.length === 4, 'the third piece to be fetched', 3000);
+  await page.evaluate(() => window.__endAudio());
+  await liveWait(page, () => window.__au.plays.filter((n) => n !== 844).length === 4, 'the third piece to play');
+  assert(!(await page.evaluate(gvState)).listening, 'listening while the third piece plays');
+  await page.evaluate(() => window.__endAudio());
+  await liveWait(page, () => window.__sr.active, 'listening again after the whole answer', 4000);
+  m = await page.evaluate(gvState);
+  assert(JSON.stringify(m.plays) === '[300,300,301,302]' && m.browser.length === 0, 'the order of the sounds, and the browser voice: ' + JSON.stringify(m));
+  assert((await tbBotTexts(page)).some((t) => /Here are two tiles/.test(t)), 'the written answer is shown');
+  noProblems({ problems: tbProblems(page) }, 'a live conversation in Google’s voice');
+  await page.close();
+});
+
+await test('terubot: live conversation: Google voice: a piece that cannot be fetched or played is said by the browser’s voice (Hindi for Hindi) and the rest goes on; a staged speech with a bad id is ignored', async () => {
+  const st = tbState({ status: { aiOn: true, model: 'gemini-test', signedIn: true, voice: true } });
+  const page = await gvStart(st);
+  await gvGreet(page);
+  st.chat = () => tbAnswer('Here are two tiles. यह टाइल अच्छी है। Baaki details aapki screen par hain.', { speech: { id: 'fall0001', parts: GV_PARTS } });
+  st.speech = (id, n) => (id === 'fall0001' && n === 1 ? { status: 502 } : { size: 300 + n });
+  await page.evaluate(() => window.__hear('show me tiles'));
+  await liveWait(page, () => window.__au.plays.filter((n) => n !== 844).length === 2, 'the first piece to play');
+  await page.evaluate(() => window.__failAudio()); // the player could not play it
+  await liveWait(page, () => window.__tts.pending.length === 1, 'the browser voice to take the piece the player could not play');
+  let m = await page.evaluate(gvState);
+  assert(m.browser[0] === 'Here are two tiles.' && m.langs[0] === 'en-IN' && !m.listening && !m.playing, 'the first piece in the browser voice: ' + JSON.stringify(m));
+  await page.evaluate(() => window.__endSpeech());
+  await liveWait(page, () => window.__tts.pending.length === 1 && window.__tts.spoken.length === 2, 'the browser voice to take the piece that could not be fetched');
+  m = await page.evaluate(gvState);
+  assert(m.browser[1] === 'यह टाइल अच्छी है।' && m.langs[1] === 'hi-IN' && !m.listening, 'the Hindi piece: ' + JSON.stringify(m));
+  await page.evaluate(() => window.__endSpeech());
+  await liveWait(page, () => window.__au.plays.filter((n) => n !== 844).length === 3, 'the third piece to play as audio again');
+  await page.evaluate(() => window.__endAudio());
+  await liveWait(page, () => window.__sr.active, 'listening again after the whole answer', 4000);
+  // a speech whose id is not an id (a path) is not fetched at all: the answer is read by the browser's voice instead
+  st.chat = () => tbAnswer('Short answer.', { speech: { id: '../etc', parts: [{ text: 'Short answer.', lang: 'en' }] } });
+  const before = st.speechCalls.length;
+  await page.evaluate(() => window.__hear('and'));
+  await liveWait(page, () => window.__tts.spoken.length === 3, 'the plain answer in the browser voice');
+  assert(st.speechCalls.length === before && (await page.evaluate(gvState)).browser[2] === 'Short answer.', 'a bad id was fetched: ' + st.speechCalls);
+  noProblems({ problems: tbProblems(page) }, 'the fallback');
+  await page.close();
+});
+
+await test('terubot: live conversation: Google voice: a sound that arrives late is never played: Skip, End and a new answer drop every fetch and sound', async () => {
+  const st = tbState({ status: { aiOn: true, model: 'gemini-test', signedIn: true, voice: true } });
+  const page = await gvStart(st);
+  await gvGreet(page);
+  // Skip while the second piece is still being fetched: the first sound stops, the microphone opens, and the second sound never plays
+  st.chat = () => tbAnswer('Here are two tiles. यह टाइल अच्छी है।', { speech: { id: 'late0001', parts: GV_PARTS.slice(0, 2) } });
+  st.speech = (id, n) => (n === 1 ? new Promise((resolve) => setTimeout(() => resolve({ size: 301 }), 1200)) : { size: 300 });
+  await page.evaluate(() => window.__hear('first'));
+  await liveWait(page, () => window.__au.plays.filter((n) => n !== 844).length === 2, 'the first piece to play');
+  await page.evaluate(() => [...document.querySelectorAll('.tb-live button')].find((b) => b.textContent === 'Skip').click());
+  await liveWait(page, () => window.__sr.active && !window.__au.pending, 'the microphone to open and the sound to stop after Skip', 2000);
+  await sleep(1600); // the late piece has now "arrived"
+  let m = await page.evaluate(gvState);
+  assert(m.plays.length === 2 && !m.playing && m.listening && m.browser.length === 0, 'a late sound played after Skip: ' + JSON.stringify(m));
+  // End while the first piece is still being fetched
+  st.chat = () => tbAnswer('Another answer.', { speech: { id: 'late0002', parts: [{ text: 'Another answer.', lang: 'en' }] } });
+  st.speech = () => new Promise((resolve) => setTimeout(() => resolve({ size: 300 }), 1200));
+  await page.evaluate(() => window.__hear('second'));
+  await until(() => st.speechCalls.includes('late0002/0'), 'the piece to be asked for', 3000);
+  await page.evaluate(() => [...document.querySelectorAll('.tb-live button')].find((b) => b.textContent === 'End').click());
+  await sleep(1600);
+  m = await page.evaluate(gvState);
+  assert(m.plays.length === 2 && !m.playing && !m.listening && m.strip === null, 'a late sound played after End: ' + JSON.stringify(m));
+  noProblems({ problems: tbProblems(page) }, 'late sounds');
+  await page.close();
+});
+
+await test('terubot: live conversation: Google voice: Talk is offered in a browser with no speech synthesis of its own when the server says its voice is on, and not when it is off', async () => {
+  const on = tbState({ status: { aiOn: true, model: 'gemini-test', signedIn: true, voice: true } });
+  const page = await gvStart(on, { speech: 'live-nosynth' });
+  assert(await page.evaluate(() => !document.querySelector('.tb-talk').hidden), 'no Talk button although Google’s voice is on and the browser can listen');
+  await page.click('.tb-talk');
+  await liveWait(page, () => window.__au.plays.length === 2, 'the greeting to play with no browser voice at all');
+  await page.evaluate(() => window.__endAudio());
+  await liveWait(page, () => window.__sr.active, 'the microphone to open');
+  await page.close();
+  const off = tbState({ status: { aiOn: true, model: 'gemini-test', signedIn: true, voice: false } });
+  const mute = await gvStart(off, { speech: 'live-nosynth' });
+  assert(await mute.evaluate(() => document.querySelector('.tb-talk').hidden), 'Talk is offered with neither Google’s voice nor the browser’s');
+  await mute.close();
 });
 
 await test('terubot: live conversation: on a phone the header still fits (Talk, New chat, Close are at least 44 px, none overlaps or leaves it), and the strip and the form fit in the sheet', async () => {

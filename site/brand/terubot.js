@@ -16,6 +16,7 @@
   // ---- constants ------------------------------------------------------------------------------------------------------
   var CHAT_URL = '/api/terubot/chat';
   var STATUS_URL = '/api/terubot/status';
+  var SPEECH_URL = '/api/terubot/speech?id=';
   var STORE_KEY = 'terucon.terubot.v1'; // sessionStorage: the conversation of this tab
   var PREFILL_KEY = 'terucon.enquiry.prefill'; // sessionStorage: the project form reads this (documented in terubot.md)
   var PENDING_KEY = 'terucon.terubot.pending'; // sessionStorage: shop changes waiting for the shop page to open
@@ -294,7 +295,7 @@
   var built = false, isOpen = false, busy = false, prevFocus = null, typingEl = null;
   var gen = 0; // bumped by "New chat" so an answer to an old conversation is dropped
   var inflight = null, blockedUntil = 0, blockTimer = 0;
-  var status = { known: false, aiOn: null, signedIn: null, unreachable: false };
+  var status = { known: false, aiOn: null, signedIn: null, unreachable: false, voice: false }; // voice: Google's voice is on (the server says)
   var statusAsked = false;
   var rec = null, listening = false, micBase = '';
 
@@ -351,6 +352,8 @@
         status.unreachable = false;
         status.aiOn = !!(j && j.aiOn === true);
         status.signedIn = j && typeof j.signedIn === 'boolean' ? j.signedIn : null;
+        status.voice = !!(j && j.voice === true);
+        if (talkBtn) talkBtn.hidden = !talkAvailable(); // the voice may be the reason Talk can be offered (a browser with no speech of its own)
         describeStatus();
       })
       .catch(function () {
@@ -711,6 +714,7 @@
     var timedOut = false;
     var timer = setTimeout(function () { timedOut = true; if (ctl) ctl.abort(); }, REQUEST_TIMEOUT);
     var payload = { messages: history(), context: pageContext() };
+    if (live && playerAvailable()) payload.speak = true; // a live conversation: have the answer made ready for Google's voice (the server leaves it out when the voice is off, and brings it back by itself)
     var hadPhoto = !!photo;
     if (photo) payload.image = photo.kind === 'link' ? { token: photo.token } : { type: photo.type, data: photo.data };
     var body = JSON.stringify(payload);
@@ -792,6 +796,8 @@
     var cards = cleanCards(j.cards);
     var actions = cleanActions(j.actions);
     var msg = { role: 'bot', text: text || (cards.length || actions.length ? '' : 'TeruBot had nothing to say to that.'), cards: cards, notes: [], err: false };
+    var spoken = cleanSpeech(j.speech);
+    if (spoken) { msg.speech = spoken; status.voice = true; } // not saved with the conversation: it is only for the answer that has just arrived
     var att = cleanAttachment(j.attachment);
     if (att) { msg.attach = { host: att.host, thumb: '' }; takeLinkPhoto(att, msg); }
     appendMessage(msg);
@@ -1041,34 +1047,62 @@
   }
 
   // ---- live conversation: talk, and be answered aloud, like a call ---------------------------------------------------------
-  // Listen (the browser's speech recognition) -> send what was heard -> read the answer aloud (the browser's speech synthesis) -> listen
-  // again. The microphone is never open while TeruBot speaks (it would hear itself); tap Skip to interrupt. It ends on End, on closing
-  // the panel, on New chat, on leaving the page, on a hidden tab, after three quiet listens, and on any answer that is not an answer
-  // (too many messages, sign in, the AI is off, the server cannot be reached). Everything runs in this browser: nothing but the text
-  // goes to TeruBot, as with typing. The voice is whatever voice this device has (an Indian-English one first).
+  // Listen (the browser's speech recognition) -> send what was heard -> say the answer aloud -> listen again. The microphone is never open
+  // while TeruBot speaks (it would hear itself); tap Skip to interrupt. It ends on End, on closing the panel, on New chat, on leaving the
+  // page, on a hidden tab, after three quiet listens, and on any answer that is not an answer (too many messages, sign in, the AI is off,
+  // the server cannot be reached). Only the text goes to TeruBot, as with typing.
+  //
+  // THE VOICE. When the server says Google's voice is on (status.voice), a live chat asks for the answer to be staged ({speak: true}); the
+  // reply then carries {speech: {id, parts: [{text, lang}]}} (the pieces, cleaned and respelled for the ear, with the language of each:
+  // English, Hindi or Hinglish) and each piece is fetched as MP3 from /api/terubot/speech/<id>/<n> and played in order, the next one
+  // already on its way while the current one plays. Any piece that cannot be fetched or played is said by the browser's own voice instead
+  // (a Hindi one for Hindi), so a conversation never goes silent; where Google's voice is off, the browser's voice says everything, as it
+  // did before. Nothing that is late is ever played: Skip, End, a new chat, a hidden tab or a new answer drops every fetch and sound.
   var SILENT_LIMIT = 3;
-  var SPEECH_MAX_CHARS = 420; // an answer is read out for its first few sentences; the whole of it is on the screen
-  var speakGen = 0, speakTimer = 0, voiceObj = null, voicesHooked = false;
+  var SPEECH_MAX_CHARS = 420; // the browser's voice reads an answer for its first few sentences; the whole of it is on the screen
+  var FETCH_TIMEOUT = 20000;
+  var HELLO = 'Hi, I’m TeruBot. How can I help?';
+  var DEVANAGARI = /[ऀ-ॿ]/;
+  var speakGen = 0, speakTimer = 0, voiceObjs = {}, voicesHooked = false;
+  var audioEl = null, audioUrl = '', silenceUrl = '', speakFetches = [];
 
   function synthAvailable() {
     return !!(window.speechSynthesis && typeof window.SpeechSynthesisUtterance === 'function');
   }
-  function talkAvailable() { return synthAvailable() && micAvailable(); }
+  function playerAvailable() {
+    return typeof window.Audio === 'function' && typeof window.fetch === 'function' && typeof window.Blob === 'function' && !!window.URL && typeof window.URL.createObjectURL === 'function';
+  }
+  function serverVoiceUsable() { return status.voice === true && playerAvailable(); }
+  function talkAvailable() { return (synthAvailable() || serverVoiceUsable()) && micAvailable(); }
 
-  /** What is said for a piece of text: no addresses, no markdown, rupees and units in words, the first few sentences. */
+  /** The pieces the server staged for a reply, or null: {id, parts: [{text, lang}]}. */
+  function cleanSpeech(x) {
+    if (!x || typeof x !== 'object' || typeof x.id !== 'string' || !/^[A-Za-z0-9_-]{4,40}$/.test(x.id) || !Array.isArray(x.parts)) return null;
+    var parts = [];
+    for (var i = 0; i < x.parts.length && i < 10; i += 1) {
+      var p = x.parts[i];
+      if (!p || typeof p.text !== 'string' || !p.text.trim()) return null;
+      parts.push({ text: p.text.slice(0, 600), lang: p.lang === 'hi' ? 'hi' : 'en' });
+    }
+    return parts.length ? { id: x.id, parts: parts } : null;
+  }
+
+  /** What the browser's own voice says for a piece of text (when Google's voice is off or fails): no addresses, no markdown, the first few sentences. */
   function speakable(text) {
     var t = str(text, 4000);
     t = t.replace(/https?:\/\/\S+/gi, ' '); // addresses are not read out
     t = t.replace(/(^|\s)\/[A-Za-z0-9]\S*/g, '$1'); // nor are paths of this site (/materials#/p/teak)
     t = t.replace(/^\s*[-•·]\s+/gm, ''); // list bullets
     t = t.replace(/[*_`#>~|]+/g, ' '); // markdown marks
+    t = t.replace(/\d{1,3}(?:,\d{2,3})+(?:\.\d+)?/g, function (m) { return m.replace(/,/g, ''); }); // 6,020 and 1,25,000 are read digit by digit; 6020 is not
     t = t.replace(/₹\s?(\d[\d,]*(?:\.\d+)?)/g, '$1 rupees').replace(/\bRs\.?\s?(\d[\d,]*(?:\.\d+)?)/gi, '$1 rupees');
     t = t.replace(/\bper\s+sq\.?\s?ft\b/gi, 'per square foot').replace(/\bper\s+sq\.?\s?m\b/gi, 'per square metre');
     t = t.replace(/\bsq\.?\s?ft\b/gi, 'square feet').replace(/\bsq\.?\s?m\b/gi, 'square metres').replace(/×/g, ' times ');
-    t = t.replace(/[–—]/g, ', ').replace(/\s*\n+\s*/g, '. ').replace(/\s+/g, ' ').replace(/([.!?])(\s*[.!?])+/g, '$1').trim();
+    t = t.replace(/[–—]/g, ', ').replace(/\s*\n+\s*/g, '. ').replace(/\s+/g, ' ').replace(/([.!?।])(\s*[.!?।])+/g, '$1').trim();
     if (!t) return [];
-    t = t.replace(/(\d)\.(?=\d)/g, '$1\u0001'); // a point between digits (2.5, 1,200.50) is not the end of a sentence
-    var sentences = t.match(/[^.!?]+(?:[.!?]+|$)/g) || [t];
+    var hindi = DEVANAGARI.test(t);
+    t = t.replace(/(\d)\.(?=\d)/g, '$1\u0001'); // a point between digits (2.5, 1200.50) is not the end of a sentence
+    var sentences = t.match(/[^.!?।]+(?:[.!?।]+|$)/g) || [t];
     var out = [], len = 0, cut = false;
     for (var i = 0; i < sentences.length; i += 1) {
       var sentence = sentences[i].trim();
@@ -1084,66 +1118,179 @@
       }
       if (sentence) out.push(sentence);
     }
-    if (cut) out.push('The rest is on your screen.');
+    if (cut) out.push(hindi ? 'बाकी जानकारी आपकी स्क्रीन पर है।' : 'The rest is on your screen.');
     for (var k = 0; k < out.length; k += 1) out[k] = out[k].replace(/\u0001/g, '.');
     return out;
   }
-  function pickVoice() {
-    if (voiceObj) return voiceObj;
+
+  // ---- the browser's own voice (the fallback) ----
+  function pickVoice(lang) {
+    lang = lang === 'hi' ? 'hi' : 'en';
+    if (voiceObjs[lang] !== undefined) return voiceObjs[lang];
     var list = [];
     try { list = window.speechSynthesis.getVoices() || []; } catch (e) { list = []; }
-    var prefs = ['en-in', 'en-gb', 'en-us', 'en-au'], best = null, bestScore = -1;
+    var prefs = lang === 'hi' ? ['hi-in'] : ['en-in', 'en-gb', 'en-us', 'en-au'], best = null, bestScore = -1;
     for (var i = 0; i < list.length; i += 1) {
-      var lang = String(list[i].lang || '').toLowerCase().replace('_', '-');
-      var rank = prefs.indexOf(lang);
-      if (rank < 0 && lang.indexOf('en') !== 0) continue;
+      var tag = String(list[i].lang || '').toLowerCase().replace('_', '-');
+      var rank = prefs.indexOf(tag);
+      if (rank < 0 && tag.indexOf(lang) !== 0) continue;
       var score = (rank < 0 ? 1 : 10 - rank) * 10 + (list[i].localService ? 0 : 3) + (/natural|neural|google|premium|enhanced/i.test(String(list[i].name || '')) ? 4 : 0);
       if (score > bestScore) { bestScore = score; best = list[i]; }
     }
-    voiceObj = best; // null: the browser's own default voice
+    voiceObjs[lang] = best; // null: the browser's own default voice
     return best;
   }
   function hookVoices() {
     // the list of voices arrives after the page has loaded in some browsers: choose again when it does
     if (voicesHooked || !synthAvailable()) return;
     voicesHooked = true;
-    try { window.speechSynthesis.addEventListener('voiceschanged', function () { voiceObj = null; }); } catch (e) { /* no event: the first list is used */ }
+    try { window.speechSynthesis.addEventListener('voiceschanged', function () { voiceObjs = {}; }); } catch (e) { /* no event: the first list is used */ }
+  }
+  /** One piece in the browser's voice; calls advance() when it is said (or cannot be). Nothing from an older speech (a changed `mine`) goes on. */
+  function speakPiece(piece, lang, mine, advance) {
+    var u;
+    try { u = new window.SpeechSynthesisUtterance(piece); } catch (e) { advance(); return; }
+    var v = pickVoice(lang);
+    if (v) { u.voice = v; u.lang = v.lang; } else u.lang = lang === 'hi' ? 'hi-IN' : 'en-IN';
+    var moved = false;
+    var step = function () { if (moved || mine !== speakGen) return; moved = true; clearTimeout(speakTimer); advance(); };
+    u.onend = step;
+    u.onerror = step;
+    // a voice that never says it has finished must not hold the conversation: the time the words need, plus a margin
+    speakTimer = setTimeout(step, Math.max(4000, piece.length * 140 + 3000));
+    try { window.speechSynthesis.speak(u); } catch (e) { step(); }
+  }
+  /** Say the pieces one after the other in the browser's voice, then call done(). An interrupted or replaced speech never calls it. */
+  function speakChunks(chunks, done, lang) {
+    hookVoices();
+    stopSpeaking(); // the old speech is replaced first: if the browser reports its cancelled piece at once, nothing continues it
+    speakGen += 1;
+    var mine = speakGen, i = 0;
+    var finish = function () { speakGen += 1; done(); };
+    if (!synthAvailable()) { finish(); return; }
+    function next() {
+      if (mine !== speakGen) return;
+      if (i >= chunks.length) { finish(); return; }
+      var piece = chunks[i];
+      i += 1;
+      speakPiece(piece, lang, mine, next);
+    }
+    next();
+  }
+
+  // ---- Google's voice: fetched pieces, played in order ----
+  function silentWav() {
+    // 0.1 s of silence (8 kHz, 8 bit, mono): played once inside the tap that starts a conversation, to unlock the player (iPhone Safari)
+    var n = 800, bytes = new Uint8Array(44 + n), view = new DataView(bytes.buffer), i;
+    var tag = function (at, text) { for (var k = 0; k < text.length; k += 1) bytes[at + k] = text.charCodeAt(k); };
+    tag(0, 'RIFF'); view.setUint32(4, 36 + n, true); tag(8, 'WAVE'); tag(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true); view.setUint32(24, 8000, true); view.setUint32(28, 8000, true); view.setUint16(32, 1, true); view.setUint16(34, 8, true);
+    tag(36, 'data'); view.setUint32(40, n, true);
+    for (i = 0; i < n; i += 1) bytes[44 + i] = 128;
+    return new Blob([bytes], { type: 'audio/wav' });
+  }
+  function unlockAudio() {
+    if (!serverVoiceUsable()) return;
+    try {
+      if (!audioEl) audioEl = new window.Audio();
+      if (!silenceUrl) silenceUrl = window.URL.createObjectURL(silentWav());
+      audioEl.onended = null;
+      audioEl.onerror = null;
+      audioEl.src = silenceUrl;
+      var p = audioEl.play();
+      if (p && typeof p.catch === 'function') p.catch(function () { /* not allowed here: the browser's own voice is the fallback */ });
+    } catch (e) { /* no audio here */ }
+  }
+  function stopAudio() {
+    if (audioEl) {
+      audioEl.onended = null; // set first: pausing or emptying the player must not look like "finished" or "failed"
+      audioEl.onerror = null;
+      try { audioEl.pause(); } catch (e) { /* nothing was playing */ }
+    }
+    if (audioUrl) { try { window.URL.revokeObjectURL(audioUrl); } catch (e) { /* already gone */ } audioUrl = ''; }
+  }
+  function abortFetches() {
+    var list = speakFetches;
+    speakFetches = [];
+    for (var i = 0; i < list.length; i += 1) { try { list[i].abort(); } catch (e) { /* already finished */ } }
+  }
+  function fetchPiece(id, n) {
+    var ctl = typeof AbortController === 'function' ? new AbortController() : null;
+    if (ctl) speakFetches.push(ctl);
+    var timer = setTimeout(function () { if (ctl) ctl.abort(); }, FETCH_TIMEOUT);
+    var p = fetch(SPEECH_URL + encodeURIComponent(id) + '&n=' + n, { method: 'GET', credentials: 'same-origin', cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+      .then(function (r) {
+        if (!r.ok) throw new Error('speech ' + r.status);
+        return r.blob();
+      })
+      .then(function (b) {
+        clearTimeout(timer);
+        if (!b || b.size < 200) throw new Error('speech empty');
+        return b;
+      }, function (e) { clearTimeout(timer); throw e; });
+    p.catch(function () { /* looked at when its turn to be played comes */ });
+    return p;
+  }
+  /** Play one fetched piece; onEnd() when it is over, onFail() when the player could not play it. A replaced speech (a changed `mine`) calls neither. */
+  function playBlob(blob, chars, mine, onEnd, onFail) {
+    var over = false;
+    var finish = function (ok) {
+      if (over || mine !== speakGen) return;
+      over = true;
+      clearTimeout(speakTimer);
+      stopAudio();
+      (ok ? onEnd : onFail)();
+    };
+    try {
+      if (!audioEl) audioEl = new window.Audio();
+      stopAudio();
+      audioUrl = window.URL.createObjectURL(blob);
+      audioEl.onended = function () { finish(true); };
+      audioEl.onerror = function () { finish(false); };
+      audioEl.src = audioUrl;
+      speakTimer = setTimeout(function () { finish(true); }, Math.max(8000, chars * 160 + 6000)); // a player that stalls must not hold the conversation
+      var p = audioEl.play();
+      if (p && typeof p.catch === 'function') p.catch(function () { finish(false); });
+    } catch (e) { finish(false); }
+  }
+  /** Say the staged pieces in Google's voice, then call done(). A piece that fails is said by the browser's voice. */
+  function speakParts(speech, done) {
+    hookVoices();
+    stopSpeaking();
+    speakGen += 1;
+    var mine = speakGen, i = 0, jobs = [];
+    var job = function (k) { if (k < speech.parts.length && !jobs[k]) jobs[k] = fetchPiece(speech.id, k); return jobs[k]; };
+    function next() {
+      if (mine !== speakGen) return;
+      if (i >= speech.parts.length) { speakGen += 1; done(); return; }
+      var at = i;
+      i += 1;
+      var part = speech.parts[at];
+      var first = job(at);
+      job(at + 1); // the next piece is on its way while this one is played
+      var fallback = function () {
+        if (mine !== speakGen) return;
+        if (synthAvailable()) speakPiece(part.text, part.lang, mine, next); else next();
+      };
+      first.then(function (blob) {
+        if (mine !== speakGen) return; // late: Skip, End or a newer answer got here first
+        playBlob(blob, part.text.length, mine, next, fallback);
+      }, fallback);
+    }
+    next();
+  }
+
+  function primeSpeech() {
+    // iPhone Safari lets sound start only inside a tap: say nothing, once, inside the tap that starts the conversation
+    if (synthAvailable()) { try { var u = new window.SpeechSynthesisUtterance(' '); u.volume = 0; window.speechSynthesis.speak(u); } catch (e) { /* no speech here */ } }
+    unlockAudio();
   }
   function stopSpeaking() {
     speakGen += 1; // whatever was waiting for the end of the speech is dropped
     clearTimeout(speakTimer);
+    abortFetches();
+    stopAudio();
     try { if (synthAvailable()) window.speechSynthesis.cancel(); } catch (e) { /* nothing was playing */ }
-  }
-  /** Say the pieces one after the other, then call done(). An interrupted or replaced speech never calls it. */
-  function speakChunks(chunks, done) {
-    hookVoices();
-    speakGen += 1; // the old speech is replaced first: if the browser reports its cancelled piece at once, nothing continues it
-    clearTimeout(speakTimer);
-    try { window.speechSynthesis.cancel(); } catch (e) { /* nothing was playing */ }
-    speakGen += 1;
-    var mine = speakGen, i = 0;
-    function next() {
-      if (mine !== speakGen) return;
-      if (i >= chunks.length) { speakGen += 1; done(); return; }
-      var piece = chunks[i];
-      i += 1;
-      var u;
-      try { u = new window.SpeechSynthesisUtterance(piece); } catch (e) { speakGen += 1; done(); return; }
-      var v = pickVoice();
-      if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-IN';
-      var moved = false;
-      var advance = function () { if (moved || mine !== speakGen) return; moved = true; clearTimeout(speakTimer); next(); };
-      u.onend = advance;
-      u.onerror = advance;
-      // a voice that never says it has finished must not hold the conversation: the time the words need, plus a margin
-      speakTimer = setTimeout(advance, Math.max(4000, piece.length * 140 + 3000));
-      try { window.speechSynthesis.speak(u); } catch (e) { advance(); }
-    }
-    next();
-  }
-  function primeSpeech() {
-    // iPhone Safari lets speech start only inside a tap: say nothing, once, inside the tap that starts the conversation
-    try { var u = new window.SpeechSynthesisUtterance(' '); u.volume = 0; window.speechSynthesis.speak(u); } catch (e) { /* no speech here */ }
   }
 
   function setLiveStep(step) {
@@ -1175,7 +1322,9 @@
     if (busy) { setLiveStep('thinking'); return; }
     if (!state.msgs.length) { // a fresh chat: say hello, like picking up a call
       setLiveStep('speaking');
-      speakChunks(['Hi, I’m TeruBot. How can I help?'], function () { setTimeout(listenLive, 300); });
+      var then = function () { setTimeout(listenLive, 300); };
+      if (serverVoiceUsable()) speakParts({ id: 'hello', parts: [{ text: HELLO, lang: 'en' }] }, then);
+      else speakChunks([HELLO], then, 'en');
     } else listenLive();
   }
   function endLive(message) {
@@ -1189,10 +1338,12 @@
   /** An answer has arrived: in a live conversation, say it, then listen again. */
   function afterReply(msg) {
     if (!live) return;
+    var again = function () { setTimeout(listenLive, 300); }; // a moment after the voice stops, so the microphone does not hear its tail
+    if (msg.speech && playerAvailable()) { setLiveStep('speaking'); speakParts(msg.speech, again); return; }
     var chunks = speakable(msg.text || (msg.cards && msg.cards.length ? 'I have put the options on your screen.' : ''));
     if (!chunks.length) { listenLive(); return; }
     setLiveStep('speaking');
-    speakChunks(chunks, function () { setTimeout(listenLive, 300); }); // a moment after the voice stops, so the microphone does not hear its tail
+    speakChunks(chunks, again, DEVANAGARI.test(chunks.join(' ')) ? 'hi' : 'en');
   }
 
   // ---- building the panel (the first time it opens) ----------------------------------------------------------------------
@@ -1529,7 +1680,7 @@
   }
 
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden' && live) endLive(); });
-  window.addEventListener('pagehide', function () { if (synthAvailable()) stopSpeaking(); });
+  window.addEventListener('pagehide', function () { stopSpeaking(); });
 
   window.TeruBot = {
     open: function (opts) { open(opts); },

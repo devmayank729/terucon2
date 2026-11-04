@@ -9,6 +9,7 @@ import { runChat } from './chat.js';
 import { createGemini } from './gemini.js';
 import { createImageResolver } from './images.js';
 import { createLimits } from './limits.js';
+import { createVoice } from './voice.js';
 import { loadShop } from './shop.js';
 
 export const DATA_DIR = fileURLToPath(new URL('../../data/', import.meta.url));
@@ -42,11 +43,14 @@ export function createTerubot({ settings, site, dist, log, googleDir, mediaDir =
   const images = createImageResolver(dist, { mediaDir });
   const gemini = overrides.gemini ?? createGemini({ googleDir, settings, log });
   const limits = createLimits({ limits: () => settings().terubot, now: overrides.now });
+  // The voice: Google's Text-to-Speech through the same Google connection as the chat. Without one (a fake Gemini in a test) it is off.
+  const voice = overrides.voice ?? createVoice({ google: () => gemini.google?.() ?? null, settings, log });
 
   return {
     shop,
     form,
     limits,
+    voice,
 
     /** Whether the assistant can answer at all: {on: true, model} or {on: false, reason: 'setting' | 'not-configured', problem}. Calls nobody. */
     state() {

@@ -101,6 +101,12 @@ export function createGemini({ googleDir, settings, log }) {
   const modelName = () => settings().terubot.model || load().vertex?.TEXT_MODEL_CHAIN?.[0] || null;
 
   return {
+    /** The studio's Google connection (the token module), for the voice: the same credentials as the chat. Null when it cannot be loaded. */
+    google() {
+      const g = load();
+      return g.error ? null : { token: g.token, config: g.config };
+    },
+
     /** Whether a Google key (or the machine's own identity) is set up. Reads settings only; never calls Google. */
     describe() {
       const g = load();

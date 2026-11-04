@@ -108,12 +108,13 @@ A **Talk** button in the panel header starts a spoken conversation, like a call:
 as an ordinary message, **reads the answer aloud**, and listens again. Controls: a strip above the form says "Listening…", "Thinking…" or
 "Speaking…"; **Skip** (while it speaks) stops the voice and listens at once; **End** (or Talk again) stops everything.
 
-* **How:** the browser's own speech recognition (`en-IN`) and speech synthesis; nothing new on the server, no extra cost, and nothing but the text
-  reaches TeruBot (as with typing). The voice is the device's: an Indian-English voice first, then British, US, Australian, then any English one.
+* **How:** the browser's own speech recognition (`en-IN`) turns what is said into text, which goes to TeruBot as with typing. The answer is spoken by
+  **Google's voice** (below); where that is off, or for a piece it fails on, by the browser's own speech synthesis (an Indian-English voice first, then
+  British, US, Australian, then any English one; a Hindi one for Hindi).
 * **Never both at once:** the microphone is shut while TeruBot speaks (it would hear itself) and opens a moment after the voice stops. There is no
   barge-in by voice; tap Skip.
-* **What is read out:** the first few sentences (about 420 characters, then "The rest is on your screen."), with addresses, site paths, markdown and
-  bullets removed, rupees and units in words ("₹1,200 per sq ft" is said "1,200 rupees per square foot"). Cards and notes are on screen only.
+* **What is read out:** the first few sentences (about 420 characters, then "The rest is on your screen.", or in Hindi "बाकी जानकारी आपकी स्क्रीन पर है।"),
+  with addresses, site paths, markdown, bullets and emoji removed, and numbers, money and units made readable (below). Cards and notes are on screen only.
 * **It ends** on End, on closing the panel, on New chat, on a hidden tab, on leaving the page, after three quiet listens in a row, and on any answer
   that is not an answer (too many messages, sign in, the AI is off, the server cannot be reached): the chat says why. **An answer that opens another
   page is not read out and ends it:** a new page starts without the microphone or a turn to speak (iPhone Safari allows speech only inside a tap), so
@@ -125,8 +126,32 @@ as an ordinary message, **reads the answer aloud**, and listens again. Controls:
 * **Privacy:** in Chrome and Edge the browser's speech recognition sends the audio to the browser maker's online speech service to turn it into
   text (how that API is documented to work); other browsers differ and were not checked here. The microphone is open only between the Talk tap and End.
   The site's privacy text was not checked: it should say this before launch.
-* **What it is not:** a studio-quality voice, a phone call, or a model that hears (TeruBot answers the text of what was heard). A neural voice
-  (Gemini Live / a text-to-speech service) would be a separate, billed upgrade behind the same buttons.
+* **What it is not:** a phone call, or a model that hears (TeruBot answers the text of what was heard). **Listening is still English only** (`en-IN`):
+  a visitor who speaks Hindi will be heard badly; the voice side speaks English, Hindi and Hinglish, the listening side does not yet.
+
+### Google's voice (2026-11-04)
+
+The browser's own voice was not good enough, so the answers are spoken by **Google Cloud Text-to-Speech, Chirp 3 HD** voices
+(`server/lib/terubot/voice.js`, `speech.js`). One speaker name (`TERUBOT_VOICE`, default `Aoede`) exists in both Indian English (`en-IN`) and Hindi
+(`hi-IN`), so the voice does not change when the language does.
+
+* **Why a staged reply, not "say this":** a live chat sends `speak: true`; the server writes the reply, prepares it for the ear (`speech.js`) and returns
+  `speech: {id, parts: [{text, lang}]}`. The browser fetches each piece as MP3 from `GET /api/terubot/speech?id=&n=` and plays them in order, the next one
+  already on its way. Only replies TeruBot has just written (kept 15 minutes) and the greeting (`id=hello`) can be had, so the endpoint cannot be used as a
+  free text-to-speech service and the chat limits are also the limits of the voice. The same words in the same voice are made once (kept in memory, 16 MB).
+* **Which voice for which text:** Devanagari and **Hinglish** (Hindi in Roman letters, recognised by a list of Hindi function words) go to the Hindi voice,
+  which reads both the Hindi words and the English words in them correctly; plain English goes to the English voice (the Hindi voice reads an English reply's
+  numbers in Hindi). Measured, not assumed: see the comment at the top of `speech.js`.
+* **What is made readable:** `6,020` and `1,25,000` lose their commas (the voices read the comma forms digit by digit); `₹6,960 / sheet` is "6960 rupees per sheet"
+  ("रुपये", "प्रति" inside Hindi); `1220 × 2440 mm` is "1220 by 2440 millimetres"; a code such as `SB804` or `TIPL-SB804` is spelled letter by letter, as are
+  ACP, BOQ, PVC, MDF, HPL, WPC, GST and SKU; `TeruBot` is respelled "Teru Bot" (a guess at the intended sound: change it in `speech.js`); a hyphen inside a word becomes a space.
+* **When it fails:** a piece that cannot be fetched or played is said by the browser's voice instead and the rest goes on, so a conversation never goes silent. If Google
+  refuses (the Text-to-Speech API is not enabled for the project, the key may not use it, a bad voice name) the voice marks itself down for five minutes, says why in
+  the server log (status and reason, never the words), and `GET /api/terubot/status` reports `voice: false`, so the browser uses its own voice until it works again.
+* **The player:** one `<audio>` element, unlocked by a silent clip inside the Talk tap (iPhone Safari), fed blob addresses; the hand-written pages' policy therefore
+  has `media-src 'self' blob:`. Skip, End, a new answer, a hidden tab and leaving the page abort every fetch and stop the sound; a sound that arrives late is never played.
+* **Privacy and cost:** the text of each spoken answer goes to Google (as it already does to Gemini) and is billed per character spoken; the visitor's voice recording is not
+  involved (that is the browser's recognition, above). The Cloud Text-to-Speech API has to be enabled once in the Google Cloud project of the key.
 
 ## Photos and links (2026-11-04)
 
