@@ -354,4 +354,39 @@
   };
 
   mount();
+
+  /* ---- photos from a phone (capture.js / capture.css, see capture.js): the launcher belongs on the studio, Inspiration and Finder pages, and the
+     "photos arrived" pop-up on any page while a capture link is open here (capture.js leaves a note in localStorage). Elsewhere nothing is
+     downloaded. The stylesheet goes first so the launcher never shows unstyled. data-tc-capture="off" on <html> opts a page out. */
+  (function () {
+    var watch = false;
+    try {
+      var note = JSON.parse(localStorage.getItem('terucon.capture.v1') || 'null');
+      watch = !!(note && note.watchUntil > Date.now());
+    } catch (e) {}
+    if (!(key === 'studio' || key === 'inspiration' || key === 'finder' || watch) || root.getAttribute('data-tc-capture') === 'off') return;
+    function inject() {
+      if (window.TeruconCapture || document.querySelector('script[data-tc-capture-js]')) return;
+      var go = function () {
+        if (go.done) return;
+        go.done = true;
+        var s = document.createElement('script');
+        s.src = '/brand/capture.js';
+        s.setAttribute('data-tc-capture-js', '');
+        document.head.appendChild(s);
+      };
+      var css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = '/brand/capture.css';
+      css.onload = css.onerror = go;
+      document.head.appendChild(css);
+      setTimeout(go, 2500);
+    }
+    var later = function () {
+      if (window.requestIdleCallback) window.requestIdleCallback(inject, { timeout: 2000 });
+      else setTimeout(inject, 600);
+    };
+    if (document.readyState === 'complete') later();
+    else window.addEventListener('load', later, { once: true });
+  })();
 })();

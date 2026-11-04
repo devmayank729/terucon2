@@ -134,6 +134,7 @@ export async function startStack(opts = {}) {
       // sign-in (server/auth/): accounts in memory, and the one-time codes printed in the server's window, which is how a test or a
       // person trying the stack by hand reads them. Allowed only because the stack listens on this computer and is not "production".
       AUTH_STORE: 'memory',
+      CAPTURE_STORE: 'memory', // photos sent from a phone: in memory, like the accounts (there is no database here)
       AUTH_EMAIL_PROVIDER: 'console',
       AUTH_SMS_PROVIDER: 'console',
       AUTH_SECRET: 'dev-stack-auth-secret-'.padEnd(48, 'x'),

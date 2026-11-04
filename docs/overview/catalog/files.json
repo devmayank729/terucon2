@@ -34,9 +34,75 @@
     "server/lib/inspiration/": "The server side of the inspiration import: safe fetching of an address a visitor chose, gallery-dl, picture checks, tokens and limits.",
     "server/catalogue/": "The website's catalogue gateway (targets C3, C4, C5, C7, D1): client and admin routes, the Modal client, the GCS signer, validation and settings. Mints signed URLs and forwards small requests; never does model work itself. See catalogue/ARCHITECTURE.md section 7.",
     "site/catalogue-ui/": "The browser side of the Finder page and the catalogue admin screen (targets C3, C4, C5, C7, D1): client.js (the shared API client, camera and photo-resize helpers), finder.js, admin.js, catalogue-ui.css. Served from /catalogue-ui/assets/ by a fixed list of names (server/routes/catalogueUi.js), the same pattern as site/inspiration/.",
-    "catalogue/": "The real-catalogue retrieval engine (Python), ported from terucon-cat-1.ipynb: extraction, encoders, the Vertex/Gemini captions, the publisher (MongoDB + GCS + a Modal cache), the search service and the Modal app. Not shipped in the website's Docker image. Start with catalogue/ARCHITECTURE.md."
+    "catalogue/": "The real-catalogue retrieval engine (Python), ported from terucon-cat-1.ipynb: extraction, encoders, the Vertex/Gemini captions, the publisher (MongoDB + GCS + a Modal cache), the search service and the Modal app. Not shipped in the website's Docker image. Start with catalogue/ARCHITECTURE.md.",
+    "server/capture/": "Capture from a phone: the settings, the in-memory or MongoDB store, the sessions and photos logic, the metadata stripper, the WhatsApp client and the routes.",
+    "site/capture/": "The browser code of the phone page /capture (take or choose photos, labels, location, a queue that survives a reload and a lost connection). Served from /capture-ui/assets/ by a fixed list of names."
   },
   "files": [
+    {
+      "match": "server/capture/**",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Capture from a phone (foundation work): config.js (the CAPTURE_* and WHATSAPP_* settings), db.js (three collections, in memory or MongoDB), service.js (links, uploads that are safe to retry, the owner-only reads, deletes, limits, WhatsApp alerts), strip.js (takes Exif/GPS and text blocks out of a JPEG, PNG or WebP), validate.js (everything a stranger's phone can send), whatsapp.js (the Cloud API client and wa.me links), routes.js."
+    },
+    {
+      "match": "pages/capture.html",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The page a phone opens from a QR code or a WhatsApp link, written by hand with the Terucon loader and the same cream-and-brown theme. Served at /capture to anybody who holds a link, under a strict policy that also allows blob: pictures (`csp: strict+capture` in site/site.json) and with camera and location allowed for itself only."
+    },
+    {
+      "match": "site/capture/**",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "A browser file of the phone page /capture: capture-page.js (the page), camera.js (the camera inside the page, never the phone's camera app), resize.js (draws a photo again at 2560 px, which also drops its hidden data), queue.js (unsent photos kept in IndexedDB), capture-page.css."
+    },
+    {
+      "match": "site/brand/capture.js",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The requester's side of capture from a phone: the launcher on the Design Studio, Inspiration and Finder pages, the panel with the QR code and the WhatsApp send, the photos that arrived (move to a page, download, delete) and the pop-up on any page. Loaded lazily by site/brand/chrome.js."
+    },
+    {
+      "match": "site/brand/capture.css",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Styles of the capture launcher, panel and pop-up: TeruBot's dark brown and cream, stacked above TeruBot's launcher."
+    },
+    {
+      "match": "site/brand/qrcode-generator.js",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "QR Code Generator for JavaScript 2.0.4 by Kazuhiko Arase (MIT), unchanged, from the npm package whose hash matched the registry's. Loaded the first time a QR code is drawn. Licence and source in site/vendor/README.md."
+    },
+    {
+      "match": "tests/js/capture-service.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "Capture from a phone through the real server: who may ask, retried and simultaneous uploads, limits and expiry, what is refused, metadata stripping, deleting, and the WhatsApp requests against a fake Meta."
+    },
+    {
+      "match": "docs/CAPTURE_FROM_PHONE.md",
+      "owner": "docs",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "How capture from a phone works and how to set it up: the two ways to send the link, what is stored where, the WhatsApp Business setup and the templates to submit, security decisions, and what has and has not been run."
+    },
     {
       "match": "app.js",
       "owner": "website",

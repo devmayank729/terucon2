@@ -8,6 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readAuthEnv } from '../auth/config.js';
 import { describeCatalogue, readCatalogueEnv } from '../catalogue/config.js';
+import { CAPTURE_DEFAULTS, describeCapture, readCaptureEnv } from '../capture/config.js';
 import { loadEnvFile } from './envfile.js';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -76,6 +77,8 @@ function emptySettings(envPath) {
     catalogue: {},
     // TeruBot, the website's assistant (server/lib/terubot/): Gemini through the studio's Google key (swatchroom/server/google).
     terubot: { ...TERUBOT_DEFAULTS },
+    // Capture from a phone (server/capture/): the non-secret half of what .env says; the WhatsApp token is in `captureSecrets`, which is not enumerable.
+    capture: { ...CAPTURE_DEFAULTS },
     warnings: [],
   };
 }
@@ -155,6 +158,10 @@ export function loadSettings(envPath, environ, root = ROOT) {
   bot.limitAccount = int(get('TERUBOT_LIMIT_ACCOUNT'), TERUBOT_DEFAULTS.limitAccount, 1, 100000);
   bot.limitAddress = int(get('TERUBOT_LIMIT_ADDRESS'), TERUBOT_DEFAULTS.limitAddress, 1, 100000);
   bot.limitAnonymous = int(get('TERUBOT_LIMIT_ANONYMOUS'), TERUBOT_DEFAULTS.limitAnonymous, 1, 100000);
+  // --- capture from a phone (a QR code or WhatsApp link; photos come back to the requester)
+  const capture = readCaptureEnv(get, s.warnings);
+  s.capture = capture.pub;
+  Object.defineProperty(s, 'captureSecrets', { value: Object.freeze(capture.secrets), enumerable: false });
   s.nodeEnv = get('NODE_ENV');
   return s;
 }
@@ -169,6 +176,7 @@ export function describe(settings) {
       ? 'Studio passcode: ON (STUDIO_REQUIRE_PASSCODE=on, the passcode is STUDIO_PASSCODE in swatchroom/.env)'
       : 'Studio passcode: off - the studio is open; each browser only sees its own rooms and every visitor is rate limited (README, "Keeping the open studio safe")',
     ...describeCatalogue(settings),
+    ...describeCapture(settings),
     settings.terubot.enabled
       ? `TeruBot (the assistant): on - ${settings.terubot.limitAccount} messages an hour per account, ${settings.terubot.limitAnonymous} per address for visitors not signed in (TERUBOT=off switches it off)`
       : 'TeruBot (the assistant): off (TERUBOT=off)',

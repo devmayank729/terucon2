@@ -73,11 +73,17 @@ test('chrome.js: plain, synchronous, no inline style, localStorage only inside t
   const js = read('site', 'brand', 'chrome.js');
   assert.doesNotMatch(js, /setAttribute\('style'|\bstyle="/, 'an inline style (the strict policy refuses it)');
   assert.doesNotMatch(js, /https?:\/\//, 'an address of another site');
-  assert.equal((js.match(/localStorage\.(?:get|set)Item/g) || []).length, 2, 'localStorage is touched in two places: read and write');
+  // the sidebar preference is read and written (two places); the lazy loader of the phone-capture pop-up (site/brand/capture.js) adds one more, a READ of the
+  // note capture.js leaves when a capture link is open, so that the pop-up reaches the person on any page. It must be inside its own try, and it never writes.
+  assert.equal((js.match(/localStorage\.(?:get|set)Item/g) || []).length, 3, 'localStorage is touched in three places: the sidebar preference (read, write) and the capture note (read)');
+  assert.equal((js.match(/localStorage\.setItem/g) || []).length, 1, 'only the sidebar preference is ever written');
+  const note = /try \{\s*var note = JSON\.parse\(localStorage\.getItem\('terucon\.capture\.v1'\)[\s\S]*?\} catch/.exec(js);
+  assert.ok(note, 'the capture note is read inside a try that catches (localStorage can throw)');
   for (const m of js.matchAll(/function (readPref|writePref)[\s\S]*?\n  \}/g)) assert.match(m[0], /try \{[\s\S]*catch/, `${m[1]} must catch (localStorage can throw)`);
   assert.equal((js.match(/\/api\/auth\/me/g) || []).length, 1, 'one request for who is signed in');
   assert.doesNotMatch(js, /=>|\bconst\s|\blet\s/, 'plain ES5, like dock.js');
-  assert.ok(Buffer.byteLength(js) < 20 * 1024, 'the script must stay small');
+  // 22 KB (it was 20): the lazy loader of the phone-capture pop-up, about 1.2 KB, is the only thing added since the limit was set at 20
+  assert.ok(Buffer.byteLength(js) < 22 * 1024, 'the script must stay small');
 });
 
 test('the hand-written pages use the chrome: its two lines in <head>, no header or navigation of their own, no inline style, one footer band', () => {

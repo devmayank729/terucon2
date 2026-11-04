@@ -13,6 +13,9 @@
  * (`blob:`) and pictures from exactly the hosts listed ("*.pinimg.com" -> https://*.pinimg.com): the picture hosts of the sites in
  * site/inspiration/sources.js, for the thumbnails of a board. Nothing else; scripts and styles stay as strict as before.
  *
+ * `blobImages: true` (the phone capture page, "strict+capture") lets the page show a picture it has just taken or shrunk in the browser (`blob:`)
+ * as a thumbnail, and nothing else: no host is added.
+ *
  * `connect: [...]` (the catalogue admin page, "strict+catalogue-admin") additionally lets the page's own script make a
  * cross-origin fetch to exactly the hosts listed: the signed GCS PUT upload of a catalogue PDF or photo goes straight from the
  * browser to Cloud Storage (catalogue/ARCHITECTURE.md section 7), never through the website. A page that only shows catalogue
@@ -29,7 +32,7 @@ export function inlineBlocks(html) {
   return { scripts, styles };
 }
 
-export function pageCsp(html, { google = false, images = [], connect = [] } = {}) {
+export function pageCsp(html, { google = false, images = [], connect = [], blobImages = false } = {}) {
   const { scripts, styles } = inlineBlocks(html);
   const script = ["'self'", ...scripts.map(hash), ...(google ? ['https://accounts.google.com/gsi/client'] : [])];
   const style = ["'self'", ...styles.map(hash), ...(google ? ['https://accounts.google.com/gsi/style'] : [])];
@@ -40,7 +43,7 @@ export function pageCsp(html, { google = false, images = [], connect = [] } = {}
     "frame-ancestors 'self'",
     `script-src ${script.join(' ')}`,
     `style-src ${style.join(' ')}`,
-    `img-src 'self' data:${images.length ? ' blob:' : ''}${images.map((host) => ` https://${host}`).join('')}`,
+    `img-src 'self' data:${images.length || blobImages ? ' blob:' : ''}${images.map((host) => ` https://${host}`).join('')}`,
     "font-src 'self'",
     // TeruBot's spoken answers are audio fetched from /api/terubot/speech and played from a blob: address
     "media-src 'self' blob:",

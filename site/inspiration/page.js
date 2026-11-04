@@ -5,6 +5,7 @@
 import { importStatus } from './api.js';
 import { h } from './dom.js';
 import { startImport } from './flow.js';
+import { ID_PATTERN, take } from './handoff.js';
 import './index.js'; // pasting into the box asks "Import this photo?", like everywhere else
 import { detect, supportedSites } from './sources.js';
 
@@ -174,3 +175,24 @@ importStatus()
   })
   .catch(() => {});
 renderRecent();
+
+// ---- a photo moved here from another page (the phone-capture panel, /brand/capture.js): the one-time code in the address names a picture kept
+// in this browser (handoff.js); it is taken out, deleted from the browser, and opened for cropping like any photo the person chose.
+(async function receive() {
+  const params = new URLSearchParams(location.search);
+  const code = params.get('import');
+  if (!code) return;
+  params.delete('import'); // a single-use code must not stay in the address bar or the history
+  const rest = params.toString();
+  history.replaceState(history.state, '', `${location.pathname}${rest ? `?${rest}` : ''}${location.hash}`);
+  if (!ID_PATTERN.test(code)) return;
+  let record = null;
+  try {
+    record = await take(code);
+  } catch {
+    return; // the browser would not keep it, or it was already taken
+  }
+  if (!record) return;
+  const name = typeof record.meta.name === 'string' && /^[\w .-]{1,80}$/.test(record.meta.name) ? record.meta.name : 'photo.jpg';
+  startImport({ file: new File([record.blob], name, { type: record.blob.type || 'image/jpeg', lastModified: Date.now() }) });
+})();

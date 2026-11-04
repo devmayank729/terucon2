@@ -331,6 +331,13 @@ export function mountAuthRoutes(app, ctx) {
         log.error(`auth  could not delete the studio rooms of a deleted account: ${String(error.message).slice(0, 160)}`);
         return refuse(res, 500, 'delete-failed', 'We could not delete your saved rooms just now, so your account was kept. Please try again in a minute.');
       }
+      // 1b. the photos people sent this account from their phones (server/capture/): same rule, a failure keeps the account
+      try {
+        await ctx.capture?.service.deleteAllOf(user.ownerId);
+      } catch (error) {
+        log.error(`auth  could not delete the captured photos of a deleted account: ${String(error.message).slice(0, 160)}`);
+        return refuse(res, 500, 'delete-failed', 'We could not delete your photos just now, so your account was kept. Please try again in a minute.');
+      }
       // 2. what is waiting to go to the CRM (and, if the admin chose, the CRM record itself)
       await auth.crm.forget(user);
       // 3. the account, its sessions and its codes

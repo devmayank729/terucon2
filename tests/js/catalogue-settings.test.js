@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test, { after, before, describe } from 'node:test';
-import { catalogueConfig, configured, describeCatalogue, missingForSearch } from '../../server/catalogue/config.js';
+import { DEFAULT_PROFILE, catalogueConfig, configured, describeCatalogue, missingForSearch } from '../../server/catalogue/config.js';
 import { createGcsSigner } from '../../server/catalogue/gcsSigner.js';
 import { describe as describeSettings, loadSettings, SettingsManager } from '../../server/config/settings.js';
 import { startTestApp } from '../helpers/app.js';
@@ -44,7 +44,8 @@ describe('what is read', () => {
     assert.equal(s.catalogue.enabled, true);
     assert.deepEqual(s.catalogue.modal, { searchUrl: '', ingestUrl: '', timeoutMs: 60000, proxy: false });
     assert.deepEqual(s.catalogue.gcs, { bucket: '', prefix: 'catalogue/', keyFile: '', problem: '' });
-    assert.equal(s.catalogue.profile, 'fast');
+    assert.equal(s.catalogue.profile, 'balanced', 'the default profile: it adds the signal that knows wood from stone (catalogue/ARCHITECTURE.md section 5.1)');
+    assert.equal(DEFAULT_PROFILE, 'balanced');
     const lines = describeSettings(s).filter((l) => l.startsWith('Catalogue search'));
     assert.equal(lines.length, 1);
     assert.match(lines[0], /not set up.*colour demo.*CATALOGUE_MODAL_SEARCH_URL, CATALOGUE_MODAL_KEY, CATALOGUE_GCS_BUCKET, CATALOGUE_GCS_KEY_JSON/);
@@ -126,8 +127,9 @@ describe('what is refused', () => {
     assert.deepEqual(['', 'abc', '0x10', '10', '1500', '99999999'].map(timeout), [60000, 60000, 60000, 200, 1500, 300000]);
     assert.equal(settingsFrom('CATALOGUE_SEARCH_PROFILE=full\n').catalogue.profile, 'full');
     const profile = settingsFrom('CATALOGUE_SEARCH_PROFILE=turbo\n');
-    assert.equal(profile.catalogue.profile, 'fast');
-    assert.match(profile.warnings[0], /CATALOGUE_SEARCH_PROFILE=turbo is not one of fast, balanced, full/);
+    assert.equal(profile.catalogue.profile, 'balanced');
+    assert.match(profile.warnings[0], /CATALOGUE_SEARCH_PROFILE=turbo is not one of fast, balanced, full: balanced is used/);
+    assert.equal(settingsFrom('CATALOGUE_SEARCH_PROFILE=fast\n').catalogue.profile, 'fast', 'an explicit fast is still honoured');
 
     const bucket = settingsFrom('CATALOGUE_GCS_BUCKET=Not_A_Bucket\n');
     assert.equal(bucket.catalogue.gcs.bucket, '');

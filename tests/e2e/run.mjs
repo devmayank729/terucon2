@@ -759,13 +759,13 @@ await test('Finder page: with no catalogue switched on (this stack\'s default) i
   await until(() => page.evaluate(() => !document.getElementById('status').hidden), 'the status notice to appear', 5000);
   const text = await page.evaluate(() => document.getElementById('status').textContent.trim());
   assert(text === 'Catalogue search is not switched on here yet.', 'the notice is not the plain, honest sentence for a catalogue with no Modal search app configured: ' + JSON.stringify(text));
-  const disabled = await page.evaluate(() => ['mode-photo', 'mode-colour', 'mode-words', 'go-photo', 'go-words'].map((id) => document.getElementById(id).disabled));
+  const disabled = await page.evaluate(() => ['mode-photo', 'mode-colour', 'mode-words', 'go-photo', 'whole-photo', 'go-words'].map((id) => document.getElementById(id).disabled));
   assert(disabled.every(Boolean), 'not every mode/search button is disabled while the catalogue is off: ' + JSON.stringify(disabled));
   noProblems(page, 'the Finder page with the catalogue off');
   await page.close();
 });
 
-await test('Finder page: upload a photo, drag the reticle, and "Search the whole photo" / "Retake" behave as the drop zone says', async () => {
+await test('Finder page: upload a photo, drag the reticle, and "Retake" behave as the drop zone says', async () => {
   const page = await newPage();
   await page.goto(base + '/finder', { waitUntil: 'networkidle2' });
   const file = path.join(os.tmpdir(), `terucon-e2e-finder-${Date.now()}.jpg`);
@@ -782,11 +782,7 @@ await test('Finder page: upload a photo, drag the reticle, and "Search the whole
     await page.mouse.up();
     const after = await page.evaluate(() => { const r = document.getElementById('reticle').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
     assert(Math.abs(after.x - before.x) > 20 || Math.abs(after.y - before.y) > 20, 'dragging the reticle did not move it: ' + JSON.stringify({ before, after }));
-    // "Search the whole photo" hides the reticle; clicking the frame again brings it back
-    await page.click('#whole-photo');
-    assert(await page.evaluate(() => document.getElementById('reticle').hidden), 'the reticle did not hide after "Search the whole photo"');
-    await page.evaluate(() => { const r = document.getElementById('viewfinder').getBoundingClientRect(); document.getElementById('viewfinder').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: r.x + r.width / 2, clientY: r.y + r.height / 2 })); });
-    assert(await page.evaluate(() => !document.getElementById('reticle').hidden), 'clicking the viewfinder again did not bring the reticle back');
+    // (what "Search the whole photo" does has its own tests below)
     // "Retake" goes back to the drop zone and clears the still photo
     await page.click('#retake');
     assert(await page.evaluate(() => document.getElementById('viewfinder').hidden && !document.getElementById('drop').hidden && document.getElementById('photo-actions').hidden), '"Retake" did not return to the empty drop-zone state');
@@ -811,6 +807,274 @@ await test('Finder page: "Use camera" shows a live video stream, the reticle, an
   }
   assert(await page.evaluate(() => !document.getElementById('reticle').hidden && !document.getElementById('photo-actions').hidden), 'the reticle / photo actions did not appear once the camera opened');
   await page.close();
+});
+
+// ---- the Finder's "Search the whole photo": the photo is outlined into its items (the models, POST /api/vision/segment), the items are drawn over it, a tap on one
+// searches the catalogue with a patch of it. The models and the catalogue are stood in for by request interception (the dev stack has neither); what they were
+// asked is recorded. A held request lets a test look at the state while the models "work".
+const FINDER_PHOTO = path.join(root, 'media', 'p02-lobby.jpg');
+const finderZlib = await import('node:zlib');
+/** A class map as the models send it: a window (class 3) in the upper middle, a floor (class 2) below y = 68 %, wall (class 1) everywhere else. */
+const finderSeg = (W = 256, H = 192, { empty = false } = {}) => {
+  const cm = new Uint8Array(W * H);
+  if (!empty) for (let y = 0; y < H; y += 1) for (let x = 0; x < W; x += 1) cm[y * W + x] = y > H * 0.68 ? 2 : (x >= W * 0.35 && x <= W * 0.66 && y > H * 0.1 && y < H * 0.47) ? 3 : 1;
+  return { width: W, height: H, classMap: finderZlib.gzipSync(Buffer.from(cm)).toString('base64'), classLabels: ['wall', 'floor, flooring', 'windowpane, window'], classIds: [0, 3, 8], instanceMap: null, instances: [] };
+};
+const finderItems = [['TIPL-SB804', 'Emperador Dark'], ['TIPL-SB825', 'Williams Grey'], ['TIPL-SB8001', 'Marmoris Stain']].map(([pid, name], i) => ({ rank: i + 1, itemId: 'i' + i, title: name, productId: pid, image: { thumbUrl: '', fullUrl: '', width: 480, height: 360 } }));
+/**
+ * Stand in for the catalogue and the models in this page. `seen` records what was asked: segment (the models' calls), search (the catalogue's), warm.
+ * `answer(req, seen, n)` decides how the models answer call number n (default: the class map at once): it must respond to, abort or keep `req` (seen.held).
+ */
+const finderStubs = async (page, { answer, seg = finderSeg() } = {}) => {
+  const seen = { segment: [], search: [], warm: 0, held: [] };
+  seen.ok = (req) => req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify(seg) });
+  await page.setRequestInterception(true);
+  page.on('request', (req) => {
+    const u = new URL(req.url());
+    if (u.pathname === '/api/catalogue/status') return req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify({ enabled: true, ready: true, reasons: [], default: 'c', catalogues: [], limits: {}, profile: 'fast' }) });
+    if (u.pathname === '/api/catalogue/warm') { seen.warm += 1; return req.respond({ status: 202, contentType: 'application/json', body: '{"ok":true}' }); }
+    if (u.pathname === '/api/vision/segment') {
+      seen.segment.push({ model: u.searchParams.get('model'), type: req.headers()['content-type'] });
+      return (answer ?? ((r) => seen.ok(r)))(req, seen, seen.segment.length);
+    }
+    if (u.pathname === '/api/catalogue/search') {
+      return req.fetchPostData().then((data) => { seen.search.push({ query: u.search, type: req.headers()['content-type'], size: (data || '').length }); req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, catalogue: 'c', items: finderItems }) }); });
+    }
+    return req.continue();
+  });
+  return seen;
+};
+/** Upload the repo's lobby photo (or a drawn one of the given shape) into the Finder and wait for the frame. */
+const finderUpload = async (page, drawn) => {
+  const file = drawn ? path.join(os.tmpdir(), `terucon-e2e-finder-${Date.now()}.jpg`) : FINDER_PHOTO;
+  if (drawn) fs.writeFileSync(file, await makeJpeg(page, drawn[0], drawn[1]));
+  try {
+    await (await page.$('#file')).uploadFile(file);
+    await until(() => page.evaluate(() => !document.getElementById('viewfinder').hidden && !document.getElementById('still').hidden && document.getElementById('still').complete && document.getElementById('still').naturalWidth > 0), 'the uploaded photo to show in the viewfinder', 8000);
+    await sleep(150);
+  } finally {
+    if (drawn) fs.rmSync(file, { force: true });
+  }
+};
+const finderState = (page) => page.evaluate(() => {
+  const $ = (id) => document.getElementById(id);
+  const shown = (id) => !$(id).hidden;
+  return { whole: $('whole-photo').textContent.trim(), wholeOff: $('whole-photo').disabled, findOff: $('go-photo').disabled, panel: shown('outline-panel'), text: $('outline-status').textContent, hint: $('hint').textContent, reticle: shown('reticle'), canvas: shown('outline'), dim: $('viewfinder').classList.contains('is-outlining'),
+    buttons: ['outline-cancel', 'outline-signin', 'outline-retry', 'outline-anyway', 'outline-spot'].filter(shown).map((id) => id.replace('outline-', '')).join(), chips: [...document.querySelectorAll('#outline-chips .chip')].map((c) => c.textContent), cards: document.querySelectorAll('#results .result').length, meta: $('results-meta').textContent, drop: shown('drop') };
+});
+/** The box of the outline canvas, with the photo scrolled into the middle of the window first (a click or a tap only lands on what is on screen). */
+const finderBox = async (page) => { await page.$eval('#viewfinder', (e) => e.scrollIntoView({ block: 'center' })); await sleep(150); return (await page.$('#outline')).boundingBox(); };
+const finderAlpha = (page, x, y) => page.evaluate((px, py) => document.getElementById('outline').getContext('2d').getImageData(px, py, 1, 1).data[3], x, y);
+
+await test('Finder page: "Search the whole photo" outlines the photo: it says it can take a minute and can be cancelled, then the items are drawn over the photo, named, and a hover names one', async () => {
+  const page = await newPage({ width: 1100, height: 900 });
+  const seen = await finderStubs(page, { answer: (req, st) => st.held.push(req) });
+  try {
+    await page.goto(base + '/finder', { waitUntil: 'networkidle2' });
+    await finderUpload(page);
+    assert((await finderState(page)).hint === 'Drag the box onto one material, or search the whole photo.' && (await finderState(page)).reticle, 'before the tap: the box is there');
+    await page.click('#whole-photo');
+    await until(() => seen.segment.length === 1, 'the models to be asked to outline the photo');
+    assert(seen.segment[0].model === 'oneformer' && seen.segment[0].type === 'image/jpeg', 'the models were asked with OneFormer and a JPEG: ' + JSON.stringify(seen.segment));
+    const busy = await finderState(page);
+    assert(/Outlining/.test(busy.whole) && busy.wholeOff && busy.findOff && busy.panel && busy.dim && !busy.reticle && !busy.canvas, 'while the models work: the button says so and is off, the photo is dimmed, the box is gone: ' + JSON.stringify(busy));
+    assert(/up to a minute/.test(busy.text) && busy.buttons === 'cancel', 'it says the first time can take up to a minute and offers Cancel: ' + JSON.stringify(busy));
+    assert(seen.warm >= 2, 'the search service is woken while the models work (once on load, once on the tap): ' + seen.warm);
+    seen.held[0].respond({ status: 200, contentType: 'application/json', body: JSON.stringify(finderSeg()) });
+    await until(() => page.evaluate(() => document.querySelectorAll('#outline-chips .chip').length >= 3), 'the items');
+    const done = await finderState(page);
+    assert(done.chips.join() === 'Wall,Floor,Window' && done.canvas && !done.dim && !done.reticle && done.buttons === 'spot' && done.whole === 'Search the whole photo' && !done.wholeOff && !done.findOff, 'the items are listed and tappable, the busy state is gone: ' + JSON.stringify(done));
+    assert(/Tap an item/.test(done.hint) && /Tap an item/.test(done.text), 'it says what to do: ' + done.hint + ' / ' + done.text);
+    // the photo is visibly cut into items before anything is touched: a tint on the wall and on the floor, a line between them
+    const tint = { wall: await finderAlpha(page, 20, 40), floor: await finderAlpha(page, 128, 180), edge: await finderAlpha(page, 50, 130) };
+    assert(tint.wall > 20 && tint.wall < 120 && tint.floor > 20 && tint.floor < 120 && tint.edge > 200, 'every item is tinted and the edges between them are drawn: ' + JSON.stringify(tint));
+    // hover (a mouse): the name of the item and a stronger tint
+    const box = await finderBox(page);
+    await page.mouse.move(box.x + box.width * 0.12, box.y + box.height * 0.3);
+    await until(() => page.evaluate(() => !document.getElementById('outline-tip').hidden), 'the name of the item under the pointer');
+    assert(await page.evaluate(() => document.getElementById('outline-tip').textContent) === 'Wall', 'hovering the wall names it');
+    assert((await finderAlpha(page, 30, 58)) > 100, 'the hovered wall is lit more strongly');
+    assert(seen.search.length === 0, 'nothing is searched by hovering');
+    noProblems(page, 'the Finder outlining the photo');
+  } finally {
+    await page.close();
+  }
+});
+
+await test('Finder page: tapping an item sends a JPEG patch of it (smaller than the whole photo) to the catalogue and shows the same result cards; another item searches again; the Colour tab searches by colour; "Find it" still searches the whole photo; "Pick a spot instead" brings the box back and tapping the button again does not ask the models a second time', async () => {
+  const page = await newPage({ width: 1100, height: 900 });
+  const seen = await finderStubs(page);
+  try {
+    await page.goto(base + '/finder', { waitUntil: 'networkidle2' });
+    await finderUpload(page);
+    await page.click('#whole-photo');
+    await until(() => page.evaluate(() => document.querySelectorAll('#outline-chips .chip').length === 3), 'the items');
+    const box = await finderBox(page);
+    // a tap on the wall
+    await page.mouse.click(box.x + box.width * 0.12, box.y + box.height * 0.3);
+    await until(() => page.evaluate(() => document.querySelectorAll('#results .result').length === 3), 'the closest materials for the wall');
+    assert(seen.search.length === 1 && seen.search[0].type === 'image/jpeg' && seen.search[0].query === '?mode=look&k=8', 'one catalogue search, with a JPEG, with no spot (the patch is the spot): ' + JSON.stringify(seen.search));
+    let st = await finderState(page);
+    assert(/3 matches for the wall/.test(st.meta) && /Showing materials like the wall/.test(st.text), 'it says what the results are for: ' + st.meta + ' / ' + st.text);
+    assert(await page.evaluate(() => document.querySelector('#outline-chips .chip[aria-pressed="true"]')?.textContent) === 'Wall', 'the chip of the tapped item is marked');
+    const card = await page.evaluate(() => { const a = document.querySelector('#results .result'); return { title: a.querySelector('.result-title').textContent, code: a.querySelector('.code').textContent }; });
+    assert(card.title === 'Emperador Dark' && card.code === 'TIPL-SB804', 'the same cards as "Find it": ' + JSON.stringify(card));
+    // another item, by its button (a keyboard, or a finger that misses)
+    await page.evaluate(() => [...document.querySelectorAll('#outline-chips .chip')].find((c) => c.textContent === 'Floor').click());
+    await until(() => seen.search.length === 2, 'the floor to be searched');
+    // "Find it" while the items are showing: the whole photo, as before
+    await page.click('#go-photo');
+    await until(() => seen.search.length === 3, 'the whole photo to be searched');
+    assert(seen.search.every((q) => q.query === '?mode=look&k=8'), 'no spot in any of them: ' + JSON.stringify(seen.search));
+    assert(seen.search[0].size > 2000 && seen.search[0].size < seen.search[2].size * 0.85 && seen.search[1].size < seen.search[2].size * 0.85, 'a patch of the wall and of the floor is smaller than the whole photo: ' + seen.search.map((x) => x.size));
+    // colour: the tap searches by colour
+    await page.click('#mode-colour');
+    await page.evaluate(() => [...document.querySelectorAll('#outline-chips .chip')].find((c) => c.textContent === 'Window').click());
+    await until(() => seen.search.length === 4, 'the window to be searched by colour');
+    assert(seen.search[3].query === '?mode=colour&k=8', 'colour mode: ' + seen.search[3].query);
+    await page.click('#mode-photo');
+    // pick a spot instead: the box is back, nothing of the items is left on the photo
+    await page.click('#outline-spot');
+    st = await finderState(page);
+    assert(st.reticle && !st.panel && !st.canvas && /Drag the box/.test(st.hint) && !st.wholeOff && !st.findOff, 'the box is back: ' + JSON.stringify(st));
+    await page.click('#go-photo');
+    await until(() => seen.search.length === 5, 'the spot to be searched');
+    assert(/[?&]point=0\.5\d*%2C0\.5\d*(&|$)/.test(seen.search[4].query), 'with the box, "Find it" still sends the spot: ' + seen.search[4].query);
+    // the button again: the items come back without asking the models again
+    await page.click('#whole-photo');
+    await until(() => page.evaluate(() => document.querySelectorAll('#outline-chips .chip').length === 3 && !document.getElementById('outline').hidden), 'the items to come back');
+    assert(seen.segment.length === 1, 'the models were asked once: ' + seen.segment.length);
+    noProblems(page, 'the Finder searching an item');
+  } finally {
+    await page.close();
+  }
+});
+
+await test('Finder page: on a phone, a tap on an item searches it and brings the results into view', async () => {
+  const page = await newPage(PHONE);
+  const seen = await finderStubs(page, { seg: finderSeg(192, 256) });
+  try {
+    await page.goto(base + '/finder', { waitUntil: 'networkidle2' });
+    await finderUpload(page, [900, 1200]);
+    await page.tap('#whole-photo');
+    await until(() => page.evaluate(() => document.querySelectorAll('#outline-chips .chip').length === 3 && !document.getElementById('outline').hidden), 'the items');
+    const box = await finderBox(page);
+    await page.touchscreen.tap(box.x + box.width * 0.12, box.y + box.height * 0.3);
+    await until(() => seen.search.length === 1, 'the tapped item to be searched');
+    await until(() => page.evaluate(() => document.querySelectorAll('#results .result').length === 3), 'the cards');
+    await until(() => page.evaluate(() => { const r = document.getElementById('results-block').getBoundingClientRect(); return r.top >= -2 && r.top < innerHeight * 0.5; }), 'the results to scroll into view', 4000);
+    assert(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth) <= 0, 'no sideways scroll on a phone');
+    const chipHeights = await page.evaluate(() => [...document.querySelectorAll('#outline-chips .chip, #outline-actions .btn:not([hidden])')].map((b) => Math.round(b.getBoundingClientRect().height)));
+    assert(chipHeights.length >= 3 && chipHeights.every((h) => h >= 44), 'the buttons are big enough for a finger: ' + chipHeights);
+    noProblems(page, 'the Finder on a phone, searching an item');
+  } finally {
+    await page.close();
+  }
+});
+
+await test('Finder page: when the outlining fails it says why in plain words and offers the whole-photo search: not signed in, used a lot, the service down, the connection lost, too slow, nothing found', async () => {
+  const page = await newPage({ width: 1100, height: 900 });
+  // the 100 s wait for the models is shortened to a third of a second in this page, so the slow case can be seen
+  await page.evaluateOnNewDocument(() => { const real = window.setTimeout; window.setTimeout = (fn, ms, ...rest) => real(fn, ms === 100000 ? 300 : ms, ...rest); });
+  const answers = [
+    (req) => req.respond({ status: 401, contentType: 'application/json', body: JSON.stringify({ error: 'Please sign in to use the Design Studio.', code: 'auth-required' }) }),
+    (req) => req.respond({ status: 429, contentType: 'application/json', body: JSON.stringify({ error: 'The studio has been used a lot from here in the last hour.', code: 'rate-limit' }) }),
+    (req) => req.respond({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Scene parsing failed: modal-secret-token-xyz' }) }),
+    (req) => req.abort('failed'),
+    (req, st) => st.held.push(req), // never answered: the page gives up by itself
+    (req, st) => req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify(finderSeg(8, 8, { empty: true })) }),
+  ];
+  const seen = await finderStubs(page, { answer: (req, st, n) => answers[n - 1](req, st) });
+  try {
+    await page.goto(base + '/finder', { waitUntil: 'networkidle2' });
+    await finderUpload(page);
+    const expect = [
+      [/sign in again/i, 'anyway,signin,spot'],
+      [/used a lot in the last hour/i, 'anyway,spot'],
+      [/not available right now/i, 'retry,anyway,spot'],
+      [/could not reach the server/i, 'retry,anyway,spot'],
+      [/took too long/i, 'retry,anyway,spot'],
+      [/could not find separate items/i, 'anyway,spot'],
+    ];
+    for (let i = 0; i < expect.length; i += 1) {
+      await page.click('#whole-photo');
+      await until(() => page.evaluate(() => /still search the whole photo/.test(document.getElementById('outline-status').textContent)), `the failure message of case ${i + 1}`, 6000);
+      const st = await finderState(page);
+      assert(expect[i][0].test(st.text), `case ${i + 1}: the message is ${JSON.stringify(st.text)}`);
+      assert(st.buttons === expect[i][1].split(',').sort().join() || st.buttons.split(',').sort().join() === expect[i][1].split(',').sort().join(), `case ${i + 1}: the buttons are ${st.buttons}`);
+      assert(!/modal-secret|Scene parsing|auth-required|rate-limit/.test(st.text), `case ${i + 1}: the server's own words must not reach the visitor: ${st.text}`);
+      assert(!st.wholeOff && !st.findOff && !st.dim && !st.canvas && !st.reticle && /pick a spot/.test(st.hint), `case ${i + 1}: the page is usable again: ${JSON.stringify(st)}`);
+    }
+    assert(seen.segment.length === 6, 'each tap asked the models once: ' + seen.segment.length);
+    // "Search the whole photo anyway": the old whole-photo search, with no spot
+    await page.click('#outline-anyway');
+    await until(() => page.evaluate(() => document.querySelectorAll('#results .result').length === 3), 'the whole-photo results');
+    assert(seen.search.length === 1 && seen.search[0].query === '?mode=look&k=8', 'one search with no spot: ' + JSON.stringify(seen.search));
+    // tapping the frame, or "Pick a spot instead", brings the box back
+    await page.evaluate(() => { const r = document.getElementById('viewfinder').getBoundingClientRect(); document.getElementById('viewfinder').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: r.x + r.width * 0.3, clientY: r.y + r.height * 0.3 })); });
+    const back = await finderState(page);
+    assert(back.reticle && !back.panel && /Drag the box/.test(back.hint), 'tapping the frame after a failure brings the box back: ' + JSON.stringify(back));
+    // the failures are expected: the page's own report of them is not a problem
+    page.problems = page.problems.filter((p) => !/\/api\/vision\/segment/.test(p));
+    noProblems(page, 'the Finder when the outlining fails');
+  } finally {
+    await page.close();
+  }
+});
+
+await test('Finder page: "Cancel" and "Retake" while the models work drop the call without a word, and an answer that arrives late changes nothing', async () => {
+  const page = await newPage({ width: 1100, height: 900 });
+  const seen = await finderStubs(page, { answer: (req, st) => st.held.push(req) });
+  try {
+    await page.goto(base + '/finder', { waitUntil: 'networkidle2' });
+    await finderUpload(page);
+    await page.click('#whole-photo');
+    await until(() => seen.held.length === 1, 'the models to be asked');
+    await page.click('#outline-cancel');
+    const st = await finderState(page);
+    assert(st.reticle && !st.panel && !st.dim && st.whole === 'Search the whole photo' && !st.wholeOff && !st.findOff && /Drag the box/.test(st.hint), 'Cancel: the box is back and the buttons are as they were: ' + JSON.stringify(st));
+    assert(await page.evaluate(() => document.getElementById('status').hidden), 'Cancel says no error');
+    await sleep(100);
+    try { seen.held[0].respond({ status: 200, contentType: 'application/json', body: JSON.stringify(finderSeg()) }); } catch { /* the browser had already dropped it: fine */ }
+    await sleep(400);
+    const late = await finderState(page);
+    assert(late.chips.length === 0 && !late.panel && !late.canvas && late.reticle, 'a late answer to a cancelled call changes nothing: ' + JSON.stringify(late));
+    // Retake in the middle of it
+    await page.click('#whole-photo');
+    await until(() => seen.held.length === 2, 'the models to be asked again');
+    await page.click('#retake');
+    const gone = await finderState(page);
+    assert(gone.drop && !gone.panel && !gone.canvas && !gone.dim && gone.whole === 'Search the whole photo', 'Retake: back to the drop zone with nothing left over: ' + JSON.stringify(gone));
+    try { seen.held[1].respond({ status: 200, contentType: 'application/json', body: JSON.stringify(finderSeg()) }); } catch { /* as above */ }
+    await sleep(300);
+    assert((await finderState(page)).chips.length === 0, 'a late answer after Retake changes nothing');
+    assert(await page.evaluate(() => document.getElementById('status').hidden), 'no error was shown');
+    noProblems(page, 'the Finder cancelling');
+  } finally {
+    await page.close();
+  }
+});
+
+await test('Finder page: with the camera live, "Search the whole photo" freezes the current frame (the camera stops) and outlines that frame', async () => {
+  const page = await newPage({ width: 1100, height: 900 });
+  const seen = await finderStubs(page);
+  try {
+    await page.goto(base + '/finder', { waitUntil: 'networkidle2' });
+    await page.click('#start-camera');
+    const ok = await until(() => page.evaluate(() => { const v = document.getElementById('video'); return !document.getElementById('viewfinder').hidden && !v.hidden && v.srcObject instanceof MediaStream && v.videoWidth > 0; }), 'the fake camera to produce a stream', 10000).catch(() => false);
+    if (!ok) { console.log('        note: Puppeteer\'s fake camera did not produce a playable stream here; skipping the rest of this check.'); return; }
+    await page.click('#whole-photo');
+    await until(() => page.evaluate(() => document.querySelectorAll('#outline-chips .chip').length === 3), 'the items over the frozen frame');
+    const st = await page.evaluate(() => ({ video: document.getElementById('video').hidden && !document.getElementById('video').srcObject, still: !document.getElementById('still').hidden && /^blob:/.test(document.getElementById('still').src) }));
+    assert(st.video && st.still, 'the camera is off and the frame is showing: ' + JSON.stringify(st));
+    assert(seen.segment.length === 1 && seen.segment[0].type === 'image/jpeg', 'the frame was sent to the models as a JPEG: ' + JSON.stringify(seen.segment));
+    const box = await finderBox(page);
+    await page.mouse.click(box.x + box.width * 0.12, box.y + box.height * 0.3);
+    await until(() => seen.search.length === 1, 'the item of the frame to be searched');
+    noProblems(page, 'the Finder with the camera');
+  } finally {
+    await page.close();
+  }
 });
 
 // ---- catalogue admin (target D1): the token gate. The dev stack sets no AUTH_ADMIN_TOKEN at all (there is no catalogue
@@ -3282,6 +3546,301 @@ await test('shop: the SuperBond colour designs are listed under their catalogue 
   await page.close();
 });
 // ==== photos (end) ====
+
+// ==== capture from a phone (server/capture/, site/capture/, site/brand/capture.js) ====
+// The laptop and the phone are two browser contexts with nothing in common (no cookie, no storage): the phone page works from the link alone.
+// Chrome here has a fake camera (the run's flags) and the page gives the phone a geolocation, so the in-page camera and the location button run for real.
+const CAPTURE_PHOTOS = [path.join(root, 'media', 'a01-hero.jpg'), path.join(root, 'media', 'p03-showroom.jpg')];
+/** The laptop side: the session API, called the way the widget calls it. */
+const capApi = (page, method, url, body) => page.evaluate(async (m, u, b) => {
+  const r = await fetch(u, { method: m, headers: { 'Content-Type': 'application/json' }, body: b === undefined ? undefined : JSON.stringify(b) });
+  return { status: r.status, json: await r.json().catch(() => null) };
+}, method, url, body);
+const capLink = async (laptop, service = 'finder', note = '') => {
+  const made = await capApi(laptop, 'POST', '/api/capture/sessions', { service, note });
+  assert(made.status === 201, 'a link was not made: ' + JSON.stringify(made));
+  return { id: made.json.session.id, link: made.json.session.link, token: made.json.session.link.split('#')[1] };
+};
+/** A phone: its own context, with the camera and the location allowed and a position to report. The token must never be in a requested address or travel with a cookie. */
+const capPhone = async (link, { permissions = ['geolocation', 'camera'] } = {}) => {
+  const phone = await newPage(PHONE, stack, { signedIn: false });
+  const token = link.split('#')[1];
+  phone.leaks = [];
+  phone.on('request', (r) => {
+    const u = r.url();
+    if (u.startsWith(base) && (u.includes(token) || r.headers()['referer']?.includes(token))) phone.leaks.push('the token is in a request to ' + u);
+  });
+  // puppeteer's request.headers() never shows the cookies a browser attaches by itself, so the real outgoing headers are read over CDP. The context gets a decoy
+  // cookie: it travels with the page's own request (the control) and must not travel with a single call of the page to /api/capture/s/.
+  await phone.setCookie({ name: 'decoy', value: 'must-not-travel', url: base });
+  const cdp = await phone.createCDPSession();
+  await cdp.send('Network.enable');
+  const urlOf = new Map();
+  const withCookie = new Set();
+  cdp.on('Network.requestWillBeSent', (e) => urlOf.set(e.requestId, e.request.url));
+  cdp.on('Network.requestWillBeSentExtraInfo', (e) => { if (e.headers.Cookie || e.headers.cookie) withCookie.add(e.requestId); });
+  phone.cookiedUrls = () => [...withCookie].map((id) => urlOf.get(id)).filter(Boolean);
+  phone.assertCookieFree = () => {
+    const sent = phone.cookiedUrls();
+    assert(sent.some((u) => u === base + '/capture'), 'the control: the decoy cookie travels with the page\'s own request (' + JSON.stringify(sent) + ')');
+    assert(!sent.some((u) => u.includes('/api/capture/s/')), 'a cookie travelled with ' + sent.filter((u) => u.includes('/api/capture/s/')).join(', '));
+  };
+  await phone.browserContext().overridePermissions(base, permissions);
+  await phone.setGeolocation({ latitude: 28.613939, longitude: 77.209021, accuracy: 18 });
+  await phone.goto(link, { waitUntil: 'domcontentloaded' });
+  return phone;
+};
+const phoneClick = (page, text) => page.evaluate((t) => { const b = [...document.querySelectorAll('button, label.btn')].find((x) => x.textContent.trim().includes(t)); if (!b) return false; b.scrollIntoView({ block: 'center' }); b.click(); return true; }, text);
+
+await test('capture: a QR code and a link are made on the Finder; the code decodes to exactly that link, with the key after the # sign; on this computer the page says a phone cannot open it', async () => {
+  const laptop = await newPage({ width: 1440, height: 900 });
+  await laptop.goto(base + '/finder', { waitUntil: 'domcontentloaded' });
+  await until(() => laptop.$('.cap-launch'), 'the launcher', 15000);
+  await until(() => laptop.evaluate(() => !document.documentElement.classList.contains('tc-ld-lock')), 'the page loader to let go', 15000);
+  await laptop.click('.cap-launch');
+  await until(() => laptop.$('.cap-way'), 'the two ways to get photos');
+  assert((await laptop.evaluate(() => [...document.querySelectorAll('.cap-way')].map((b) => b.textContent.trim()).join('|'))).includes('QR code'), 'a QR code option');
+  assert(await laptop.evaluate(() => /WhatsApp/.test(document.querySelector('.cap-ways').textContent)), 'a WhatsApp option');
+  await laptop.click('.cap-way');
+  await until(() => laptop.$('.cap-qr svg path'), 'the QR code', 10000);
+  const shown = await laptop.evaluate(() => ({ link: document.querySelector('.cap-link').value, warn: /cannot open/.test(document.querySelector('.cap-panel').textContent), modules: document.querySelector('.cap-qr svg').getAttribute('viewBox') }));
+  assert(/^http:\/\/127\.0\.0\.1:\d+\/capture#[A-Za-z0-9_-]{32}$/.test(shown.link), 'the link: ' + shown.link);
+  assert(shown.warn, 'this stack is not on a public address: the panel must say a phone cannot open it');
+  assert(laptop.url().indexOf('#') === -1, 'the key is only in the link, not in this page\'s address');
+  noProblems(laptop, 'the QR panel');
+  await laptop.close();
+});
+
+await test('capture: the phone adds photos (the in-page camera and the gallery), labels them, shares its location, sends them; the laptop gets a pop-up, then the photos with the details; the token never appears in a requested address and no cookie travels', async () => {
+  const laptop = await newPage({ width: 1440, height: 900 });
+  await laptop.goto(base + '/finder', { waitUntil: 'domcontentloaded' });
+  await until(() => laptop.$('.cap-launch'), 'the launcher', 15000);
+  await until(() => laptop.evaluate(() => !document.documentElement.classList.contains('tc-ld-lock')), 'the page loader to let go', 15000);
+  await laptop.click('.cap-launch');
+  await until(() => laptop.$('.cap-way'), 'the panel');
+  await laptop.click('.cap-way');
+  await until(() => laptop.$('.cap-link'), 'the link');
+  const link = await laptop.$eval('.cap-link', (e) => e.value);
+  await laptop.click('.cap-x'); // shut: a pop-up must say it when photos arrive
+
+  const phone = await capPhone(link);
+  await until(() => phone.$('input[name=name]'), 'the phone page', 15000);
+  assert(await phone.evaluate(() => /For the Finder/i.test(document.body.innerText) && /Test asked for photos of a space/.test(document.body.innerText)), 'the page says which page the photos are for and who asked (first name only): ' + await phone.evaluate(() => document.body.innerText.slice(0, 200)));
+  // the loader is the site's: it is on this page too, and lets go
+  assert(await phone.evaluate(() => !!document.querySelector('link[href="/brand/loader.css"]') && !!document.querySelector('script[src="/brand/loader.js"]')), 'the Terucon loader is on the phone page');
+  await until(() => phone.evaluate(() => !document.documentElement.classList.contains('tc-ld-lock')), 'the loader to let go', 15000);
+
+  // no name: nothing may be sent, and it says why
+  await (await phone.$('input[type=file]')).uploadFile(CAPTURE_PHOTOS[0]);
+  await until(() => phone.evaluate(() => document.querySelectorAll('.shot').length === 1), 'the first photo');
+  await phoneClick(phone, 'Send 1 photo');
+  await until(() => phone.evaluate(() => /name is needed/i.test(document.querySelector('.notice.bad')?.textContent || '')), 'the name to be asked for');
+  assert((await capApi(laptop, 'GET', '/api/capture/inbox')).json.photos.length === 0, 'a photo was sent without a name');
+
+  await phone.type('input[name=name]', 'Ravi Kumar');
+  await phone.type('input[name=phone]', '98765 43210');
+  await phone.type('textarea[name=address]', 'Plot 4, Sector 9');
+  await phone.type('input[name=place]', 'Cabin B');
+  await phoneClick(phone, 'Use my current location');
+  await until(() => phone.evaluate(() => /within about 18 m/.test(document.querySelector('.loc')?.textContent || '')), 'the real position of the phone');
+  // the in-page camera: no hand-over to the phone's camera app
+  assert(await phoneClick(phone, 'Take photos'), 'the camera button');
+  await until(() => phone.$('.cam video'), 'the camera view');
+  await until(() => phone.evaluate(() => document.querySelector('.cam video').videoWidth > 0), 'the camera to deliver pictures', 10000);
+  assert(await phone.evaluate(() => location.pathname === '/capture'), 'still on the page: the camera is inside it');
+  await phone.click('.shutter');
+  await until(() => phone.evaluate(() => document.querySelectorAll('.shot').length === 2), 'the camera photo');
+  await phone.evaluate(() => [...document.querySelectorAll('.cam-bar .btn')].find((b) => b.textContent.trim() === 'Done').click());
+  await until(() => phone.evaluate(() => !document.querySelector('.cam')), 'the camera to close');
+  await (await phone.$('input[type=file]')).uploadFile(CAPTURE_PHOTOS[1]);
+  await until(() => phone.evaluate(() => document.querySelectorAll('.shot').length === 3), 'the gallery photo');
+  // labels on the first photo: a preset and one of our own
+  await phone.evaluate(() => [...document.querySelector('.shot .tags').querySelectorAll('.chip')].find((c) => c.textContent === 'Room').click());
+  await phone.type('.shot .tagin', 'Reception');
+  await phone.keyboard.press('Enter');
+  assert(await phone.evaluate(() => [...document.querySelector('.shot .tags').querySelectorAll('.chip[aria-pressed="true"]')].map((c) => c.textContent).join() === 'Room,Reception'), 'the two labels are on');
+  await phoneClick(phone, 'Send 3 photos');
+  await until(() => phone.evaluate(() => /All done\. 3 photos sent/.test(document.querySelector('.notice.good')?.textContent || '')), 'all three to be sent', 30000);
+
+  // the laptop: the pop-up, then what came in
+  await until(() => laptop.$('.cap-toast'), 'the pop-up on the laptop', 15000);
+  assert(await laptop.$eval('.cap-toast', (e) => /3 new photos from Ravi Kumar/.test(e.textContent)), 'the pop-up says who and how many');
+  await laptop.click('.cap-toast .cap-btn');
+  await until(() => laptop.$('.cap-group'), 'the photos');
+  const got = await laptop.evaluate(() => ({ who: document.querySelector('.cap-who').innerText, imgs: [...document.querySelectorAll('.cap-photo img')].map((i) => i.complete && i.naturalWidth > 0), tags: [...document.querySelectorAll('.cap-tags span')].map((s) => s.textContent), map: document.querySelector('.cap-who a[href^="https://www.google.com/maps"]')?.getAttribute('href') }));
+  assert(/Ravi Kumar/.test(got.who) && /Plot 4, Sector 9/.test(got.who) && /Cabin B/.test(got.who) && /\+919876543210/.test(got.who) && /For the Finder/.test(got.who), 'the details: ' + got.who);
+  await until(() => laptop.evaluate(() => [...document.querySelectorAll('.cap-photo img')].every((i) => i.complete && i.naturalWidth > 0)), 'the three pictures to load');
+  assert(got.imgs.length === 3 && got.tags.includes('Room') && got.tags.includes('Reception'), 'three photos with their labels: ' + JSON.stringify(got));
+  assert(/q=28\.613939(,|%2C)77\.209021/.test(got.map), 'the real coordinates the phone gave: ' + got.map);
+  // the photo can be taken to another page: Inspiration opens its crop screen with it
+  await laptop.evaluate(() => [...document.querySelector('.cap-photo').querySelectorAll('.cap-btn')].find((b) => b.textContent.trim() === 'Inspiration').click());
+  await until(() => laptop.evaluate(() => location.pathname === '/inspiration'), 'Inspiration', 15000);
+  await until(() => inShadow(laptop, (root) => !!root && /Crop your photo/.test(root.textContent)), 'the crop screen with the photo (the import dialog is in a shadow root)', 15000);
+  assert(!/import=/.test(laptop.url()), 'the one-time code is not left in the address: ' + laptop.url());
+  assert(phone.leaks.length === 0, phone.leaks.join('; '));
+  phone.assertCookieFree();
+  phone.problems = phone.problems.filter((p) => !/camera|geolocation/i.test(p));
+  noProblems(phone, 'the phone page');
+  noProblems(laptop, 'the laptop');
+  await phone.close();
+  await laptop.close();
+});
+
+await test('capture: photos wait in the phone through a reload (labels too); with no connection nothing is lost; an upload that fails is marked "Not sent"; sending again once it is back works exactly once', async () => {
+  const laptop = await newPage({ width: 1280, height: 800 });
+  const { link, id } = await capLink(laptop);
+  const phone = await capPhone(link);
+  await until(() => phone.$('input[name=name]'), 'the phone page', 15000);
+  await (await phone.$('input[type=file]')).uploadFile(CAPTURE_PHOTOS[0]);
+  await until(() => phone.evaluate(() => document.querySelectorAll('.shot').length === 1), 'the photo');
+  await phone.evaluate(() => [...document.querySelector('.shot .tags').querySelectorAll('.chip')].find((c) => c.textContent === 'Wall').click());
+  await sleep(700); // the label is saved a moment after the tap
+  await phone.reload({ waitUntil: 'domcontentloaded' });
+  await until(() => phone.evaluate(() => document.querySelectorAll('.shot').length === 1), 'the photo to come back after a reload', 15000);
+  assert(await phone.evaluate(() => /from earlier on this phone is ready to send/.test(document.body.innerText) && document.querySelector('.shot .chip[aria-pressed="true"]')?.textContent === 'Wall'), 'the photo and its label were kept');
+  await phone.type('input[name=name]', 'Asha Rao');
+
+  // 1. no connection at all: it says so and the photo stays ready (and is sent by itself when the connection is back, below)
+  await phone.setOfflineMode(true);
+  await phoneClick(phone, 'Send 1 photo');
+  await until(() => phone.evaluate(() => [...document.querySelectorAll('.notice.bad')].some((n) => /no connection/i.test(n.textContent))), 'the "no connection" message');
+  assert(await phone.evaluate(() => document.querySelectorAll('.shot.queued').length === 1), 'the photo is still there, ready');
+  // 2. the connection comes back but the photo's upload keeps failing: after its retries it is marked "Not sent", with the reason
+  await phone.setRequestInterception(true);
+  let block = true;
+  const sentToServer = [];
+  phone.on('request', (r) => {
+    if (r.url().includes('/api/capture/s/photos')) sentToServer.push(block ? 'blocked' : 'sent');
+    if (block && r.url().includes('/api/capture/s/photos')) r.abort('connectionreset');
+    else r.continue();
+  });
+  await phone.setOfflineMode(false); // the page notices ("online") and tries again by itself
+  await until(() => phone.evaluate(() => document.querySelector('.shot.failed')), 'the photo to be marked not sent (after its retries)', 40000);
+  assert(await phone.evaluate(() => /No connection/.test(document.querySelector('.shot .why')?.textContent || '')), 'it says why');
+  assert(sentToServer.length >= 2 && sentToServer.every((x) => x === 'blocked'), 'it was tried more than once: ' + sentToServer.join());
+  assert((await capApi(laptop, 'GET', '/api/capture/inbox')).json.photos.length === 0, 'nothing reached the server');
+  // 3. it works again: sent once, one place used, the label with it
+  block = false;
+  await phoneClick(phone, 'Send 1 photo');
+  await until(() => phone.evaluate(() => /All done/.test(document.querySelector('.notice.good')?.textContent || '')), 'the photo to be sent', 30000);
+  const inbox = (await capApi(laptop, 'GET', '/api/capture/inbox')).json;
+  assert(inbox.photos.length === 1 && inbox.sessions.find((s) => s.id === id).photoCount === 1, 'one photo, one place used: ' + inbox.photos.length);
+  assert(inbox.photos[0].tags.join() === 'Wall', 'its label arrived: ' + inbox.photos[0].tags);
+  await phone.reload({ waitUntil: 'domcontentloaded' });
+  await until(() => phone.$('input[name=name]'), 'the page again');
+  await sleep(600);
+  assert(await phone.evaluate(() => document.querySelectorAll('.shot').length === 0), 'a sent photo is not kept on the phone and not sent twice');
+  assert(phone.leaks.length === 0, phone.leaks.join('; '));
+  phone.assertCookieFree();
+  await phone.close();
+  await laptop.close();
+});
+
+await test('capture: what goes wrong is said in words: a link that is not valid, one the requester ended, a photo format the browser cannot open, a location that is blocked', async () => {
+  const laptop = await newPage({ width: 1280, height: 800 });
+  const expected = (page) => { page.problems = page.problems.filter((p) => !/api\/capture\/s\//.test(p)); };
+  const bad = await capPhone(base + '/capture#' + 'A'.repeat(32));
+  await until(() => bad.evaluate(() => /link is not valid/i.test(document.body.innerText)), 'the "not valid" screen', 15000);
+  expected(bad); noProblems(bad, 'a link that is not valid');
+  await bad.close();
+  const none = await capPhone(base + '/capture');
+  await until(() => none.evaluate(() => /link is not complete/i.test(document.body.innerText)), 'the "not complete" screen', 15000);
+  await none.close();
+
+  const { link, id } = await capLink(laptop);
+  const phone = await capPhone(link, { permissions: ['camera'] }); // location is not allowed
+  await until(() => phone.$('input[name=name]'), 'the phone page', 15000);
+  await phoneClick(phone, 'Use my current location');
+  await until(() => phone.evaluate(() => /blocked for this page/i.test(document.querySelector('.loc .err')?.textContent || '')), 'the blocked-location message');
+  assert(await phone.evaluate(() => /Try again/.test(document.querySelector('.loc .btn').textContent)), 'and a way to try again');
+  // a file the browser cannot open: named .heic, not an image Chrome can read
+  const heic = path.join(os.tmpdir(), `terucon-e2e-${Date.now()}.heic`);
+  fs.writeFileSync(heic, Buffer.from('ftypheic....not-really-a-photo'));
+  await (await phone.$('input[type=file]')).uploadFile(heic);
+  await until(() => phone.evaluate(() => [...document.querySelectorAll('.notice.bad')].some((n) => /cannot open HEIC photos/i.test(n.textContent))), 'the HEIC message');
+  fs.rmSync(heic, { force: true });
+  assert(await phone.evaluate(() => document.querySelectorAll('.shot').length === 0), 'an unreadable photo is not queued');
+  await capApi(laptop, 'POST', `/api/capture/sessions/${id}/close`, {});
+  await phone.reload({ waitUntil: 'domcontentloaded' });
+  await until(() => phone.evaluate(() => /link was closed/i.test(document.body.innerText)), 'the "closed" screen', 15000);
+  expected(phone); phone.problems = phone.problems.filter((p) => !/geolocation|camera/i.test(p));
+  noProblems(phone, 'the closed link');
+  await phone.close();
+  await laptop.close();
+});
+
+await test('capture: the phone page is locked down (strict policy, camera and location allowed for itself only, no search indexing, no inline style) and the WhatsApp tab prepares a wa.me message for the number typed', async () => {
+  const r = await fetch(base + '/capture');
+  assert(r.status === 200, 'the page is open to a phone with no account: ' + r.status);
+  const csp = r.headers.get('content-security-policy');
+  assert(/default-src 'none'/.test(csp) && /script-src 'self'(;|$)/.test(csp) && /style-src 'self'(;|$)/.test(csp) && !/unsafe-inline|unsafe-eval/.test(csp) && /img-src 'self' data: blob:/.test(csp) && /connect-src 'self'(;|$)/.test(csp) && /frame-ancestors 'self'/.test(csp), 'the policy: ' + csp);
+  assert(/camera=\(self\)/.test(r.headers.get('permissions-policy')) && /geolocation=\(self\)/.test(r.headers.get('permissions-policy')) && /microphone=\(\)/.test(r.headers.get('permissions-policy')), 'permissions: ' + r.headers.get('permissions-policy'));
+  assert(/noindex/.test(r.headers.get('x-robots-tag')) && r.headers.get('referrer-policy') === 'no-referrer', 'noindex and no referrer');
+  const html = await r.text();
+  assert(!/\sstyle\s*=/i.test(html) && !/\son\w+\s*=/i.test(html), 'no inline style or handler');
+  const asset = await fetch(base + '/capture-ui/assets/capture-page.js');
+  assert(asset.status === 200 && /javascript/.test(asset.headers.get('content-type')) && asset.headers.get('x-content-type-options') === 'nosniff', 'the page code is served');
+  assert((await fetch(base + '/capture-ui/assets/..%2Fserver.js')).status !== 200 && (await fetch(base + '/capture-ui/assets/nope.js')).status === 404, 'only the listed files are served');
+
+  const laptop = await newPage({ width: 1280, height: 800 });
+  await laptop.goto(base + '/inspiration', { waitUntil: 'domcontentloaded' });
+  await until(() => laptop.$('.cap-launch'), 'the launcher on Inspiration', 15000);
+  await until(() => laptop.evaluate(() => !document.documentElement.classList.contains('tc-ld-lock')), 'the loader to let go', 15000);
+  await laptop.click('.cap-launch');
+  await until(() => laptop.$('.cap-way'), 'the panel');
+  await laptop.evaluate(() => document.querySelectorAll('.cap-way')[1].click());
+  await until(() => laptop.$('input[type=tel]'), 'the WhatsApp number box');
+  await laptop.type('input[type=tel]', 'abc');
+  await phoneClick(laptop, 'Prepare the message');
+  await until(() => laptop.evaluate(() => /does not look right/.test(document.querySelector('.cap-note.bad')?.textContent || '')), 'a bad number to be refused in words');
+  await laptop.evaluate(() => { document.querySelector('input[type=tel]').value = ''; });
+  await laptop.type('input[type=tel]', '98765 43210');
+  await phoneClick(laptop, 'Prepare the message');
+  await until(() => laptop.$('a.cap-btn[href^="https://wa.me/"]'), 'the WhatsApp link');
+  const wa = await laptop.$eval('a.cap-btn[href^="https://wa.me/"]', (a) => ({ href: a.href, rel: a.rel, target: a.target }));
+  const url = new URL(wa.href);
+  assert(url.pathname === '/919876543210' && /http:\/\/127\.0\.0\.1:\d+\/capture#/.test(url.searchParams.get('text')) && /noopener/.test(wa.rel) && wa.target === '_blank', 'the message: ' + wa.href);
+  laptop.problems = laptop.problems.filter((p) => !/400 \/api\/capture\/sessions\/[a-f0-9]+\/whatsapp/.test(p)); // the bad number above, refused on purpose
+  noProblems(laptop, 'the WhatsApp tab');
+  await laptop.close();
+});
+
+await test('capture: the launcher is on the Design Studio, Inspiration and the Finder and not on the other pages; after a link is made a pop-up still reaches the person on any page', async () => {
+  const page = await newPage({ width: 1280, height: 800 });
+  for (const route of ['/materials', '/my-project']) {
+    await page.goto(base + route, { waitUntil: 'domcontentloaded' });
+    await sleep(2500);
+    assert(await page.evaluate(() => !document.querySelector('.cap-launch') && !document.querySelector('script[src="/brand/capture.js"]')), `${route}: nothing of it is downloaded where it is not needed`);
+  }
+  for (const route of ['/design-studio', '/inspiration', '/finder']) {
+    await page.goto(base + route, { waitUntil: 'domcontentloaded' });
+    await until(() => page.$('.cap-launch'), `the launcher on ${route}`, 20000);
+  }
+  // make a link on the Finder, then go to the shop: the photos still announce themselves there
+  await page.goto(base + '/finder', { waitUntil: 'domcontentloaded' });
+  await until(() => page.$('.cap-launch'), 'the launcher', 15000);
+  await until(() => page.evaluate(() => !document.documentElement.classList.contains('tc-ld-lock')), 'the loader', 15000);
+  await page.click('.cap-launch');
+  await until(() => page.$('.cap-way'), 'the panel');
+  await page.click('.cap-way');
+  await until(() => page.$('.cap-link'), 'the link');
+  const link = await page.$eval('.cap-link', (e) => e.value);
+  await page.goto(base + '/materials', { waitUntil: 'domcontentloaded' });
+  await until(() => page.evaluate(() => !!document.querySelector('script[src="/brand/capture.js"]')), 'the notifier to be loaded where a link is open', 20000);
+  assert(await page.evaluate(() => !document.querySelector('.cap-launch')), 'but no launcher there');
+  const phone = await capPhone(link);
+  await until(() => phone.$('input[name=name]'), 'the phone page', 15000);
+  await phone.type('input[name=name]', 'Meera');
+  await (await phone.$('input[type=file]')).uploadFile(CAPTURE_PHOTOS[1]);
+  await until(() => phone.evaluate(() => document.querySelectorAll('.shot').length === 1), 'the photo');
+  await phoneClick(phone, 'Send 1 photo');
+  await until(() => phone.evaluate(() => /All done/.test(document.querySelector('.notice.good')?.textContent || '')), 'the photo to be sent', 30000);
+  await until(() => page.$('.cap-toast'), 'the pop-up on the shop page', 20000);
+  assert(await page.$eval('.cap-toast', (e) => /1 new photo from Meera/.test(e.textContent) && /Finder/.test(e.textContent)), 'it says who and for which page');
+  await phone.close();
+  await page.close();
+});
+// ==== capture from a phone (end) ====
 
 
 await browser.close();

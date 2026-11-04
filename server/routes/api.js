@@ -26,6 +26,7 @@ export function createApiRegistry(app, leaveTo = () => false) {
     get: (route, ...handlers) => register('GET', route, handlers),
     post: (route, ...handlers) => register('POST', route, handlers),
     put: (route, ...handlers) => register('PUT', route, handlers),
+    delete: (route, ...handlers) => register('DELETE', route, handlers),
     /** Mount last among the API routes. */
     fallback() {
       app.use('/api', (req, res, next) => {

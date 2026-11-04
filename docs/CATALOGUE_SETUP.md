@@ -130,15 +130,28 @@ It copies the folder next to the bucket, checks it, publishes it (crops, thumbna
 
 1. Open `/finder` signed in. If it says "not switched on", read `GET /api/catalogue/status` (needs a signed-in session): `reasons` is one of `off`, `modal-not-configured` (a URL or the key is missing), `storage-not-configured` (the signing key file or bucket), `database-unavailable`, `no-live-catalogue` (nothing is activated yet).
 2. On the admin page, **Check** pings both Modal apps, the database and the signing key. It **wakes the apps and is billed**.
-3. Search with a photo, then with a spot on a photo, then colour only, then words.
+3. Search with a photo, then with a spot on a photo, then "Search the whole photo" (the photo is outlined into its items by the Design Studio's OneFormer scan, `POST /api/vision/segment?model=oneformer`: it needs the Design Studio's `ONEFORMER_URL` setting, and the first call can take about a minute on a cold GPU; tap an item to search the catalogue with it), then colour only, then words.
 4. Scores are relative to the other results (`finalScore` is min-max normalised); the pages never show them as a percentage.
 
 ## 9. What is and is not verified
 
-* **Tested against fakes** (a local folder as the bucket, an in-memory database, a fake Modal): the import, the volume seeding, the search, the gateway, the admin API. 793 Python tests and the JavaScript and browser tests pass.
+* **Tested against fakes** (a local folder as the bucket, an in-memory database, a fake Modal): the import, the volume seeding, the search, the gateway, the admin API. The Python tests (835 on 2026-11-04) and the JavaScript and browser tests pass.
 * **Run once with the real DINOv2 and SigLIP weights**, on a Mac's CPU, on a synthetic six-page PDF: compute, publish, search found the right page in 6 of 6 distorted copies, and a search container reading only the volume made no request to the bucket. Synthetic swatches only: **this says nothing about real material photos**.
 * **Never run:** Modal (the app has not been deployed), a real bucket (signed uploads, CORS, signed links), a real MongoDB (the writes use `UpdateOne` with `$setOnInsert`), Vertex AI, and your real catalogue.
 
+
+## Checking how well the search finds things (2026-11-04)
+
+The search has no accuracy figure: nobody has photographed real samples and agreed what the right answer is. What exists is a small named set (18 queries cut from the catalogue's own pictures, three patches of one photographed floor) and the tools to re-run it. The numbers, what they show and what they do not are in `catalogue/ARCHITECTURE.md` section 5.1.
+
+```
+python -I catalogue/tools/accuracy_eval.py table                       # the named set, from the saved live answers: no service is called
+python -I catalogue/tools/accuracy_eval.py colour --release <a copy of the live release folder> --crops <a copy of crops/<catalogue>/>      # colour-only, all designs, exact
+python -I catalogue/tools/accuracy_eval.py queries --release ... --crops ... --out probe-jobs                                              # writes the query photos and jobs.json
+node tools/catalogue-probe.mjs probe-jobs/jobs.json --release rel-YYYYMMDDHHMMSS-xxxxxx                                                    # ~20 REAL searches on Modal's GPU; keeps the raw answers
+```
+
+`CATALOGUE_SEARCH_PROFILE` (website setting) is `balanced` unless you write another value; `fast` leaves out the Vertex AI image embedding, which is what tells a wooden floor from concrete. An explicit value in `.env` or on Render wins over the default.
 
 ## Giving every item the id printed in its catalogue PDF (`assign-ids`)
 

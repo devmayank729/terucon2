@@ -14,6 +14,7 @@ Fetched on 2026-11-02 with `npm pack <name>@<version>` into an empty folder; the
 | `three.module.min.js` | `three@0.184.0`, `build/three.module.min.js` | 364998 | `sha384-35WaVqXNGvw49+RCXk67Ci9ebo55/5+CfirDbAVSG21KV8/7gO4xwIkhA5ZRcUHc` |
 | `three.core.min.js` | `three@0.184.0`, `build/three.core.min.js` | 384222 | `sha384-/2vXInuUL2LKgd3n86c5RIzG+YC7vk3zYPTknaEkF2H2sauHtaOrS8swZ+MURxU6` |
 | `LICENSE-react.txt`, `LICENSE-three.txt` | the packages' MIT licences | | |
+| `LICENSE-qrcode-generator.txt` | the notice in the header of `qrcode-generator@2.0.4`'s `dist/qrcode.mjs` (the package has no separate licence file; it declares MIT) | | |
 
 - The two React hashes are exactly the SRI constants (`REACT_SRI`, `REACT_DOM_SRI`) inside the page runtime, and the files are
   byte-identical to the copies the original bundles embed. `tools/build-dist.js` re-checks both hashes on every build and stops
@@ -25,3 +26,8 @@ Fetched on 2026-11-02 with `npm pack <name>@<version>` into an empty folder; the
 
 To update a version: `npm pack react@X react-dom@X three@Y` in an empty scratch folder, copy the same files over these, and
 update the table, the constants at the top of `tools/build-dist.js`, and the address the façade script imports.
+
+**qrcode-generator (added 2026-11-04).** `site/brand/qrcode-generator.js` is `qrcode-generator@2.0.4`, `dist/qrcode.mjs`, by Kazuhiko Arase (MIT), unchanged: fetched with `npm pack qrcode-generator@2.0.4 --ignore-scripts` into an empty folder; the
+tarball's sha512 matched the registry's `dist.integrity` (`sha512-mZSiP6RnbHl4xL2Ap5HfkjLnmxfKcPWpWe/c+5XxCuetEenqmNFf1FH/ftXPCtFG5/TDobjsjz6sSNL0Sr8Z9g==`); the file's sha384 is
+`sha384-xHtsZTi0cOhTiha4kloGDUR5e5A8ixkKsF1Mmpqq3tkDpAhkA4YOKIDua/Tc0Ecd` (51907 bytes). It makes no network request and uses no `eval`. It lives in `site/brand/` because that is what the page serves (`/brand/qrcode-generator.js`),
+and it is loaded only when a QR code is drawn. A code it made was decoded by Apple's Vision framework and matched the link exactly (`docs/CAPTURE_FROM_PHONE.md`).

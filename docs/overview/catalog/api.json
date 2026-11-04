@@ -52,6 +52,11 @@
       "id": "terubot",
       "title": "TeruBot (the assistant)",
       "blurb": "The assistant on every page (server/routes/terubot.js, server/lib/terubot/). Public, so it is limited per account and per address. Gemini is called through the Design Studio's own Google key; without a usable key the answer is {aiOn:false}. Errors are flat {error}. It can look things up (the shop's 24 products, what each page does, the catalogue when it is on) and hand the browser a short list of allowed actions; it never changes anything itself."
+    },
+    {
+      "id": "capture",
+      "title": "Capture from a phone",
+      "blurb": "A person on a laptop asks for photos; someone with a phone opens a link (QR code or WhatsApp), takes or chooses photos, adds labels, who and where, and sends them (server/capture/, server/routes/capture.js). Foundation work: not a target of the quotation. The requester's routes need the same sign-in as the pages they are used on (or, with sign-in off, the browser's own owner id). The phone's routes need only the link's key, sent in the X-Capture-Token header (never in an address). Every answer is no-store. Errors are the site's {error:{code,status,message}} plus a short `reason`."
     }
   ],
   "routes": [
@@ -2061,6 +2066,390 @@
         }
       ],
       "curl": "curl -sI http://localhost:8080/catalogue-ui/assets/client.js | head -5"
+    },
+    {
+      "method": "GET",
+      "path": "/capture-ui/assets/:name",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host"
+      ],
+      "summary": "The browser code of the phone page (site/capture/): a fixed list of names, nothing else in the folder.",
+      "request": "No body. The names are ASSETS in server/capture/routes.js.",
+      "response": "200 text/javascript or text/css, Cache-Control: no-cache, X-Content-Type-Options: nosniff. Public: it is code, with no secrets and no data.",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Any other name, a dot-segment, other capitals"
+        }
+      ],
+      "curl": "curl -sI http://localhost:8080/capture-ui/assets/capture-page.js | head -5"
+    },
+    {
+      "method": "GET",
+      "path": "/api/capture/config",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "What is switched on for the requester's panel: whether the server sends WhatsApp messages and alerts, the country code that is added to a number, whether a link a phone can open can be made, and the limits.",
+      "request": "No body.",
+      "response": "{enabled, signedIn, whatsapp: {serverSends, alerts, defaultCountryCode}, link: {ok, reachable}, limits: {sessionMinutes, maxPhotos, keepDays}}. link.reachable is false when the address would be this computer's own.",
+      "errors": [
+        {
+          "status": 401,
+          "when": "Not signed in"
+        },
+        {
+          "status": 403,
+          "when": "The sign-up form is not finished"
+        },
+        {
+          "status": 503,
+          "when": "Capture is off (reason capture-off)"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/capture/sessions",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "Make a link for one of the three pages (the QR code and the WhatsApp message carry it).",
+      "request": "JSON {service: 'studio' | 'inspiration' | 'finder', note?: up to 200 characters for the person taking the photos}.",
+      "response": "201 {session, reachable}. session: {id, service, note, createdAt, expiresAt, open, photoCount, maxPhotos, capturer, link: 'https://<address>/capture#<key>'}. The key is 192 random bits, after the # sign, which a browser never sends to a server.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "Not one of the three pages"
+        },
+        {
+          "status": 409,
+          "when": "Five links are already open (reason too-many-open)"
+        },
+        {
+          "status": 429,
+          "when": "More links than CAPTURE_LIMIT_SESSIONS an hour"
+        },
+        {
+          "status": 503,
+          "when": "No public address is set up and this is not this computer (reason no-public-url), or the database is down"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/capture/sessions/:id",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "One of the requester's links.",
+      "request": "No body.",
+      "response": "{session}. The link itself only while it still works.",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Not a link of this account"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/capture/sessions/:id/close",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "End a link now. The photos that came in stay.",
+      "request": "JSON {} (the body is not read; the content type is).",
+      "response": "{ok: true}",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Not a link of this account"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/capture/sessions/:id",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "Delete a link and every photo that came through it (the pictures are in the same database, so they go with it).",
+      "request": "No body (send Content-Type: application/json, which the site's guard asks for on every write).",
+      "response": "{ok: true, deleted: <photos>}",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Not a link of this account"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/capture/sessions/:id/alert",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "Tell me on WhatsApp when a photo arrives (needs the WhatsApp Business account: WHATSAPP_*).",
+      "request": "JSON {phone: a number with or without country code, or null to turn it off}.",
+      "response": "{alert: {to: '+91••••••3210', status: 'waiting'} | null}. The number is never sent back whole.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "Not a number"
+        },
+        {
+          "status": 404,
+          "when": "Not a link of this account"
+        },
+        {
+          "status": 503,
+          "when": "WhatsApp alerts are not set up on this server (reason whatsapp-off)"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/capture/sessions/:id/whatsapp",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "Send the link to a WhatsApp number. With the Business account and a link template the server sends it (limited per account, per number and per link); otherwise the answer is the wa.me address and the requester sends it from their own WhatsApp.",
+      "request": "JSON {phone}.",
+      "response": "{mode: 'sent' | 'link', to: masked number, waLink: 'https://wa.me/<number>?text=…'}. waLink is in the answer in both modes, as the fallback.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "Not a number"
+        },
+        {
+          "status": 404,
+          "when": "Not a link of this account"
+        },
+        {
+          "status": 410,
+          "when": "The link has ended"
+        },
+        {
+          "status": 429,
+          "when": "The hourly limit, two sends to one number a day, or three sends of one link"
+        },
+        {
+          "status": 502,
+          "when": "WhatsApp refused the message (reason whatsapp-failed); the wa.me address still works"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/capture/inbox",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "The requester's links (the 40 newest) and photos: the latest 60, or those at or after `after`.",
+      "request": "Query: after = the createdAt (ms, server clock) of the newest photo already shown, or none.",
+      "response": "{now, sessions: [session], photos: [{id, session, service, tags, note, type, width, height, bytes, createdAt}]}. now is the server's clock: the page works out its own offset from it. A photo made in the same millisecond as `after` comes again; the page keeps the ids it has shown.",
+      "errors": [
+        {
+          "status": 401,
+          "when": "Not signed in"
+        },
+        {
+          "status": 403,
+          "when": "The sign-up form is not finished"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/capture/photos/:id/file",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "The photo itself, to the requester only.",
+      "request": "Query: download=1 to save it instead of showing it.",
+      "response": "200 image/jpeg, image/png or image/webp, Cache-Control: private, max-age=300, X-Content-Type-Options: nosniff, Content-Security-Policy: default-src 'none'; sandbox, Content-Disposition inline or attachment.",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Not a photo of this account (the same answer for a photo that does not exist)"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/capture/photos/:id",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "Delete one photo.",
+      "request": "No body (send Content-Type: application/json).",
+      "response": "{ok: true}",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Not a photo of this account"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/capture/s/info",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "The link's key (X-Capture-Token)"
+      ],
+      "summary": "What a link is for: the page, the requester's first name, the note, how long it works, how many photos it still takes, the biggest photo, how long photos are kept, and the server's clock.",
+      "request": "No body. Header X-Capture-Token: the link's key.",
+      "response": "{service, serviceLabel, requester, note, expiresAt, maxPhotos, remaining, maxPhotoBytes, detailsSaved, serverNow, keepDays}. Nobody's details are shown to a link holder.",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Unknown key (the same answer for a mistyped one; thirty wrong keys from one address in ten minutes give 429)"
+        },
+        {
+          "status": 410,
+          "when": "The link has expired or was closed"
+        },
+        {
+          "status": 429,
+          "when": "Too many requests or wrong keys"
+        }
+      ],
+      "curl": "curl -s -H 'X-Capture-Token: <key>' http://localhost:8080/api/capture/s/info"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/capture/s/details",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "The link's key (X-Capture-Token)"
+      ],
+      "summary": "The phone says who it is and where: name (needed), phone, address, which part, and a location.",
+      "request": "JSON {name, phone?, address?, place?, location?: {lat, lng, accuracy?, at}}. A location must be inside the real ranges and taken within the last day.",
+      "response": "{ok: true, capturer}. The details are shown to the requester with the photos.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "Bad name (reason bad-name), phone (bad-phone) or location (bad-location, stale-location)"
+        },
+        {
+          "status": 404,
+          "when": "Unknown key"
+        },
+        {
+          "status": 410,
+          "when": "The link has ended"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/capture/s/photos",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "The link's key (X-Capture-Token)"
+      ],
+      "summary": "One photo from the phone. The one write route of the JSON rule's exemption besides /api/catalogue/search: the body is the photo, image/jpeg, image/png or image/webp, at most CAPTURE_MAX_PHOTO_MB. Hidden data (Exif, GPS, XMP, text blocks) is taken out before it is kept.",
+      "request": "The raw photo. Headers: X-Capture-Token, X-Photo-Id (32 hex characters the phone makes; the same one on a retry), X-Photo-Meta (base64url of JSON {tags: up to 8 short labels, note: up to 200 characters}).",
+      "response": "201 {photo, duplicate: false, remaining}; 200 with duplicate: true when the same X-Photo-Id was already stored (a retry changes nothing and uses no second place).",
+      "errors": [
+        {
+          "status": 400,
+          "when": "Not a readable photo, no id, bad labels"
+        },
+        {
+          "status": 409,
+          "when": "No name given yet (details-needed), the link is full (full), or the same photo is arriving at this moment (in-progress: send it again)"
+        },
+        {
+          "status": 413,
+          "when": "Too many bytes or pixels"
+        },
+        {
+          "status": 415,
+          "when": "Not a JPEG, PNG or WebP (decided from the bytes, not the header)"
+        },
+        {
+          "status": 410,
+          "when": "The link has ended"
+        },
+        {
+          "status": 429,
+          "when": "CAPTURE_LIMIT_UPLOADS photos an hour from this address"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/capture/s/done",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "The link's key (X-Capture-Token)"
+      ],
+      "summary": "The phone says it has sent everything; if the requester asked for a WhatsApp alert and there were several photos, one summary message goes (once).",
+      "request": "JSON {}.",
+      "response": "{ok: true, photoCount}",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Unknown key"
+        },
+        {
+          "status": 410,
+          "when": "The link has ended"
+        }
+      ]
     }
   ]
 }

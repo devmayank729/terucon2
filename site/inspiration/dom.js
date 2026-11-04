@@ -48,6 +48,8 @@ const ICONS = {
   clipboard: 'M9 4h6v3H9zM7 5.5H5.5v15h13v-15H17',
   search: 'M10.5 17a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM15.5 15.5l5 5',
   trash: 'M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13',
+  camera: 'M4 8h3l2-3h6l2 3h3v11H4zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+  pin: 'M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z',
 };
 
 /** An inline SVG icon (decorative: hidden from screen readers; put the words on the button). */

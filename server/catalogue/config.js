@@ -22,6 +22,13 @@ const FALSE = new Set(['0', 'false', 'no', 'off', 'n']);
 const FLOAT = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/;
 
 export const SEARCH_PROFILES = ['fast', 'balanced', 'full'];
+/**
+ * The profile a photo search uses when .env does not name one. `balanced` is DINOv2 + SigLIP + colour + the Vertex AI image embedding: the one
+ * signal that knows what KIND of material a photo shows (wood or stone), which the `fast` profile leaves out. Measured 2026-11-04 on a
+ * small named set (catalogue/ARCHITECTURE.md section 5.1): for a pale wooden floor `fast` listed grey concrete and white marble first, `balanced`
+ * put the light oak first; on 18 synthetic queries it was neither clearly better nor worse. The cost is one Vertex call per search (about 0.2 s).
+ */
+export const DEFAULT_PROFILE = 'balanced';
 export const DEFAULT_PREFIX = 'catalogue/';
 /** The biggest query photo the site takes (the browser sends about 100-400 KB; Modal takes at most 8 MB). */
 export const MAX_PHOTO_BYTES = 6 * 1024 * 1024;
@@ -132,7 +139,7 @@ export function readCatalogueEnv(get, warnings, root) {
   }
 
   const profileRaw = get('CATALOGUE_SEARCH_PROFILE').toLowerCase();
-  if (profileRaw && !SEARCH_PROFILES.includes(profileRaw)) warnings.push(`CATALOGUE_SEARCH_PROFILE=${profileRaw.slice(0, 20)} is not one of ${SEARCH_PROFILES.join(', ')}: fast is used.`);
+  if (profileRaw && !SEARCH_PROFILES.includes(profileRaw)) warnings.push(`CATALOGUE_SEARCH_PROFILE=${profileRaw.slice(0, 20)} is not one of ${SEARCH_PROFILES.join(', ')}: ${DEFAULT_PROFILE} is used.`);
 
   return {
     pub: {
@@ -145,7 +152,7 @@ export function readCatalogueEnv(get, warnings, root) {
         proxy: Boolean(proxyKey && proxySecret),
       },
       gcs: { bucket, prefix: prefix ?? DEFAULT_PREFIX, keyFile, problem: gcsProblem },
-      profile: SEARCH_PROFILES.includes(profileRaw) ? profileRaw : 'fast',
+      profile: SEARCH_PROFILES.includes(profileRaw) ? profileRaw : DEFAULT_PROFILE,
     },
     secrets: { modalKey, proxyKey: proxyKey && proxySecret ? proxyKey : '', proxySecret: proxyKey && proxySecret ? proxySecret : '', gcsKeyJson: keyJson },
   };
@@ -170,7 +177,7 @@ export function catalogueConfig(settings) {
     keyFile: g.keyFile ?? '',
     keyJson: s.gcsKeyJson ?? '',
     gcsProblem: g.problem ?? '',
-    profile: c.profile ?? 'fast',
+    profile: c.profile ?? DEFAULT_PROFILE,
   };
 }
 
