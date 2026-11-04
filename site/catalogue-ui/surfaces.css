@@ -1,0 +1,350 @@
+/* "Find it from a photo" in the shop (site/catalogue-ui/surfaces.js). The shop's own colours (--sheet, --ink ...) when it has set them, a warm light theme otherwise. */
+.tcs {
+  --tcs-sheet: var(--sheet, #f1eadf);
+  --tcs-ink: var(--ink, #2a1d0f);
+  --tcs-ink2: var(--ink2, #6b5a47);
+  --tcs-line: var(--line, rgba(42, 29, 15, 0.16));
+  --tcs-line2: var(--line2, rgba(42, 29, 15, 0.34));
+  --tcs-btn: var(--btn, #2a1d0f);
+  --tcs-btn-ink: var(--btn-ink, #f1eadf);
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 3vh;
+  font-family: Switzer, Helvetica, Arial, sans-serif;
+  color: var(--tcs-ink);
+}
+.tcs__scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--scrim, rgba(20, 13, 6, 0.55));
+}
+.tcs__sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(1120px, 96vw);
+  max-height: 94vh;
+  background: var(--tcs-sheet);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+}
+.tcs__head {
+  flex: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px 14px 24px;
+  border-bottom: 1px solid var(--tcs-line);
+}
+.tcs__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tcs__eyebrow {
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink3, #8a7561);
+}
+.tcs__title {
+  font: 300 clamp(24px, 2.4vw, 32px) / 1 Zodiak, serif;
+}
+.tcs__close {
+  min-height: 44px;
+  padding: 0 6px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: inherit;
+  font: 500 13px / 1 Switzer, Helvetica, Arial, sans-serif;
+}
+.tcs__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 20px 24px 22px;
+}
+.tcs__foot {
+  flex: none;
+  margin: 0;
+  padding: 12px 24px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--tcs-line);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--tcs-ink2);
+}
+.tcs__busy,
+.tcs__note,
+.tcs__status {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--tcs-ink2);
+}
+.tcs__note {
+  padding: 10px 14px;
+  border: 1px solid var(--tcs-line2);
+  border-radius: 12px;
+}
+.tcs__pick {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.tcs__drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 32px 20px;
+  text-align: center;
+  border: 1px dashed var(--tcs-line2);
+  transition: background-color 0.2s, border-color 0.2s;
+}
+.tcs__drop.is-over {
+  background: rgba(167, 141, 120, 0.16);
+  border-color: var(--tcs-ink);
+}
+.tcs__dropTitle {
+  font: 300 clamp(24px, 2.4vw, 32px) / 1.1 Zodiak, serif;
+}
+.tcs__dropText {
+  max-width: 54ch;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--tcs-ink2);
+}
+.tcs__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tcs__btn {
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid var(--tcs-line2);
+  background: transparent;
+  color: var(--tcs-ink);
+  font: 500 13.5px / 1 Switzer, Helvetica, Arial, sans-serif;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.tcs__btn:hover:not(:disabled) {
+  border-color: var(--tcs-ink);
+}
+.tcs__btn--main {
+  background: var(--tcs-btn);
+  border-color: var(--tcs-btn);
+  color: var(--tcs-btn-ink);
+}
+.tcs__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.tcs__link {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tcs__linkInput {
+  flex: 1 1 260px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--tcs-line2);
+  background: transparent;
+  color: var(--tcs-ink);
+  font-size: 16px;
+}
+.tcs__stage {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: 24px;
+  align-items: start;
+}
+.tcs__frame {
+  position: relative;
+  align-self: start;
+  line-height: 0;
+  background: rgba(42, 29, 15, 0.08);
+}
+.tcs__img {
+  display: block;
+  width: 100%;
+  max-height: 64vh;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.tcs__overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: manipulation;
+}
+.tcs__overlay.is-hit {
+  cursor: pointer;
+}
+.tcs__tip {
+  position: absolute;
+  z-index: 2;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(20, 13, 6, 0.86);
+  color: #f1eadf;
+  font: 500 12.5px / 1.2 Switzer, Helvetica, Arial, sans-serif;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.tcs__tip[hidden] {
+  display: none;
+}
+.tcs__side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.tcs__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tcs__chip {
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--tcs-line2);
+  background: transparent;
+  color: var(--tcs-ink);
+  font: 500 12.5px / 1 Switzer, Helvetica, Arial, sans-serif;
+  cursor: pointer;
+}
+.tcs__chip.is-on {
+  background: var(--tcs-btn);
+  border-color: var(--tcs-btn);
+  color: var(--tcs-btn-ink);
+}
+.tcs__again {
+  align-self: flex-start;
+  min-height: 38px;
+}
+.tcs__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  gap: 12px;
+}
+.tcs__card {
+  display: flex;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid var(--tcs-line);
+  animation: tcsIn 0.35s ease both;
+}
+.tcs__cardImg {
+  flex: none;
+  width: 72px;
+  height: 108px;
+  object-fit: cover;
+  background: rgba(42, 29, 15, 0.1);
+}
+.tcs__cardInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.tcs__badge {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font: 600 9.5px / 1.5 Switzer, Helvetica, Arial, sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.tcs__cardName {
+  font: 500 14.5px / 1.25 Switzer, Helvetica, Arial, sans-serif;
+}
+.tcs__cardCode {
+  font: 500 11px / 1.2 Switzer, Helvetica, Arial, sans-serif;
+  letter-spacing: 0.08em;
+  color: var(--tcs-ink2);
+}
+.tcs__cardPrice {
+  font: 600 14px / 1.2 Switzer, Helvetica, Arial, sans-serif;
+}
+.tcs__cardNote,
+.tcs__added {
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--tcs-ink2);
+}
+.tcs__card .tcs__btn {
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 12.5px;
+}
+@keyframes tcsIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@media (max-width: 719px) {
+  .tcs {
+    align-items: flex-end;
+    padding-top: 0;
+  }
+  .tcs__sheet {
+    width: 100vw;
+    max-height: 96vh;
+  }
+  .tcs__body {
+    padding: 16px;
+  }
+  .tcs__stage {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .tcs__img {
+    max-height: 46vh;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tcs__card {
+    animation: none;
+  }
+}
+html.tcs-open {
+  overflow: hidden;
+}
+
+.tcs__toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  z-index: 90;
+  max-width: min(92vw, 520px);
+  margin: 0;
+  padding: 12px 18px;
+  transform: translateX(-50%);
+  border-radius: 14px;
+  background: rgba(20, 13, 6, 0.92);
+  color: #f1eadf;
+  font: 400 13.5px / 1.45 Switzer, Helvetica, Arial, sans-serif;
+}

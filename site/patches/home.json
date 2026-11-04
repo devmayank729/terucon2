@@ -357,6 +357,7 @@
     {
       "id": "start-project-links",
       "op": "replaceAll",
+      "style": "route",
       "why": "every \"Start a project\" button opens its own page, /start-project, instead of scrolling to the form at the bottom of the landing page",
       "anchor": "href=\"#enquire\"",
       "with": "href=\"/start-project\"",

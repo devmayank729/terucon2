@@ -1,0 +1,767 @@
+{
+ "_comment": "Written by catalogue/tools/make_shop_images.py from the id table and the PDF. Do not edit by hand.",
+ "catalogue": "superbond-colour",
+ "products": [
+  {
+   "id": "TIPL-CMT6001",
+   "code": "CMT6001",
+   "printedName": "METAFRAZO TEXTURE",
+   "pages": [
+    2
+   ],
+   "image": "media/materials/tipl-cmt6001.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#8d4022"
+  },
+  {
+   "id": "TIPL-CMT6002",
+   "code": "CMT6002",
+   "printedName": "CORTERN BROWN",
+   "pages": [
+    3
+   ],
+   "image": "media/materials/tipl-cmt6002.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#793012"
+  },
+  {
+   "id": "TIPL-CMT6003",
+   "code": "CMT6003",
+   "printedName": "ABSTRACT METAL",
+   "pages": [
+    4
+   ],
+   "image": "media/materials/tipl-cmt6003.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#9d764b"
+  },
+  {
+   "id": "TIPL-CMT6004",
+   "code": "CMT6004",
+   "printedName": "LUSTROUS GREY",
+   "pages": [
+    5
+   ],
+   "image": "media/materials/tipl-cmt6004.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#836e68"
+  },
+  {
+   "id": "TIPL-CMT6007",
+   "code": "CMT6007",
+   "printedName": "ARCADIAN OCHRE",
+   "pages": [
+    6
+   ],
+   "image": "media/materials/tipl-cmt6007.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#ab500a"
+  },
+  {
+   "id": "TIPL-CMT6008",
+   "code": "CMT6008",
+   "printedName": "SAPROPHYTE RUST",
+   "pages": [
+    7
+   ],
+   "image": "media/materials/tipl-cmt6008.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#90926d"
+  },
+  {
+   "id": "TIPL-STC9050",
+   "code": "STC9050",
+   "printedName": "TWILIGHT BLACK",
+   "pages": [
+    8
+   ],
+   "image": "media/materials/tipl-stc9050.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#b97c4c"
+  },
+  {
+   "id": "TIPL-STC9067",
+   "code": "STC9067",
+   "printedName": "FERRARI RED",
+   "pages": [
+    9
+   ],
+   "image": "media/materials/tipl-stc9067.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#9c6343"
+  },
+  {
+   "id": "TIPL-STC9092",
+   "code": "STC9092",
+   "printedName": "RUSSIAN STONE",
+   "pages": [
+    10
+   ],
+   "image": "media/materials/tipl-stc9092.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#a3a098"
+  },
+  {
+   "id": "TIPL-SBA7001",
+   "code": "SBA7001",
+   "printedName": "PLUTO",
+   "pages": [
+    11
+   ],
+   "image": "media/materials/tipl-sba7001.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#464744"
+  },
+  {
+   "id": "TIPL-SBA7002",
+   "code": "SBA7002",
+   "printedName": "VENUS",
+   "pages": [
+    12
+   ],
+   "image": "media/materials/tipl-sba7002.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#de7a28"
+  },
+  {
+   "id": "TIPL-SBA7003",
+   "code": "SBA7003",
+   "printedName": "EARTH",
+   "pages": [
+    13
+   ],
+   "image": "media/materials/tipl-sba7003.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#7a9965"
+  },
+  {
+   "id": "TIPL-SBA7004",
+   "code": "SBA7004",
+   "printedName": "SATURN",
+   "pages": [
+    14
+   ],
+   "image": "media/materials/tipl-sba7004.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#c1b9a8"
+  },
+  {
+   "id": "TIPL-SBA7005",
+   "code": "SBA7005",
+   "printedName": "MERCURY",
+   "pages": [
+    15
+   ],
+   "image": "media/materials/tipl-sba7005.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#d2b47a"
+  },
+  {
+   "id": "TIPL-SBA7006",
+   "code": "SBA7006",
+   "printedName": "MARS",
+   "pages": [
+    16
+   ],
+   "image": "media/materials/tipl-sba7006.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#7a7b7a"
+  },
+  {
+   "id": "TIPL-SB005",
+   "code": "SB005",
+   "printedName": "NATURAL TEAK TX",
+   "pages": [
+    17,
+    64
+   ],
+   "image": "media/materials/tipl-sb005.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#b65717"
+  },
+  {
+   "id": "TIPL-SB008",
+   "code": "SB008",
+   "printedName": "BURMESE TEAK",
+   "pages": [
+    18
+   ],
+   "image": "media/materials/tipl-sb008.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#7b4312"
+  },
+  {
+   "id": "TIPL-SB621",
+   "code": "SB621",
+   "printedName": "AFRICAN EBONY TX",
+   "pages": [
+    19
+   ],
+   "image": "media/materials/tipl-sb621.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#b28454"
+  },
+  {
+   "id": "TIPL-SB625",
+   "code": "SB625",
+   "printedName": "MAHOGANY PREMIUM TX",
+   "pages": [
+    20
+   ],
+   "image": "media/materials/tipl-sb625.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#694122"
+  },
+  {
+   "id": "TIPL-SB921",
+   "code": "SB921",
+   "printedName": "CONFIER TEAK",
+   "pages": [
+    21
+   ],
+   "image": "media/materials/tipl-sb921.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#b67e37"
+  },
+  {
+   "id": "TIPL-SB922",
+   "code": "SB922",
+   "printedName": "CHESTER OAK",
+   "pages": [
+    22
+   ],
+   "image": "media/materials/tipl-sb922.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#d8bd95"
+  },
+  {
+   "id": "TIPL-SB923",
+   "code": "SB923",
+   "printedName": "MACASAR WOOD TX",
+   "pages": [
+    23,
+    67
+   ],
+   "image": "media/materials/tipl-sb923.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#ac5209"
+  },
+  {
+   "id": "TIPL-SB902",
+   "code": "SB902",
+   "printedName": "ROSE WOOD",
+   "pages": [
+    24,
+    65
+   ],
+   "image": "media/materials/tipl-sb902.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#b8310a"
+  },
+  {
+   "id": "TIPL-SB905",
+   "code": "SB905",
+   "printedName": "BRAZILIAN HULK",
+   "pages": [
+    25
+   ],
+   "image": "media/materials/tipl-sb905.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#2a1c15"
+  },
+  {
+   "id": "TIPL-SB910",
+   "code": "SB910",
+   "printedName": "AMERICAN WALNUT",
+   "pages": [
+    26
+   ],
+   "image": "media/materials/tipl-sb910.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#833918"
+  },
+  {
+   "id": "TIPL-SB912",
+   "code": "SB912",
+   "printedName": "NATURAL WALNUT",
+   "pages": [
+    27
+   ],
+   "image": "media/materials/tipl-sb912.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#937353"
+  },
+  {
+   "id": "TIPL-SB913",
+   "code": "SB913",
+   "printedName": "CREME WALNUT",
+   "pages": [
+    28
+   ],
+   "image": "media/materials/tipl-sb913.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#a18568"
+  },
+  {
+   "id": "TIPL-SB915",
+   "code": "SB915",
+   "printedName": "CANADIAN WALNUT",
+   "pages": [
+    29,
+    61
+   ],
+   "image": "media/materials/tipl-sb915.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#a63e08"
+  },
+  {
+   "id": "TIPL-SB920",
+   "code": "SB920",
+   "printedName": "TIMBER WOOD BURMA",
+   "pages": [
+    30
+   ],
+   "image": "media/materials/tipl-sb920.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#905f38"
+  },
+  {
+   "id": "TIPL-SB801",
+   "code": "SB801",
+   "printedName": "TRAVERTINE CREME",
+   "pages": [
+    31
+   ],
+   "image": "media/materials/tipl-sb801.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#ceaf6f"
+  },
+  {
+   "id": "TIPL-SB804",
+   "code": "SB804",
+   "printedName": "EMPERADOR DARK",
+   "pages": [
+    32,
+    66
+   ],
+   "image": "media/materials/tipl-sb804.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#493833"
+  },
+  {
+   "id": "TIPL-SB825",
+   "code": "SB825",
+   "printedName": "WILLIAMS GREY",
+   "pages": [
+    33
+   ],
+   "image": "media/materials/tipl-sb825.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#bab5ad"
+  },
+  {
+   "id": "TIPL-SB826",
+   "code": "SB826",
+   "printedName": "NAXIAN WHITE",
+   "pages": [
+    34
+   ],
+   "image": "media/materials/tipl-sb826.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#d7d1c7"
+  },
+  {
+   "id": "TIPL-SB828",
+   "code": "SB828",
+   "printedName": "BLACK MARQUINA",
+   "pages": [
+    35
+   ],
+   "image": "media/materials/tipl-sb828.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#040303"
+  },
+  {
+   "id": "TIPL-SB829",
+   "code": "SB829",
+   "printedName": "MARINACE",
+   "pages": [
+    36
+   ],
+   "image": "media/materials/tipl-sb829.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#7d6850"
+  },
+  {
+   "id": "TIPL-SB8001",
+   "code": "SB8001",
+   "printedName": "MARMORIS STAIN",
+   "pages": [
+    37
+   ],
+   "image": "media/materials/tipl-sb8001.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#6b6665"
+  },
+  {
+   "id": "TIPL-SB8002",
+   "code": "SB8002",
+   "printedName": "MARMORIS STEIN",
+   "pages": [
+    38
+   ],
+   "image": "media/materials/tipl-sb8002.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#9b9a9c"
+  },
+  {
+   "id": "TIPL-SD5001",
+   "code": "SD5001",
+   "printedName": "GREY SAND STONE",
+   "pages": [
+    39
+   ],
+   "image": "media/materials/tipl-sd5001.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#4f483d"
+  },
+  {
+   "id": "TIPL-SD5002",
+   "code": "SD5002",
+   "printedName": "WHITE BEACH SAND",
+   "pages": [
+    40
+   ],
+   "image": "media/materials/tipl-sd5002.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#c9bca3"
+  },
+  {
+   "id": "TIPL-SD5003",
+   "code": "SD5003",
+   "printedName": "ZURICH  BEIGE SAND",
+   "pages": [
+    41
+   ],
+   "image": "media/materials/tipl-sd5003.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#dad0be"
+  },
+  {
+   "id": "TIPL-SD5004",
+   "code": "SD5004",
+   "printedName": "MAGENTA SAND STONE",
+   "pages": [
+    42
+   ],
+   "image": "media/materials/tipl-sd5004.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#cc6819"
+  },
+  {
+   "id": "TIPL-SD5005",
+   "code": "SD5005",
+   "printedName": "VIRDIAN GREEN SAND",
+   "pages": [
+    43
+   ],
+   "image": "media/materials/tipl-sd5005.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#595238"
+  },
+  {
+   "id": "TIPL-SK4001",
+   "code": "SK4001",
+   "printedName": "GREY SKIN FEELING",
+   "pages": [
+    44
+   ],
+   "image": "media/materials/tipl-sk4001.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#403d33"
+  },
+  {
+   "id": "TIPL-SK4002",
+   "code": "SK4002",
+   "printedName": "JAISALMER SUNDAY SKIN",
+   "pages": [
+    45
+   ],
+   "image": "media/materials/tipl-sk4002.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#deca93"
+  },
+  {
+   "id": "TIPL-SK4003",
+   "code": "SK4003",
+   "printedName": "MOON  SKIN FEELING",
+   "pages": [
+    46
+   ],
+   "image": "media/materials/tipl-sk4003.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#e2cfb5"
+  },
+  {
+   "id": "TIPL-SK4004",
+   "code": "SK4004",
+   "printedName": "BEIGE SKIN",
+   "pages": [
+    47
+   ],
+   "image": "media/materials/tipl-sk4004.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#7f5c30"
+  },
+  {
+   "id": "TIPL-SB2001",
+   "code": "SB2001",
+   "printedName": "EROSIVE METAL",
+   "pages": [
+    48
+   ],
+   "image": "media/materials/tipl-sb2001.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#743f22"
+  },
+  {
+   "id": "TIPL-SB2002",
+   "code": "SB2002",
+   "printedName": "VINTAGE CORROSIVE METAL",
+   "pages": [
+    49
+   ],
+   "image": "media/materials/tipl-sb2002.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#6f5021"
+  },
+  {
+   "id": "TIPL-SB2003",
+   "code": "SB2003",
+   "printedName": "ANILE GREEN",
+   "pages": [
+    50
+   ],
+   "image": "media/materials/tipl-sb2003.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#495a3a"
+  },
+  {
+   "id": "TIPL-SB2004",
+   "code": "SB2004",
+   "printedName": "RUSTIC TIMBER",
+   "pages": [
+    51
+   ],
+   "image": "media/materials/tipl-sb2004.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#474b50"
+  },
+  {
+   "id": "TIPL-SB2005",
+   "code": "SB2005",
+   "printedName": "EXQUISITE TITANIUM",
+   "pages": [
+    52
+   ],
+   "image": "media/materials/tipl-sb2005.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#6e6553"
+  },
+  {
+   "id": "TIPL-SB2006",
+   "code": "SB2006",
+   "printedName": "GUN METAL",
+   "pages": [
+    53
+   ],
+   "image": "media/materials/tipl-sb2006.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#3e3c3d"
+  },
+  {
+   "id": "TIPL-SB3001",
+   "code": "SB3001",
+   "printedName": "FIERY COPPER",
+   "pages": [
+    54
+   ],
+   "image": "media/materials/tipl-sb3001.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#d29674"
+  },
+  {
+   "id": "TIPL-SB3002",
+   "code": "SB3002",
+   "printedName": "OBSOLETE COPPER",
+   "pages": [
+    55
+   ],
+   "image": "media/materials/tipl-sb3002.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#756353"
+  },
+  {
+   "id": "TIPL-SB3003",
+   "code": "SB3003",
+   "printedName": "PROFUSE COPPER RUST",
+   "pages": [
+    56
+   ],
+   "image": "media/materials/tipl-sb3003.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#757560"
+  },
+  {
+   "id": "TIPL-SB3004",
+   "code": "SB3004",
+   "printedName": "LUSTRE TITANIUM",
+   "pages": [
+    57
+   ],
+   "image": "media/materials/tipl-sb3004.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#686452"
+  },
+  {
+   "id": "TIPL-SB101",
+   "code": "SB101",
+   "printedName": "RICH WOOL CHECKS",
+   "pages": [
+    58
+   ],
+   "image": "media/materials/tipl-sb101.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#808186"
+  },
+  {
+   "id": "TIPL-SB103",
+   "code": "SB103",
+   "printedName": "BLACK GREY LOUVERS",
+   "pages": [
+    59
+   ],
+   "image": "media/materials/tipl-sb103.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#676664"
+  },
+  {
+   "id": "TIPL-SB104",
+   "code": "SB104",
+   "printedName": "BLACK BROWN LOUVERS",
+   "pages": [
+    60
+   ],
+   "image": "media/materials/tipl-sb104.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#543821"
+  },
+  {
+   "id": "TIPL-SB940",
+   "code": "SB940",
+   "printedName": "DARK WALNUT",
+   "pages": [
+    62
+   ],
+   "image": "media/materials/tipl-sb940.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#5e3b27"
+  },
+  {
+   "id": "TIPL-SB950",
+   "code": "SB950",
+   "printedName": "AMITRAGO WOOD",
+   "pages": [
+    63
+   ],
+   "image": "media/materials/tipl-sb950.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#934f1f"
+  },
+  {
+   "id": "TIPL-SB960",
+   "code": "SB960",
+   "printedName": "CREME OAK",
+   "pages": [
+    68
+   ],
+   "image": "media/materials/tipl-sb960.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#b3a48c"
+  },
+  {
+   "id": "TIPL-SB830",
+   "code": "SB830",
+   "printedName": "WHITE MARBLE",
+   "pages": [
+    69
+   ],
+   "image": "media/materials/tipl-sb830.jpg",
+   "width": 800,
+   "height": 1220,
+   "meanHex": "#c2c3c0"
+  }
+ ]
+}

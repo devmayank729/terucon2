@@ -40,7 +40,12 @@ are an error (typos fail instead of being ignored); keys starting with `_` are c
 
 ### Targets
 
-A top-level step edits the page template by default. `"target": "asset:<name>"` edits the decompressed asset that the
+A step may also carry `"style": "route"` (or `"file"`): it then runs only in that link style and is skipped, not failed, in the other
+(a step whose anchor or text names a link, such as `href="/#enquire"`, only exists in one style).
+
+A top-level step edits the page template by default. `"target": "asset:content=<text>"` edits the one JavaScript asset whose text contains
+`<text>` (for a script the export gives no name: the shop's data layer, `asset:content=window.TeruconStore`; the build fails if no script or
+more than one contains it). `"target": "asset:<name>"` edits the decompressed asset that the
 bundle's `ext_resources` calls `<name>` (for the Design Studio page that is `swatchroomApp`, which today is only a
 loader, so no patch uses this). The text is decoded, edited by all steps, and written back once (gzip level 9, same
 mime type and flag). Nested steps (inside `group` or `inJsString`) work on the text of their parent and take no `target`.
@@ -93,6 +98,8 @@ the menu card and the footer link. A step can override any parameter (`"label": 
 Design Studio's GPU services as soon as the page opens (`POST /api/studio/warmup`, `server/routes/studio.js`), at most
 once a minute per tab, and never waits for the answer. It is plain JavaScript that parses on its own
 (`tests/js/site-patches.test.js` checks that).
+
+`snippets/shop-catalogue.js` is GENERATED (never edited by hand): `node tools/build-shop-catalogue.js` writes it from `catalogue/data/superbond-colour-shop.json`; the `catalogue-*` steps of `materials.json` splice it into the shop's data layer (63 designs of the SuperBond colour catalogue as shop products, with sample prices).
 
 `snippets/shop-terubot-members.txt` is not a `.js` file on purpose: it is a set of members of the shop's component class (TeruBot's bridge to the cart and the
 saved list), inserted by the `terubot-bridge` step of `materials.json`, and only parses inside that class. `tests/js/terubot-widget.test.js` wraps it in a fake

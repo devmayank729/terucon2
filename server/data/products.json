@@ -4,8 +4,8 @@
  "currency": "INR",
  "sqftPerM2": 10.7639,
  "counts": {
-  "products": 24,
-  "variants": 146
+  "products": 87,
+  "variants": 209
  },
  "categories": [
   {
@@ -49,6 +49,12 @@
    "name": "Fixings & accessories",
    "short": "Fixings",
    "blurb": "Sub-frames, rivets, sealants and anchors that complete each system."
+  },
+  {
+   "id": "colour",
+   "name": "SuperBond colours",
+   "short": "Colour catalogue",
+   "blurb": "The SuperBond colour catalogue (Diamond Edition): wood, stone, metal and texture designs, each with its catalogue code."
   }
  ],
  "colours": [
@@ -4132,6 +4138,4101 @@
      "stock": "in",
      "sku": "TRC-BGK-STA",
      "image": null
+    }
+   ]
+  },
+  {
+   "id": "tipl-cmt6001",
+   "name": "Metafrazo Texture (CMT6001)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "CMT6001",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "CMT6001 · TIPL-CMT6001 · SuperBond colour catalogue",
+   "description": "Design TIPL-CMT6001 (METAFRAZO TEXTURE) from the SuperBond colour catalogue, catalogue page 2. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-CMT6001",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-CMT6001"
+    ],
+    [
+     "Printed name",
+     "METAFRAZO TEXTURE"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 2"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-cmt6001--tipl-cmt6001-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "metafrazo texture (cmt6001) superbond superbond colour superbond colours colour catalogue cmt6001 · tipl-cmt6001 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-cmt6001--tipl-cmt6001-4-1220x2440",
+     "finishId": "tipl-cmt6001",
+     "finish": "Metafrazo Texture",
+     "colour": "earth",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-CMT6001",
+     "image": "media/materials/tipl-cmt6001.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-cmt6002",
+   "name": "Cortern Brown (CMT6002)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "CMT6002",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "CMT6002 · TIPL-CMT6002 · SuperBond colour catalogue",
+   "description": "Design TIPL-CMT6002 (CORTERN BROWN) from the SuperBond colour catalogue, catalogue page 3. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-CMT6002",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-CMT6002"
+    ],
+    [
+     "Printed name",
+     "CORTERN BROWN"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 3"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-cmt6002--tipl-cmt6002-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "cortern brown (cmt6002) superbond superbond colour superbond colours colour catalogue cmt6002 · tipl-cmt6002 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-cmt6002--tipl-cmt6002-4-1220x2440",
+     "finishId": "tipl-cmt6002",
+     "finish": "Cortern Brown",
+     "colour": "earth",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-CMT6002",
+     "image": "media/materials/tipl-cmt6002.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-cmt6003",
+   "name": "Abstract Metal (CMT6003)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "CMT6003",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "CMT6003 · TIPL-CMT6003 · SuperBond colour catalogue",
+   "description": "Design TIPL-CMT6003 (ABSTRACT METAL) from the SuperBond colour catalogue, catalogue page 4. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-CMT6003",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-CMT6003"
+    ],
+    [
+     "Printed name",
+     "ABSTRACT METAL"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 4"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-cmt6003--tipl-cmt6003-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "abstract metal (cmt6003) superbond superbond colour superbond colours colour catalogue cmt6003 · tipl-cmt6003 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-cmt6003--tipl-cmt6003-4-1220x2440",
+     "finishId": "tipl-cmt6003",
+     "finish": "Abstract Metal",
+     "colour": "earth",
+     "surface": "metallic",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-CMT6003",
+     "image": "media/materials/tipl-cmt6003.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-cmt6004",
+   "name": "Lustrous Grey (CMT6004)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "CMT6004",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "CMT6004 · TIPL-CMT6004 · SuperBond colour catalogue",
+   "description": "Design TIPL-CMT6004 (LUSTROUS GREY) from the SuperBond colour catalogue, catalogue page 5. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-CMT6004",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-CMT6004"
+    ],
+    [
+     "Printed name",
+     "LUSTROUS GREY"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 5"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-cmt6004--tipl-cmt6004-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "lustrous grey (cmt6004) superbond superbond colour superbond colours colour catalogue cmt6004 · tipl-cmt6004 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-cmt6004--tipl-cmt6004-4-1220x2440",
+     "finishId": "tipl-cmt6004",
+     "finish": "Lustrous Grey",
+     "colour": "brown",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "out",
+     "sku": "TIPL-CMT6004",
+     "image": "media/materials/tipl-cmt6004.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-cmt6007",
+   "name": "Arcadian Ochre (CMT6007)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "CMT6007",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "CMT6007 · TIPL-CMT6007 · SuperBond colour catalogue",
+   "description": "Design TIPL-CMT6007 (ARCADIAN OCHRE) from the SuperBond colour catalogue, catalogue page 6. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-CMT6007",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-CMT6007"
+    ],
+    [
+     "Printed name",
+     "ARCADIAN OCHRE"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 6"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-cmt6007--tipl-cmt6007-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "arcadian ochre (cmt6007) superbond superbond colour superbond colours colour catalogue cmt6007 · tipl-cmt6007 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-cmt6007--tipl-cmt6007-4-1220x2440",
+     "finishId": "tipl-cmt6007",
+     "finish": "Arcadian Ochre",
+     "colour": "earth",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-CMT6007",
+     "image": "media/materials/tipl-cmt6007.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-cmt6008",
+   "name": "Saprophyte Rust (CMT6008)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "CMT6008",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "CMT6008 · TIPL-CMT6008 · SuperBond colour catalogue",
+   "description": "Design TIPL-CMT6008 (SAPROPHYTE RUST) from the SuperBond colour catalogue, catalogue page 7. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-CMT6008",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-CMT6008"
+    ],
+    [
+     "Printed name",
+     "SAPROPHYTE RUST"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 7"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-cmt6008--tipl-cmt6008-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "saprophyte rust (cmt6008) superbond superbond colour superbond colours colour catalogue cmt6008 · tipl-cmt6008 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-cmt6008--tipl-cmt6008-4-1220x2440",
+     "finishId": "tipl-cmt6008",
+     "finish": "Saprophyte Rust",
+     "colour": "green",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-CMT6008",
+     "image": "media/materials/tipl-cmt6008.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-stc9050",
+   "name": "Twilight Black (STC9050)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "STC9050",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "STC9050 · TIPL-STC9050 · SuperBond colour catalogue",
+   "description": "Design TIPL-STC9050 (TWILIGHT BLACK) from the SuperBond colour catalogue, catalogue page 8. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-STC9050",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-STC9050"
+    ],
+    [
+     "Printed name",
+     "TWILIGHT BLACK"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 8"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-stc9050--tipl-stc9050-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "twilight black (stc9050) superbond superbond colour superbond colours colour catalogue stc9050 · tipl-stc9050 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-stc9050--tipl-stc9050-4-1220x2440",
+     "finishId": "tipl-stc9050",
+     "finish": "Twilight Black",
+     "colour": "earth",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-STC9050",
+     "image": "media/materials/tipl-stc9050.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-stc9067",
+   "name": "Ferrari Red (STC9067)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "STC9067",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "STC9067 · TIPL-STC9067 · SuperBond colour catalogue",
+   "description": "Design TIPL-STC9067 (FERRARI RED) from the SuperBond colour catalogue, catalogue page 9. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-STC9067",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-STC9067"
+    ],
+    [
+     "Printed name",
+     "FERRARI RED"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 9"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-stc9067--tipl-stc9067-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "ferrari red (stc9067) superbond superbond colour superbond colours colour catalogue stc9067 · tipl-stc9067 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-stc9067--tipl-stc9067-4-1220x2440",
+     "finishId": "tipl-stc9067",
+     "finish": "Ferrari Red",
+     "colour": "earth",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-STC9067",
+     "image": "media/materials/tipl-stc9067.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-stc9092",
+   "name": "Russian Stone (STC9092)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "STC9092",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "STC9092 · TIPL-STC9092 · SuperBond colour catalogue",
+   "description": "Design TIPL-STC9092 (RUSSIAN STONE) from the SuperBond colour catalogue, catalogue page 10. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-STC9092",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-STC9092"
+    ],
+    [
+     "Printed name",
+     "RUSSIAN STONE"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 10"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-stc9092--tipl-stc9092-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "russian stone (stc9092) superbond superbond colour superbond colours colour catalogue stc9092 · tipl-stc9092 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-stc9092--tipl-stc9092-4-1220x2440",
+     "finishId": "tipl-stc9092",
+     "finish": "Russian Stone",
+     "colour": "grey",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-STC9092",
+     "image": "media/materials/tipl-stc9092.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sba7001",
+   "name": "Pluto (SBA7001)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SBA7001",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SBA7001 · TIPL-SBA7001 · SuperBond colour catalogue",
+   "description": "Design TIPL-SBA7001 (PLUTO) from the SuperBond colour catalogue, catalogue page 11. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SBA7001",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SBA7001"
+    ],
+    [
+     "Printed name",
+     "PLUTO"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 11"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sba7001--tipl-sba7001-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "pluto (sba7001) superbond superbond colour superbond colours colour catalogue sba7001 · tipl-sba7001 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sba7001--tipl-sba7001-4-1220x2440",
+     "finishId": "tipl-sba7001",
+     "finish": "Pluto",
+     "colour": "grey",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SBA7001",
+     "image": "media/materials/tipl-sba7001.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sba7002",
+   "name": "Venus (SBA7002)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SBA7002",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SBA7002 · TIPL-SBA7002 · SuperBond colour catalogue",
+   "description": "Design TIPL-SBA7002 (VENUS) from the SuperBond colour catalogue, catalogue page 12. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SBA7002",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SBA7002"
+    ],
+    [
+     "Printed name",
+     "VENUS"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 12"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sba7002--tipl-sba7002-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "venus (sba7002) superbond superbond colour superbond colours colour catalogue sba7002 · tipl-sba7002 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sba7002--tipl-sba7002-4-1220x2440",
+     "finishId": "tipl-sba7002",
+     "finish": "Venus",
+     "colour": "earth",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SBA7002",
+     "image": "media/materials/tipl-sba7002.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sba7003",
+   "name": "Earth (SBA7003)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SBA7003",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SBA7003 · TIPL-SBA7003 · SuperBond colour catalogue",
+   "description": "Design TIPL-SBA7003 (EARTH) from the SuperBond colour catalogue, catalogue page 13. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SBA7003",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SBA7003"
+    ],
+    [
+     "Printed name",
+     "EARTH"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 13"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sba7003--tipl-sba7003-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "earth (sba7003) superbond superbond colour superbond colours colour catalogue sba7003 · tipl-sba7003 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sba7003--tipl-sba7003-4-1220x2440",
+     "finishId": "tipl-sba7003",
+     "finish": "Earth",
+     "colour": "green",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SBA7003",
+     "image": "media/materials/tipl-sba7003.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sba7004",
+   "name": "Saturn (SBA7004)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SBA7004",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SBA7004 · TIPL-SBA7004 · SuperBond colour catalogue",
+   "description": "Design TIPL-SBA7004 (SATURN) from the SuperBond colour catalogue, catalogue page 14. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SBA7004",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SBA7004"
+    ],
+    [
+     "Printed name",
+     "SATURN"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 14"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sba7004--tipl-sba7004-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "saturn (sba7004) superbond superbond colour superbond colours colour catalogue sba7004 · tipl-sba7004 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sba7004--tipl-sba7004-4-1220x2440",
+     "finishId": "tipl-sba7004",
+     "finish": "Saturn",
+     "colour": "sand",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SBA7004",
+     "image": "media/materials/tipl-sba7004.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sba7005",
+   "name": "Mercury (SBA7005)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SBA7005",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SBA7005 · TIPL-SBA7005 · SuperBond colour catalogue",
+   "description": "Design TIPL-SBA7005 (MERCURY) from the SuperBond colour catalogue, catalogue page 15. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SBA7005",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SBA7005"
+    ],
+    [
+     "Printed name",
+     "MERCURY"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 15"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sba7005--tipl-sba7005-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "mercury (sba7005) superbond superbond colour superbond colours colour catalogue sba7005 · tipl-sba7005 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sba7005--tipl-sba7005-4-1220x2440",
+     "finishId": "tipl-sba7005",
+     "finish": "Mercury",
+     "colour": "sand",
+     "surface": "metallic",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SBA7005",
+     "image": "media/materials/tipl-sba7005.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sba7006",
+   "name": "Mars (SBA7006)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SBA7006",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SBA7006 · TIPL-SBA7006 · SuperBond colour catalogue",
+   "description": "Design TIPL-SBA7006 (MARS) from the SuperBond colour catalogue, catalogue page 16. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SBA7006",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SBA7006"
+    ],
+    [
+     "Printed name",
+     "MARS"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 16"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sba7006--tipl-sba7006-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "mars (sba7006) superbond superbond colour superbond colours colour catalogue sba7006 · tipl-sba7006 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sba7006--tipl-sba7006-4-1220x2440",
+     "finishId": "tipl-sba7006",
+     "finish": "Mars",
+     "colour": "grey",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SBA7006",
+     "image": "media/materials/tipl-sba7006.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb005",
+   "name": "Natural Teak TX (SB005)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB005",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB005 · TIPL-SB005 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB005 (NATURAL TEAK TX) from the SuperBond colour catalogue, catalogue pages 17 and 64. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB005",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB005"
+    ],
+    [
+     "Printed name",
+     "NATURAL TEAK TX"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, pages 17 and 64"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb005--tipl-sb005-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "natural teak tx (sb005) superbond superbond colour superbond colours colour catalogue sb005 · tipl-sb005 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb005--tipl-sb005-4-1220x2440",
+     "finishId": "tipl-sb005",
+     "finish": "Natural Teak TX",
+     "colour": "wood",
+     "surface": "woodgrain",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB005",
+     "image": "media/materials/tipl-sb005.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb008",
+   "name": "Burmese Teak (SB008)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB008",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB008 · TIPL-SB008 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB008 (BURMESE TEAK) from the SuperBond colour catalogue, catalogue page 18. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB008",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB008"
+    ],
+    [
+     "Printed name",
+     "BURMESE TEAK"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 18"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb008--tipl-sb008-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "burmese teak (sb008) superbond superbond colour superbond colours colour catalogue sb008 · tipl-sb008 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb008--tipl-sb008-4-1220x2440",
+     "finishId": "tipl-sb008",
+     "finish": "Burmese Teak",
+     "colour": "wood",
+     "surface": "woodgrain",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB008",
+     "image": "media/materials/tipl-sb008.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb621",
+   "name": "African Ebony TX (SB621)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB621",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB621 · TIPL-SB621 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB621 (AFRICAN EBONY TX) from the SuperBond colour catalogue, catalogue page 19. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB621",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB621"
+    ],
+    [
+     "Printed name",
+     "AFRICAN EBONY TX"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 19"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb621--tipl-sb621-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "african ebony tx (sb621) superbond superbond colour superbond colours colour catalogue sb621 · tipl-sb621 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb621--tipl-sb621-4-1220x2440",
+     "finishId": "tipl-sb621",
+     "finish": "African Ebony TX",
+     "colour": "wood",
+     "surface": "woodgrain",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "low",
+     "sku": "TIPL-SB621",
+     "image": "media/materials/tipl-sb621.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb625",
+   "name": "Mahogany Premium TX (SB625)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB625",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB625 · TIPL-SB625 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB625 (MAHOGANY PREMIUM TX) from the SuperBond colour catalogue, catalogue page 20. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB625",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB625"
+    ],
+    [
+     "Printed name",
+     "MAHOGANY PREMIUM TX"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 20"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb625--tipl-sb625-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "mahogany premium tx (sb625) superbond superbond colour superbond colours colour catalogue sb625 · tipl-sb625 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb625--tipl-sb625-4-1220x2440",
+     "finishId": "tipl-sb625",
+     "finish": "Mahogany Premium TX",
+     "colour": "wood",
+     "surface": "woodgrain",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB625",
+     "image": "media/materials/tipl-sb625.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb921",
+   "name": "Confier Teak (SB921)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB921",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB921 · TIPL-SB921 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB921 (CONFIER TEAK) from the SuperBond colour catalogue, catalogue page 21. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB921",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB921"
+    ],
+    [
+     "Printed name",
+     "CONFIER TEAK"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 21"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb921--tipl-sb921-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "confier teak (sb921) superbond superbond colour superbond colours colour catalogue sb921 · tipl-sb921 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb921--tipl-sb921-4-1220x2440",
+     "finishId": "tipl-sb921",
+     "finish": "Confier Teak",
+     "colour": "wood",
+     "surface": "woodgrain",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "low",
+     "sku": "TIPL-SB921",
+     "image": "media/materials/tipl-sb921.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb922",
+   "name": "Chester Oak (SB922)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB922",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB922 · TIPL-SB922 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB922 (CHESTER OAK) from the SuperBond colour catalogue, catalogue page 22. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB922",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB922"
+    ],
+    [
+     "Printed name",
+     "CHESTER OAK"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 22"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb922--tipl-sb922-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "chester oak (sb922) superbond superbond colour superbond colours colour catalogue sb922 · tipl-sb922 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb922--tipl-sb922-4-1220x2440",
+     "finishId": "tipl-sb922",
+     "finish": "Chester Oak",
+     "colour": "wood",
+     "surface": "woodgrain",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB922",
+     "image": "media/materials/tipl-sb922.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb923",
+   "name": "Macasar Wood TX (SB923)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB923",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB923 · TIPL-SB923 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB923 (MACASAR WOOD TX) from the SuperBond colour catalogue, catalogue pages 23 and 67. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB923",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB923"
+    ],
+    [
+     "Printed name",
+     "MACASAR WOOD TX"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, pages 23 and 67"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb923--tipl-sb923-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "macasar wood tx (sb923) superbond superbond colour superbond colours colour catalogue sb923 · tipl-sb923 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb923--tipl-sb923-4-1220x2440",
+     "finishId": "tipl-sb923",
+     "finish": "Macasar Wood TX",
+     "colour": "wood",
+     "surface": "woodgrain",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB923",
+     "image": "media/materials/tipl-sb923.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb902",
+   "name": "Rose Wood (SB902)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB902",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB902 · TIPL-SB902 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB902 (ROSE WOOD) from the SuperBond colour catalogue, catalogue pages 24 and 65. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB902",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB902"
+    ],
+    [
+     "Printed name",
+     "ROSE WOOD"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, pages 24 and 65"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb902--tipl-sb902-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "rose wood (sb902) superbond superbond colour superbond colours colour catalogue sb902 · tipl-sb902 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb902--tipl-sb902-4-1220x2440",
+     "finishId": "tipl-sb902",
+     "finish": "Rose Wood",
+     "colour": "wood",
+     "surface": "woodgrain",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB902",
+     "image": "media/materials/tipl-sb902.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb905",
+   "name": "Brazilian Hulk (SB905)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB905",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB905 · TIPL-SB905 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB905 (BRAZILIAN HULK) from the SuperBond colour catalogue, catalogue page 25. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB905",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB905"
+    ],
+    [
+     "Printed name",
+     "BRAZILIAN HULK"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 25"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb905--tipl-sb905-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "brazilian hulk (sb905) superbond superbond colour superbond colours colour catalogue sb905 · tipl-sb905 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb905--tipl-sb905-4-1220x2440",
+     "finishId": "tipl-sb905",
+     "finish": "Brazilian Hulk",
+     "colour": "brown",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "out",
+     "sku": "TIPL-SB905",
+     "image": "media/materials/tipl-sb905.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb910",
+   "name": "American Walnut (SB910)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB910",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB910 · TIPL-SB910 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB910 (AMERICAN WALNUT) from the SuperBond colour catalogue, catalogue page 26. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB910",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB910"
+    ],
+    [
+     "Printed name",
+     "AMERICAN WALNUT"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 26"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb910--tipl-sb910-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "american walnut (sb910) superbond superbond colour superbond colours colour catalogue sb910 · tipl-sb910 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb910--tipl-sb910-4-1220x2440",
+     "finishId": "tipl-sb910",
+     "finish": "American Walnut",
+     "colour": "wood",
+     "surface": "woodgrain",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB910",
+     "image": "media/materials/tipl-sb910.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb912",
+   "name": "Natural Walnut (SB912)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB912",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB912 · TIPL-SB912 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB912 (NATURAL WALNUT) from the SuperBond colour catalogue, catalogue page 27. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB912",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB912"
+    ],
+    [
+     "Printed name",
+     "NATURAL WALNUT"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 27"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb912--tipl-sb912-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "natural walnut (sb912) superbond superbond colour superbond colours colour catalogue sb912 · tipl-sb912 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb912--tipl-sb912-4-1220x2440",
+     "finishId": "tipl-sb912",
+     "finish": "Natural Walnut",
+     "colour": "wood",
+     "surface": "woodgrain",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB912",
+     "image": "media/materials/tipl-sb912.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb913",
+   "name": "Creme Walnut (SB913)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB913",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB913 · TIPL-SB913 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB913 (CREME WALNUT) from the SuperBond colour catalogue, catalogue page 28. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB913",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB913"
+    ],
+    [
+     "Printed name",
+     "CREME WALNUT"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 28"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb913--tipl-sb913-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "creme walnut (sb913) superbond superbond colour superbond colours colour catalogue sb913 · tipl-sb913 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb913--tipl-sb913-4-1220x2440",
+     "finishId": "tipl-sb913",
+     "finish": "Creme Walnut",
+     "colour": "wood",
+     "surface": "woodgrain",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB913",
+     "image": "media/materials/tipl-sb913.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb915",
+   "name": "Canadian Walnut (SB915)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB915",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB915 · TIPL-SB915 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB915 (CANADIAN WALNUT) from the SuperBond colour catalogue, catalogue pages 29 and 61. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB915",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB915"
+    ],
+    [
+     "Printed name",
+     "CANADIAN WALNUT"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, pages 29 and 61"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb915--tipl-sb915-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "canadian walnut (sb915) superbond superbond colour superbond colours colour catalogue sb915 · tipl-sb915 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb915--tipl-sb915-4-1220x2440",
+     "finishId": "tipl-sb915",
+     "finish": "Canadian Walnut",
+     "colour": "wood",
+     "surface": "woodgrain",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB915",
+     "image": "media/materials/tipl-sb915.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb920",
+   "name": "Timber Wood Burma (SB920)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB920",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB920 · TIPL-SB920 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB920 (TIMBER WOOD BURMA) from the SuperBond colour catalogue, catalogue page 30. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB920",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB920"
+    ],
+    [
+     "Printed name",
+     "TIMBER WOOD BURMA"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 30"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb920--tipl-sb920-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "timber wood burma (sb920) superbond superbond colour superbond colours colour catalogue sb920 · tipl-sb920 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb920--tipl-sb920-4-1220x2440",
+     "finishId": "tipl-sb920",
+     "finish": "Timber Wood Burma",
+     "colour": "wood",
+     "surface": "woodgrain",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB920",
+     "image": "media/materials/tipl-sb920.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb801",
+   "name": "Travertine Creme (SB801)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB801",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB801 · TIPL-SB801 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB801 (TRAVERTINE CREME) from the SuperBond colour catalogue, catalogue page 31. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB801",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB801"
+    ],
+    [
+     "Printed name",
+     "TRAVERTINE CREME"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 31"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb801--tipl-sb801-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "travertine creme (sb801) superbond superbond colour superbond colours colour catalogue sb801 · tipl-sb801 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb801--tipl-sb801-4-1220x2440",
+     "finishId": "tipl-sb801",
+     "finish": "Travertine Creme",
+     "colour": "sand",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB801",
+     "image": "media/materials/tipl-sb801.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb804",
+   "name": "Emperador Dark (SB804)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB804",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB804 · TIPL-SB804 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB804 (EMPERADOR DARK) from the SuperBond colour catalogue, catalogue pages 32 and 66. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB804",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB804"
+    ],
+    [
+     "Printed name",
+     "EMPERADOR DARK"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, pages 32 and 66"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb804--tipl-sb804-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "emperador dark (sb804) superbond superbond colour superbond colours colour catalogue sb804 · tipl-sb804 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb804--tipl-sb804-4-1220x2440",
+     "finishId": "tipl-sb804",
+     "finish": "Emperador Dark",
+     "colour": "brown",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB804",
+     "image": "media/materials/tipl-sb804.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb825",
+   "name": "Williams Grey (SB825)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB825",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB825 · TIPL-SB825 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB825 (WILLIAMS GREY) from the SuperBond colour catalogue, catalogue page 33. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB825",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB825"
+    ],
+    [
+     "Printed name",
+     "WILLIAMS GREY"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 33"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb825--tipl-sb825-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "williams grey (sb825) superbond superbond colour superbond colours colour catalogue sb825 · tipl-sb825 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb825--tipl-sb825-4-1220x2440",
+     "finishId": "tipl-sb825",
+     "finish": "Williams Grey",
+     "colour": "grey",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB825",
+     "image": "media/materials/tipl-sb825.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb826",
+   "name": "Naxian White (SB826)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB826",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB826 · TIPL-SB826 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB826 (NAXIAN WHITE) from the SuperBond colour catalogue, catalogue page 34. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB826",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB826"
+    ],
+    [
+     "Printed name",
+     "NAXIAN WHITE"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 34"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb826--tipl-sb826-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "naxian white (sb826) superbond superbond colour superbond colours colour catalogue sb826 · tipl-sb826 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb826--tipl-sb826-4-1220x2440",
+     "finishId": "tipl-sb826",
+     "finish": "Naxian White",
+     "colour": "sand",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB826",
+     "image": "media/materials/tipl-sb826.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb828",
+   "name": "Black Marquina (SB828)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB828",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB828 · TIPL-SB828 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB828 (BLACK MARQUINA) from the SuperBond colour catalogue, catalogue page 35. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB828",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB828"
+    ],
+    [
+     "Printed name",
+     "BLACK MARQUINA"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 35"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb828--tipl-sb828-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "black marquina (sb828) superbond superbond colour superbond colours colour catalogue sb828 · tipl-sb828 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb828--tipl-sb828-4-1220x2440",
+     "finishId": "tipl-sb828",
+     "finish": "Black Marquina",
+     "colour": "brown",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "out",
+     "sku": "TIPL-SB828",
+     "image": "media/materials/tipl-sb828.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb829",
+   "name": "Marinace (SB829)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB829",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB829 · TIPL-SB829 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB829 (MARINACE) from the SuperBond colour catalogue, catalogue page 36. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB829",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB829"
+    ],
+    [
+     "Printed name",
+     "MARINACE"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 36"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb829--tipl-sb829-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "marinace (sb829) superbond superbond colour superbond colours colour catalogue sb829 · tipl-sb829 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb829--tipl-sb829-4-1220x2440",
+     "finishId": "tipl-sb829",
+     "finish": "Marinace",
+     "colour": "brown",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB829",
+     "image": "media/materials/tipl-sb829.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb8001",
+   "name": "Marmoris Stain (SB8001)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB8001",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB8001 · TIPL-SB8001 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB8001 (MARMORIS STAIN) from the SuperBond colour catalogue, catalogue page 37. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB8001",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB8001"
+    ],
+    [
+     "Printed name",
+     "MARMORIS STAIN"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 37"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb8001--tipl-sb8001-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "marmoris stain (sb8001) superbond superbond colour superbond colours colour catalogue sb8001 · tipl-sb8001 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb8001--tipl-sb8001-4-1220x2440",
+     "finishId": "tipl-sb8001",
+     "finish": "Marmoris Stain",
+     "colour": "grey",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "low",
+     "sku": "TIPL-SB8001",
+     "image": "media/materials/tipl-sb8001.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb8002",
+   "name": "Marmoris Stein (SB8002)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB8002",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB8002 · TIPL-SB8002 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB8002 (MARMORIS STEIN) from the SuperBond colour catalogue, catalogue page 38. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB8002",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB8002"
+    ],
+    [
+     "Printed name",
+     "MARMORIS STEIN"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 38"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb8002--tipl-sb8002-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "marmoris stein (sb8002) superbond superbond colour superbond colours colour catalogue sb8002 · tipl-sb8002 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb8002--tipl-sb8002-4-1220x2440",
+     "finishId": "tipl-sb8002",
+     "finish": "Marmoris Stein",
+     "colour": "grey",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "low",
+     "sku": "TIPL-SB8002",
+     "image": "media/materials/tipl-sb8002.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sd5001",
+   "name": "Grey Sand Stone (SD5001)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SD5001",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SD5001 · TIPL-SD5001 · SuperBond colour catalogue",
+   "description": "Design TIPL-SD5001 (GREY SAND STONE) from the SuperBond colour catalogue, catalogue page 39. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SD5001",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SD5001"
+    ],
+    [
+     "Printed name",
+     "GREY SAND STONE"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 39"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sd5001--tipl-sd5001-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "grey sand stone (sd5001) superbond superbond colour superbond colours colour catalogue sd5001 · tipl-sd5001 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sd5001--tipl-sd5001-4-1220x2440",
+     "finishId": "tipl-sd5001",
+     "finish": "Grey Sand Stone",
+     "colour": "brown",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "out",
+     "sku": "TIPL-SD5001",
+     "image": "media/materials/tipl-sd5001.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sd5002",
+   "name": "White Beach Sand (SD5002)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SD5002",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SD5002 · TIPL-SD5002 · SuperBond colour catalogue",
+   "description": "Design TIPL-SD5002 (WHITE BEACH SAND) from the SuperBond colour catalogue, catalogue page 40. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SD5002",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SD5002"
+    ],
+    [
+     "Printed name",
+     "WHITE BEACH SAND"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 40"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sd5002--tipl-sd5002-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "white beach sand (sd5002) superbond superbond colour superbond colours colour catalogue sd5002 · tipl-sd5002 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sd5002--tipl-sd5002-4-1220x2440",
+     "finishId": "tipl-sd5002",
+     "finish": "White Beach Sand",
+     "colour": "sand",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SD5002",
+     "image": "media/materials/tipl-sd5002.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sd5003",
+   "name": "Zurich Beige Sand (SD5003)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SD5003",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SD5003 · TIPL-SD5003 · SuperBond colour catalogue",
+   "description": "Design TIPL-SD5003 (ZURICH  BEIGE SAND) from the SuperBond colour catalogue, catalogue page 41. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SD5003",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SD5003"
+    ],
+    [
+     "Printed name",
+     "ZURICH  BEIGE SAND"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 41"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sd5003--tipl-sd5003-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "zurich beige sand (sd5003) superbond superbond colour superbond colours colour catalogue sd5003 · tipl-sd5003 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sd5003--tipl-sd5003-4-1220x2440",
+     "finishId": "tipl-sd5003",
+     "finish": "Zurich Beige Sand",
+     "colour": "sand",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SD5003",
+     "image": "media/materials/tipl-sd5003.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sd5004",
+   "name": "Magenta Sand Stone (SD5004)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SD5004",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SD5004 · TIPL-SD5004 · SuperBond colour catalogue",
+   "description": "Design TIPL-SD5004 (MAGENTA SAND STONE) from the SuperBond colour catalogue, catalogue page 42. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SD5004",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SD5004"
+    ],
+    [
+     "Printed name",
+     "MAGENTA SAND STONE"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 42"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sd5004--tipl-sd5004-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "magenta sand stone (sd5004) superbond superbond colour superbond colours colour catalogue sd5004 · tipl-sd5004 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sd5004--tipl-sd5004-4-1220x2440",
+     "finishId": "tipl-sd5004",
+     "finish": "Magenta Sand Stone",
+     "colour": "earth",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "low",
+     "sku": "TIPL-SD5004",
+     "image": "media/materials/tipl-sd5004.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sd5005",
+   "name": "Virdian Green Sand (SD5005)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SD5005",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SD5005 · TIPL-SD5005 · SuperBond colour catalogue",
+   "description": "Design TIPL-SD5005 (VIRDIAN GREEN SAND) from the SuperBond colour catalogue, catalogue page 43. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SD5005",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SD5005"
+    ],
+    [
+     "Printed name",
+     "VIRDIAN GREEN SAND"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 43"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sd5005--tipl-sd5005-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "virdian green sand (sd5005) superbond superbond colour superbond colours colour catalogue sd5005 · tipl-sd5005 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sd5005--tipl-sd5005-4-1220x2440",
+     "finishId": "tipl-sd5005",
+     "finish": "Virdian Green Sand",
+     "colour": "brown",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "out",
+     "sku": "TIPL-SD5005",
+     "image": "media/materials/tipl-sd5005.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sk4001",
+   "name": "Grey Skin Feeling (SK4001)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SK4001",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SK4001 · TIPL-SK4001 · SuperBond colour catalogue",
+   "description": "Design TIPL-SK4001 (GREY SKIN FEELING) from the SuperBond colour catalogue, catalogue page 44. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SK4001",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SK4001"
+    ],
+    [
+     "Printed name",
+     "GREY SKIN FEELING"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 44"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sk4001--tipl-sk4001-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "grey skin feeling (sk4001) superbond superbond colour superbond colours colour catalogue sk4001 · tipl-sk4001 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sk4001--tipl-sk4001-4-1220x2440",
+     "finishId": "tipl-sk4001",
+     "finish": "Grey Skin Feeling",
+     "colour": "brown",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "out",
+     "sku": "TIPL-SK4001",
+     "image": "media/materials/tipl-sk4001.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sk4002",
+   "name": "Jaisalmer Sunday Skin (SK4002)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SK4002",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SK4002 · TIPL-SK4002 · SuperBond colour catalogue",
+   "description": "Design TIPL-SK4002 (JAISALMER SUNDAY SKIN) from the SuperBond colour catalogue, catalogue page 45. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SK4002",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SK4002"
+    ],
+    [
+     "Printed name",
+     "JAISALMER SUNDAY SKIN"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 45"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sk4002--tipl-sk4002-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "jaisalmer sunday skin (sk4002) superbond superbond colour superbond colours colour catalogue sk4002 · tipl-sk4002 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sk4002--tipl-sk4002-4-1220x2440",
+     "finishId": "tipl-sk4002",
+     "finish": "Jaisalmer Sunday Skin",
+     "colour": "sand",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "low",
+     "sku": "TIPL-SK4002",
+     "image": "media/materials/tipl-sk4002.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sk4003",
+   "name": "Moon Skin Feeling (SK4003)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SK4003",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SK4003 · TIPL-SK4003 · SuperBond colour catalogue",
+   "description": "Design TIPL-SK4003 (MOON  SKIN FEELING) from the SuperBond colour catalogue, catalogue page 46. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SK4003",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SK4003"
+    ],
+    [
+     "Printed name",
+     "MOON  SKIN FEELING"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 46"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sk4003--tipl-sk4003-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "moon skin feeling (sk4003) superbond superbond colour superbond colours colour catalogue sk4003 · tipl-sk4003 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sk4003--tipl-sk4003-4-1220x2440",
+     "finishId": "tipl-sk4003",
+     "finish": "Moon Skin Feeling",
+     "colour": "sand",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SK4003",
+     "image": "media/materials/tipl-sk4003.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sk4004",
+   "name": "Beige Skin (SK4004)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SK4004",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SK4004 · TIPL-SK4004 · SuperBond colour catalogue",
+   "description": "Design TIPL-SK4004 (BEIGE SKIN) from the SuperBond colour catalogue, catalogue page 47. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SK4004",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SK4004"
+    ],
+    [
+     "Printed name",
+     "BEIGE SKIN"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 47"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sk4004--tipl-sk4004-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "beige skin (sk4004) superbond superbond colour superbond colours colour catalogue sk4004 · tipl-sk4004 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sk4004--tipl-sk4004-4-1220x2440",
+     "finishId": "tipl-sk4004",
+     "finish": "Beige Skin",
+     "colour": "earth",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SK4004",
+     "image": "media/materials/tipl-sk4004.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb2001",
+   "name": "Erosive Metal (SB2001)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB2001",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB2001 · TIPL-SB2001 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB2001 (EROSIVE METAL) from the SuperBond colour catalogue, catalogue page 48. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB2001",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB2001"
+    ],
+    [
+     "Printed name",
+     "EROSIVE METAL"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 48"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb2001--tipl-sb2001-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "erosive metal (sb2001) superbond superbond colour superbond colours colour catalogue sb2001 · tipl-sb2001 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb2001--tipl-sb2001-4-1220x2440",
+     "finishId": "tipl-sb2001",
+     "finish": "Erosive Metal",
+     "colour": "earth",
+     "surface": "metallic",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB2001",
+     "image": "media/materials/tipl-sb2001.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb2002",
+   "name": "Vintage Corrosive Metal (SB2002)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB2002",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB2002 · TIPL-SB2002 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB2002 (VINTAGE CORROSIVE METAL) from the SuperBond colour catalogue, catalogue page 49. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB2002",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB2002"
+    ],
+    [
+     "Printed name",
+     "VINTAGE CORROSIVE METAL"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 49"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb2002--tipl-sb2002-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "vintage corrosive metal (sb2002) superbond superbond colour superbond colours colour catalogue sb2002 · tipl-sb2002 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb2002--tipl-sb2002-4-1220x2440",
+     "finishId": "tipl-sb2002",
+     "finish": "Vintage Corrosive Metal",
+     "colour": "brown",
+     "surface": "metallic",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB2002",
+     "image": "media/materials/tipl-sb2002.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb2003",
+   "name": "Anile Green (SB2003)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB2003",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB2003 · TIPL-SB2003 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB2003 (ANILE GREEN) from the SuperBond colour catalogue, catalogue page 50. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB2003",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB2003"
+    ],
+    [
+     "Printed name",
+     "ANILE GREEN"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 50"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb2003--tipl-sb2003-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "anile green (sb2003) superbond superbond colour superbond colours colour catalogue sb2003 · tipl-sb2003 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb2003--tipl-sb2003-4-1220x2440",
+     "finishId": "tipl-sb2003",
+     "finish": "Anile Green",
+     "colour": "green",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB2003",
+     "image": "media/materials/tipl-sb2003.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb2004",
+   "name": "Rustic Timber (SB2004)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB2004",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB2004 · TIPL-SB2004 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB2004 (RUSTIC TIMBER) from the SuperBond colour catalogue, catalogue page 51. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB2004",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB2004"
+    ],
+    [
+     "Printed name",
+     "RUSTIC TIMBER"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 51"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb2004--tipl-sb2004-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "rustic timber (sb2004) superbond superbond colour superbond colours colour catalogue sb2004 · tipl-sb2004 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb2004--tipl-sb2004-4-1220x2440",
+     "finishId": "tipl-sb2004",
+     "finish": "Rustic Timber",
+     "colour": "wood",
+     "surface": "woodgrain",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB2004",
+     "image": "media/materials/tipl-sb2004.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb2005",
+   "name": "Exquisite Titanium (SB2005)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB2005",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB2005 · TIPL-SB2005 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB2005 (EXQUISITE TITANIUM) from the SuperBond colour catalogue, catalogue page 52. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB2005",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB2005"
+    ],
+    [
+     "Printed name",
+     "EXQUISITE TITANIUM"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 52"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb2005--tipl-sb2005-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "exquisite titanium (sb2005) superbond superbond colour superbond colours colour catalogue sb2005 · tipl-sb2005 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb2005--tipl-sb2005-4-1220x2440",
+     "finishId": "tipl-sb2005",
+     "finish": "Exquisite Titanium",
+     "colour": "brown",
+     "surface": "metallic",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB2005",
+     "image": "media/materials/tipl-sb2005.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb2006",
+   "name": "Gun Metal (SB2006)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB2006",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB2006 · TIPL-SB2006 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB2006 (GUN METAL) from the SuperBond colour catalogue, catalogue page 53. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB2006",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB2006"
+    ],
+    [
+     "Printed name",
+     "GUN METAL"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 53"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb2006--tipl-sb2006-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "gun metal (sb2006) superbond superbond colour superbond colours colour catalogue sb2006 · tipl-sb2006 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb2006--tipl-sb2006-4-1220x2440",
+     "finishId": "tipl-sb2006",
+     "finish": "Gun Metal",
+     "colour": "grey",
+     "surface": "metallic",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB2006",
+     "image": "media/materials/tipl-sb2006.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb3001",
+   "name": "Fiery Copper (SB3001)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB3001",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB3001 · TIPL-SB3001 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB3001 (FIERY COPPER) from the SuperBond colour catalogue, catalogue page 54. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB3001",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB3001"
+    ],
+    [
+     "Printed name",
+     "FIERY COPPER"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 54"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb3001--tipl-sb3001-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "fiery copper (sb3001) superbond superbond colour superbond colours colour catalogue sb3001 · tipl-sb3001 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb3001--tipl-sb3001-4-1220x2440",
+     "finishId": "tipl-sb3001",
+     "finish": "Fiery Copper",
+     "colour": "sand",
+     "surface": "metallic",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "out",
+     "sku": "TIPL-SB3001",
+     "image": "media/materials/tipl-sb3001.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb3002",
+   "name": "Obsolete Copper (SB3002)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB3002",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB3002 · TIPL-SB3002 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB3002 (OBSOLETE COPPER) from the SuperBond colour catalogue, catalogue page 55. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB3002",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB3002"
+    ],
+    [
+     "Printed name",
+     "OBSOLETE COPPER"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 55"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb3002--tipl-sb3002-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "obsolete copper (sb3002) superbond superbond colour superbond colours colour catalogue sb3002 · tipl-sb3002 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb3002--tipl-sb3002-4-1220x2440",
+     "finishId": "tipl-sb3002",
+     "finish": "Obsolete Copper",
+     "colour": "brown",
+     "surface": "metallic",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB3002",
+     "image": "media/materials/tipl-sb3002.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb3003",
+   "name": "Profuse Copper Rust (SB3003)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB3003",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB3003 · TIPL-SB3003 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB3003 (PROFUSE COPPER RUST) from the SuperBond colour catalogue, catalogue page 56. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB3003",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB3003"
+    ],
+    [
+     "Printed name",
+     "PROFUSE COPPER RUST"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 56"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb3003--tipl-sb3003-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "profuse copper rust (sb3003) superbond superbond colour superbond colours colour catalogue sb3003 · tipl-sb3003 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb3003--tipl-sb3003-4-1220x2440",
+     "finishId": "tipl-sb3003",
+     "finish": "Profuse Copper Rust",
+     "colour": "grey",
+     "surface": "metallic",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB3003",
+     "image": "media/materials/tipl-sb3003.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb3004",
+   "name": "Lustre Titanium (SB3004)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB3004",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB3004 · TIPL-SB3004 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB3004 (LUSTRE TITANIUM) from the SuperBond colour catalogue, catalogue page 57. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB3004",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB3004"
+    ],
+    [
+     "Printed name",
+     "LUSTRE TITANIUM"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 57"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb3004--tipl-sb3004-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "lustre titanium (sb3004) superbond superbond colour superbond colours colour catalogue sb3004 · tipl-sb3004 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb3004--tipl-sb3004-4-1220x2440",
+     "finishId": "tipl-sb3004",
+     "finish": "Lustre Titanium",
+     "colour": "brown",
+     "surface": "metallic",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB3004",
+     "image": "media/materials/tipl-sb3004.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb101",
+   "name": "Rich Wool Checks (SB101)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB101",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB101 · TIPL-SB101 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB101 (RICH WOOL CHECKS) from the SuperBond colour catalogue, catalogue page 58. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB101",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB101"
+    ],
+    [
+     "Printed name",
+     "RICH WOOL CHECKS"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 58"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb101--tipl-sb101-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "rich wool checks (sb101) superbond superbond colour superbond colours colour catalogue sb101 · tipl-sb101 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb101--tipl-sb101-4-1220x2440",
+     "finishId": "tipl-sb101",
+     "finish": "Rich Wool Checks",
+     "colour": "grey",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB101",
+     "image": "media/materials/tipl-sb101.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb103",
+   "name": "Black Grey Louvers (SB103)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB103",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB103 · TIPL-SB103 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB103 (BLACK GREY LOUVERS) from the SuperBond colour catalogue, catalogue page 59. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB103",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB103"
+    ],
+    [
+     "Printed name",
+     "BLACK GREY LOUVERS"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 59"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb103--tipl-sb103-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "black grey louvers (sb103) superbond superbond colour superbond colours colour catalogue sb103 · tipl-sb103 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb103--tipl-sb103-4-1220x2440",
+     "finishId": "tipl-sb103",
+     "finish": "Black Grey Louvers",
+     "colour": "grey",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB103",
+     "image": "media/materials/tipl-sb103.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb104",
+   "name": "Black Brown Louvers (SB104)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB104",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB104 · TIPL-SB104 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB104 (BLACK BROWN LOUVERS) from the SuperBond colour catalogue, catalogue page 60. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB104",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB104"
+    ],
+    [
+     "Printed name",
+     "BLACK BROWN LOUVERS"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 60"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb104--tipl-sb104-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "black brown louvers (sb104) superbond superbond colour superbond colours colour catalogue sb104 · tipl-sb104 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb104--tipl-sb104-4-1220x2440",
+     "finishId": "tipl-sb104",
+     "finish": "Black Brown Louvers",
+     "colour": "brown",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB104",
+     "image": "media/materials/tipl-sb104.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb940",
+   "name": "Dark Walnut (SB940)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB940",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB940 · TIPL-SB940 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB940 (DARK WALNUT) from the SuperBond colour catalogue, catalogue page 62. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB940",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB940"
+    ],
+    [
+     "Printed name",
+     "DARK WALNUT"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 62"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb940--tipl-sb940-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "dark walnut (sb940) superbond superbond colour superbond colours colour catalogue sb940 · tipl-sb940 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb940--tipl-sb940-4-1220x2440",
+     "finishId": "tipl-sb940",
+     "finish": "Dark Walnut",
+     "colour": "wood",
+     "surface": "woodgrain",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB940",
+     "image": "media/materials/tipl-sb940.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb950",
+   "name": "Amitrago Wood (SB950)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB950",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB950 · TIPL-SB950 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB950 (AMITRAGO WOOD) from the SuperBond colour catalogue, catalogue page 63. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB950",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB950"
+    ],
+    [
+     "Printed name",
+     "AMITRAGO WOOD"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 63"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb950--tipl-sb950-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "amitrago wood (sb950) superbond superbond colour superbond colours colour catalogue sb950 · tipl-sb950 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb950--tipl-sb950-4-1220x2440",
+     "finishId": "tipl-sb950",
+     "finish": "Amitrago Wood",
+     "colour": "wood",
+     "surface": "woodgrain",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB950",
+     "image": "media/materials/tipl-sb950.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb960",
+   "name": "Creme Oak (SB960)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB960",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB960 · TIPL-SB960 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB960 (CREME OAK) from the SuperBond colour catalogue, catalogue page 68. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB960",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB960"
+    ],
+    [
+     "Printed name",
+     "CREME OAK"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 68"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb960--tipl-sb960-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "creme oak (sb960) superbond superbond colour superbond colours colour catalogue sb960 · tipl-sb960 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb960--tipl-sb960-4-1220x2440",
+     "finishId": "tipl-sb960",
+     "finish": "Creme Oak",
+     "colour": "wood",
+     "surface": "woodgrain",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB960",
+     "image": "media/materials/tipl-sb960.jpg"
+    }
+   ]
+  },
+  {
+   "id": "tipl-sb830",
+   "name": "White Marble (SB830)",
+   "brand": "SuperBond",
+   "category": "colour",
+   "code": "SB830",
+   "unit": "sheet",
+   "units": "sheets",
+   "gst": 0.18,
+   "tagline": "SB830 · TIPL-SB830 · SuperBond colour catalogue",
+   "description": "Design TIPL-SB830 (WHITE MARBLE) from the SuperBond colour catalogue, catalogue page 69. The size, thickness and price shown are sample values until the price list is loaded.",
+   "applications": [
+    "interior",
+    "joinery",
+    "partitions"
+   ],
+   "performance": [],
+   "catalogueId": "TIPL-SB830",
+   "featured": false,
+   "promoted": false,
+   "specs": [
+    [
+     "Design code",
+     "TIPL-SB830"
+    ],
+    [
+     "Printed name",
+     "WHITE MARBLE"
+    ],
+    [
+     "Catalogue",
+     "SuperBond colour catalogue, page 69"
+    ],
+    [
+     "Size and price",
+     "Sample values until the price list is loaded"
+    ]
+   ],
+   "accessories": [],
+   "defaultVariant": "tipl-sb830--tipl-sb830-4-1220x2440",
+   "minPrice": 6020,
+   "minPriceText": "₹6,020 / sheet",
+   "searchText": "white marble (sb830) superbond superbond colour superbond colours colour catalogue sb830 · tipl-sb830 · superbond colour catalogue interior inside wall walls lobby reception office clinic home living furniture joinery cabinet kitchen wardrobe desk counter door partition partitions door doors cabin divider       ",
+   "variants": [
+    {
+     "id": "tipl-sb830--tipl-sb830-4-1220x2440",
+     "finishId": "tipl-sb830",
+     "finish": "White Marble",
+     "colour": "grey",
+     "surface": "textured",
+     "thickness": "4 mm",
+     "size": "1220 × 2440 mm",
+     "pack": null,
+     "label": "4 mm · 1220 × 2440 mm",
+     "price": 6020,
+     "priceText": "₹6,020 / sheet",
+     "perSqft": 188,
+     "coverM2": 2.9768,
+     "coverSqft": 32.04,
+     "stock": "in",
+     "sku": "TIPL-SB830",
+     "image": "media/materials/tipl-sb830.jpg"
     }
    ]
   }

@@ -458,6 +458,8 @@ await test('sign-in: leaving the landing page shows the sign-in page; a wrong co
   const shownFirm = await page.evaluate(() => document.getElementById('firm').value);
   assert(shownFirm === 'AB Constructions Pvt Ltd', 'the account page does not show the firm that was entered: ' + JSON.stringify(shownFirm));
   assert(await page.evaluate(() => (document.getElementById('contacts').textContent.match(/Confirmed/g) || []).length === 2), 'the account page does not show both the e-mail address and the number as confirmed');
+  // like a person: the page's loader still covers the button for a moment after the details appear (a click then lands on the loader, and nothing happens)
+  await until(() => page.evaluate(() => { const l = document.getElementById('tc-loader'); return !l || getComputedStyle(l).pointerEvents === 'none'; }), 'the loader to let go of the account page', 15000);
   await Promise.all([page.waitForFunction(() => location.pathname === '/', { timeout: 10000 }), page.click('#logout')]);
   await page.goto(base + '/materials', { waitUntil: 'domcontentloaded' });
   assert(new URL(page.url()).pathname === '/login', 'after signing out the gate did not close: ' + page.url());
@@ -1729,6 +1731,7 @@ const tbPage = async (viewport, st, { speech = null } = {}) => {
       Promise.resolve(st.chat ? st.chat(body, st.calls.length) : tbAnswer('Hello.')).then((x) => (x.abort ? req.abort('failed') : req.respond({ status: x.status || 200, contentType: 'application/json', headers: x.headers || {}, body: JSON.stringify(x.json ?? {}) })));
     } else if (u.pathname === '/api/terubot/status') {
       if (st.statusDown) req.abort('failed'); else req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify(st.status) });
+    } else if (st.route && st.route(u, req) === true) { // a test that answers other addresses itself (the picture of a link, ...)
     } else if (/^\/assets\/tb-/.test(u.pathname)) { // the card pictures the stubs name: built-site assets look like /assets/<name>-<hash>.webp
       if (/404/.test(u.pathname)) req.respond({ status: 404, body: 'no' }); else req.respond({ status: 200, contentType: 'image/png', body: TB_PNG });
     } else req.continue();
@@ -2816,6 +2819,158 @@ await test('loader: every page (built and hand-written) opens behind the same Te
   });
 }
 // ==== motion (end) ====
+
+
+// ==== photos: TeruBot with a photo, and the shop's "Find it from a photo" ====
+const PHOTO_FILE = path.join(root, 'media', 'p02-lobby.jpg');
+await test('terubot: a photo is attached, shrunk, sent with the message and kept for the next; a link\'s picture comes back as an attachment and is kept by its token; Remove and New chat clear it; a file that is not a picture is refused', async () => {
+  const st = tbState({
+    chat: (body, n) => (n === 3 ? tbAnswer('That pin shows a wall.', { attachment: { kind: 'link', token: 'tok_ABCDEFGH12345678', host: 'Pinterest', title: 'A wall' } }) : n === 5 ? { status: 401, json: { error: 'Please sign in to send a photo or a link to a picture.' } } : tbAnswer('It looks like stone.')),
+    route: (u, req) => { if (u.pathname.startsWith('/api/inspiration/file/')) { req.respond({ status: 200, contentType: 'image/png', body: TB_PNG }); return true; } return false; },
+  });
+  const page = await tbPage(null, st);
+  await tbGo(page, '/materials');
+  await tbOpen(page);
+  assert(await page.evaluate(() => !!document.querySelector('.tb-attachbtn') && document.querySelector('.tb-photo').hidden), 'the attach button is there and the strip is hidden until there is a photo');
+  // a file that is not a picture
+  const junk = path.join(os.tmpdir(), `not-a-picture-${Date.now()}.txt`);
+  fs.writeFileSync(junk, 'hello');
+  const input = await page.$('.tb-form input[type=file]');
+  await input.uploadFile(junk);
+  await until(() => page.evaluate(() => /not a picture/i.test(document.querySelector('.tb-notice__text').textContent)), 'the refusal of a file that is not a picture');
+  assert(await page.evaluate(() => document.querySelector('.tb-photo').hidden), 'a text file became a photo');
+  fs.rmSync(junk, { force: true });
+  // a real photo
+  await (await page.$('.tb-form input[type=file]')).uploadFile(PHOTO_FILE);
+  await until(() => page.evaluate(() => !document.querySelector('.tb-photo').hidden && !document.querySelector('.tb-photo__img').hidden), 'the photo strip');
+  const strip = await page.evaluate(() => ({ label: document.querySelector('.tb-photo__label').textContent, thumb: document.querySelector('.tb-photo__img').src.slice(0, 23), buttons: [...document.querySelectorAll('.tb-photo button')].map((b) => b.textContent), sendOn: !document.querySelector('.tb-send').disabled }));
+  assert(strip.label === 'Your photo' && strip.thumb === 'data:image/jpeg;base64,' && strip.buttons.join() === 'Finder,Studio,Remove', 'the strip: ' + JSON.stringify(strip));
+  assert(strip.sendOn, 'a photo alone can be sent (it asks what it is)');
+  await tbSend(page, 'what material is used in the left wall of this photo');
+  await tbWaitBot(page, 1);
+  const first = st.calls[0];
+  assert(first.image && first.image.type === 'image/jpeg' && !first.image.token && /^\/9j\//.test(first.image.data), 'the photo goes out as base64 JPEG: ' + JSON.stringify(first.image).slice(0, 80));
+  const size = await page.evaluate((d) => new Promise((res) => { const i = new Image(); i.onload = () => res([i.naturalWidth, i.naturalHeight]); i.onerror = () => res(null); i.src = 'data:image/jpeg;base64,' + d; }), first.image.data);
+  assert(size && Math.max(...size) <= 1280 && Math.max(...size) >= 600, 'the photo was shrunk to at most 1280 px: ' + size);
+  assert(first.image.data.length < 700 * 1024, 'about 500 KB of base64 at most: ' + first.image.data.length);
+  assert(await page.evaluate(() => document.querySelectorAll('.tb-msg--user .tb-attach__img').length === 1), 'the photo is shown in the visitor\'s message');
+  assert(await page.evaluate(() => !document.querySelector('.tb-photo').hidden), 'the photo stays for the next question');
+  await tbSend(page, 'and the floor?');
+  await tbWaitBot(page, 2);
+  assert(st.calls[1].image && st.calls[1].image.data === first.image.data, 'the second question carries the same photo');
+  assert(await page.evaluate(() => document.querySelectorAll('.tb-msg--user .tb-attach__img').length === 1), 'the picture is shown once, with the message that brought it');
+  // a link: the answer carries the picture the site fetched
+  await tbSend(page, 'https://in.pinterest.com/pin/328410997812212699/');
+  await tbWaitBot(page, 3);
+  await until(() => page.evaluate(() => document.querySelector('.tb-photo__label').textContent === 'Picture from Pinterest'), 'the link\'s picture in the strip');
+  await until(() => page.evaluate(() => document.querySelectorAll('.tb-msg--bot .tb-attach__img').length === 1), 'the link\'s thumbnail in the answer');
+  await tbSend(page, 'what about the floor in it?');
+  await tbWaitBot(page, 4);
+  assert(JSON.stringify(st.calls[3].image) === '{"token":"tok_ABCDEFGH12345678"}', 'a link\'s picture is sent as its token, not as bytes: ' + JSON.stringify(st.calls[3].image).slice(0, 80));
+  // an error that is about the photo says so
+  await tbSend(page, 'one more');
+  await until(() => page.evaluate(() => /sign in to send a photo/.test(document.querySelector('.tb-log').textContent)), 'the server\'s reason for refusing a photo');
+  // Remove
+  await page.evaluate(() => [...document.querySelectorAll('.tb-photo button')].find((b) => b.textContent === 'Remove').click());
+  await until(() => page.evaluate(() => document.querySelector('.tb-photo').hidden), 'Remove to hide the strip');
+  const before = st.calls.length;
+  await tbSend(page, 'no photo now');
+  await until(() => st.calls.length === before + 1, 'the next call');
+  assert(!('image' in st.calls.at(-1)), 'after Remove the request has no image');
+  await until(async () => !(await page.$('.tb-typing')) && (await page.evaluate(() => !document.querySelector('.tb-send').getAttribute('aria-busy'))), 'the answer', 8000);
+  // New chat
+  await (await page.$('.tb-form input[type=file]')).uploadFile(PHOTO_FILE);
+  await until(() => page.evaluate(() => !document.querySelector('.tb-photo').hidden), 'a photo again');
+  await page.evaluate(() => [...document.querySelectorAll('.tb-head .tb-textbtn')].find((b) => b.textContent === 'New chat').click());
+  await until(() => page.evaluate(() => document.querySelector('.tb-photo').hidden), 'New chat to clear the photo');
+  noProblems({ problems: tbProblems(page) }, 'TeruBot with a photo');
+  await page.close();
+});
+
+await test('shop: "Find it from a photo": the surfaces of the photo are outlined, hovering lights one up with its name, tapping it searches the catalogue with a patch of that surface and shows the closest designs with the shop\'s price, View and Add to cart work; with the catalogue off the shop\'s own colour preview opens and says why', async () => {
+  const zlib = await import('node:zlib');
+  const W = 256, H = 192;
+  const cm = new Uint8Array(W * H);
+  for (let y = 0; y < H; y += 1) for (let x = 0; x < W; x += 1) cm[y * W + x] = y > 130 ? 2 : (x >= 90 && x <= 170 && y > 20 && y < 90) ? 3 : 1;
+  const seg = { width: W, height: H, classMap: zlib.gzipSync(Buffer.from(cm)).toString('base64'), classLabels: ['wall', 'floor, flooring', 'windowpane, window'], classIds: [0, 3, 8], instanceMap: null, instances: [] };
+  const shopOf = (pid, name) => ({ id: pid.toLowerCase(), variantId: `${pid.toLowerCase()}--${pid.toLowerCase()}-4-1220x2440`, name: `${name} (${pid.slice(5)})`, priceText: '₹6,020 / sheet', price: 6020, unit: 'sheet', stock: 'in', href: `/materials#/p/${pid.toLowerCase()}`, image: `/media/materials/${pid.toLowerCase()}.jpg`, sample: true, note: 'Sample' });
+  const items = [['TIPL-SB804', 'Emperador Dark'], ['TIPL-SB825', 'Williams Grey'], ['TIPL-SB8001', 'Marmoris Stain']].map(([pid, name], i) => ({ rank: i + 1, itemId: 'i' + i, title: name, productId: pid, image: { thumbUrl: '', fullUrl: '' }, shop: shopOf(pid, name) }));
+  const page = await newPage({ width: 1280, height: 900 });
+  const seen = { segment: 0, search: [], status: 0 };
+  await page.setRequestInterception(true);
+  page.on('request', (req) => {
+    const u = new URL(req.url());
+    if (u.pathname === '/api/catalogue/status') { seen.status += 1; return req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify({ enabled: true, ready: true, reasons: [], default: 'c', catalogues: [], limits: {}, profile: 'fast' }) }); }
+    if (u.pathname === '/api/catalogue/warm') return req.respond({ status: 202, contentType: 'application/json', body: '{"ok":true}' });
+    if (u.pathname === '/api/vision/segment') { seen.segment += 1; seen.model = u.searchParams.get('model'); seen.segType = req.headers()['content-type']; return req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify(seg) }); }
+    if (u.pathname === '/api/catalogue/search') {
+      return req.fetchPostData().then((data) => { seen.search.push({ query: u.search, type: req.headers()['content-type'], size: (data || '').length }); req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, catalogue: 'c', items }) }); });
+    }
+    return req.continue();
+  });
+  await page.goto(base + '/materials', { waitUntil: 'domcontentloaded' });
+  await until(() => page.evaluate(() => !!window.TeruconSurfaces && [...document.querySelectorAll('button')].some((b) => /Take or upload a photo/.test(b.textContent))), 'the shop and the photo dialog module', 20000);
+  await until(() => page.evaluate(() => { const l = document.getElementById('tc-loader'); return !l || getComputedStyle(l).pointerEvents === 'none'; }), 'the loader to let go', 20000);
+  await page.evaluate(() => [...document.querySelectorAll('button')].find((b) => /Take or upload a photo/.test(b.textContent)).click());
+  await until(() => page.$('.tcs input[type=file]:not([capture])'), 'the dialog');
+  assert(await page.evaluate(() => !!document.querySelector('.tcs input[type=file][capture]') && !!document.querySelector('.tcs__linkInput')), 'the dialog offers the camera, the gallery and a link');
+  await (await page.$('.tcs input[type=file]:not([capture])')).uploadFile(PHOTO_FILE);
+  await until(() => page.evaluate(() => document.querySelectorAll('.tcs__chip').length >= 4), 'the surfaces', 20000);
+  assert(seen.segment === 1 && seen.model === 'oneformer' && seen.segType === 'image/jpeg', 'one scan, by OneFormer, of the photo as JPEG: ' + JSON.stringify(seen));
+  const chips = await page.$$eval('.tcs__chip', (els) => els.map((e) => e.textContent));
+  assert(chips.join() === 'Wall,Floor,Window,Whole photo', 'the surfaces: ' + chips);
+  const box = await (await page.$('.tcs__overlay')).boundingBox();
+  await page.mouse.move(box.x + box.width * 0.12, box.y + box.height * 0.3);
+  await until(() => page.evaluate(() => !document.querySelector('.tcs__tip').hidden), 'the name of the surface under the pointer');
+  assert(await page.evaluate(() => document.querySelector('.tcs__tip').textContent) === 'Wall', 'hovering the wall names it');
+  const lit = await page.evaluate(() => { const c = document.querySelector('.tcs__overlay'); const x = c.getContext('2d'); const at = (fx, fy) => x.getImageData(Math.floor(c.width * fx), Math.floor(c.height * fy), 1, 1).data[3]; return { wall: at(0.12, 0.3), floor: at(0.5, 0.9) }; });
+  assert(lit.wall > 40 && lit.floor === 0, 'the wall is lit and the floor is not: ' + JSON.stringify(lit));
+  await page.mouse.click(box.x + box.width * 0.12, box.y + box.height * 0.3);
+  await until(() => page.evaluate(() => document.querySelectorAll('.tcs__card').length === 3), 'the closest designs');
+  assert(seen.search.length === 1 && seen.search[0].type === 'image/jpeg' && seen.search[0].query === '?mode=look&k=8', 'one catalogue search with a JPEG patch: ' + JSON.stringify(seen.search));
+  const cards = await page.$$eval('.tcs__card', (els) => els.map((e) => ({ name: e.querySelector('.tcs__cardName').textContent, code: e.querySelector('.tcs__cardCode').textContent, price: e.querySelector('.tcs__cardPrice').textContent, img: e.querySelector('img').getAttribute('src'), badge: !!e.querySelector('.tcs__badge') })));
+  assert(cards[0].name === 'Emperador Dark (SB804)' && cards[0].code === 'TIPL-SB804' && cards[0].price === '₹6,020 / sheet' && cards[0].badge && !cards[1].badge && cards[0].img === '/media/materials/tipl-sb804.jpg', 'the first card: ' + JSON.stringify(cards));
+  assert(/Closest designs to the wall/.test(await page.$eval('.tcs__status', (e) => e.textContent)), 'the status names what was searched');
+  await page.evaluate(() => [...document.querySelectorAll('.tcs__chip')].find((e) => e.textContent === 'Whole photo').click());
+  await until(() => seen.search.length === 2, 'the whole-photo search');
+  assert(seen.search[0].size > 3000 && seen.search[0].size < seen.search[1].size * 0.85, 'the wall search sent a patch of the wall, smaller than the whole photo: ' + seen.search.map((x) => x.size));
+  // add to the cart through the shop's own bridge
+  await until(() => page.evaluate(() => { const d = { op: 'saved_remove', id: 'no-such-item', handled: false }; window.dispatchEvent(new CustomEvent('terucon:shop', { detail: d })); return d.handled; }), 'the shop to answer the cart bridge');
+  await page.evaluate(() => document.querySelectorAll('.tcs__card')[0].querySelectorAll('button')[0].click());
+  await until(() => page.evaluate(() => /Added to your cart/.test(document.querySelector('.tcs__added').textContent)), 'the cart to take the design');
+  assert(await page.evaluate(() => /tipl-sb804--tipl-sb804-4-1220x2440/.test(localStorage.getItem('terucon.store.v1.cart') || '')), 'the cart holds the design');
+  // View opens the product and closes the dialog
+  await page.evaluate(() => document.querySelectorAll('.tcs__card')[1].querySelector('a').click());
+  await until(() => page.evaluate(() => !document.querySelector('.tcs') && location.hash === '#/p/tipl-sb825'), 'View to open the product and close the dialog');
+  noProblems(page, 'the shop photo search');
+  await page.close();
+
+  // with the catalogue off (the dev stack has none) the shop's own preview opens, and the visitor is told why
+  const off = await newPage({ width: 1280, height: 900 });
+  await off.goto(base + '/materials', { waitUntil: 'domcontentloaded' });
+  await until(() => off.evaluate(() => !!window.TeruconSurfaces && [...document.querySelectorAll('button')].some((b) => /Take or upload a photo/.test(b.textContent))), 'the shop', 20000);
+  await until(() => off.evaluate(() => { const l = document.getElementById('tc-loader'); return !l || getComputedStyle(l).pointerEvents === 'none'; }), 'the loader to let go', 20000);
+  await off.evaluate(() => [...document.querySelectorAll('button')].find((b) => /Take or upload a photo/.test(b.textContent)).click());
+  await until(() => off.evaluate(() => /photo match/i.test(document.body.innerText) && !document.querySelector('.tcs') && /find it from a photo/i.test(document.body.innerText) && /drop a photo here|take a photo/i.test(document.body.innerText)), 'the shop\'s own preview to open');
+  assert(await off.evaluate(() => /not switched on|colour preview/i.test(document.querySelector('.tcs__toast')?.textContent || '')), 'the visitor is told why this is the colour preview: ' + await off.evaluate(() => document.querySelector('.tcs__toast')?.textContent));
+  await off.close();
+});
+
+await test('shop: the SuperBond colour designs are listed under their catalogue ids: the product page, the category, the SKU, the price and the picture', async () => {
+  const page = await newPage({ width: 1280, height: 900 });
+  await page.goto(base + '/materials#/p/tipl-sb804', { waitUntil: 'domcontentloaded' });
+  await until(() => page.evaluate(() => /Emperador Dark \(SB804\)/.test(document.body.innerText)), 'the product page', 20000);
+  const got = await page.evaluate(() => ({ text: document.body.innerText, sku: /SKU\s*\n?\s*TIPL-SB804/.test(document.body.innerText), crumb: /SuperBond colours/.test(document.body.innerText) }));
+  assert(got.sku && got.crumb && /₹6,020/.test(got.text) && /Sample values until the price list is loaded/.test(got.text), 'the page: sku ' + got.sku + ', category ' + got.crumb + ', sample note ' + /Sample values/.test(got.text));
+  await until(() => page.evaluate(() => [...document.images].some((i) => /\/media\/materials\/tipl-sb804\.jpg$/.test(i.currentSrc || i.src) && i.naturalWidth > 100)), 'the design\'s own picture to load');
+  await page.goto(base + '/materials#/shop?cat=colour', { waitUntil: 'domcontentloaded' });
+  await until(() => page.evaluate(() => /63 materials/.test(document.body.innerText)), 'the category to list the 63 designs', 20000);
+  const r = await page.evaluate(() => ({ chip: /Colour catalogue/.test(document.body.innerText), twentyFour: /\b24 materials\b/.test(document.body.innerText) }));
+  assert(r.chip, 'the category chip');
+  noProblems(page, 'the colour designs');
+  await page.close();
+});
+// ==== photos (end) ====
 
 
 await browser.close();

@@ -14,8 +14,12 @@ import path from 'node:path';
 const RECHECK_MS = 5000;
 const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-/** @param {{dir: string} | null} dist the object createDist() returns (only `dir` is used) */
-export function createImageResolver(dist) {
+/**
+ * @param {{dir: string} | null} dist the object createDist() returns (only `dir` is used)
+ * @param {{mediaDir?: string | null}} [options] `mediaDir`: the folder media/materials. A photograph that is a file there (the catalogue designs'
+ *   pictures, tools/build-shop-catalogue.js) is served from /media/materials/<name>.jpg, which needs no built site.
+ */
+export function createImageResolver(dist, { mediaDir = null } = {}) {
   let checkedAt = 0;
   let stamp = '';
   let names = []; // asset paths under assets/
@@ -52,6 +56,10 @@ export function createImageResolver(dist) {
     if (!name) return '';
     load();
     if (cache.has(name)) return cache.get(name);
+    if (mediaDir && fs.existsSync(path.join(mediaDir, `${name}.jpg`))) {
+      cache.set(name, `/media/materials/${name}.jpg`);
+      return cache.get(name);
+    }
     const optimised = new RegExp(`^assets/${escape(name)}-[0-9a-f]{8}-(\\d+)-[0-9a-f]{12}\\.webp$`);
     const original = new RegExp(`^assets/${escape(name)}-[0-9a-f]{12}\\.(?:jpg|jpeg|png|webp)$`);
     const copies = names.map((n) => ({ n, w: Number(optimised.exec(n)?.[1] ?? 0) })).filter((c) => c.w > 0);

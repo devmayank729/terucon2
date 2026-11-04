@@ -44,8 +44,8 @@ export function normalise(text) {
 const wordsOf = (text) => normalise(text).split(/[^a-z0-9-]+/).filter(Boolean);
 // a bare number is a quantity or a price ("15000"), not a word of the catalogue: the price filters and the estimate tool take care of those
 const tokensOf = (text) => normalise(text).split(' ').map((t) => t.replace(/^[.-]+|[.-]+$/g, '')).filter((t) => t.length > 1 && !STOP.has(t) && !/^[\d.,]+$/.test(t));
-/** A word of the text starts with the token (or with the token less a plural "s" for longer tokens). */
-const hits = (words, token) => words.some((w) => w.startsWith(token) || (token.length > 4 && w.startsWith(token.slice(0, -1))));
+/** A word of the text starts with the token (or with the token less a plural "s" for longer tokens: a catalogue code such as sb804 is not a plural of sb80). */
+const hits = (words, token) => words.some((w) => w.startsWith(token) || (token.length > 4 && token.endsWith('s') && w.startsWith(token.slice(0, -1))));
 
 /** The three states the shop shows (it keeps a count behind them; the count is not shared). */
 export const STOCK_TEXT = { in: 'in stock', low: 'low stock', out: 'out of stock' };
@@ -80,7 +80,7 @@ export function loadShop(dir = DATA_DIR) {
     }
   }
   const known = (token) => {
-    for (const w of vocabulary) if (w.startsWith(token) || (token.length > 4 && w.startsWith(token.slice(0, -1)))) return true;
+    for (const w of vocabulary) if (w.startsWith(token) || (token.length > 4 && token.endsWith('s') && w.startsWith(token.slice(0, -1)))) return true;
     return false;
   };
 

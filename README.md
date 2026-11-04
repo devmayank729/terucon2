@@ -185,7 +185,9 @@ Targets C3, C4, C5, C7 and D1. A visitor points the camera at a material (or upl
 
 **It is off until you set it up.** Everything, step by step (bucket, CORS, two service accounts, MongoDB, the Modal secrets, deploy, the `.env` settings, how to bring in your own files that you uploaded to the bucket, and how to check it): **`docs/CATALOGUE_SETUP.md`**. The settings are `.env.example` section 8 (in the root `.env`, not `swatchroom/.env`). No extra server to run: the Modal app is deployed once.
 
-**Tested against fakes only** (a local folder as the bucket, an in-memory database, a fake Modal), plus one run of the real DINOv2 and SigLIP weights on a Mac's CPU over a synthetic six-page PDF. **Never run** on a live Modal account, bucket or MongoDB, nor on the real catalogue.
+**Ids, the shop and photos (2026-11-04).** Every item of the SuperBond colour catalogue carries the id printed in its PDF, `TIPL-` + the code (`TIPL-SB804`; `catalogue/data/superbond-colour-ids.json`, applied with `python -m terucon_catalogue assign-ids`, see `docs/CATALOGUE_SETUP.md`). Each of the 63 designs is also a product of the shop under the same id in lower case (`tools/build-shop-catalogue.js`; the size and price are **samples** until the price list is loaded), so a search result says what the shop lists for it (`server/lib/shopLink.js`). In the shop, "Find it from a photo" (`site/catalogue-ui/surfaces.js`) outlines the photo's surfaces with OneFormer, lights one up on hover or tap, and shows the closest designs for it with the shop's price; TeruBot can also be shown a photo, or a pasted link (Pinterest, a web page), and finds designs for "the left wall" (`site/brand/terubot.md`, "Photos and links").
+
+**Tested** against fakes (a local folder as the bucket, an in-memory database, a fake Modal) and, on 2026-11-04, **live** from a Mac against the real Modal search app, MongoDB, Cloud Storage, OneFormer and Gemini (the ids written to the real catalogue, searches by patches of the PDF's own pages and by one interior photo). Not measured: how well a photo of a real physical sample matches (no accuracy number exists).
 
 ## Settings
 

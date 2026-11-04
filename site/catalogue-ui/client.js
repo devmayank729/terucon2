@@ -175,13 +175,18 @@ export function resultCardHtml(item) {
   const bits = [item.subtype, item.finish].filter(Boolean);
   const meta = bits.length ? esc(bits.join(' · ')) : '';
   const code = item.productId ? `<span class="code">${esc(item.productId)}</span>` : '';
+  // a design that is also a shop product (server/lib/shopLink.js) opens its shop page and says what the shop lists for it; any other opens the picture
+  const shop = item.shop && typeof item.shop.href === 'string' && item.shop.href.startsWith('/materials#/p/') ? item.shop : null;
+  const price = shop ? `<span class="result-price">${esc(shop.priceText)} <span class="result-sample">sample price</span></span>` : '';
+  const open = shop ? `href="${esc(shop.href)}"` : `href="${esc(item.image?.fullUrl || '#')}" target="_blank" rel="noopener"`;
   return `
-    <a class="result" href="${esc(item.image?.fullUrl || '#')}" target="_blank" rel="noopener" data-item-id="${esc(item.itemId)}">
+    <a class="result" ${open} data-item-id="${esc(item.itemId)}">
       <span class="result-pic"><img src="${esc(item.image?.thumbUrl || '')}" alt="" loading="lazy" width="${item.image?.width || 480}" height="${item.image?.height || 360}"></span>
       <span class="result-body">
         <span class="result-title">${esc(item.title)}</span>
         ${meta ? `<span class="result-meta">${meta}</span>` : ''}
         ${code}
+        ${price}
       </span>
     </a>`;
 }

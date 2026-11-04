@@ -6,6 +6,81 @@ This file is not `TARGETS.md` (that tracks the quotation's targets and their sta
 
 ---
 
+## 2026-11-04 (second session): catalogue ids, shop listing, tap-a-surface, TeruBot with photos and links, My project loader
+
+**Asked:** (1) give every catalogue photo, vector row and record the id printed in `Superbond colour image.pdf`, with a `TIPL-` prefix; (2) list the same catalogue in the marketplace to sell; (3) in the shop, after a photo is chosen, run the models (OneFormer, Gemini ...) to outline it, make it hoverable and tappable, and show the closest catalogue items below; the same for a photo sent to TeruBot ("what material is the left wall?"), with the closest items and their price in the marketplace; (5) make sure everything works; (6) the My project page's loader is still not the same as the others; (7) a pasted link (a Pinterest pin) must be fetched as a photo, sent to Gemini, and offered to the Finder / Design Studio; find and fix bugs. Keep going if the usage limit hits.
+
+**Serves:** D1, A1, C3, C4, C5, C9 (and F5 for the loader).
+
+### Slice 1 (DONE): product ids from the PDF onto the live catalogue
+
+- Read the 69 pages of the PDF (it is 175 MB and has no text layer, so I rendered each label strip at 190 dpi with PyMuPDF in a scratch environment and read the printed code and name by eye). Result: page 1 is the cover (no code), pages 2-69 carry 68 labels with **63 distinct codes**; **five codes are printed on two pages each** (SB005 p17/p64, SB923 p23/p67, SB902 p24/p65, SB915 p29/p61, SB804 p32/p66). Written as `catalogue/data/superbond-colour-ids.json` (spellings exactly as printed: CORTERN, CONFIER, NAXIAN, MARMORIS STEIN, VIRDIAN, ANILE ...; the file's own comment says it was read by eye and should be spot-checked). The PDF's sha256 equals the one the live catalogue was built from.
+- New `catalogue/terucon_catalogue/assign_ids.py` + a CLI command `assign-ids` (dry run unless `--apply`, `--backup`, `--undo`) + `catalogue/tests/test_assign_ids.py` (18 tests; I broke the code on purpose and 2 of them failed, then restored it). What it does: sets `productId = TIPL-<code>` (`productIdSource: admin`), `label` (printed name in title case), `attributes` (code, printed name, PDF page, the other page of a repeated code) on each item in MongoDB; hides page 1 (not a material); writes a **new release** whose vectors are byte-identical (checked against the old manifest's sha256) and whose `items.json` carries the product ids (the search de-duplicates on that, so a repeated code shows once); flips the live pointer last. **`itemId`, the picture keys and the vector row ids were deliberately not renamed** (they are the join between pictures, vectors and database and a release is immutable); the TIPL id is the public id on every record.
+- **Live run** (your `.env`, read in memory only; the signing key's text was passed in as the right variable name without editing `.env`): full read-only copy of the 69 item documents first (`catalogue/data/backups/live-catalogue-before-ids-2026-11-04.json`), dry run, then `--apply`: release `rel-20261103223526-3b7f28` written to the bucket (12 files), 69 item documents updated, made live; the old release `rel-20261101225013-57cdcb` is the "previous" one. `modal run modal_app.py::prime` then copied the new release onto the Modal volume `terucon-catalogue-cache` (the old one is still there). A second dry run says "0 item documents would change". Undo: `python -m terucon_catalogue assign-ids --catalogue superbond-colour --undo catalogue/data/backups/assign-ids-backup-superbond-colour-2026-11-04.json`.
+- **Checked live:** a real photo search through the website's catalogue service (real Modal search app, real MongoDB, real signing): a patch cut from page 32 returned `TIPL-SB804 Emperador Dark` first (page 66 did not appear as a second hit), then SB825, SB829, SB8002, SB8001, SB830, all with signed thumbnails (17 s cold, 1.2 s warm); a patch from page 8 returned `TIPL-STC9050 Twilight Black` first.
+- **Found (not changed):** `.env` holds the Google signing key's text in `CATALOGUE_GCS_KEY_FILE` (a variable that expects a file path), so on this Mac the site reports the catalogue as "storage-not-configured" and the Finder cannot show pictures. With the same text in `CATALOGUE_GCS_KEY_JSON` the status is ready. I did not edit your `.env`.
+
+### Slice 2 (DONE): the 63 designs in the shop
+
+- Cut each design's swatch from its first page (`catalogue/tools/make_shop_images.py`, run with PyMuPDF in a scratch environment; the swatch rectangle was measured on all 68 pages and is the same within 2 pt) into `media/materials/tipl-<code>.jpg` (800 px wide, 8 MB for 63) and wrote `catalogue/data/superbond-colour-shop.json`.
+- `tools/build-shop-catalogue.js` writes `site/patches/snippets/shop-catalogue.js`, spliced into the shop's data layer by three new steps of `site/patches/materials.json`. The patch engine could not reach that script (the export gives it no name), so `tools/build-site.js` got `target: "asset:content=<text>"`; it also got a `style` field on a step (the cause of the seven red JavaScript tests, see below). `tools/extract-products.js` now reads the data layer from the built shop page (so TeruBot's `server/data/products.json` has 87 products / 209 variants) and counts the pictures that are files. A shop search bug found on the way: a code such as `sb804` matched `sb801` through the plural rule (`server/lib/terubot/shop.js`).
+- Prices, size, thickness, weight and uses are **placeholders** copied from the shop's FR Solid sheet and flagged on each product page; the colour family and surface come from the printed name. I did not use the Gemini descriptions (most designs were "laminate").
+- Looked at screenshots of the category page and a product page in Chrome. A mistake of mine, caught by the full browser run: my first `res()` patch made every `media/...` photograph address absolute, which broke the export's own later lookup of its embedded pictures (three 404s in the cart test); it is now limited to the `tipl-` pictures.
+
+### Slice 3 (DONE): the shop's "Find it from a photo", for real
+
+- `site/catalogue-ui/surfaces.js` + `surfaces.css` (new; the two names added to `server/routes/catalogueUi.js`), loaded and opened by the `surfaces-assets` / `surfaces-open` steps. OneFormer scan through the studio's own route, connected regions in the browser, hover and tap, a clean patch cut for the search, results with the shop price and View / Add to cart; the shop's own sheet is the fallback. `server/lib/shopLink.js` makes a catalogue result say what the shop lists for it (`item.shop`), added to `/api/catalogue/search` and `/search-text`.
+- **Live run** (real server code, sign-in off for this local run only, signing key passed in memory): a lobby photo outlined in 20 s, tap on "Wall" searched in 2 s, designs with prices came back, no page errors. 2 browser tests with stubbed models (one broken on purpose: it failed) and 3 JavaScript tests for the Finder card (`site/catalogue-ui/client.js` now links a result to its shop page with the price).
+- **Found and fixed:** `catalogues.counts.items` was written by the publisher as the visible items while the website subtracts the hidden ones again (the live Finder said 67 visible instead of 68). Fixed in `publish.py` and the CLI, `ARCHITECTURE.md` 4.4 says which meaning, one test that pinned the old meaning changed, the live document corrected.
+
+### Slice 4 (DONE): TeruBot with a photo and with a pasted link
+
+- Server: `server/lib/terubot/photo.js` (checks a photo by its bytes; finds a link; fetches its picture with the Inspiration importer), `tools.js` (new tool `find_in_photo(target, box_2d)`, shop cards for catalogue results), `catalogue.js` (photo search through the same gates), `chat.js` / `prompt.js` (the picture goes to Gemini as an inline part; new rules), `server/routes/terubot.js` (photo or token in the body, 6 MB only for a message with a photo, 20 / 40 photos an hour, a turn with a photo may take 50 s and wakes the search while the model looks). Widget: paperclip, paste, drop, shrink to 1280 px, a strip with Finder / Studio / Remove, link pictures by token, `terubot.css`, `terubot.md`.
+- Live: the real Gemini answered the left-wall question with the lobby photo in 12 s with cards; the Pinterest pin you pasted was fetched through gallery-dl (747 x 1328) and Gemini answered about it; in Chrome the photo, the answer and the hand-off to the Finder worked. 18 new JavaScript tests, 1 browser test (broken on purpose: it failed).
+- The first live try timed out at the old 30 s limit (the search container was asleep): a photo turn now has 50 s and the search is warmed in parallel.
+
+### Slice 5: the My project loader (nothing changed)
+
+Measured the loader on every page, laptop and 390 px phone, with and without a 4x CPU slowdown, by loading and by clicking the real link: same markup, same timing, same quick curtain everywhere but the landing page. I could not reproduce a difference and changed nothing; what I need from you is in `TARGETS.md`, open decision 26.
+
+### Slice 6: bugs and the full run
+
+- The seven JavaScript tests that were red before I started are green: a patch step may now name the link style it belongs to; golden digests rewritten. `npm test` is green except the overview, regenerated at the end.
+- Full browser suite: first run 81 of 83 (the 404 above, and a sign-in test that clicked Sign out while the page's loader still covered the button: a race in the test, it failed about half the time in a run of the first 14 tests and passes 5 of 5 once it waits for the loader like a person); second run 82 of 83 (that test); **final run 83 of 83**.
+
+### Files changed
+
+Code: `catalogue/terucon_catalogue/{assign_ids.py (new),cli.py,publish.py}`, `server/lib/shopLink.js` (new), `server/lib/terubot/{photo.js (new),catalogue,chat,images,index,prompt,shop,tools}.js`, `server/routes/{catalogue,catalogueUi,terubot}.js`, `site/catalogue-ui/{surfaces.js,surfaces.css (new),client.js,catalogue-ui.css}`, `site/brand/{terubot.js,terubot.css}`, `site/patches/{materials,home,studio}.json`, `site/patches/snippets/shop-catalogue.js` (generated), `tools/{build-shop-catalogue.js (new),build-site.js,extract-products.js}`, `pages/materials.html` and `server/data/products.json` (rebuilt), `media/materials/tipl-*.jpg` (63 new). Data: `catalogue/data/{superbond-colour-ids.json,superbond-colour-shop.json,backups/}`, `catalogue/tools/make_shop_images.py`. Docs: `TARGETS.md`, `WORK_LOG.md`, `README.md`, `docs/CATALOGUE_SETUP.md`, `catalogue/ARCHITECTURE.md`, `site/brand/terubot.md`, `site/patches/README.md`. Tests: `catalogue/tests/{test_assign_ids.py (new),test_publish.py}`, `tests/js/{terubot-photo,catalogue-shop-card (new),terubot-data,site-patches}.test.js`, `tests/helpers/terubotApp.js`, `tests/e2e/run.mjs` (3 new browser tests, a stub hook), `tests/fixtures/pages-golden.json`. Nothing under `swatchroom/` or `pages_original/` was touched; nothing committed; `.env` not edited.
+
+### Live changes made (outside the repo), all recorded above
+
+MongoDB database `swatchroom`: 69 item documents (id, label, attributes, one hidden), one new release record, the catalogue's live pointer and its counts (twice: the ids, then the counts fix). Bucket `cataloguegcsbucket/catalogue/`: 12 new files under `releases/superbond-colour/rel-20261103223526-3b7f28/`. Modal volume `terucon-catalogue-cache`: that release added. Undo for the ids: the `--undo` command in slice 1. Real services called besides those: the Modal search app, OneFormer on Modal, Gemini on Vertex, Pinterest (one pin) through gallery-dl. A temporary Modal app run (`modal run ... prime`) started and stopped by itself.
+
+### Checked
+
+- Python (light environment without torch): the new 18 tests and every test of publish, mongo, release, service, http, bucket import, ingest pass; the compute-pipeline tests (`test_pipeline.py`, `test_photos.py`, encoders) need torch and were not run there; `test_modal_app.py` not run.
+- JavaScript: 1019 tests, 1015 pass, 0 fail, 4 skipped (the same four as before).
+- Browser: **83 of 83** (three new tests; one existing test made to wait for the loader).
+- Live runs listed in slices 1, 3 and 4.
+
+### Not checked
+
+A real phone or Safari (the in-page camera in the new dialog, the paperclip, touch hover); any accuracy of matching on real photos of physical samples; the shop on a slow phone with 63 more pictures; Render (nothing deployed); sign-in against real services; the admin screen's success path; the printed codes beyond my own two reads (the table needs your spot-check); whether the live Finder works once `CATALOGUE_GCS_KEY_JSON` is set on Render; what the "lazy loader" difference you see is.
+
+### Noticed, left alone
+
+`.env` has the signing key in `CATALOGUE_GCS_KEY_FILE` (open decision 24); the Gemini descriptions of the catalogue are poor (most designs "laminate", colours polluted by the page margin and label) so search relies on the image models; the catalogue's crops include the page margin and printed label (a recompute on swatch-only crops might improve matching: not tried); `docs/overview` and the file-size record are regenerated at the end.
+
+### Time
+
+About one working session spread over a usage-limit pause. Mostly working (reading code, writing, live runs and screenshots); waiting: the full browser suite takes about 8 minutes per run (two runs), Modal cold starts of 15 to 20 s per live search.
+
+### What I did (summary)
+
+Gave every item of the SuperBond catalogue the id printed in its PDF (`TIPL-SB804`) in MongoDB, a new live release and the Modal volume, with a backup and an undo; listed the 63 designs in the shop with those ids and sample prices; rebuilt the shop's photo search so the models outline the photo, a tap on a surface finds the closest designs with their shop price; made TeruBot able to see a photo or fetch a pasted link (your Pinterest pin) and name the closest designs for "the left wall"; fixed a counts bug, a search bug and the seven red tests; ran all of it live once. Not done: real prices (none exist), the My project loader difference (I could not reproduce it), real-phone checks, reading codes automatically for future uploads.
+
+---
+
 ## 2026-11-04: TeruBot over the project form, live voice, header button, one loader, shop camera, and C5/C6/C9 re-baselined
 
 **Asked:** (1) in a fresh session: the TeruBot chat panel stays open over the form when it sends a visitor to "Start a project": close it; (2) read `TARGETS.md` and `WORK_LOG.md` for C5, C6 and C9, do what is left, log it; (3) "add the lazy loader for every page, the same one that comes before the Design Studio" and "make pages uniform from the perspective of the lazy loader"; (4) the header's "Start a project" button should not be everywhere (cluttered); (5) TeruBot should be able to hold a live conversation and speak, like talking to a person; (6) in the shop, "Find it from a photo" again fails to upload a photo taken with the camera: do what was done for the Design Studio. You also pasted a handoff saying the Gemini chain works live, the form pre-fills, test races are fixed and the repo is clean.

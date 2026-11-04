@@ -138,3 +138,17 @@ It copies the folder next to the bucket, checks it, publishes it (crops, thumbna
 * **Tested against fakes** (a local folder as the bucket, an in-memory database, a fake Modal): the import, the volume seeding, the search, the gateway, the admin API. 793 Python tests and the JavaScript and browser tests pass.
 * **Run once with the real DINOv2 and SigLIP weights**, on a Mac's CPU, on a synthetic six-page PDF: compute, publish, search found the right page in 6 of 6 distorted copies, and a search container reading only the volume made no request to the bucket. Synthetic swatches only: **this says nothing about real material photos**.
 * **Never run:** Modal (the app has not been deployed), a real bucket (signed uploads, CORS, signed links), a real MongoDB (the writes use `UpdateOne` with `$setOnInsert`), Vertex AI, and your real catalogue.
+
+
+## Giving every item the id printed in its catalogue PDF (`assign-ids`)
+
+A catalogue PDF with no text layer (the SuperBond colour catalogue) is imported with no product ids, although every page prints its code under the swatch. Read the codes off the pages once (by eye or any way you trust) into a JSON table like `catalogue/data/superbond-colour-ids.json` (page number -> printed code and printed name; a page that is not a product says `"hide": true`), then:
+
+```
+python -m terucon_catalogue assign-ids --catalogue superbond-colour --table catalogue/data/superbond-colour-ids.json            # a dry run: says what would change
+python -m terucon_catalogue assign-ids --catalogue superbond-colour --table ... --apply --backup my-backup.json                # writes
+python -m terucon_catalogue assign-ids --catalogue superbond-colour --undo my-backup.json                                       # puts it back
+modal run catalogue/modal_app.py::prime --catalogue superbond-colour                                                            # puts the new live release on the Modal volume
+```
+
+It sets `productId` (`TIPL-` + the code), the label and a few attributes on each item in MongoDB, hides pages that are not products, and writes a new release with the same vectors byte for byte and the ids in its `items.json`, which then becomes the live one (the old one stays for a roll back). It never changes an `itemId`, a picture key or a vector row. A code printed on two pages is one product with two photos. The design is then also a shop product under the same id (`tools/build-shop-catalogue.js`).

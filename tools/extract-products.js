@@ -28,6 +28,8 @@ import { Bundle } from './bundle.js';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const SHOP_EXPORT = 'pages_original/market_place.html';
+/** The shop as the site serves it (the export with site/patches/materials.json applied: it also carries the catalogue designs, see tools/build-shop-catalogue.js). */
+export const SHOP_BUILT = 'pages/materials.html';
 export const HOME_EXPORT = 'pages_original/index.html';
 export const PRODUCTS_FILE = 'server/data/products.json';
 export const ENQUIRY_FILE = 'server/data/enquiry-form.json';
@@ -70,7 +72,10 @@ const plain = (value) => JSON.parse(JSON.stringify(value));
 /** @returns {object} the content of server/data/products.json */
 export function extractProducts(root = ROOT) {
   const bundle = Bundle.load(path.join(root, SHOP_EXPORT));
-  const store = runStore(findStoreScript(bundle));
+  // the data layer is read from the BUILT shop page when there is one, because that is what visitors get (24 own products plus the catalogue designs);
+  // a checkout without pages/ falls back to the export itself
+  const builtFile = path.join(root, SHOP_BUILT);
+  const store = runStore(findStoreScript(fs.existsSync(builtFile) ? Bundle.load(builtFile) : bundle));
   const { inr } = store.fmt;
   // the photographs the export carries: a finish without one is shown as a placeholder by the shop
   const photos = new Set();
@@ -78,6 +83,9 @@ export function extractProducts(root = ROOT) {
     const m = IMAGE_KEY.exec(key);
     if (m) photos.add(m[1]);
   }
+  // pictures that are files of this project (the catalogue designs': media/materials/tipl-*.jpg) count as photographs too
+  const mediaDir = path.join(root, 'media', 'materials');
+  if (fs.existsSync(mediaDir)) for (const f of fs.readdirSync(mediaDir)) if (/^[A-Za-z0-9._-]+\.jpg$/.test(f)) photos.add(f.slice(0, -4));
   const imageOf = (name) => (name && photos.has(name) ? `media/materials/${name}.jpg` : null);
 
   const products = store.products.map((p) => {
@@ -113,6 +121,7 @@ export function extractProducts(root = ROOT) {
       description: p.desc,
       applications: plain(p.apps),
       performance: plain(p.perf),
+      ...(p.skuOverride ? { catalogueId: p.skuOverride } : {}), // a design of the SuperBond colour catalogue: its product id, the link to catalogue search results
       featured: Boolean(p.featured),
       promoted: Boolean(p.promoted),
       specs: plain(p.specs),

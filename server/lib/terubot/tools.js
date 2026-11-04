@@ -23,7 +23,7 @@ const MAX_RESULT_CHARS = 12000;
 const T = { string: 'STRING', number: 'NUMBER', integer: 'INTEGER', boolean: 'BOOLEAN', object: 'OBJECT', array: 'ARRAY' };
 
 /** The function declarations for Gemini. `catalogueOn` and `signedIn` decide which tools exist at all for this request. */
-export function toolDeclarations({ shop, site, form, catalogueOn, signedIn }) {
+export function toolDeclarations({ shop, site, form, catalogueOn, signedIn, photoOn = false }) {
   const ids = (list) => list.map((x) => x.id);
   const routes = [...destinations(site).keys()];
   const declarations = [
@@ -146,7 +146,35 @@ export function toolDeclarations({ shop, site, form, catalogueOn, signedIn }) {
       },
     });
   }
+  if (catalogueOn && photoOn) {
+    declarations.splice(4, 0, {
+      name: 'find_in_photo',
+      description:
+        'The visitor sent a photo (you can see it). Find the items of the real catalogue, and the shop products with the same id, that look most like ONE surface or object in it. First decide what they mean (the left wall, the floor, the cladding, the sofa, or the whole photo), then give its bounding box in `box_2d`. Use it whenever they ask what a material in the photo is, or ask for something like it.',
+      parameters: {
+        type: T.object,
+        properties: {
+          target: { type: T.string, description: 'What you looked at, in a few words (for example "left wall").' },
+          box_2d: {
+            type: T.array,
+            items: { type: T.number },
+            description: 'The surface as [ymin, xmin, ymax, xmax], each from 0 to 1000, the top left corner of the photo being 0,0. A wall means the visible part of that wall only. Use [0, 0, 1000, 1000] for the whole photo.',
+          },
+          limit: { type: T.integer, description: '1 to 6 (default 4).' },
+        },
+        required: ['target', 'box_2d'],
+      },
+    });
+  }
   return declarations;
+}
+
+/** [ymin, xmin, ymax, xmax] on a 0..1000 scale -> [x0, y0, x1, y1] as fractions, kept inside the photo; null when it is not a box of a usable size. */
+export function readBox(value) {
+  if (!Array.isArray(value) || value.length !== 4 || !value.every((n) => typeof n === 'number' && Number.isFinite(n))) return null;
+  const [ymin, xmin, ymax, xmax] = value.map((n) => Math.max(0, Math.min(1000, n)) / 1000);
+  if (xmax - xmin < 0.02 || ymax - ymin < 0.02) return null;
+  return [xmin, ymin, xmax, ymax];
 }
 
 const rupees = (n) => Number.isFinite(n) && n >= 0 && n <= 100_000_000;
@@ -160,12 +188,13 @@ const digits = (s) => String(s).replace(/\D/g, '');
  * @param {{urlFor: (image: string | null) => string, forVariant: (v: object) => string}} deps.images
  * @param {{signedIn: boolean, firstName?: string, studioRooms?: () => Promise<number | null>}} deps.account decided by the route from the session cookie
  * @param {{on: boolean, search?: (text: string, limit: number) => Promise<object>}} deps.catalogue
+ * @param {{bytes: Buffer, type: string} | null} [deps.photo] the photo the visitor sent with this message, already checked (photo.js)
  * @param {string} deps.visitorText everything the visitor typed in this conversation (not what the assistant or the page said)
  * @param {{warn: Function}} [deps.log]
  */
-export function createToolbox({ shop, site, form, images, account, catalogue, visitorText, log }) {
+export function createToolbox({ shop, site, form, images, account, catalogue, photo = null, visitorText, log }) {
   const deps = { site, shop, form };
-  const declarations = toolDeclarations({ shop, site, form, catalogueOn: Boolean(catalogue?.on), signedIn: account.signedIn });
+  const declarations = toolDeclarations({ shop, site, form, catalogueOn: Boolean(catalogue?.on), signedIn: account.signedIn, photoOn: Boolean(photo && catalogue?.on && catalogue.searchPhoto) });
   const names = new Set(declarations.map((d) => d.name));
   const cards = new Map();
   /** @type {object[]} */
@@ -355,9 +384,27 @@ export function createToolbox({ shop, site, form, images, account, catalogue, vi
       if (!catalogue?.on || !catalogue.search) return { available: false, reason: 'The real catalogue search is not switched on on this site yet.' };
       const text = cleanText(args.text ?? '', 300);
       if (!text) return { error: 'text is empty.' };
-      return catalogue.search(text, Math.max(1, Math.min(6, wholeNumber(args.limit) ?? 4)));
+      return cardsFrom(await catalogue.search(text, Math.max(1, Math.min(6, wholeNumber(args.limit) ?? 4))));
+    },
+
+    find_in_photo: async (args = {}) => {
+      if (!photo || !catalogue?.on || !catalogue.searchPhoto) return { available: false, reason: 'There is no photo to search, or the catalogue search is not switched on.' };
+      const target = cleanText(args.target ?? '', 80);
+      const box = readBox(args.box_2d);
+      if (!box) return { error: 'box_2d must be four numbers from 0 to 1000: [ymin, xmin, ymax, xmax], with max above min. Look at the photo again and give the surface as a box.' };
+      const found = await catalogue.searchPhoto({ bytes: photo.bytes, type: photo.type, box, limit: Math.max(1, Math.min(6, wholeNumber(args.limit) ?? 4)) });
+      return { target, ...cardsFrom(found) };
     },
   };
+
+  /** A card for each catalogue item that is also a shop product (the card is made from the shop's own data, never from what the model wrote). */
+  function cardsFrom(result) {
+    for (const item of result?.items ?? []) {
+      const found = item.shop ? shop.resolve(item.shop.variantId) : null;
+      if (found) addCard(found.product, found.variant);
+    }
+    return result;
+  }
 
   /** Run one call from the model. Never throws: a failure is an answer the model can read. */
   async function run(name, args) {

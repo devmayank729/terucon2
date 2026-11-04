@@ -5,6 +5,7 @@
     import-bundle                the same, plus --explain (what was found in the folder)
     verify                       check a bundle without publishing it
     releases / activate          list releases; make one live (also how to roll back)
+    assign-ids                   put the product codes printed in the PDF (a JSON table) on the items; a dry run unless --apply
     compute / ingest / evaluate  need the compute or serve extras (PY-A's pipeline, PY-B's search); imported only when used
 
 Exit codes: 0 done, 1 a problem with the data (nothing was published) or a failed run, 2 usage or configuration (a missing setting, a bad option).
@@ -171,6 +172,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     releases = sub.add_parser("releases", parents=[common], help="list a catalogue's releases, newest first")
     releases.add_argument("--catalogue", required=True, metavar="ID")
+
+    assign = sub.add_parser("assign-ids", parents=[common], help="give every item the product id and name printed in its PDF (a table you check); a dry run unless --apply")
+    assign.add_argument("--catalogue", required=True, metavar="ID")
+    assign.add_argument("--table", metavar="FILE", help="the JSON table (catalogue/data/<catalogue>-ids.json): page -> printed code and name")
+    assign.add_argument("--apply", action="store_true", help="really write (without it only the plan is printed)")
+    assign.add_argument("--backup", metavar="FILE", default=None, help="where the old values are saved before writing (default: ./assign-ids-backup-<catalogue>-<time>.json)")
+    assign.add_argument("--no-activate", action="store_true", help="write the new release but leave the old one live (activate the new one after a look)")
+    assign.add_argument("--undo", metavar="BACKUP", default=None, help="put back what a backup file recorded, and the release that was live then")
 
     compute = sub.add_parser("compute", parents=[common], help="turn PDF(s) into a bundle (needs the compute extras: torch, PyMuPDF, ...)")
     compute.add_argument("--pdf", action="extend", nargs="+", required=True, metavar="FILE", help="PDF files, folders of PDFs or images")
@@ -457,10 +466,49 @@ def cmd_activate(args, context: Context) -> int:
         except ActivationError as error:
             context.output.warn(f"Not activated: {error}")
             return EXIT_PROBLEMS
-        context.output.say(f"{args.release} is now the live release of {args.catalogue!r} ({(after.get('counts') or {}).get('items', '?')} visible items).")
+        counts = after.get("counts") or {}
+        visible = counts["items"] - counts.get("hidden", 0) if isinstance(counts.get("items"), int) else "?"
+        context.output.say(f"{args.release} is now the live release of {args.catalogue!r} ({visible} visible items).")
         if after.get("previousRelease"):
             context.output.say(f"To undo: {PROG} activate --catalogue {args.catalogue} --release {after['previousRelease']}")
         return EXIT_OK
+
+    return _guard_runtime(context, run)
+
+
+def cmd_assign_ids(args, context: Context) -> int:
+    from .assign_ids import AssignError, apply_assignment, load_id_table, plan_assignment, restore_assignment
+
+    def run() -> int:
+        out = context.output
+        try:
+            if args.undo:
+                if not os.path.exists(args.undo):
+                    raise UsageError(f"The backup file {args.undo!r} does not exist.")
+                restore_assignment(args.undo, store=context.store, db=context.db, say=out.say)
+                return EXIT_OK
+            if not args.table:
+                raise UsageError("Say which table to use: --table catalogue/data/<catalogue>-ids.json")
+            table = load_id_table(args.table)
+            plan = plan_assignment(table, catalogue=args.catalogue, store=context.store, db=context.db)
+            for line in plan.lines(dry_run=not args.apply):
+                out.say(line)
+            if not args.apply:
+                out.say("This was a dry run; nothing was written. Add --apply to write.")
+                return EXIT_OK
+            stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+            backup = args.backup or f"assign-ids-backup-{args.catalogue}-{stamp}.json"
+            result = apply_assignment(plan, store=context.store, db=context.db, backup_path=backup, activate=not args.no_activate, say=out.say)
+            for line in result.lines:
+                out.say(line)
+            if result.backup_path:
+                out.say(f"To undo: {PROG} assign-ids --catalogue {args.catalogue} --undo {result.backup_path}")
+            return EXIT_OK
+        except AssignError as error:
+            out.warn(f"Nothing written: {error}")
+            for problem in error.problems:
+                out.warn(f"  - {problem}")
+            return EXIT_PROBLEMS
 
     return _guard_runtime(context, run)
 
@@ -632,5 +680,5 @@ def cmd_evaluate(args, context: Context) -> int:
 
 HANDLERS: Dict[str, Callable[[argparse.Namespace, Context], int]] = {
     "catalogues": cmd_catalogues, "publish": cmd_publish, "import-bundle": cmd_publish, "verify": cmd_verify, "activate": cmd_activate, "releases": cmd_releases,
-    "compute": cmd_compute, "ingest": cmd_ingest, "evaluate": cmd_evaluate,
+    "assign-ids": cmd_assign_ids, "compute": cmd_compute, "ingest": cmd_ingest, "evaluate": cmd_evaluate,
 }

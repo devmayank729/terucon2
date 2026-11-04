@@ -22,6 +22,14 @@ import {
 } from '../../tools/build-site.js';
 import { PAGE_KEYS, PRISTINE, ROOT, SITE, makeTempRoot, memoBuild, removeTempRoot } from './site-helpers.js';
 
+/** The text of the one script of a bundle that contains `marker` (what an `asset:content=` target means). */
+function contentAsset(bundle, marker) {
+  const found = bundle.uuids.filter((u) => /javascript/.test(bundle.mime(u)) && bundle.assetText(u).includes(marker));
+  assert.equal(found.length, 1, `exactly one script contains ${marker}`);
+  return bundle.assetText(found[0]);
+}
+
+
 const patchFile = (key) => path.join(ROOT, 'site', 'patches', `${key}.json`);
 const readSpec = (key) => JSON.parse(fs.readFileSync(patchFile(key), 'utf8'));
 const components = JSON.parse(fs.readFileSync(path.join(ROOT, 'site', 'components.json'), 'utf8'));
@@ -56,7 +64,7 @@ for (const key of PAGE_KEYS) {
     const b = Bundle.load(PRISTINE[key]);
     for (const step of spec.steps) {
       if (step.op === 'inJsString') continue; // inside the worker string: checked by the build itself
-      const text = !step.target || step.target === 'template' ? b.template : b.assetText(b.extUuid(step.target.slice(6)));
+      const text = !step.target || step.target === 'template' ? b.template : step.target.startsWith('asset:content=') ? contentAsset(b, step.target.slice('asset:content='.length)) : b.assetText(b.extUuid(step.target.slice(6)));
       for (const l of leaves(step.steps || [step])) {
         if (l.step.anchor === undefined || l.step.op === 'replaceAll') continue;
         assert.equal(countOccurrences(text, l.step.anchor), 1, `${key}/${step.id}/${l.step.id}`);
@@ -428,7 +436,7 @@ test('makeContext defaults: link style from site.json, overridable', () => {
 test('the snippets are plain JavaScript that parses on its own (as a module)', () => {
   const dir = path.join(ROOT, 'site', 'patches', 'snippets');
   const files = fs.readdirSync(dir).filter((f) => f.endsWith('.js'));
-  assert.deepEqual(files.sort(), ['analytics.js', 'auth.js', 'hero-curtain.js', 'warmup.js']);
+  assert.deepEqual(files.sort(), ['analytics.js', 'auth.js', 'hero-curtain.js', 'shop-catalogue.js', 'warmup.js']);
   for (const f of files) {
     const code = fs.readFileSync(path.join(dir, f), 'utf8');
     // hero-curtain.js is a fragment of the landing component's class body (spliced in by the home patch), so it parses inside a class
@@ -448,4 +456,18 @@ test('no snippet has a camelCase name straight before an "=": the exported pages
     const code = fs.readFileSync(path.join(dir, f), 'utf8').split('\n').filter((line) => !/^\s*\/\//.test(line)).join('\n'); // comments are text, not code
     assert.deepEqual([...code.matchAll(hazard)].map((m) => m[2]), [], `${f}: rename these to all-lowercase names`);
   }
+});
+
+test('a step with a "style" runs only in that link style; an unknown style is refused', () => {
+  const steps = [{ id: 'route-only', op: 'replace', style: 'route', why: 'a step that names a link in route style', anchor: 'A', with: 'B' }];
+  assert.equal(patchText('A', steps, { linkStyle: 'route' }).text, 'B');
+  assert.equal(patchText('A', steps, { linkStyle: 'file' }).text, 'A', 'in file style the step is skipped, not failed');
+  assert.throws(() => patchText('A', [{ ...steps[0], style: 'pretty' }], { linkStyle: 'route' }), /"style" must be one of route, file/);
+});
+
+test('an asset target by content finds the one script that holds the text, and says so when it is none or several', () => {
+  const b = Bundle.load(PRISTINE.materials);
+  assert.equal(contentAsset(b, 'window.TeruconStore =').includes('FRONTEND DEMO'), true);
+  const built = memoBuild('route').results.find((r) => r.key === 'materials').bundle;
+  assert.ok(contentAsset(built, 'window.TeruconStore =').includes('tipl-'), 'the built shop has the catalogue designs in its data script');
 });

@@ -22,6 +22,7 @@ import { CatalogueError, drainRequest, sendCatalogueError } from '../catalogue/e
 import { mountAdminRoutes } from '../catalogue/adminRoutes.js';
 import { createCatalogue } from '../catalogue/index.js';
 import { baseType, judgePhoto, parseSearchParams, parseTextBody, PHOTO_TYPES } from '../catalogue/validate.js';
+import { defaultShop, withShop } from '../lib/shopLink.js';
 
 /** A photo that has not arrived in this long is given up on (a phone upload of 400 KB takes a second or two). */
 const BODY_DEADLINE_MS = 20 * 1000;
@@ -37,6 +38,8 @@ export function mountCatalogue(app, ctx) {
   const catalogue = createCatalogue({ settings: ctx.settings, auth: ctx.auth, mongoose: ctx.swatchroom?.mongoose() ?? null, log, now, overrides: { modal, db, signer } });
   ctx.catalogue = catalogue;
   const svc = catalogue.service;
+  /** Each result also says what the shop lists for it (a design of the catalogue is a shop product under the same id, server/lib/shopLink.js). */
+  const shopOf = (answer) => withShop(answer, ctx.shopOverride ?? defaultShop());
 
   /** Who is asking, or a CatalogueError to send. The same rule as server/routes/inspiration.js. */
   async function who(req) {
@@ -108,7 +111,7 @@ export function mountCatalogue(app, ctx) {
         svc.record('search', asker);
         const bytes = await readBody(req, { limit: MAX_PHOTO_BYTES, deadlineMs: BODY_DEADLINE_MS });
         const photo = judgePhoto(bytes, type);
-        res.json(await svc.searchPhoto({ live, params, bytes, type: photo.type }));
+        res.json(shopOf(await svc.searchPhoto({ live, params, bytes, type: photo.type })));
       } finally {
         release();
       }
@@ -127,7 +130,7 @@ export function mountCatalogue(app, ctx) {
         if (!release) throw new CatalogueError(503, 'busy', 'The search is busy right now. Please try again in a moment.', { retryAfter: 3 });
         try {
           svc.record('text', asker);
-          res.json(await svc.searchText({ live, body }));
+          res.json(shopOf(await svc.searchText({ live, body })));
         } finally {
           release();
         }

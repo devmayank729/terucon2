@@ -531,7 +531,7 @@ def test_admin_edits_survive_a_republish(tmp_path):
     assert docs[a]["productId"] == "ADMIN-9" and docs[a]["productIdSource"] == "admin" and docs[a]["source"]["pdfProductId"] == "SB-PDF", "the PDF's own id is still recorded beside the admin's"
     assert docs[b]["label"] == "Second" and docs[b]["productId"] == "SB-NEW" and docs[b]["productIdSource"] == "pdf-text"
     assert all(docs[i]["category"] == "metal" and docs[i]["finish"] == "brushed" and docs[i]["subtype"].startswith("redescribed") for i in info.item_ids)
-    assert again.n_changed == 3 and db.get_catalogue(CAT)["counts"] == {"items": 2, "hidden": 1}
+    assert again.n_changed == 3 and db.get_catalogue(CAT)["counts"] == {"items": 3, "hidden": 1}      # items is all of them, hidden is how many of those: the website shows items - hidden
     items = json.loads(store.get_bytes(f"releases/{CAT}/{again.release_id}/items.json"))
     assert {i["itemId"]: i["productId"] for i in items}[a] == "SB-PDF", "a release holds the PDF's id; the website applies admin ids"
 

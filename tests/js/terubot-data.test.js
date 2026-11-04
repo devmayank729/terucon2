@@ -26,12 +26,12 @@ describe('the product data is read from the shop export, not typed in', () => {
     assert.deepEqual(form, JSON.parse(JSON.stringify(extractEnquiryForm())), 'enquiry-form.json equals the extraction');
   });
 
-  test('it is the shop that TARGETS.md describes: 24 products, 146 variants; ids are unique and every photo is in the export', () => {
-    assert.deepEqual(shop.counts, { products: 24, variants: 146 });
-    assert.equal(shop.products.length, 24);
+  test('it is the shop that TARGETS.md describes: 24 own products and the 63 SuperBond colour designs; ids are unique and every photo exists', () => {
+    assert.deepEqual(shop.counts, { products: 87, variants: 209 });
+    assert.equal(shop.products.length, 87);
     const ids = shop.products.flatMap((p) => p.variants.map((v) => v.id));
-    assert.equal(ids.length, 146);
-    assert.equal(new Set(ids).size, 146);
+    assert.equal(ids.length, 209);
+    assert.equal(new Set(ids).size, 209);
     for (const p of shop.products) {
       assert.ok(p.variants.length >= 1 && shop.categories.some((c) => c.id === p.category), p.id);
       for (const v of p.variants) {
@@ -41,6 +41,27 @@ describe('the product data is read from the shop export, not typed in', () => {
       }
     }
     assert.equal(shop.byVariant.get(BRONZE).variant.priceText, '₹6,960 / sheet');
+  });
+
+  test('the catalogue designs are shop products under their catalogue id (TIPL-SB804 is tipl-sb804), with a picture that is a file', () => {
+    const designs = shop.products.filter((p) => p.catalogueId);
+    assert.equal(designs.length, 63);
+    assert.equal(new Set(designs.map((p) => p.catalogueId)).size, 63);
+    for (const p of designs) {
+      assert.match(p.catalogueId, /^TIPL-[A-Z]{2,4}\d{2,5}$/);
+      assert.equal(p.id, p.catalogueId.toLowerCase(), 'the id is the link');
+      assert.equal(p.category, 'colour');
+      assert.equal(p.brand, 'SuperBond');
+      assert.equal(p.variants.length, 1);
+      assert.equal(p.variants[0].sku, p.catalogueId, 'the SKU is the catalogue id');
+      assert.ok(fs.existsSync(path.join(PROJECT_ROOT, p.variants[0].image)), `${p.id}: ${p.variants[0].image} is a file`);
+    }
+    const sb804 = shop.byProduct.get('tipl-sb804');
+    assert.equal(sb804.name, 'Emperador Dark (SB804)');
+    assert.match(sb804.specs.find(([k]) => k === 'Size and price')[1], /Sample values/, 'the page says the size and price are samples');
+    assert.equal(shop.search({ query: 'emperador dark' }).results[0].product.id, 'tipl-sb804');
+    assert.equal(shop.search({ query: 'SB804' }).results[0].product.id, 'tipl-sb804');
+    assert.equal(shop.search({ query: 'TIPL-SB804' }).results[0].product.id, 'tipl-sb804');
   });
 
   test('the form\'s choices are the ones the landing page offers', () => {

@@ -22,12 +22,20 @@
 import path from 'node:path';
 import express from 'express';
 import { StoreUnavailableError } from '../auth/index.js';
+import { RateLimiter } from '../lib/rateLimit.js';
 import { catalogueBridge } from '../lib/terubot/catalogue.js';
 import { GeminiError } from '../lib/terubot/gemini.js';
 import { BadRequest, parseContext, parseMessages } from '../lib/terubot/input.js';
 import { createTerubot, OFF_REPLY } from '../lib/terubot/index.js';
+import { linkIn, parseUpload, photoFromLink } from '../lib/terubot/photo.js';
 
-const json = express.json({ limit: '64kb', strict: true });
+/** A message with a photo is the photo (base64, at most 4 MB of picture) plus a few KB of words. The widget shrinks photos to about 300 KB first. */
+const json = express.json({ limit: '6mb', strict: true });
+/** New photos (attached, or fetched for a link) per hour: each one costs a model call with a picture and a catalogue search. */
+const PHOTOS_PER_ACCOUNT_PER_HOUR = 20;
+const PHOTOS_PER_ADDRESS_PER_HOUR = 40;
+/** The deadline of a whole turn with a photo (the widget gives up at 60 s). */
+const PHOTO_TURN_MS = 50 * 1000;
 const runMiddleware = (middleware, req, res) => new Promise((resolve, reject) => middleware(req, res, (error) => (error ? reject(error) : resolve())));
 const clip = (s) => String(s ?? '').replace(/[\r\n]+/g, ' ').slice(0, 160);
 
@@ -42,7 +50,8 @@ export function mountTerubot(app, ctx) {
   const overrides = ctx.terubotOverrides ?? {};
   // The Google connection is the studio's: <root>/swatchroom. A project folder without one (a test) simply has the assistant off.
   const googleDir = overrides.googleDir ?? path.join(ctx.root, 'swatchroom');
-  const bot = createTerubot({ settings: ctx.settings, site: ctx.site, dist: ctx.dist, log, googleDir, overrides });
+  const bot = createTerubot({ settings: ctx.settings, site: ctx.site, dist: ctx.dist, log, googleDir, mediaDir: path.join(ctx.root, 'media', 'materials'), overrides });
+  const photoLimits = { account: new RateLimiter({ windowMs: 3600000 }), address: new RateLimiter({ windowMs: 3600000 }) };
   let roomStore = null;
 
   /** The signed-in account of this request, or null. A broken account store means "not signed in", never an error. */
@@ -98,8 +107,10 @@ export function mountTerubot(app, ctx) {
         await runMiddleware(json, req, res);
       } catch (error) {
         const tooBig = error?.type === 'entity.too.large';
-        return fail(400, tooBig ? 'That request is too large.' : 'The request body is not valid JSON.');
+        return fail(400, tooBig ? 'That request is too large. A photo can be at most 4 MB.' : 'The request body is not valid JSON.');
       }
+      // 6 MB is for a message that carries a photo; a message without one is as small as it always was
+      if (!req.body?.image && Buffer.byteLength(JSON.stringify(req.body ?? {})) > 64 * 1024) return fail(400, 'That request is too large.');
       let parsed;
       try {
         parsed = { ...parseMessages(req.body, { historyLimit: t.historyLimit }), context: parseContext(req.body?.context, { site: ctx.site, shop: bot.shop }) };
@@ -129,24 +140,88 @@ export function mountTerubot(app, ctx) {
         return fail(429, 'The assistant is busy right now. Please try again in a moment.', { retryAfterSec: 3 });
       }
 
-      // One deadline for the whole turn; also stop when the visitor goes away.
-      timer = setTimeout(() => {
-        timedOut = true;
-        controller.abort();
-      }, t.timeoutMs);
+      // One deadline for the whole turn; also stop when the visitor goes away. A turn with a photo is allowed longer: the search container may have to
+      // wake up (up to about 20 s) between two model calls. It is re-armed once the photo is known (below), the clock starting again.
+      const arm = (ms) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          timedOut = true;
+          controller.abort();
+        }, ms);
+      };
+      arm(t.timeoutMs);
       res.on('close', () => {
         if (!finished) controller.abort();
       });
 
       const signedIn = Boolean(user);
       const usable = signedIn || !ctx.auth.required();
-      const catalogue = await catalogueBridge({ catalogue: ctx.catalogue, asker: { account: user ? (user.ownerId ?? user._id) : null, address }, allowed: usable, log });
-      const account = { signedIn, firstName: firstNameOf(user), studioRooms: user ? studioRooms(user) : undefined };
+      const account = user ? (user.ownerId ?? user._id) : null;
 
-      const out = await bot.answer({ messages: parsed.messages, context: parsed.context, account, catalogue, signal: controller.signal, timedOut: () => timedOut });
+      // A photo: attached by the visitor, kept from an earlier turn (a fetched one by its token), or fetched now for a link in the message.
+      // It needs an account like the catalogue does (the photo goes to a model and to a search).
+      const text = parsed.messages.at(-1).text;
+      const image = req.body?.image;
+      const link = linkIn(text); // a link in the message wins over a photo kept from an earlier turn
+      let photo = null;
+      let linkNote = '';
+      let attachment = null;
+      if ((image !== undefined && image !== null) || link?.address) {
+        if (!usable) return fail(401, 'Please sign in to send a photo or a link to a picture.');
+        const asker = { account, address };
+        const spend = () => {
+          const keys = [[photoLimits.account, `u:${account}`, PHOTOS_PER_ACCOUNT_PER_HOUR], [photoLimits.address, `ip:${address}`, PHOTOS_PER_ADDRESS_PER_HOUR]].filter(([, key]) => !key.endsWith(':null'));
+          for (const [limiter, key, limit] of keys) {
+            const room = limiter.check(key, limit);
+            if (!room.ok) return room.retryAfter;
+          }
+          for (const [limiter, key] of keys) limiter.record(key);
+          return 0;
+        };
+        if (link?.address) {
+          const wait = spend();
+          if (wait) return fail(429, 'You have sent a lot of photos in the last hour. Please try again in a little while.', { retryAfterSec: wait });
+          const got = await photoFromLink({ address: link.address, who: asker, importer: ctx.inspiration });
+          if (got.photo) {
+            photo = got.photo;
+            attachment = { kind: 'link', token: got.photo.token, host: got.photo.host, title: got.photo.title, width: got.photo.width, height: got.photo.height, more: got.photo.more };
+          } else {
+            linkNote = got.failed;
+          }
+        } else if (typeof image?.token === 'string') {
+          // a photo fetched for a link earlier in this chat: the importer still holds it for a few minutes
+          try {
+            const file = await ctx.inspiration.file(image.token, asker);
+            photo = { ...parseUpload({ type: file.type, data: file.bytes.toString('base64') }), host: 'a link pasted earlier in this chat' };
+          } catch (error) {
+            if (error?.status) linkNote = 'The picture from the earlier link is no longer available; ask them to paste the link again or attach the picture.';
+            else if (error instanceof BadRequest) linkNote = error.message;
+            else throw error;
+          }
+        } else if (image !== undefined && image !== null) {
+          try {
+            photo = parseUpload(image);
+          } catch (error) {
+            if (error instanceof BadRequest) return fail(400, error.message);
+            throw error;
+          }
+          const wait = spend();
+          if (wait) return fail(429, 'You have sent a lot of photos in the last hour. Please try again in a little while.', { retryAfterSec: wait });
+        }
+      } else if (link?.refused) {
+        linkNote = link.refused;
+      }
+      const catalogue = await catalogueBridge({ catalogue: ctx.catalogue, asker: { account, address }, allowed: usable, log, shop: bot.shop });
+      if (photo) {
+        arm(Math.max(t.timeoutMs, PHOTO_TURN_MS));
+        if (catalogue.on) ctx.catalogue.service.warm().catch(() => {}); // wake the search container while the model is looking at the photo
+      }
+      const accountInfo = { signedIn, firstName: firstNameOf(user), studioRooms: user ? studioRooms(user) : undefined };
+
+      const out = await bot.answer({ messages: parsed.messages, context: parsed.context, account: accountInfo, catalogue, photo, linkNote, signal: controller.signal, timedOut: () => timedOut });
       log.info(`terubot  chat ok  ${signedIn ? 'signed-in' : 'visitor'}  in=${parsed.messages.at(-1).text.length} chars  out=${out.reply.length} chars  model=${out.model}  rounds=${out.rounds}  tools=${out.toolsUsed.join(',') || '-'}  cards=${out.cards.length} actions=${out.actions.length}  tokens=${out.usage.prompt}/${out.usage.output}+${out.usage.thoughts}  ${Date.now() - started} ms`);
       finished = true;
-      return res.json({ aiOn: true, reply: out.reply, cards: out.cards, actions: out.actions, model: out.model });
+      return res.json({ aiOn: true, reply: out.reply, cards: out.cards, actions: out.actions, model: out.model, ...(attachment ? { attachment } : {}) });
     } catch (error) {
       if (error instanceof GeminiError) {
         if (error.kind === 'aborted') {
@@ -170,5 +245,5 @@ export function mountTerubot(app, ctx) {
     }
   });
 
-  return { close: () => bot.close(), bot };
+  return { close: () => { bot.close(); photoLimits.account.close(); photoLimits.address.close(); }, bot };
 }

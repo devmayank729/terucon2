@@ -65,6 +65,7 @@
   var ICON_SEND = ['M12 19V5', 'm5.5 11.5 6.5-6.5 6.5 6.5'];
   var ICON_CLOSE = ['M6 6l12 12', 'M18 6 6 18'];
   var ICON_WAVE = ['M4 10v4', 'M8 6.5v11', 'M12 3.5v17', 'M16 7.5v9', 'M20 10v4'];
+  var ICON_CLIP = ['M20.5 11.2l-8.1 8.1a5.2 5.2 0 0 1-7.4-7.4l8.4-8.4a3.5 3.5 0 0 1 4.9 4.9l-8.4 8.4a1.8 1.8 0 0 1-2.5-2.5l7.7-7.7'];
 
   function str(v, max) {
     if (typeof v !== 'string') return '';
@@ -191,7 +192,7 @@
     for (var i = 0; i < d.msgs.length && msgs.length < MAX_KEPT; i += 1) {
       var m = d.msgs[i];
       if (!m || (m.role !== 'user' && m.role !== 'bot')) continue;
-      msgs.push({ role: m.role, text: str(m.text, 4000), cards: m.role === 'bot' ? cleanCards(m.cards) : [], notes: m.role === 'bot' ? cleanNotes(m.notes) : [], err: !!m.err });
+      msgs.push({ role: m.role, text: str(m.text, 4000), cards: m.role === 'bot' ? cleanCards(m.cards) : [], notes: m.role === 'bot' ? cleanNotes(m.notes) : [], err: !!m.err, ph: m.ph === 1 });
     }
     state.msgs = msgs;
     state.resume = d.resume === true;
@@ -202,7 +203,7 @@
     for (var i = from; i < state.msgs.length; i += 1) {
       var m = state.msgs[i];
       if (m.retry) continue; // a failed attempt is not part of the record
-      out.msgs.push({ role: m.role, text: m.text, cards: m.cards, notes: m.notes, err: m.err });
+      out.msgs.push({ role: m.role, text: m.text, cards: m.cards, notes: m.notes, err: m.err, ph: m.thumb || m.attach || m.ph ? 1 : 0 }); // a picture is not kept in the tab, only that there was one
     }
     var s = sess();
     if (s) { if (!storeSet(s, STORE_KEY, JSON.stringify(out))) memoryOnly = out; } else memoryOnly = out;
@@ -418,9 +419,13 @@
   function messageNode(msg) {
     var wrap = el('div', 'tb-msg ' + (msg.role === 'user' ? 'tb-msg--user' : 'tb-msg--bot') + (msg.err ? ' tb-msg--err' : ''));
     if (msg.role === 'user') {
+      if (msg.thumb) wrap.appendChild(photoNode(msg.thumb, 'Your photo'));
+      else if (msg.ph) wrap.appendChild(el('p', 'tb-attach__gone', 'Photo attached'));
       wrap.appendChild(el('p', 'tb-bubble', msg.text));
       return wrap;
     }
+    if (msg.attach) wrap.appendChild(photoNode(msg.attach.thumb || '', msg.attach.host ? 'Picture from ' + msg.attach.host : 'Picture from the link', msg.attach.host));
+    else if (msg.ph) wrap.appendChild(el('p', 'tb-attach__gone', 'Picture from a link'));
     if (msg.text) wrap.appendChild(el('p', 'tb-text', msg.text));
     if (msg.cards && msg.cards.length) {
       var ul = el('ul', 'tb-cards');
@@ -508,13 +513,162 @@
   function updateControls() {
     if (!sendBtn) return;
     var blocked = blockedUntil > now();
-    var empty = !inputEl.value.trim();
+    var empty = !inputEl.value.trim() && !photo;
     sendBtn.disabled = busy || blocked || empty;
     inputEl.setAttribute('aria-busy', busy ? 'true' : 'false');
   }
   function autosize() {
     inputEl.style.height = 'auto';
     inputEl.style.height = Math.min(inputEl.scrollHeight + 2, 132) + 'px';
+  }
+
+  // ---- photos: attached by the visitor, or fetched by the site for a link they pasted -------------------------------------------
+  // `photo` is the picture of this conversation: it goes with every message until it is removed or "New chat". An attached picture is shrunk
+  // here (longest side PHOTO_SIDE, JPEG) and sent as base64; a picture the site fetched for a link stays on the server for a few minutes and is
+  // sent as its token. A thumbnail is a small data: address (the strict pages allow those; they do not all allow blob: pictures).
+  var PHOTO_SIDE = 1280;
+  var photo = null; // {kind: 'upload' | 'link', type, data, thumb, token, host, full (a Blob, kept for the Finder and the studio), shown}
+  var photoStripEl = null, photoThumbEl = null, photoLabelEl = null, photoInputEl = null, attachBtn = null, photoBusy = false;
+
+  function cleanAttachment(a) {
+    if (!a || typeof a !== 'object' || a.kind !== 'link' || typeof a.token !== 'string' || !/^[A-Za-z0-9_-]{8,80}$/.test(a.token)) return null;
+    return { token: a.token, host: oneLine(a.host, 60) };
+  }
+  /** Draw a picture (a File, a pasted image, a fetched Blob) at most `side` px on its longest side. cb(error text | null, canvas). */
+  function drawSmall(blob, side, cb) {
+    var done = function (src, w, h) {
+      if (!w || !h) { cb('That file is not a picture this browser can read. Try a JPEG or PNG.'); return; }
+      var k = Math.min(1, side / Math.max(w, h));
+      var c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(w * k));
+      c.height = Math.max(1, Math.round(h * k));
+      var x = c.getContext('2d');
+      x.fillStyle = '#ffffff';
+      x.fillRect(0, 0, c.width, c.height);
+      try { x.drawImage(src, 0, 0, c.width, c.height); } catch (e) { cb('That picture could not be read.'); return; }
+      cb(null, c);
+    };
+    if (window.createImageBitmap) {
+      window.createImageBitmap(blob).then(function (bmp) { done(bmp, bmp.width, bmp.height); }, function () { fromReader(); });
+    } else {
+      fromReader();
+    }
+    function fromReader() {
+      var r = new FileReader();
+      r.onerror = function () { cb('That file could not be read.'); };
+      r.onload = function () {
+        var im = new Image();
+        im.onload = function () { done(im, im.naturalWidth, im.naturalHeight); };
+        im.onerror = function () { cb('That file is not a picture this browser can read. Try a JPEG or PNG.'); };
+        im.src = r.result;
+      };
+      r.readAsDataURL(blob);
+    }
+  }
+  /** cb(error | null, {data: base64 JPEG of the shrunken picture, thumb: a 120 px data: address}) */
+  function shrinkPhoto(blob, cb) {
+    drawSmall(blob, PHOTO_SIDE, function (err, big) {
+      if (err) { cb(err); return; }
+      var k = 120 / Math.max(big.width, big.height);
+      var t = document.createElement('canvas');
+      t.width = Math.max(1, Math.round(big.width * k));
+      t.height = Math.max(1, Math.round(big.height * k));
+      t.getContext('2d').drawImage(big, 0, 0, t.width, t.height);
+      var url = big.toDataURL('image/jpeg', 0.82);
+      var comma = url.indexOf(',');
+      if (comma < 0 || url.indexOf('data:image/jpeg') !== 0) { cb('This browser could not prepare that picture.'); return; }
+      cb(null, { data: url.slice(comma + 1), thumb: t.toDataURL('image/jpeg', 0.7) });
+    });
+  }
+  function photoNode(thumb, label, host) {
+    var f = el('figure', 'tb-attach');
+    if (thumb) {
+      var im = el('img', 'tb-attach__img');
+      im.alt = label;
+      im.width = 96;
+      im.src = thumb;
+      f.appendChild(im);
+    }
+    f.appendChild(el('figcaption', 'tb-attach__cap', host && thumb ? label : thumb ? '' : label));
+    return f;
+  }
+  function renderPhoto() {
+    if (!photoStripEl) return;
+    photoStripEl.hidden = !photo && !photoBusy;
+    if (photoBusy && !photo) { photoThumbEl.removeAttribute('src'); photoThumbEl.hidden = true; photoLabelEl.textContent = 'Reading the picture…'; }
+    if (photo) {
+      photoThumbEl.hidden = !photo.thumb;
+      if (photo.thumb) photoThumbEl.src = photo.thumb;
+      photoLabelEl.textContent = photo.kind === 'link' ? 'Picture from ' + (photo.host || 'your link') : 'Your photo';
+    }
+    var btns = photoStripEl.querySelectorAll('button');
+    for (var i = 0; i < btns.length; i += 1) btns[i].hidden = !photo;
+    updateControls();
+  }
+  function clearPhoto() {
+    photo = null;
+    photoBusy = false;
+    renderPhoto();
+  }
+  function photoProblem(text) {
+    photoBusy = false;
+    renderPhoto();
+    showNotice('photo', text);
+    setTimeout(function () { hideNotice('photo'); }, 6000);
+  }
+  function attachFile(file) {
+    if (!file || busy) return;
+    if (!/^image\//i.test(file.type || '')) { photoProblem('That file is not a picture. Choose a JPEG or PNG photo.'); return; }
+    if (file.size > 40 * 1024 * 1024) { photoProblem('That picture is very large. Choose a smaller one.'); return; }
+    hideNotice('photo');
+    photoBusy = true;
+    renderPhoto();
+    shrinkPhoto(file, function (err, out) {
+      if (err) { photoProblem(err); return; }
+      photoBusy = false;
+      photo = { kind: 'upload', type: 'image/jpeg', data: out.data, thumb: out.thumb, token: '', host: '', full: file, shown: false };
+      renderPhoto();
+      if (inputEl) inputEl.focus();
+    });
+  }
+  /** A picture the site fetched for a link in the answer: keep its token for the next messages, fetch it once for the thumbnail and the hand-over. */
+  function takeLinkPhoto(att, msg) {
+    var mine = { kind: 'link', type: 'image/jpeg', data: '', thumb: '', token: att.token, host: att.host, full: null, shown: true };
+    photo = mine;
+    renderPhoto();
+    fetch('/api/inspiration/file/' + encodeURIComponent(att.token), { credentials: 'same-origin' })
+      .then(function (r) { if (!r.ok) throw new Error('gone'); return r.blob(); })
+      .then(function (blob) {
+        mine.full = blob;
+        drawSmall(blob, 120, function (err, c) {
+          if (err) return;
+          mine.thumb = c.toDataURL('image/jpeg', 0.7);
+          if (msg) { msg.attach.thumb = mine.thumb; refreshMessage(msg); }
+          if (photo === mine) renderPhoto();
+        });
+      })
+      .catch(function () { /* the thumbnail is a nicety; the conversation goes on without it */ });
+  }
+  /** Take the photo to the Finder or the Design Studio, with the hand-over the Inspiration page uses (site/inspiration/handoff.js). */
+  function handOff(where) {
+    if (!photo) return;
+    var mine = photo;
+    var go = function (blob) {
+      import('/inspiration/assets/handoff.js').then(function (m) {
+        return where === 'studio' ? m.sendToStudio(blob, { from: 'terubot' }) : m.sendToFinder(blob, { from: 'terubot' });
+      }).catch(function () { photoProblem('This browser would not keep the picture for the next page. Save it and upload it there.'); });
+    };
+    if (mine.full) { go(mine.full); return; }
+    fetch('/api/inspiration/file/' + encodeURIComponent(mine.token), { credentials: 'same-origin' })
+      .then(function (r) { if (!r.ok) throw new Error('gone'); return r.blob(); })
+      .then(function (blob) { mine.full = blob; go(blob); })
+      .catch(function () { photoProblem('That picture is no longer available. Paste the link again.'); });
+  }
+  function pickedFile(e) {
+    var list = e.clipboardData && e.clipboardData.files ? e.clipboardData.files : e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files : null;
+    if (!list) return null;
+    for (var i = 0; i < list.length; i += 1) if (/^image\//i.test(list[i].type || '')) return list[i];
+    return null;
   }
 
   // ---- sending ----------------------------------------------------------------------------------------------------------
@@ -556,13 +710,16 @@
     inflight = ctl;
     var timedOut = false;
     var timer = setTimeout(function () { timedOut = true; if (ctl) ctl.abort(); }, REQUEST_TIMEOUT);
-    var body = JSON.stringify({ messages: history(), context: pageContext() });
+    var payload = { messages: history(), context: pageContext() };
+    var hadPhoto = !!photo;
+    if (photo) payload.image = photo.kind === 'link' ? { token: photo.token } : { type: photo.type, data: photo.data };
+    var body = JSON.stringify(payload);
     fetch(CHAT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, credentials: 'same-origin', body: body, signal: ctl ? ctl.signal : undefined })
       .then(function (r) {
         return r.text().then(function (t) {
           var j = null;
           try { j = t ? JSON.parse(t) : null; } catch (e) { j = null; }
-          return { status: r.status, ok: r.ok, json: j, retryAfter: r.headers.get('Retry-After') };
+          return { status: r.status, ok: r.ok, json: j, retryAfter: r.headers.get('Retry-After'), hadPhoto: hadPhoto };
         });
       })
       .then(function (res) {
@@ -605,7 +762,7 @@
       return;
     }
     if (res.status === 401) {
-      failMessage('Please sign in to chat with TeruBot.', false, { href: '/login', label: 'Sign in' });
+      failMessage(res.hadPhoto ? errorText(j, 'Please sign in to send a photo.') : 'Please sign in to chat with TeruBot.', false, { href: '/login', label: 'Sign in' });
       return;
     }
     if (res.status === 403 || res.status === 415) {
@@ -635,6 +792,8 @@
     var cards = cleanCards(j.cards);
     var actions = cleanActions(j.actions);
     var msg = { role: 'bot', text: text || (cards.length || actions.length ? '' : 'TeruBot had nothing to say to that.'), cards: cards, notes: [], err: false };
+    var att = cleanAttachment(j.attachment);
+    if (att) { msg.attach = { host: att.host, thumb: '' }; takeLinkPhoto(att, msg); }
     appendMessage(msg);
     lastAnswered = true;
     var leaving = runActions(msg, actions);
@@ -648,13 +807,16 @@
     if (!t || busy || blockedUntil > now()) return false;
     if (t.length > MAX_TEXT) t = t.slice(0, MAX_TEXT);
     if (live) { abortMic(); stopSpeaking(); setLiveStep('thinking'); } // typed, or heard: either way the answer is next
-    appendMessage({ role: 'user', text: t, cards: [], notes: [], err: false });
+    var um = { role: 'user', text: t, cards: [], notes: [], err: false };
+    if (photo && !photo.shown) { um.thumb = photo.thumb; photo.shown = true; }
+    appendMessage(um);
     saveState();
     request();
     return true;
   }
   function submitInput() {
     var t = inputEl.value;
+    if (!t.trim() && photo) t = 'What is this, and what in the shop looks like it?';
     if (submit(t)) {
       inputEl.value = '';
       autosize();
@@ -1168,6 +1330,26 @@
     liveEl.appendChild(liveEnd);
     panelEl.appendChild(liveEl);
 
+    photoStripEl = el('div', 'tb-photo');
+    photoStripEl.hidden = true;
+    photoThumbEl = el('img', 'tb-photo__img');
+    photoThumbEl.alt = '';
+    photoThumbEl.hidden = true;
+    photoStripEl.appendChild(photoThumbEl);
+    photoLabelEl = el('span', 'tb-photo__label');
+    photoLabelEl.setAttribute('role', 'status');
+    photoStripEl.appendChild(photoLabelEl);
+    [['Finder', 'Find similar materials in the Finder', function () { handOff('finder'); }], ['Studio', 'Use this photo in the Design Studio', function () { handOff('studio'); }], ['Remove', 'Remove the photo', function () { clearPhoto(); if (inputEl) inputEl.focus(); }]].forEach(function (b) {
+      var btn = el('button', 'tb-textbtn', b[0]);
+      btn.type = 'button';
+      btn.title = b[1];
+      btn.setAttribute('aria-label', b[1]);
+      btn.hidden = true;
+      btn.addEventListener('click', b[2]);
+      photoStripEl.appendChild(btn);
+    });
+    panelEl.appendChild(photoStripEl);
+
     formEl = el('form', 'tb-form');
     formEl.addEventListener('submit', function (e) { e.preventDefault(); submitInput(); });
     inputEl = el('textarea', 'tb-input');
@@ -1184,7 +1366,25 @@
         submitInput();
       }
     });
+    inputEl.addEventListener('paste', function (e) { var f = pickedFile(e); if (f) { e.preventDefault(); attachFile(f); } });
+    panelEl.addEventListener('dragover', function (e) { if (e.dataTransfer && e.dataTransfer.types && Array.prototype.indexOf.call(e.dataTransfer.types, 'Files') >= 0) e.preventDefault(); });
+    panelEl.addEventListener('drop', function (e) { var f = pickedFile(e); if (f) { e.preventDefault(); attachFile(f); } });
     formEl.appendChild(inputEl);
+    photoInputEl = el('input');
+    photoInputEl.type = 'file';
+    photoInputEl.accept = 'image/*';
+    photoInputEl.hidden = true;
+    photoInputEl.setAttribute('aria-hidden', 'true');
+    photoInputEl.tabIndex = -1;
+    photoInputEl.addEventListener('change', function () { var f = photoInputEl.files && photoInputEl.files[0]; photoInputEl.value = ''; if (f) attachFile(f); });
+    formEl.appendChild(photoInputEl);
+    attachBtn = el('button', 'tb-roundbtn tb-attachbtn');
+    attachBtn.type = 'button';
+    attachBtn.setAttribute('aria-label', 'Attach a photo');
+    attachBtn.title = 'Attach a photo, or paste a link to one';
+    attachBtn.appendChild(icon(ICON_CLIP));
+    attachBtn.addEventListener('click', function () { photoInputEl.click(); });
+    formEl.appendChild(attachBtn);
     micBtn = el('button', 'tb-roundbtn');
     micBtn.type = 'button';
     micBtn.setAttribute('aria-pressed', 'false');
@@ -1274,6 +1474,7 @@
     busy = false;
     state.msgs = [];
     state.resume = false;
+    clearPhoto();
     writeQueue([]); // a change TeruBot promised for the shop is dropped with the chat that promised it
     saveState();
     clearInterval(blockTimer);

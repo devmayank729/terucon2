@@ -117,7 +117,7 @@ the parent's the publish refuses** (a catalogue never mixes vector versions).
 ```
 terucon_catalogues        { _id: catalogueId, name, kind: "materials"|"paint"|"exterior"|"other", note: string|null, createdAt, updatedAt,
                             activeRelease: releaseId|null, previousRelease: releaseId|null,
-                            featureVersions: {…}|null, counts: { items: int, hidden: int } }
+                            featureVersions: {…}|null, counts: { items: int, hidden: int } }   // items = ALL items of the live release, hidden = how many of them are hidden: the website shows items - hidden (fixed 2026-11-04: the publisher had written items = visible only, so a hidden item was subtracted twice)
 terucon_catalogue_items   { _id: "<cat>|<itemId>", catalogue, itemId, status: "ok"|"hidden",
                             label: string|null,                                   // admin-set display name
                             productId: string|null, productIdSource: "pdf-text"|"admin"|null,

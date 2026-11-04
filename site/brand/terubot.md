@@ -123,6 +123,16 @@ as an ordinary message, **reads the answer aloud**, and listens again. Controls:
 * **What it is not:** a studio-quality voice, a phone call, or a model that hears (TeruBot answers the text of what was heard). A neural voice
   (Gemini Live / a text-to-speech service) would be a separate, billed upgrade behind the same buttons.
 
+## Photos and links (2026-11-04)
+
+A visitor can show TeruBot a picture and ask about it ("what material is used in the left wall of this photo?").
+
+* **Attach:** the paperclip button next to the microphone, a paste (Ctrl/Cmd+V of an image) or a drop on the panel. The picture is shrunk in the browser (longest side 1280 px, JPEG, about 200-350 KB) and sent as `image: {type, data}` (base64) with the message; a strip above the box shows it, with **Finder** / **Studio** (hand it to the Finder or the Design Studio with the same one-time hand-over the Inspiration page uses, `site/inspiration/handoff.js`) and **Remove**. The picture goes with every message of the conversation until it is removed or "New chat". It is not kept in the tab (only "Photo attached" is).
+* **Paste a link** (a Pinterest pin or board, a web page, a picture address): the server fetches the picture itself with the Inspiration importer (`server/lib/inspiration/`, gallery-dl for the sites it has a profile for) and attaches it. The answer carries `attachment: {kind: 'link', token, host, title}`; the widget shows the picture's thumbnail and sends `image: {token}` with the next messages (the importer keeps the file for a few minutes). A link that cannot be read (private, removed, needs a sign-in, too big) becomes a plain note to the model, so it says why instead of "I cannot open links".
+* **What the model does:** it sees the picture (an inline part of the visitor's last message) and has a tool, `find_in_photo(target, box_2d)`: it says which surface it means and gives its box (`[ymin, xmin, ymax, xmax]` on 0..1000); the server searches the real catalogue with that region of the photo (the catalogue's own `box` search) and gives back the closest designs. A design whose catalogue id (TIPL-SB804) is also a shop product (`server/lib/shopLink.js`) becomes a card with its picture, its listed price and a link to its page.
+* **Limits:** signed-in only (the photo goes to a model and to a search); 20 new photos or links an hour per account and 40 per address, on top of the message limit; 4 MB of picture at most; a turn with a photo may take up to 50 s (the search container can be asleep). The 401/429 answers are shown in the chat.
+* **Not done here:** the whole conversation is still text; the picture is not read aloud in Talk; an image from a link is capped at the first picture of a board.
+
 ## Keyboard, focus, motion
 
 The panel is `role="dialog"` (`aria-modal` on a phone), the list is `role="log"` with `aria-live="polite"` (switched off while an old chat is drawn), Escape closes,

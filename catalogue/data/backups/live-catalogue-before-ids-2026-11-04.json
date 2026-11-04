@@ -1,0 +1,6173 @@
+{
+ "catalogue": {
+  "_id": "superbond-colour",
+  "activeRelease": "rel-20261101225013-57cdcb",
+  "counts": {
+   "hidden": 0,
+   "items": 69
+  },
+  "createdAt": 1793573401805,
+  "featureVersions": {
+   "color": "lab6x8x8|ab80|clahe2x8|s0.6|hw0.8|k3|m384|v1",
+   "dino": "facebook/dinov2-large|448|r512|w0.5,0.25,0.25|clahe1.5x8|v1",
+   "siglip": "google/siglip-so400m-patch14-384|clahe1.5x8|v1",
+   "text": "gemini-embedding-001|d768|cap5ad77cde2d93|v1",
+   "vertex_mm": "multimodalembedding@001|d1408|v1"
+  },
+  "kind": "materials",
+  "name": "Superbond colours",
+  "note": null,
+  "previousRelease": null,
+  "updatedAt": 1793573568768
+ },
+ "items": {
+  "2e10320006fe-p0001-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0001-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "glass",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The primary color is a deep, translucent red-orange (#9D4855), transitioning to a vibrant magenta-purple (#800080) in thinner or more angled sections, and a bright, almost white reflection (#F8F3F5) on some surfaces. The overall impression is of a jewel-toned material.",
+    "feel": "Extremely smooth and hard, with no discernible micro-relief or porosity. The edges between facets are very sharp and precise.",
+    "grain": "Geometric facets with sharp edges, creating a crystalline structure. The facets are irregular in size and shape, reflecting and refracting light in various directions.",
+    "keywords": [
+     "glass",
+     "faceted",
+     "geometric",
+     "polished",
+     "translucent",
+     "red",
+     "magenta",
+     "purple",
+     "crystal",
+     "jewel-toned",
+     "smooth",
+     "sharp edges",
+     "high gloss"
+    ],
+    "patternScale": "50-100mm",
+    "specular": "High-gloss, sharp specular highlights with minimal diffusion, indicating a very smooth and polished surface. The reflections are clear and undistorted. There is no visible anisotropy."
+   },
+   "dominantHex": [
+    "#2D2725",
+    "#F8F3F5",
+    "#9D4855"
+   ],
+   "finish": "polished",
+   "images": {
+    "crop": {
+     "bytes": 527951,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0001-i00.png",
+     "sha256": "11a54d58752ad2b3f6d6318c5a50e932e74e97c0aaa8bf53d1543330bd2b9986",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 18773,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0001-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0001-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.5822,
+    0.3149,
+    0.1028
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 1,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "faceted glass",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0002-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0002-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The dominant color is a rich, dark orange-brown (#A2431E), interspersed with darker, almost black-brown flecks (#783D27) and lighter, brighter orange-red flecks (#FDFBFB). The overall impression is a warm, earthy tone with subtle variation.",
+    "feel": "The micro-relief is subtly textured, suggesting a fine, granular feel. The depth of the texture is minimal, likely less than 0.1mm, creating a slightly uneven surface that diffuses light.",
+    "grain": "Irregular, mottled pattern with small, organic-shaped flecks of varying sizes, randomly distributed across the surface. There is no discernible directionality or repeat.",
+    "keywords": [
+     "laminate",
+     "textured",
+     "mottled",
+     "speckled",
+     "orange",
+     "brown",
+     "earthy",
+     "matte",
+     "random pattern",
+     "decorative",
+     "industrial",
+     "rustic",
+     "warm tone"
+    ],
+    "patternScale": "5-15",
+    "specular": "The surface exhibits a matte to semi-matte specular behavior, with small, diffused highlights indicating a slightly rough texture. There is no noticeable anisotropy or strong sheen."
+   },
+   "dominantHex": [
+    "#783D27",
+    "#A2431E",
+    "#FDFBFB"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 2179428,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0002-i00.png",
+     "sha256": "18288c16fbeb80fcf2b43846bf8cf8f1a4a5a1a5bca1d1177e5c9f46e54ae0c6",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 35035,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0002-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0002-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3602,
+    0.345,
+    0.2948
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 2,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "decorative laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0003-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0003-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The dominant base color is a rich, earthy reddish-brown (#823312), with significant variation towards a brighter, almost orange-brown (#FDFBFB, likely an artifact of the k-means clustering picking up highlights or lighter areas within the texture). Darker, irregular splotches and speckles are a deep, desaturated brown (#5D2911).",
+    "feel": "The micro-surface has a subtle, irregular texture, likely embossed, creating a slight relief depth that contributes to the distressed appearance. There are no visible pores or fibers.",
+    "grain": "Irregular, organic-shaped dark brown splotches and speckles are randomly distributed across a reddish-brown background, mimicking a corroded or weathered metal surface. The pattern has no discernible directionality or repeat.",
+    "keywords": [
+     "laminate",
+     "distressed",
+     "weathered",
+     "corroded",
+     "metal effect",
+     "rust",
+     "reddish brown",
+     "dark brown",
+     "textured",
+     "industrial",
+     "rustic",
+     "matte",
+     "speckled",
+     "organic pattern"
+    ],
+    "patternScale": "50-150mm for larger splotches, down to 1mm for fine speckles",
+    "specular": "The surface exhibits a matte to semi-matte specular behavior with small, diffused highlights, indicating a low to moderate roughness. There is no apparent anisotropy or strong sheen."
+   },
+   "dominantHex": [
+    "#823312",
+    "#FDFBFB",
+    "#5D2911"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1702098,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0003-i00.png",
+     "sha256": "2160f11acb9df692bca7e4358730c145f922363face00b267cd7cee301cb6a5b",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 27451,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0003-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0003-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.5345,
+    0.2949,
+    0.1705
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 3,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "distressed metal effect laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0004-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0004-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "metal",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base color is a muted, warm beige-brown (#9B7D54), overlaid with an irregular, speckled pattern of bright, reddish-orange (#A06C3E) and lighter, almost white-beige (#FDFBFC) tones, suggesting areas of varied oxidation or surface treatment.",
+    "feel": "The surface appears to have a fine, granular texture with minimal relief depth, consistent with a chemical treatment or light etching.",
+    "grain": "Irregular, mottled pattern resembling oxidation or corrosion, with no discernible directionality or repeat.",
+    "keywords": [
+     "metal",
+     "abstract",
+     "oxidized",
+     "copper",
+     "textured",
+     "mottled",
+     "orange",
+     "brown",
+     "beige",
+     "patina",
+     "industrial",
+     "distressed",
+     "metallic"
+    ],
+    "patternScale": "50mm",
+    "specular": "Small, soft specular highlights indicate a slightly rough surface. There is a subtle, even sheen across the material, with no apparent anisotropy."
+   },
+   "dominantHex": [
+    "#9B7D54",
+    "#FDFBFC",
+    "#A06C3E"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1963130,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0004-i00.png",
+     "sha256": "f2179ac8041af9fa89694b56a1e2ece77eabed88801e66472225223457d7bb13",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 25290,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0004-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0004-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4287,
+    0.2946,
+    0.2768
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 4,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "oxidized copper alloy",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0005-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0005-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base tone is a warm grey-brown (#7A625B) with significant mottling of lighter grey-brown (#8C7A75) and off-white (#FCFAFB) speckles. The overall appearance is a blend of these tones.",
+    "feel": "The micro-relief suggests a finely textured surface, possibly with a subtle, irregular embossing that contributes to the diffused light reflection. The depth of this texture is minimal, likely less than 0.1mm.",
+    "grain": "Irregularly distributed, mottled speckles of varying sizes, with no discernible directionality or repeat.",
+    "keywords": [
+     "laminate",
+     "textured",
+     "speckled",
+     "mottled",
+     "grey",
+     "brown",
+     "off-white",
+     "composite",
+     "durable",
+     "matte",
+     "kitchen",
+     "countertop",
+     "industrial",
+     "neutral",
+     "subtle"
+    ],
+    "patternScale": "50mm",
+    "specular": "The surface exhibits a low-to-medium roughness, resulting in broad, diffused specular highlights. There is no apparent anisotropy or strong sheen."
+   },
+   "dominantHex": [
+    "#7A625B",
+    "#8C7A75",
+    "#FCFAFB"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 2159244,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0005-i00.png",
+     "sha256": "ccfb4decc29952d52a12f8a33bdbafbd41d7bf25a059861b8447b231b31328aa",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 33189,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0005-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0005-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3599,
+    0.3421,
+    0.2981
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 5,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "speckled laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0006-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0006-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "other",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base color is a vibrant orange-ochre (#BA580B), with significant areas of darker, reddish-brown (#8E400A) splotches and speckles. There are also very subtle, almost imperceptible, lighter areas that appear near white (#FDFBFB) suggesting a slight variation in texture or reflectivity.",
+    "feel": "The surface appears to have a subtle, uneven relief, with the darker areas potentially being slightly recessed or having a different texture. The overall feel would be slightly rough or gritty.",
+    "grain": "Irregular, organic splotches and speckles of varying sizes, resembling a distressed or oxidized metal surface. The pattern is non-directional and appears randomly distributed.",
+    "keywords": [
+     "distressed",
+     "oxidized",
+     "metallic",
+     "ochre",
+     "orange",
+     "brown",
+     "textured",
+     "industrial",
+     "aged",
+     "patina",
+     "rough",
+     "speckled",
+     "irregular",
+     "non-directional",
+     "matte"
+    ],
+    "patternScale": "50-150mm",
+    "specular": "Small, soft specular highlights indicate a matte to semi-gloss finish with some roughness. There is no apparent anisotropy or strong sheen."
+   },
+   "dominantHex": [
+    "#BA580B",
+    "#FDFBFB",
+    "#8E400A"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1734412,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0006-i00.png",
+     "sha256": "73a1e316e621031ce3b26ed0c8926dfd917c2c8d4b2754c86880c39585859df0",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 31265,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0006-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0006-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.462,
+    0.2948,
+    0.2432
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 6,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "distressed metallic finish",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0007-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0007-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "metal",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base tone is a muted teal green (#909C7C), overlaid with irregular patches of a warm, rusty brown (#908054). There are also lighter, almost white, areas (#FDFBFC) where the base material might be exposed or heavily corroded.",
+    "feel": "The micro-relief is subtly uneven, with slight variations in height corresponding to the color changes, mimicking the texture of natural corrosion or patination. The depth of these variations is minimal, likely less than 0.1mm.",
+    "grain": "Irregular, organic splotches of rust-like texture with varying density and size, randomly distributed across the surface. The pattern has no discernible directionality.",
+    "keywords": [
+     "patina",
+     "copper",
+     "rust",
+     "oxidized",
+     "aged metal",
+     "distressed",
+     "teal",
+     "brown",
+     "verdigris",
+     "industrial",
+     "organic pattern",
+     "textured metal",
+     "weathered",
+     "metallic",
+     "corroded"
+    ],
+    "patternScale": "200-300mm",
+    "specular": "The surface exhibits a low to medium roughness, resulting in diffused, soft specular highlights. There is no apparent anisotropy or strong sheen, suggesting a matte to satin finish overall."
+   },
+   "dominantHex": [
+    "#909C7C",
+    "#FDFBFC",
+    "#908054"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1698682,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0007-i00.png",
+     "sha256": "8ccd671a4e082e905d8801a93f8298c5fff0d8e6a64151ea451900108b014d3a",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 25582,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0007-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0007-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4495,
+    0.293,
+    0.2576
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 7,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "patinated copper",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0008-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0008-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "A warm, earthy palette with a dominant light brown-orange base (#CC8E56), interspersed with darker reddish-brown speckles (#A36641) and lighter, almost off-white, sandy flecks (#FEFBFC). The colors are distributed randomly, creating a granular, textured appearance.",
+    "feel": "The micro-surface appears to have a fine, granular texture, suggesting a slight relief depth consistent with a textured laminate finish. There are no visible pores or fibers.",
+    "grain": "Irregular, mottled speckle pattern with no discernible directionality or repeat.",
+    "keywords": [
+     "laminate",
+     "textured",
+     "speckled",
+     "mottled",
+     "brown",
+     "orange",
+     "sandy",
+     "earthy",
+     "matte",
+     "granular",
+     "composite",
+     "industrial",
+     "rustic",
+     "warm"
+    ],
+    "patternScale": "50mm",
+    "specular": "The surface exhibits a matte to semi-matte specular behavior with small, diffused highlights, indicating a low to medium roughness. There is no apparent anisotropy or strong sheen."
+   },
+   "dominantHex": [
+    "#CC8E56",
+    "#A36641",
+    "#FEFBFC"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 3068468,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0008-i00.png",
+     "sha256": "6d47d70f956cd95fc8aa7d9b131a8ce2fbf8161303cfbead2b67177e930559a6",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 50816,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0008-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0008-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3832,
+    0.3233,
+    0.2935
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 8,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "speckled laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0009-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0009-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "stone",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "A warm, earthy base of light brown (#BA764C) is heavily speckled with darker reddish-brown (#764D39) and very light, almost white, beige (#FDFBFC) granules, creating a mottled appearance.",
+    "feel": "The micro-surface appears smooth and hard, consistent with polished stone. There are no visible pores or relief, and the texture is entirely visual from the granular composition.",
+    "grain": "Irregular, speckled granular pattern with no discernible directionality, characteristic of granite.",
+    "keywords": [
+     "granite",
+     "polished",
+     "speckled",
+     "reddish brown",
+     "earthy",
+     "natural stone",
+     "mottled",
+     "hard surface",
+     "durable",
+     "interior design",
+     "countertop",
+     "flooring",
+     "wall cladding",
+     "rustic",
+     "traditional"
+    ],
+    "patternScale": "5-15mm",
+    "specular": "The surface exhibits sharp, small specular highlights, indicating a polished finish. There is no visible anisotropy or significant roughness, suggesting a smooth, reflective surface."
+   },
+   "dominantHex": [
+    "#BA764C",
+    "#764D39",
+    "#FDFBFC"
+   ],
+   "finish": "polished",
+   "images": {
+    "crop": {
+     "bytes": 2787633,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0009-i00.png",
+     "sha256": "ba59bcf5f902a220c28e48ad410eb3dc1191ddd1776fe733a6da8948e3f99a0e",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 59073,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0009-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0009-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3918,
+    0.314,
+    0.2941
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 9,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "granite",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0010-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0010-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base tone is a cool light grey (#ACA9A1), with significant variation including lighter off-white areas (#F7F5F5) and darker charcoal grey patches (#918D86). The overall impression is a weathered, desaturated grey.",
+    "feel": "The micro-surface has a fine, granular texture with subtle relief, mimicking the porous and slightly uneven nature of concrete. The cracks appear as shallow depressions.",
+    "grain": "Irregular, organic pattern resembling distressed concrete with fine cracks and areas of darker mottling. The cracks are thin and curvilinear, running in various directions without a dominant orientation. The texture appears random and non-directional.",
+    "keywords": [
+     "laminate",
+     "concrete effect",
+     "grey",
+     "distressed",
+     "industrial",
+     "textured",
+     "matte",
+     "weathered",
+     "cracked",
+     "stone look",
+     "urban",
+     "rough",
+     "dark grey",
+     "light grey"
+    ],
+    "patternScale": "300mm",
+    "specular": "The surface exhibits a matte to very low-sheen specular behavior, with small, diffused highlights indicating a rough texture. There is no apparent anisotropy."
+   },
+   "dominantHex": [
+    "#ACA9A1",
+    "#F7F5F5",
+    "#918D86"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 2839487,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0010-i00.png",
+     "sha256": "8fe71d516f3964ab0f66efb59119535b1b3f6918b081105c10c9a0a3b57c9c70",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 38137,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0010-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0010-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4102,
+    0.3285,
+    0.2614
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 10,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "concrete effect laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0011-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0011-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "plastic_polymer",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "A uniform dark charcoal grey (#424340) with very subtle lighter grey highlights (#4E4F4C) on the raised texture points, and occasional bright white specular highlights (#FDFBFC).",
+    "feel": "A fine, granular texture with a low relief depth, feeling slightly abrasive or pebbled to the touch, without distinct pores or fibers.",
+    "grain": "Fine, irregular, non-directional stippled texture, resembling a subtle orange peel or sandblasted finish.",
+    "keywords": [
+     "plastic",
+     "textured",
+     "charcoal",
+     "grey",
+     "dark grey",
+     "matte",
+     "stippled",
+     "granular",
+     "pebbled",
+     "industrial",
+     "modern",
+     "uniform",
+     "solid color"
+    ],
+    "patternScale": "0.5-1 mm",
+    "specular": "Small, sharp, and numerous specular highlights indicating a rough, non-anisotropic surface with a low to medium sheen. The roughness diffuses reflections significantly."
+   },
+   "dominantHex": [
+    "#424340",
+    "#FDFBFC",
+    "#4E4F4C"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1710926,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0011-i00.png",
+     "sha256": "c383ffccf1da3331ecc487130ca15e9d2cb64749659aba03cf92d38635ca19e0",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 23293,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0011-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0011-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4593,
+    0.2952,
+    0.2455
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 11,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "textured plastic",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0012-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0012-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "A vibrant, uniform orange base color (#DE7723) with subtle lighter speckles (#FDFBFB) and slightly darker orange tones (#DE7D31) creating the textured appearance.",
+    "feel": "A very fine, granular texture with minimal relief depth, resembling a subtle sand-blasted or stippled surface. No visible pores or fibers.",
+    "grain": "Fine, irregular, non-directional stippled texture with no discernible repeat.",
+    "keywords": [
+     "laminate",
+     "orange",
+     "textured",
+     "stippled",
+     "matte",
+     "granular",
+     "solid color",
+     "bright",
+     "modern",
+     "plastic",
+     "panel",
+     "surface",
+     "uniform",
+     "fine texture"
+    ],
+    "patternScale": "0.1-0.2mm",
+    "specular": "Small, sharp highlights distributed across the surface, indicating a fine, granular roughness. The overall sheen is matte to semi-gloss, with no apparent anisotropy."
+   },
+   "dominantHex": [
+    "#DE7723",
+    "#FDFBFB",
+    "#DE7D31"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 2385648,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0012-i00.png",
+     "sha256": "2e8b5a723e8c708ff16ec3e4805346b37ef87914db763786b9c3c1478cd4c32b",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 14923,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0012-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0012-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4627,
+    0.2961,
+    0.2412
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 12,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "textured laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0013-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0013-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "plastic_polymer",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The material is a uniform medium olive green (#7A9965) with no color variation or secondary tones visible.",
+    "feel": "The surface exhibits a very fine, granular micro-relief, consistent with a stippled or lightly sandblasted plastic, with a relief depth of less than 0.1mm.",
+    "grain": "Fine, irregular, non-directional stippled texture with no discernible pattern repeat.",
+    "keywords": [
+     "plastic",
+     "polymer",
+     "textured",
+     "stippled",
+     "matte",
+     "satin",
+     "olive green",
+     "green",
+     "solid color",
+     "uniform",
+     "fine texture",
+     "non-directional"
+    ],
+    "patternScale": "0.5 mm",
+    "specular": "Small, soft, diffuse specular highlights indicate a matte to satin finish with minimal anisotropy. The roughness is uniform across the surface."
+   },
+   "dominantHex": [
+    "#7A9965",
+    "#FDFBFC",
+    "#FC6464"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 2123431,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0013-i00.png",
+     "sha256": "a2fedba39c7803d0cf3b88a8fda2dfc9cc9cee86e82e29d3f172507a2c162e91",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 15748,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0013-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0013-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.7044,
+    0.2947,
+    0.0009
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 13,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "solid color plastic",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0014-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0014-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "A warm, light beige base tone (#C1B9A7) with very fine, bright white metallic flecks (#FEFCFC) scattered throughout, creating a subtle shimmer.",
+    "feel": "A very fine, slightly irregular texture with minimal relief depth, consistent with a laminate surface that has embedded particles. The flecks themselves do not create significant tactile variation.",
+    "grain": "Randomly distributed, fine metallic flecks embedded within a uniform base color, creating a subtle, sparkling effect with no discernible direction or repeat.",
+    "keywords": [
+     "laminate",
+     "beige",
+     "light beige",
+     "metallic flecks",
+     "shimmer",
+     "textured",
+     "solid color",
+     "neutral",
+     "subtle sparkle",
+     "decorative laminate",
+     "warm beige",
+     "fine texture",
+     "modern",
+     "contemporary"
+    ],
+    "patternScale": "0.1-0.5mm",
+    "specular": "Small, sharp specular highlights from the metallic flecks, contrasting with a generally diffuse, low-sheen base. The flecks exhibit slight anisotropy due to their flat, reflective nature."
+   },
+   "dominantHex": [
+    "#C1B9A7",
+    "#FEFCFC",
+    "#FC7C7C"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1756922,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0014-i00.png",
+     "sha256": "9ecd59a5fd22757c08b6eacd95034072ca38defafa1a70243e60d5fdc41862e1",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 12468,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0014-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0014-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.705,
+    0.2937,
+    0.0013
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 14,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "solid color laminate with metallic flecks",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0015-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0015-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "metal",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base color is a warm, muted gold (#D0B175), with a significant amount of very light, almost white, highlights (#FEFCFC) and slightly darker gold tones (#D5B985) creating a speckled appearance.",
+    "feel": "The micro-surface has a fine, granular texture with very shallow relief, resembling a fine sandblasted or heavily brushed metal.",
+    "grain": "Fine, irregular, non-directional brushing with a granular texture.",
+    "keywords": [
+     "metal",
+     "brushed",
+     "gold",
+     "textured",
+     "matte",
+     "speckled",
+     "metallic",
+     "warm",
+     "fine grain",
+     "non-directional",
+     "satin",
+     "subtle sheen"
+    ],
+    "patternScale": "0.5 mm",
+    "specular": "Small, sharp specular highlights are scattered across the surface, indicating a rough but reflective texture. There is no apparent anisotropy, and the overall sheen is moderate."
+   },
+   "dominantHex": [
+    "#D0B175",
+    "#FEFCFC",
+    "#D5B985"
+   ],
+   "finish": "brushed",
+   "images": {
+    "crop": {
+     "bytes": 2174549,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0015-i00.png",
+     "sha256": "5401154237ff2524cb27d4609cb576e93d951c79d09906b3e69a5b9a6d83eb5f",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 21411,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0015-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0015-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.495,
+    0.2935,
+    0.2115
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 15,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "brushed metal",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0016-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0016-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "plastic_polymer",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "A uniform medium grey base tone (#727473) with lighter grey highlights (#878888) and bright white specular reflections (#FCFAFB) on the raised textured areas.",
+    "feel": "The surface has a distinct, irregular micro-relief with a depth of approximately 0.5-1mm, creating a pebbled or stippled feel. There are no visible pores or fibers.",
+    "grain": "Irregular, organic, pebble-like texture with no discernible directionality or repeat. The texture consists of small, raised, rounded forms separated by shallow valleys.",
+    "keywords": [
+     "plastic",
+     "polymer",
+     "textured",
+     "pebbled",
+     "stippled",
+     "grey",
+     "gray",
+     "matte",
+     "satin",
+     "irregular",
+     "organic",
+     "sheet",
+     "durable",
+     "industrial"
+    ],
+    "patternScale": "2-5mm",
+    "specular": "Small, sharp specular highlights are present on the peaks of the texture, indicating a semi-gloss to satin finish. The roughness is high due to the texture, but individual micro-facets are relatively smooth. No obvious anisotropy."
+   },
+   "dominantHex": [
+    "#727473",
+    "#FCFAFB",
+    "#878888"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 2408812,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0016-i00.png",
+     "sha256": "e10ffab1be96429b6f2856d18194403356e0c13210d047691194fe277b28b91a",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 37865,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0016-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0016-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4649,
+    0.2985,
+    0.2365
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 16,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "textured plastic sheet",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0017-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0017-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base color is a warm, medium brown (#BF5D18) with lighter, almost golden-brown highlights (#FDFBFB) and darker, reddish-brown lowlights and grain lines (#A14814).",
+    "feel": "The surface has a subtle, embossed texture that mimics the natural pores and irregularities of wood grain, with a relief depth of approximately 0.1-0.3 mm.",
+    "grain": "Irregular, vertical wood grain with prominent cathedral graining and occasional knots. The grain runs predominantly along the length of the sample.",
+    "keywords": [
+     "laminate",
+     "wood grain",
+     "teak",
+     "natural wood",
+     "textured",
+     "brown",
+     "orange brown",
+     "warm",
+     "satin",
+     "semi-gloss",
+     "vertical grain",
+     "cathedral grain",
+     "knots",
+     "wood effect"
+    ],
+    "patternScale": "500mm",
+    "specular": "The surface exhibits a low-to-medium sheen with soft, slightly diffused specular highlights, indicating a satin to semi-gloss finish. There is no apparent anisotropy."
+   },
+   "dominantHex": [
+    "#BF5D18",
+    "#FDFBFB",
+    "#A14814"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1625662,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0017-i00.png",
+     "sha256": "d0236eb8a3b37e05def55eb2dec06b6b9a9a07019dc86c034b95a83d6bb0f3ba",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 25335,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0017-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0017-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.5066,
+    0.2955,
+    0.1979
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 17,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0018-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0018-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base color is a warm, medium brown (#6D3A0F) with lighter, more orange-brown tones (#8F4F18) highlighting the grain. Darker, almost black streaks and knots provide contrast.",
+    "feel": "The surface appears smooth with a very subtle, shallow texture mimicking wood pores, creating minimal relief depth.",
+    "grain": "Straight, vertical wood grain with occasional darker knots and irregular, wavy growth rings. The grain runs predominantly parallel to the longest dimension of the sample.",
+    "keywords": [
+     "laminate",
+     "wood grain",
+     "brown",
+     "teak",
+     "satin",
+     "medium brown",
+     "vertical grain",
+     "natural wood look",
+     "warm",
+     "wood effect",
+     "decorative panel",
+     "furniture finish"
+    ],
+    "patternScale": "250mm",
+    "specular": "Small, soft specular highlights indicate a satin finish with moderate roughness. There is no noticeable anisotropy or strong sheen."
+   },
+   "dominantHex": [
+    "#6D3A0F",
+    "#8F4F18",
+    "#FAF7F7"
+   ],
+   "finish": "satin",
+   "images": {
+    "crop": {
+     "bytes": 1766821,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0018-i00.png",
+     "sha256": "6f6bf89fbdc20b4c29d74ad61e6834f7430a35e330084c9268ab83c6c6413e97",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 21364,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0018-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0018-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.404,
+    0.321,
+    0.2751
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 18,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0019-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0019-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base color is a warm, medium brown with golden undertones (#BD905E), accented by darker brown grain lines and knots (#A67649). Lighter, almost off-white areas (#FEFBFC) highlight the raised grain texture.",
+    "feel": "The micro-surface has a noticeable relief, mimicking natural wood grain with subtle ridges and valleys. The depth of the texture is shallow, consistent with an embossed laminate.",
+    "grain": "Prominent, irregular cathedral grain pattern with long, wavy vertical lines and occasional knots. The grain runs predominantly along the vertical axis of the sample.",
+    "keywords": [
+     "laminate",
+     "wood grain",
+     "textured",
+     "brown",
+     "golden brown",
+     "cathedral grain",
+     "matte finish",
+     "natural look",
+     "wood effect",
+     "interior material",
+     "surface finish",
+     "decorative laminate",
+     "medium brown"
+    ],
+    "patternScale": "300-500mm",
+    "specular": "The surface exhibits a matte to semi-gloss sheen with soft, diffused specular highlights, indicating a textured finish. There is no strong anisotropy, and roughness is moderate, scattering light broadly."
+   },
+   "dominantHex": [
+    "#BD905E",
+    "#A67649",
+    "#FEFBFC"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 2084033,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0019-i00.png",
+     "sha256": "2d4155dac6ea9275153c706a9276f0667de85f6a72b34217922356d250a1b404",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 27411,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0019-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0019-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.369,
+    0.3369,
+    0.2941
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 19,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0020-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0020-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The primary color is a rich, warm brown (#7B4D27), with darker brown streaks and knots (#53331C) providing contrast and depth. Lighter, almost golden-brown tones (#FDFBFC) highlight the grain.",
+    "feel": "The surface appears smooth with minimal micro-relief, consistent with a laminate finish. There are no visible pores or deep embossing.",
+    "grain": "Straight, vertical wood grain with occasional wavy interruptions and darker, irregular streaks running parallel to the grain.",
+    "keywords": [
+     "laminate",
+     "wood grain",
+     "brown",
+     "satin",
+     "vertical grain",
+     "warm brown",
+     "dark brown",
+     "smooth",
+     "engineered wood",
+     "interior finish",
+     "furniture material",
+     "contemporary",
+     "natural look"
+    ],
+    "patternScale": "150mm",
+    "specular": "Small, soft specular highlights indicate a satin finish with low roughness. There is no noticeable anisotropy or strong sheen."
+   },
+   "dominantHex": [
+    "#7B4D27",
+    "#53331C",
+    "#FDFBFC"
+   ],
+   "finish": "satin",
+   "images": {
+    "crop": {
+     "bytes": 1325865,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0020-i00.png",
+     "sha256": "3aae1690abd1597a1ac77a30697a401d8413182f5c066dab2936cf1724f52022",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 20608,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0020-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0020-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3835,
+    0.322,
+    0.2945
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 20,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0021-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0021-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The dominant color is a warm, medium brown (#B37A34), with lighter, almost beige streaks (#FDFBFC) and slightly darker, richer brown tones (#BA843B) creating the wood grain effect. The overall impression is a consistent, golden-brown hue.",
+    "feel": "The micro-surface appears smooth to the touch, with no significant relief depth or texture. The wood grain is visual rather than tactile, suggesting a printed or very finely embossed surface.",
+    "grain": "Straight, vertical wood grain with fine, irregular lines and occasional subtle variations in width, running consistently from top to bottom.",
+    "keywords": [
+     "laminate",
+     "wood grain",
+     "teak",
+     "matte",
+     "brown",
+     "golden brown",
+     "straight grain",
+     "fine grain",
+     "natural look",
+     "interior finish",
+     "decorative panel",
+     "warm tone",
+     "smooth"
+    ],
+    "patternScale": "5-15mm",
+    "specular": "The surface exhibits a very diffuse, broad specular highlight, indicating a matte finish. There is no discernible sheen or anisotropy, and the roughness is high, scattering light broadly."
+   },
+   "dominantHex": [
+    "#B37A34",
+    "#FDFBFC",
+    "#BA843B"
+   ],
+   "finish": "matte",
+   "images": {
+    "crop": {
+     "bytes": 1612388,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0021-i00.png",
+     "sha256": "7304c7f3fca15e08c96dc23dffca33a99e20454cd645caf68f8b0228792daf53",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 19496,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0021-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0021-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4212,
+    0.2942,
+    0.2845
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 21,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0022-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0022-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The dominant color is a light, warm beige (#DABF98), with lighter, almost off-white areas (#FEFCFC) highlighting the grain and darker, more saturated beige tones (#D3B58C) within the knots and some grain lines. The overall impression is a light, natural wood tone.",
+    "feel": "The micro-surface appears smooth with minimal relief, consistent with a laminate. There are no visible pores or deep textures, though the printed grain gives a visual impression of slight depth. The surface is likely smooth to the touch.",
+    "grain": "Vertical wood grain with prominent, irregularly spaced knots. The grain lines are mostly parallel, with some gentle undulations and swirling around the knots. The knots are circular to oval, with concentric rings.",
+    "keywords": [
+     "laminate",
+     "wood grain",
+     "light wood",
+     "beige",
+     "knots",
+     "matte",
+     "natural finish",
+     "vertical grain",
+     "wood effect",
+     "panel",
+     "surface",
+     "neutral",
+     "warm tone",
+     "engineered wood"
+    ],
+    "patternScale": "The largest knots are approximately 20-30mm in diameter. The average grain line spacing is 1-3mm.",
+    "specular": "The surface exhibits a very subtle, diffuse sheen, indicating a matte finish. Specular highlights are broad and soft, with no sharp reflections, suggesting a low roughness. There is no visible anisotropy or strong directional reflection."
+   },
+   "dominantHex": [
+    "#DABF98",
+    "#FEFCFC",
+    "#D3B58C"
+   ],
+   "finish": "matte",
+   "images": {
+    "crop": {
+     "bytes": 977349,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0022-i00.png",
+     "sha256": "52fcc25fbcf5b75fb4f0c6a51d91f3503c103c5c4067a4f5f8798e526a11f124",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 13518,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0022-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0022-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4991,
+    0.2935,
+    0.2074
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 22,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0023-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0023-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The dominant color is a rich, warm reddish-brown (#BD5C0A), interspersed with darker, almost black streaks (#873C07) that follow the grain. Lighter, golden-brown tones are also present within the main wood color.",
+    "feel": "The surface appears smooth with a very subtle texture, likely mimicking the natural pores of wood but without significant relief depth. No visible fiber fuzz.",
+    "grain": "Straight, irregular vertical grain with prominent dark streaks and lighter, finer lines running parallel. The grain exhibits some wavy and interlocking patterns.",
+    "keywords": [
+     "laminate",
+     "macassar ebony",
+     "wood grain",
+     "dark wood",
+     "reddish brown",
+     "satin finish",
+     "vertical grain",
+     "exotic wood",
+     "decorative panel",
+     "interior finish",
+     "contemporary",
+     "rich color",
+     "streaky grain"
+    ],
+    "patternScale": "300mm",
+    "specular": "The surface has a satin sheen with medium-sized, slightly diffused specular highlights. There is minimal anisotropy, suggesting a relatively smooth finish."
+   },
+   "dominantHex": [
+    "#BD5C0A",
+    "#FDFBFB",
+    "#873C07"
+   ],
+   "finish": "satin",
+   "images": {
+    "crop": {
+     "bytes": 1733165,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0023-i00.png",
+     "sha256": "1307e5a97b58a93c886c4159d6afafb5c42dcdcc7626c2dc01c395fc8cfad057",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 28957,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0023-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0023-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4893,
+    0.2948,
+    0.2159
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 23,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "macassar ebony wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0024-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0024-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The dominant color is a deep, rich reddish-orange (#BE330B), with slightly darker reddish-brown tones (#B1300A) appearing in the grain, and very subtle, almost imperceptible lighter highlights (#FDFAFB) on the highest points of the texture.",
+    "feel": "The micro-surface has a distinct wood grain texture with a relief depth of approximately 0.1-0.2 mm, mimicking the feel of natural wood pores and fibers. The texture is consistent across the surface.",
+    "grain": "Straight, irregular wood grain running vertically, with occasional subtle wavy patterns and short, darker streaks.",
+    "keywords": [
+     "laminate",
+     "wood grain",
+     "textured",
+     "reddish orange",
+     "rosewood",
+     "matte",
+     "satin",
+     "vertical grain",
+     "warm tone",
+     "decorative panel",
+     "synthetic wood",
+     "interior finish",
+     "furniture material"
+    ],
+    "patternScale": "200mm",
+    "specular": "The surface exhibits a matte to satin sheen with small, soft specular highlights, indicating a low to medium roughness. There is no noticeable anisotropy."
+   },
+   "dominantHex": [
+    "#BE330B",
+    "#B1300A",
+    "#FDFAFB"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1846651,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0024-i00.png",
+     "sha256": "16fbd53f5fcf13a3445cfc97563e6f3d1d9fb279e97d0c7f4fad70b6c5025d4e",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 19437,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0024-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0024-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3909,
+    0.3132,
+    0.2959
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 24,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0025-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0025-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The primary color is a very dark brown, almost black (#211611), with prominent lighter brown grain lines and textures (#492F24). There are also very subtle, almost imperceptible, light greyish-white highlights (#FBF9F9) within the grain.",
+    "feel": "The surface appears smooth with a very subtle, almost imperceptible, texture that mimics wood pores and grain relief, suggesting a low-relief embossing.",
+    "grain": "Straight, irregular vertical wood grain with varying widths and occasional subtle wavy patterns. The grain is generally parallel to the longest dimension of the sample.",
+    "keywords": [
+     "laminate",
+     "wood grain",
+     "dark wood",
+     "brown",
+     "satin finish",
+     "vertical grain",
+     "wood effect",
+     "contemporary",
+     "rich brown",
+     "textured",
+     "engineered wood",
+     "decorative laminate",
+     "dark brown wood"
+    ],
+    "patternScale": "50-150 mm",
+    "specular": "Small, soft, and slightly elongated specular highlights indicate a satin finish. The roughness is moderate, and there is no apparent anisotropy."
+   },
+   "dominantHex": [
+    "#211611",
+    "#FBF9F9",
+    "#492F24"
+   ],
+   "finish": "satin",
+   "images": {
+    "crop": {
+     "bytes": 1421114,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0025-i00.png",
+     "sha256": "d8aaff29a89b93da3a6447ff5997db567c87ad51edfd64ea1273efb95cde1550",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 24068,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0025-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0025-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.5505,
+    0.2985,
+    0.1509
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 25,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0026-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0026-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The dominant color is a rich, warm reddish-brown (#8C3E1A), with darker brown grain lines and occasional lighter reddish-brown areas (#7A3517).",
+    "feel": "The surface appears smooth with minimal micro-relief, consistent with a laminate finish.",
+    "grain": "Straight wood grain with occasional cathedral patterns and small knots, running vertically.",
+    "keywords": [
+     "laminate",
+     "wood grain",
+     "reddish brown",
+     "satin",
+     "smooth",
+     "vertical grain",
+     "warm",
+     "dark brown",
+     "engineered wood",
+     "interior finish",
+     "furniture material",
+     "paneling"
+    ],
+    "patternScale": "250 mm",
+    "specular": "Small, soft specular highlights indicate a satin finish with low roughness. There is no noticeable anisotropy or sheen."
+   },
+   "dominantHex": [
+    "#8C3E1A",
+    "#7A3517",
+    "#FDFBFB"
+   ],
+   "finish": "satin",
+   "images": {
+    "crop": {
+     "bytes": 1490781,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0026-i00.png",
+     "sha256": "8af8b9c1dd872c02e15885621369d13dac133c3f34f6d3a358946a8dcacd3e97",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 22500,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0026-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0026-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.363,
+    0.3419,
+    0.2951
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 26,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0027-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0027-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "wood_veneer",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base color is a warm, light brown (#A17F5D), with darker brown grain lines and occasional wider bands of a deeper brown (#7B5F42). Lighter areas of almost off-white (#FDFBFC) are present, suggesting sapwood or natural color variation.",
+    "feel": "The surface appears smooth with a very subtle texture from the wood grain, likely a closed-pore finish. There is minimal relief depth, consistent with a sanded and finished veneer.",
+    "grain": "Straight, irregular vertical grain with occasional wavy patterns and small knots. The grain is generally parallel to the longest dimension of the sample.",
+    "keywords": [
+     "walnut",
+     "veneer",
+     "wood",
+     "natural",
+     "brown",
+     "satin",
+     "straight grain",
+     "irregular grain",
+     "light brown",
+     "dark brown",
+     "wood grain",
+     "timber",
+     "panel",
+     "furniture",
+     "interior"
+    ],
+    "patternScale": "200mm",
+    "specular": "Small, soft highlights indicate a satin finish. The surface exhibits low to medium roughness with minimal anisotropy, suggesting a clear coat that slightly diffuses reflections."
+   },
+   "dominantHex": [
+    "#A17F5D",
+    "#FDFBFC",
+    "#7B5F42"
+   ],
+   "finish": "satin",
+   "images": {
+    "crop": {
+     "bytes": 1577379,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0027-i00.png",
+     "sha256": "2766d37c8387f16a3051f4339c22fc5df3eaf834603af6f8f8ac70871ce39e8d",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 29148,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0027-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0027-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4401,
+    0.2997,
+    0.2602
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 27,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "walnut veneer",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0028-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0028-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base color is a warm, light brown (#B3987A) with lighter, creamy streaks (#FBF8F8) and darker, richer brown accents (#866A4E) forming the wood grain pattern. The overall impression is a soft, muted walnut tone.",
+    "feel": "The micro-relief suggests a finely textured surface, mimicking the open pores of wood, with a shallow embossing depth. It would feel slightly rough to the touch, not smooth or slick.",
+    "grain": "Straight, vertical wood grain with irregular, fine pores and occasional darker, wider growth rings running parallel to the primary grain direction. The grain is generally linear but exhibits subtle, organic waviness.",
+    "keywords": [
+     "laminate",
+     "wood grain",
+     "walnut",
+     "creme",
+     "light brown",
+     "textured",
+     "matte",
+     "vertical grain",
+     "natural look",
+     "wood effect",
+     "decorative panel",
+     "furniture material",
+     "interior finish",
+     "warm tone"
+    ],
+    "patternScale": "50mm",
+    "specular": "The surface exhibits a matte to semi-matte specular behavior with small, diffused highlights, indicating a low to medium roughness. There is no visible anisotropy or strong sheen, suggesting a non-polished finish."
+   },
+   "dominantHex": [
+    "#B3987A",
+    "#FBF8F8",
+    "#866A4E"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1758654,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0028-i00.png",
+     "sha256": "8880927b90835a11c23709d96c9e4d038dcb5f9c2c41f7e5f308b6dfd34fb9a4",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 38778,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0028-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0028-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3936,
+    0.3077,
+    0.2987
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 28,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "walnut wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0029-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0029-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The material is a warm, reddish-brown, with dominant tones of #AB4209 and #A13B08. Lighter, almost white streaks of #FDFAFB highlight the grain.",
+    "feel": "A subtle, embossed texture mimics the natural pores and ridges of wood grain, with minimal relief depth.",
+    "grain": "Straight, irregular wood grain running vertically, with occasional knots and variations in width and density.",
+    "keywords": [
+     "laminate",
+     "wood grain",
+     "walnut",
+     "reddish brown",
+     "textured",
+     "satin finish",
+     "vertical grain",
+     "warm",
+     "natural look",
+     "decorative panel",
+     "furniture surface",
+     "interior finish"
+    ],
+    "patternScale": "250mm",
+    "specular": "The surface exhibits a low-to-medium sheen with soft, slightly diffused specular highlights, indicating a satin to semi-gloss finish. There is no noticeable anisotropy."
+   },
+   "dominantHex": [
+    "#AB4209",
+    "#A13B08",
+    "#FDFAFB"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1437301,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0029-i00.png",
+     "sha256": "62fdb4cba9a6a3de6b5fc0558b53791180b2bbb3370b75e2effd838eea066451",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 18668,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0029-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0029-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3572,
+    0.3472,
+    0.2956
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 29,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0030-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0030-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base tone is a warm medium brown (#9D6B41), with darker brown grain lines and occasional lighter highlights (#FDFAFB). The overall impression is a natural wood color.",
+    "feel": "Subtle micro-relief mimicking wood pores and grain texture, with a relief depth of less than 0.1mm, creating a slightly tactile surface.",
+    "grain": "Straight, vertical wood grain with occasional subtle wavy patterns and small, irregular knots. The grain is generally parallel to the longest dimension of the sample.",
+    "keywords": [
+     "laminate",
+     "wood grain",
+     "timber",
+     "brown",
+     "textured",
+     "vertical grain",
+     "natural wood",
+     "warm brown",
+     "matte finish",
+     "interior material",
+     "furniture surface",
+     "burma wood"
+    ],
+    "patternScale": "150-200mm",
+    "specular": "Small, soft specular highlights indicate a low to medium roughness. There is a slight anisotropic sheen along the grain direction, typical of a textured wood finish."
+   },
+   "dominantHex": [
+    "#9D6B41",
+    "#825230",
+    "#FDFAFB"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1140463,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0030-i00.png",
+     "sha256": "da48f82ea2df0ed231cc0cf6e576152567ca228e38783621659e54c41e3535f9",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 22800,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0030-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0030-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3775,
+    0.3302,
+    0.2923
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 30,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0031-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0031-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base color is a warm, creamy beige (#D0B274), with lighter, almost white streaks (#FEFBFC) and darker, more saturated beige veins (#C8A865) running vertically.",
+    "feel": "The micro-surface appears to have a very fine, subtle texture, mimicking the natural porosity of stone, with minimal relief depth.",
+    "grain": "Irregular, parallel, vertical veining with a subtle, random, granular texture.",
+    "keywords": [
+     "laminate",
+     "travertine",
+     "creme",
+     "beige",
+     "stone look",
+     "veined",
+     "matte",
+     "warm",
+     "neutral",
+     "vertical pattern",
+     "subtle texture",
+     "architectural",
+     "interior finish"
+    ],
+    "patternScale": "200mm",
+    "specular": "The surface exhibits a very soft, diffuse specular highlight, indicating a low-sheen, matte finish. There is no noticeable anisotropy."
+   },
+   "dominantHex": [
+    "#D0B274",
+    "#FEFBFC",
+    "#C8A865"
+   ],
+   "finish": "matte",
+   "images": {
+    "crop": {
+     "bytes": 1514642,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0031-i00.png",
+     "sha256": "419abdc1aa089ff090d00850e9c73f507a862083fb784432e32616457de4ee6e",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 17478,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0031-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0031-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.464,
+    0.2943,
+    0.2417
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 31,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "travertine print laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0032-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0032-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "stone",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The dominant base color is a very dark brown to black (#271C1C), interspersed with lighter brown tones (#624A41). Prominent, irregular veins are a bright off-white (#F1ECEA), with some areas showing a subtle translucency.",
+    "feel": "The surface appears perfectly smooth with no discernible micro-relief or texture, consistent with a highly polished stone.",
+    "grain": "Irregular, fractured veining in white and light brown against a dark brown to black background. The veins are thin and highly branched, creating a chaotic, web-like pattern with no discernible directionality.",
+    "keywords": [
+     "marble",
+     "dark",
+     "brown",
+     "black",
+     "white",
+     "veined",
+     "polished",
+     "glossy",
+     "natural stone",
+     "luxury",
+     "chaotic pattern",
+     "high contrast",
+     "interior design",
+     "slab"
+    ],
+    "patternScale": "300mm",
+    "specular": "The surface exhibits a high-gloss specular behavior with sharp, distinct highlights, indicative of a polished finish. There is no apparent anisotropy."
+   },
+   "dominantHex": [
+    "#271C1C",
+    "#F1ECEA",
+    "#624A41"
+   ],
+   "finish": "polished",
+   "images": {
+    "crop": {
+     "bytes": 2352581,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0032-i00.png",
+     "sha256": "4aa4c458f8403dd8c02cd4f5ea4f902fb46e8f68589ac7cd249cc18aa1733ebc",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 51256,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0032-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0032-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3838,
+    0.3532,
+    0.2629
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 32,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "marble",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0033-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0033-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base tone is a light grey (#C4BFB7) with significant variation, ranging from near-white (#F5F2F1) in some areas to darker grey (#958D83) in others. The prominent veins are dark charcoal grey to black, while finer veins are bright white.",
+    "feel": "The surface appears smooth with minimal micro-relief, consistent with a laminate. Any texture would be a subtle, uniform embossing rather than deep pores or fibers.",
+    "grain": "Irregular, organic veining pattern resembling natural marble, with dominant veins running diagonally from top-left to bottom-right, intersected by finer, more chaotic white veins.",
+    "keywords": [
+     "laminate",
+     "marble",
+     "grey",
+     "white",
+     "black",
+     "veined",
+     "satin",
+     "stone look",
+     "patterned",
+     "modern",
+     "contemporary",
+     "interior finish",
+     "decorative surface"
+    ],
+    "patternScale": "300mm",
+    "specular": "The surface exhibits a soft, diffused specular highlight, indicating a satin finish. Highlights are moderately sharp but not pinpoint, suggesting a slight roughness. There is no apparent anisotropy or strong sheen."
+   },
+   "dominantHex": [
+    "#F5F2F1",
+    "#C4BFB7",
+    "#958D83"
+   ],
+   "finish": "satin",
+   "images": {
+    "crop": {
+     "bytes": 2288136,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0033-i00.png",
+     "sha256": "5f4c65b0a54830f7e9b83e0063a7a1373a96f36a3511e5086a280f2fc29f881a",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 37819,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0033-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0033-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4081,
+    0.3809,
+    0.211
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 33,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "marble print laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0034-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0034-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base color is a warm off-white to light beige (#FAF7F6, #DAD4CB), with prominent dark grey to brown veins (#B8AFA2) that vary in thickness and intensity.",
+    "feel": "The surface appears smooth with no discernible micro-relief or texture, suggesting a flat, non-embossed finish.",
+    "grain": "Irregular, fractured veining pattern, primarily diagonal and horizontal, with thinner, more numerous veins intersecting larger, bolder ones. The pattern is non-directional.",
+    "keywords": [
+     "laminate",
+     "marble effect",
+     "white",
+     "beige",
+     "grey veins",
+     "fractured pattern",
+     "satin finish",
+     "modern",
+     "contemporary",
+     "interior design",
+     "countertop",
+     "wall panel",
+     "light",
+     "stone look"
+    ],
+    "patternScale": "500 mm",
+    "specular": "Small, soft specular highlights indicate a satin finish with low to medium roughness. There is no apparent anisotropy or strong sheen."
+   },
+   "dominantHex": [
+    "#DAD4CB",
+    "#FAF7F6",
+    "#B8AFA2"
+   ],
+   "finish": "satin",
+   "images": {
+    "crop": {
+     "bytes": 1784145,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0034-i00.png",
+     "sha256": "bd8ba89a54970f1d398993db63a9d0d5a65f6b824cbe82210cffff6007cd3d9a",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 27540,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0034-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0034-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.5048,
+    0.376,
+    0.1192
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 34,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "marble effect laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0035-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0035-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "ceramic_tile",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "Dominantly black (#010101) with prominent white (#FDFBFC) and copper-orange (#A97E6B) veining. The white veins are sharp and thin, while the copper veins are wider and more diffuse, with subtle internal variations.",
+    "feel": "Extremely smooth and flat, with no discernible micro-relief or texture. The veins appear to be flush with the surface, indicating a perfectly polished or glazed finish.",
+    "grain": "Irregular, organic veining in white and copper tones, running diagonally across a black background. The veins vary in thickness and intensity, mimicking natural stone.",
+    "keywords": [
+     "black",
+     "tile",
+     "porcelain",
+     "high gloss",
+     "polished",
+     "marble look",
+     "veined",
+     "white veins",
+     "copper veins",
+     "dark",
+     "luxury",
+     "modern",
+     "smooth",
+     "reflective"
+    ],
+    "patternScale": "500mm",
+    "specular": "High-gloss finish produces sharp, distinct specular highlights with minimal diffusion. The surface appears highly reflective, like polished glass or a very smooth, lacquered stone. No apparent anisotropy."
+   },
+   "dominantHex": [
+    "#010101",
+    "#FDFBFC",
+    "#A97E6B"
+   ],
+   "finish": "high_gloss",
+   "images": {
+    "crop": {
+     "bytes": 224736,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0035-i00.png",
+     "sha256": "e0872a556acb88e88b3fff5cc19fa71b91539fdf1ce27273426e7c4870224d19",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 14190,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0035-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0035-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.6907,
+    0.2935,
+    0.0157
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 35,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "porcelain tile",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0036-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0036-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "ceramic_tile",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base color is a warm, medium brown (#77614A), with lighter brown variations (#846F58) creating subtle marbling. Prominent, irregular veins are bright white (#FCFAFA).",
+    "feel": "Extremely smooth and flat, with no discernible micro-relief or texture. The veins appear to be flush with the surface.",
+    "grain": "Irregular, organic veining resembling natural marble, with prominent diagonal white veins and finer, wispy white and light brown veins throughout a darker brown base.",
+    "keywords": [
+     "ceramic tile",
+     "porcelain tile",
+     "polished",
+     "high gloss",
+     "marble look",
+     "brown",
+     "white veins",
+     "veined",
+     "natural stone look",
+     "contemporary",
+     "elegant",
+     "interior design",
+     "floor tile",
+     "wall tile"
+    ],
+    "patternScale": "600mm",
+    "specular": "High gloss with sharp, distinct specular highlights indicating a smooth, polished surface. No apparent anisotropy."
+   },
+   "dominantHex": [
+    "#77614A",
+    "#FCFAFA",
+    "#846F58"
+   ],
+   "finish": "polished",
+   "images": {
+    "crop": {
+     "bytes": 1735152,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0036-i00.png",
+     "sha256": "58e60217abc249d603225792cf32926bf1a526a49bb85da676aa7d1712bfc521",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 24450,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0036-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0036-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4385,
+    0.3034,
+    0.2581
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 36,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "glazed porcelain tile",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0037-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0037-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "stone",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The dominant colors are a dark charcoal grey to black (#2C2C2E) with significant areas of warm, peachy beige to light brown (#D4B494). There are also prominent white to off-white veins (#F2EFEF) and subtle hints of muted blue-grey (#6A7B8C) and rust orange (#A0522D) within the darker areas.",
+    "feel": "The surface appears perfectly smooth and flat, with no discernible micro-relief or texture. The color variations are entirely within the stone's subsurface.",
+    "grain": "Irregular, swirling veining with broad, organic bands of color flowing horizontally and diagonally across the surface. The pattern is non-repeating and highly chaotic.",
+    "keywords": [
+     "marble",
+     "polished",
+     "natural stone",
+     "dark grey",
+     "black",
+     "beige",
+     "white",
+     "veined",
+     "swirling",
+     "organic pattern",
+     "high gloss",
+     "luxury",
+     "interior design",
+     "countertop",
+     "slab"
+    ],
+    "patternScale": "The largest veins span approximately 150-200mm.",
+    "specular": "The surface exhibits a high-gloss, sharp specular highlight, indicating a polished finish. The reflections are clear and well-defined, with minimal diffusion. There is no apparent anisotropy."
+   },
+   "dominantHex": [
+    "#4C4C4E",
+    "#F2EFEF",
+    "#827872"
+   ],
+   "finish": "polished",
+   "images": {
+    "crop": {
+     "bytes": 1933672,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0037-i00.png",
+     "sha256": "facfcaa71cc2464a37e99d1316f6f1ce3dc198900b46588b0edfc2d0313836d5",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 35068,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0037-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0037-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3579,
+    0.3566,
+    0.2854
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 37,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "marble",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0038-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0038-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base tone is a medium grey (#828183), with significant variation including lighter grey and off-white areas (#ECEBEB, #A5A5A6) and darker, almost black veins.",
+    "feel": "The micro-surface is smooth with a very subtle texture, likely a printed or embossed pattern mimicking the slight irregularities of natural stone, but without significant relief depth.",
+    "grain": "Irregular, organic veining and fractured patterns resembling natural marble, with areas of lighter and darker grey tones. The pattern is non-directional and highly varied.",
+    "keywords": [
+     "laminate",
+     "marble effect",
+     "grey",
+     "stone look",
+     "satin finish",
+     "veined",
+     "fractured pattern",
+     "modern",
+     "contemporary",
+     "interior surface",
+     "countertop",
+     "wall panel",
+     "decorative laminate"
+    ],
+    "patternScale": "500mm",
+    "specular": "The surface exhibits a satin sheen with moderately sharp, medium-sized specular highlights. There is no noticeable anisotropy, and the roughness is uniform across the surface."
+   },
+   "dominantHex": [
+    "#ECEBEB",
+    "#828183",
+    "#A5A5A6"
+   ],
+   "finish": "satin",
+   "images": {
+    "crop": {
+     "bytes": 2171805,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0038-i00.png",
+     "sha256": "6cd38de5e2a3c187669cf9799b57e6ecb4839f3eb6a8d9b03b834089b17c0196",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 34419,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0038-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0038-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4126,
+    0.3017,
+    0.2857
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 38,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "marble effect laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0039-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0039-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "stone",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "A uniform dark grey-brown base tone (#4A4339) with subtle variations towards a slightly lighter grey-brown (#544D42).",
+    "feel": "A fine, gritty texture with minimal relief depth, consistent with finely ground or naturally smooth sandstone.",
+    "grain": "Fine, irregular granular texture with no discernible directional grain or pattern.",
+    "keywords": [
+     "sandstone",
+     "grey",
+     "brown",
+     "dark",
+     "matte",
+     "textured",
+     "natural",
+     "stone",
+     "fine grain",
+     "uniform",
+     "earthy",
+     "mineral"
+    ],
+    "patternScale": "0.5 mm",
+    "specular": "Very small, soft, diffuse highlights indicate a low sheen and high roughness. No anisotropy is visible."
+   },
+   "dominantHex": [
+    "#4A4339",
+    "#544D42",
+    "#FDFBFC"
+   ],
+   "finish": "matte",
+   "images": {
+    "crop": {
+     "bytes": 1272865,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0039-i00.png",
+     "sha256": "db69bd658d35828df9822410f1433ae21e614d283784f476fff89f91e922259d",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 9398,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0039-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0039-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3585,
+    0.347,
+    0.2944
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 39,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "sandstone",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0040-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0040-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "wallcovering_paper",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base color is a light, warm beige (#C8BCA3), with very subtle lighter flecks (#FEFCFD) creating a soft, muted variation across the surface.",
+    "feel": "The micro-relief is very fine, suggesting a slightly gritty or powdery texture, with minimal depth variation, akin to fine sandpaper or a very thin stucco layer.",
+    "grain": "Subtle, irregular, non-directional fine texture resembling a very fine sand or stucco finish, with no discernible repeat.",
+    "keywords": [
+     "wallcovering",
+     "paper",
+     "textured",
+     "matte",
+     "beige",
+     "cream",
+     "sand",
+     "stucco effect",
+     "neutral",
+     "subtle texture",
+     "fine grain",
+     "warm tone",
+     "minimalist",
+     "contemporary"
+    ],
+    "patternScale": "0.5 mm",
+    "specular": "The surface exhibits a soft, diffused specular highlight, indicating a matte to very low-sheen finish. Highlights are broad and indistinct, with no apparent anisotropy."
+   },
+   "dominantHex": [
+    "#C8BCA3",
+    "#FEFCFD",
+    "#FE6263"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1471583,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0040-i00.png",
+     "sha256": "373346ffdbb2140b0b8e24898c3996af1d91b5e37d44aa9ecb17e3ff7f0f9f53",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 12866,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0040-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0040-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.7061,
+    0.293,
+    0.0009
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 40,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "textured paper",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0041-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0041-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base color is a light, warm beige (#DDD3C2), with slight variations to a slightly darker beige (#D5CAB9) and very light off-white highlights (#FEFCFD) where the texture catches the light.",
+    "feel": "The micro-surface has a fine, granular texture with a shallow relief depth, similar to a fine sandblasted or stippled finish. There are no visible pores or fibers.",
+    "grain": "Irregular, fine-grained texture with no discernible directionality or repeating pattern. The surface appears to be a uniform, random stipple.",
+    "keywords": [
+     "laminate",
+     "textured",
+     "beige",
+     "sand",
+     "matte",
+     "neutral",
+     "solid color",
+     "fine grain",
+     "stippled",
+     "warm",
+     "light",
+     "uniform",
+     "subtle texture"
+    ],
+    "patternScale": "0.5-1 mm",
+    "specular": "The material exhibits a very diffuse, soft specular highlight, indicating a matte to satin finish with high roughness. There is no visible anisotropy or strong sheen."
+   },
+   "dominantHex": [
+    "#DDD3C2",
+    "#D5CAB9",
+    "#FEFCFD"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1890019,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0041-i00.png",
+     "sha256": "8f5c665b936578c4052d2ad5765c21d2a0967a7ce7a0bc0526b9a3a75f6fa0bf",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 22584,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0041-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0041-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4135,
+    0.2948,
+    0.2917
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 41,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "textured laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0042-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0042-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base tone is a warm, medium orange-brown (#CD6819). There is a very subtle, almost imperceptible variation in lightness, with some areas appearing slightly brighter, suggesting a very fine, light-catching particulate.",
+    "feel": "The micro-relief consists of very shallow, irregular peaks and valleys, creating a fine, gritty texture. The depth of the relief is minimal, likely less than 0.1mm.",
+    "grain": "Fine, irregular, non-directional granular texture, resembling a very fine sand or stucco finish.",
+    "keywords": [
+     "laminate",
+     "orange",
+     "brown",
+     "textured",
+     "matte",
+     "satin",
+     "solid color",
+     "fine grain",
+     "stucco",
+     "sand finish",
+     "warm",
+     "contemporary",
+     "durable"
+    ],
+    "patternScale": "0.5 mm",
+    "specular": "Small, soft, diffuse highlights indicate a matte to satin sheen with moderate roughness. There is no discernible anisotropy."
+   },
+   "dominantHex": [
+    "#CD6819",
+    "#FEFBFC",
+    "#848182"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1697024,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0042-i00.png",
+     "sha256": "3de967b58a5ed6663b1b789e78ae224cf8c68cb9d1dfc7d6b604402b55384bdb",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 12960,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0042-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0042-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.7039,
+    0.2924,
+    0.0037
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 42,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "solid color laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0043-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0043-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "A uniform, dark olive green (#595339) with no visible color variation.",
+    "feel": "The surface appears smooth to the touch with a very fine, even texture, suggesting minimal micro-relief and no visible pores or fibers.",
+    "grain": "No discernible grain or pattern; a uniform, solid color surface.",
+    "keywords": [
+     "laminate",
+     "matte",
+     "solid color",
+     "olive green",
+     "dark green",
+     "uniform",
+     "smooth",
+     "non-reflective",
+     "architectural",
+     "interior finish",
+     "green laminate",
+     "viridian green"
+    ],
+    "patternScale": "0",
+    "specular": "The surface exhibits a soft, diffuse specular highlight, indicating a matte finish with low sheen and high roughness. Highlights are broad and indistinct, with no apparent anisotropy."
+   },
+   "dominantHex": [
+    "#595339",
+    "#FDFBFC",
+    "#FB6464"
+   ],
+   "finish": "matte",
+   "images": {
+    "crop": {
+     "bytes": 651399,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0043-i00.png",
+     "sha256": "a32d0977255a9b6f18dfecc75b200a76ebc4f352fe69bea07b04d8ed3f7c2945",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 7784,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0043-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0043-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.7054,
+    0.2937,
+    0.0009
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 43,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "solid color laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0044-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0044-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "plastic_polymer",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "A uniform dark grey-brown tone (#413D33).",
+    "feel": "Extremely fine, uniform texture with no visible pores or relief depth, suggesting a smooth, almost velvety feel.",
+    "grain": "No discernible grain or pattern; a uniform, solid color surface.",
+    "keywords": [
+     "plastic",
+     "polymer",
+     "matte",
+     "solid color",
+     "dark grey",
+     "grey-brown",
+     "uniform",
+     "smooth",
+     "non-reflective",
+     "flat finish",
+     "contemporary",
+     "minimalist",
+     "sheet material"
+    ],
+    "patternScale": "0 mm",
+    "specular": "Matte finish with very soft, diffuse highlights. No visible anisotropy or sheen. Roughness is high, resulting in broad, indistinct specular reflections."
+   },
+   "dominantHex": [
+    "#413D33",
+    "#FDFBFC",
+    "#FC6464"
+   ],
+   "finish": "matte",
+   "images": {
+    "crop": {
+     "bytes": 1171708,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0044-i00.png",
+     "sha256": "af94866aec7717636d4cb8ed22d043106ffc5eee2e54423a54333bdace9cc7a8",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 7586,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0044-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0044-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.7059,
+    0.2932,
+    0.0009
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 44,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "solid color polymer sheet",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0045-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0045-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "leather",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "A dominant pale yellow-beige (#DDCA93) with very subtle, lighter variations (#FEFCFC) and extremely faint, almost imperceptible pinkish-brown undertones (#A98283) that contribute to its warmth.",
+    "feel": "Extremely fine, short, dense fibers creating a soft, velvety nap with a very shallow relief depth, typical of suede.",
+    "grain": "Fine, irregular nap with subtle, random variations in direction, creating a soft, non-directional texture.",
+    "keywords": [
+     "suede",
+     "leather",
+     "beige",
+     "pale yellow",
+     "tan",
+     "matte",
+     "soft",
+     "textured",
+     "velvety",
+     "natural",
+     "skin",
+     "plain",
+     "solid color",
+     "warm"
+    ],
+    "patternScale": "0.5mm",
+    "specular": "Very soft, diffuse highlights with minimal sharpness, indicating a matte to satin sheen. There is no visible anisotropy, and the roughness is high due to the nap."
+   },
+   "dominantHex": [
+    "#DDCA93",
+    "#FEFCFC",
+    "#A98283"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 847126,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0045-i00.png",
+     "sha256": "dd55085221b9c28d25510287b0e6080b1deb6a65d00409cb8d9473cd48dc0f48",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 8427,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0045-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0045-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.703,
+    0.2926,
+    0.0044
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 45,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "suede leather",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0046-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0046-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The primary color is a light, warm beige (#E2CFB5), with very subtle variations towards a slightly lighter, almost off-white tone (#FEFCFD).",
+    "feel": "Extremely fine, uniform texture with minimal relief, suggesting a smooth, almost velvety feel. No visible pores or fibers.",
+    "grain": "No discernible grain or pattern; a uniform, solid color surface.",
+    "keywords": [
+     "laminate",
+     "matte",
+     "solid color",
+     "beige",
+     "cream",
+     "off-white",
+     "smooth",
+     "uniform",
+     "neutral",
+     "warm",
+     "minimalist",
+     "contemporary"
+    ],
+    "patternScale": "0",
+    "specular": "The surface exhibits a very soft, diffuse specular highlight, indicating a low-sheen, matte finish. Highlights are broad and indistinct, with no apparent anisotropy."
+   },
+   "dominantHex": [
+    "#E2CFB5",
+    "#FEFCFD",
+    "#AB7A7B"
+   ],
+   "finish": "matte",
+   "images": {
+    "crop": {
+     "bytes": 978439,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0046-i00.png",
+     "sha256": "52c750b7c519284d220c72cb94a2ad008d01b7542f6c609967978576ebda2ff2",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 6979,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0046-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0046-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.7042,
+    0.2923,
+    0.0035
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 46,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "solid color laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0047-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0047-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "leather",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "A uniform medium brown tone, #7F5C30, with very slight, almost imperceptible, lighter variations.",
+    "feel": "Extremely fine, low-relief pebble grain, suggesting a smooth, soft touch with minimal texture depth.",
+    "grain": "Fine, irregular, pebble-like grain with no discernible directionality.",
+    "keywords": [
+     "leather",
+     "pigmented leather",
+     "matte",
+     "brown",
+     "tan",
+     "solid color",
+     "fine grain",
+     "pebbled",
+     "smooth",
+     "uniform",
+     "neutral",
+     "skin"
+    ],
+    "patternScale": "0.5-1mm",
+    "specular": "Matte finish with very small, soft, diffuse highlights. No discernible anisotropy or sheen."
+   },
+   "dominantHex": [
+    "#7F5C30",
+    "#FDFBFC",
+    "#FB6464"
+   ],
+   "finish": "matte",
+   "images": {
+    "crop": {
+     "bytes": 1038310,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0047-i00.png",
+     "sha256": "334c88bb5362b99a7d8ec47f28bbecf1b010e3c48bb46b4b67b57735e48f540a",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 7842,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0047-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0047-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.7044,
+    0.2947,
+    0.0009
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 47,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "pigmented leather",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0048-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0048-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "metal",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The primary color is a deep, earthy reddish-brown, like rusted iron (#6F341C), interspersed with lighter, more vibrant orange-browns (#7C512D) and significant areas of dull, desaturated teal-green verdigris (#4A6A65). There are also hints of brighter, almost golden-yellow rust (#9C7F3B) in some areas, creating a complex, mottled appearance.",
+    "feel": "The micro-relief suggests a rough, granular surface with subtle variations in depth, consistent with corrosion and oxidation. There are no distinct pores or fibers, but a fine, gritty texture is implied.",
+    "grain": "Irregular, organic patches of rust and verdigris, with a predominantly vertical flow suggesting weathering or erosion. The pattern is non-repeating within the visible area.",
+    "keywords": [
+     "metal",
+     "oxidized",
+     "rust",
+     "verdigris",
+     "corroded",
+     "weathered",
+     "textured",
+     "matte",
+     "reddish brown",
+     "teal green",
+     "industrial",
+     "distressed",
+     "patina",
+     "aged"
+    ],
+    "patternScale": "200-500mm",
+    "specular": "The surface exhibits a very low-gloss, matte specular behavior with small, diffuse highlights. There is no discernible anisotropy, and the roughness is high, contributing to the muted reflections."
+   },
+   "dominantHex": [
+    "#6F341C",
+    "#FDFAFB",
+    "#7C512D"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1703920,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0048-i00.png",
+     "sha256": "5cfc003bbf1d827b47adbaccc9679293fa33c66ce4e8e206fe0c7f05524cb9de",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 20634,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0048-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0048-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4308,
+    0.2947,
+    0.2745
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 48,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "oxidized metal",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0049-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0049-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "metal",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The dominant color is a deep, earthy brown (#69451B), interspersed with lighter, warmer brown tones (#785F2A) and significant areas of greenish-yellow oxidation (#FDFBFC), creating a variegated, aged appearance.",
+    "feel": "The micro-relief is uneven and granular, with subtle variations in height across the surface, indicative of corrosion buildup and pitting. The depth of the texture is shallow, likely less than 0.5mm.",
+    "grain": "Irregular, mottled pattern of corrosion with vertical streaks and patches, suggesting oxidation and weathering. The texture is non-directional overall but has localized vertical flow.",
+    "keywords": [
+     "metal",
+     "corroded",
+     "oxidized",
+     "rusted",
+     "weathered",
+     "vintage",
+     "distressed",
+     "textured",
+     "brown",
+     "green",
+     "earthy",
+     "industrial",
+     "patina",
+     "aged"
+    ],
+    "patternScale": "200-300mm",
+    "specular": "The surface exhibits a low to medium roughness, resulting in broad, diffused specular highlights. There is no apparent anisotropy, and the sheen is dull, consistent with a heavily oxidized and weathered metal."
+   },
+   "dominantHex": [
+    "#69451B",
+    "#785F2A",
+    "#FDFBFC"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1846450,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0049-i00.png",
+     "sha256": "e069d061c2bb2ce10d6071402b2e990f44aeee6e89c8c212987a28fbc1ea641a",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 20009,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0049-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0049-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3921,
+    0.3125,
+    0.2954
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 49,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "corroded metal",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0050-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0050-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The dominant color is a dark, muted green (#566D48), with significant areas of a darker, almost black-green (#3B472C). Scattered throughout are small, irregular specks and streaks of a reddish-brown (#FDFBFC), suggesting rust or exposed substrate.",
+    "feel": "The surface appears to have a subtle, irregular micro-texture with shallow depressions and raised areas, mimicking the unevenness of aged metal. The relief depth is minimal, likely less than 0.5mm.",
+    "grain": "Irregular, mottled pattern resembling aged or distressed metal with random scratches and pitting. The pattern has no discernible directionality.",
+    "keywords": [
+     "laminate",
+     "green",
+     "distressed",
+     "aged",
+     "metallic",
+     "textured",
+     "mottled",
+     "industrial",
+     "patina",
+     "dark green",
+     "rust effect",
+     "matte",
+     "satin",
+     "architectural"
+    ],
+    "patternScale": "50-150mm",
+    "specular": "The surface exhibits a low-to-medium sheen with soft, diffused specular highlights, indicating a matte to satin roughness. There is no apparent anisotropy."
+   },
+   "dominantHex": [
+    "#566D48",
+    "#3B472C",
+    "#FDFBFC"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1719979,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0050-i00.png",
+     "sha256": "600e951d583fe968f35779080d6bd2e49d74ac2ef67d747df31961cc9fc4565d",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 19823,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0050-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0050-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3602,
+    0.3443,
+    0.2955
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 50,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "distressed metallic laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0051-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0051-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base color is a dark, cool grey (#3B3E42), with significant variation from lighter grey-blue tones (#5D6266) to almost white highlights (#FEFCFD) in the distressed areas, creating a weathered appearance.",
+    "feel": "The micro-surface is textured, with a subtle relief that mimics the unevenness of distressed wood grain. The depth of this texture is shallow, consistent with an embossed laminate, creating a tactile but not overtly rough feel.",
+    "grain": "Irregular, vertical wood grain pattern with areas of lighter, distressed texture resembling worn timber. The grain is generally linear but features significant variations in width and intensity, with some areas appearing more faded or abraded.",
+    "keywords": [
+     "laminate",
+     "wood grain",
+     "rustic",
+     "distressed",
+     "dark grey",
+     "weathered",
+     "textured",
+     "matte",
+     "industrial",
+     "contemporary",
+     "timber look",
+     "grey wood",
+     "vertical grain"
+    ],
+    "patternScale": "300mm",
+    "specular": "The surface exhibits a matte to satin sheen with soft, diffused specular highlights, indicating a moderately rough texture. There is no strong anisotropy, and reflections appear broad and gentle."
+   },
+   "dominantHex": [
+    "#3B3E42",
+    "#FEFCFD",
+    "#5D6266"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1492397,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0051-i00.png",
+     "sha256": "0b472161773a07e7776e08d1b36102d02b238b3f321b96425727d4d15211a5aa",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 19507,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0051-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0051-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4321,
+    0.2938,
+    0.2741
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 51,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0052-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0052-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "metal",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "A base of muted, warm grey-brown (#827863) with significant variation from lighter, almost off-white areas (#FEFCFC) to darker, charcoal grey-browns (#514A3C).",
+    "feel": "A subtly uneven surface with very shallow relief, suggesting a fine, granular texture or light etching, rather than deep pores or fibers. The texture depth is minimal, likely less than 0.1mm.",
+    "grain": "Irregular, vertical streaking and blotching, resembling oxidized or weathered metal, with no discernible repeat.",
+    "keywords": [
+     "metal",
+     "oxidized",
+     "titanium",
+     "weathered",
+     "textured",
+     "industrial",
+     "distressed",
+     "grey",
+     "brown",
+     "charcoal",
+     "matte",
+     "satin",
+     "streaked",
+     "blotchy",
+     "dark"
+    ],
+    "patternScale": "variable, ranging from 5mm to 100mm for larger blotches",
+    "specular": "Low to medium sheen with small, soft highlights, indicating a matte to satin finish. There is no strong anisotropy, and the roughness is uniform across the surface."
+   },
+   "dominantHex": [
+    "#827863",
+    "#FEFCFC",
+    "#514A3C"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1699982,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0052-i00.png",
+     "sha256": "fb1faf29980716e8566a7adea47237ba06b1cc1e71db4d0286ef63867dba9f3d",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 22093,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0052-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0052-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4172,
+    0.2952,
+    0.2876
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 52,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "oxidized titanium",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0053-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0053-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "metal",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The dominant color is a dark charcoal grey (#393738), with a secondary speckled pattern in a lighter grey (#4B4A4C). Occasional very light grey lines (#FDFBFC) resembling fine cracks or scratches are distributed across the surface.",
+    "feel": "The micro-surface feels granular and slightly rough, with a very shallow relief depth. The speckled pattern is integrated into the surface texture rather than being a raised or debossed feature.",
+    "grain": "Irregular, non-directional, speckled pattern with a fine, granular texture. Random, thin, crack-like lines are present, appearing as lighter grey veins against the darker background.",
+    "keywords": [
+     "metal",
+     "gunmetal",
+     "dark grey",
+     "charcoal",
+     "speckled",
+     "textured",
+     "matte",
+     "industrial",
+     "distressed",
+     "rough",
+     "metallic",
+     "patterned",
+     "architectural",
+     "modern",
+     "subtle"
+    ],
+    "patternScale": "50-100mm",
+    "specular": "The surface exhibits a matte appearance with very small, diffused specular highlights, indicating a high degree of roughness. There is no discernible anisotropy or strong sheen."
+   },
+   "dominantHex": [
+    "#393738",
+    "#FDFBFC",
+    "#4B4A4C"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1395177,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0053-i00.png",
+     "sha256": "dd1d2dd2d4b356e7e15fa888e6d73a4112203d73db1b414a5be914d6bff279e0",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 28144,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0053-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0053-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4944,
+    0.2981,
+    0.2075
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 53,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "gunmetal_finish",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0054-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0054-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "metal",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "A warm, coppery orange base tone (#E1A37F) with darker undertones (#BF8666) and bright, almost white highlights (#FDFBFC).",
+    "feel": "A very fine, almost imperceptible micro-relief from the brushing, creating a smooth yet subtly textured feel.",
+    "grain": "Fine, irregular, non-directional brushed texture with a subtle sparkle.",
+    "keywords": [
+     "copper",
+     "metal",
+     "brushed",
+     "orange",
+     "metallic",
+     "satin",
+     "warm",
+     "fine texture",
+     "solid color",
+     "architectural",
+     "decorative",
+     "sheen",
+     "subtle"
+    ],
+    "patternScale": "0.1-0.5mm",
+    "specular": "Small, sharp specular highlights with a noticeable sheen, exhibiting slight anisotropy due to the brushed texture. The surface has a low to medium roughness."
+   },
+   "dominantHex": [
+    "#E1A37F",
+    "#BF8666",
+    "#FDFBFC"
+   ],
+   "finish": "brushed",
+   "images": {
+    "crop": {
+     "bytes": 1124771,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0054-i00.png",
+     "sha256": "854cb4c834ad0429ee9d35ef5b4fba98b2151727e07925948502786a9e77bceb",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 12613,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0054-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0054-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3839,
+    0.3214,
+    0.2947
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 54,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "copper alloy",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0055-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0055-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "metal",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The dominant base tone is a warm, oxidized copper brown (#826F5F), with significant areas of darker, more heavily oxidized brown (#645243). Lighter, speckled areas of brighter copper (#FDFBFC) are interspersed throughout, creating a varied and aged appearance.",
+    "feel": "The micro-surface has a fine, granular texture with subtle relief variations, giving it a slightly rough feel. The linear scratches are shallow, contributing to the overall aged appearance without significant depth.",
+    "grain": "Irregular, mottled pattern with areas of darker oxidation and lighter, speckled copper. Fine, linear scratches are visible, running in various directions, suggesting a brushed or aged surface.",
+    "keywords": [
+     "oxidized copper",
+     "aged copper",
+     "patina",
+     "metal",
+     "textured",
+     "brown",
+     "bronze",
+     "rustic",
+     "industrial",
+     "distressed",
+     "mottled",
+     "scratched",
+     "matte",
+     "satin"
+    ],
+    "patternScale": "50-150mm",
+    "specular": "The surface exhibits a low to medium sheen with soft, diffused specular highlights, indicating a matte to satin roughness. There is no strong anisotropy, and highlights are generally broad and indistinct, consistent with a textured, aged metal."
+   },
+   "dominantHex": [
+    "#826F5F",
+    "#645243",
+    "#FDFBFC"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1981982,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0055-i00.png",
+     "sha256": "119cc55fb4b1b248858a0bd66d682928907248caa6fd7a8b3c15df9a29a983d0",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 24336,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0055-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0055-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4054,
+    0.2992,
+    0.2954
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 55,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "oxidized copper",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0056-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0056-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "metal",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The primary color is a muted verdigris green (#7A7C67), appearing in large, organic patches. This is contrasted with an oxidized copper brown (#6D6853) that forms the base and fills the gaps between the green areas. A very subtle, lighter tone (#FDFBFC) is present as fine speckles across the entire surface, contributing to the granular texture and suggesting a slight metallic shimmer.",
+    "feel": "The micro-surface is finely granular and slightly irregular, suggesting a subtle relief depth of less than 0.1mm. There are no distinct pores or fibers, but rather a uniform, fine-grained texture across both color areas.",
+    "grain": "Irregular, organic patches of verdigris green and oxidized copper brown, with a fine, granular texture throughout. The green areas appear as flowing, interconnected shapes, while the copper brown forms the underlying and interspersed background. There is no discernible directionality to the pattern.",
+    "keywords": [
+     "patina",
+     "copper",
+     "verdigris",
+     "oxidized",
+     "green",
+     "brown",
+     "textured",
+     "metallic",
+     "aged",
+     "rustic",
+     "industrial",
+     "speckled",
+     "organic",
+     "matte",
+     "satin"
+    ],
+    "patternScale": "50-150mm for large color shifts, 0.1mm for granular texture",
+    "specular": "The surface exhibits a low-to-medium roughness, resulting in small, diffused specular highlights. There is a subtle metallic sheen, particularly evident in the copper-brown areas, but no strong anisotropy. The highlights are soft and scattered, indicating a matte to satin overall finish."
+   },
+   "dominantHex": [
+    "#7A7C67",
+    "#FDFBFC",
+    "#6D6853"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1533835,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0056-i00.png",
+     "sha256": "30d8329609accc64cb07a19ce31df1ffa80f1a8b4cebc5069ad471107e623dd8",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 13826,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0056-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0056-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4662,
+    0.2943,
+    0.2395
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 56,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "patinated copper",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0057-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0057-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "metal",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "A muted, warm grey-green base tone (#6D6957) with slight variations towards a darker olive-grey (#5D5846) and very subtle, almost imperceptible, lighter highlights (#FDFB7C) that appear as surface reflections rather than inherent color.",
+    "feel": "The surface appears smooth to the touch, with no discernible macro-texture. Micro-relief is minimal, consisting of very shallow, fine scratches or imperfections that do not create significant tactile depth.",
+    "grain": "Uniform, non-directional surface with subtle, irregular micro-scratches visible under magnification.",
+    "keywords": [
+     "metal",
+     "titanium",
+     "grey",
+     "green",
+     "satin",
+     "matte",
+     "lustre",
+     "solid",
+     "smooth",
+     "industrial",
+     "modern",
+     "uniform",
+     "subtle sheen"
+    ],
+    "patternScale": "0.1mm",
+    "specular": "Small, soft, slightly elongated specular highlights indicate a satin finish with minimal anisotropy. The surface exhibits a low to medium sheen, with reflections appearing diffused rather than sharp, suggesting a finely brushed or chemically treated surface."
+   },
+   "dominantHex": [
+    "#6D6957",
+    "#FDFBFC",
+    "#5D5846"
+   ],
+   "finish": "satin",
+   "images": {
+    "crop": {
+     "bytes": 563159,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0057-i00.png",
+     "sha256": "22dd9753a3212a74ab89f4c81e96fc2f996a98fadf12d6284cdf4dff6267ea58",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 8634,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0057-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0057-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4863,
+    0.2976,
+    0.2161
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 57,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "titanium alloy",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0058-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0058-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "textile_fabric",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base color is a medium grey (#8B8B90). The plaid pattern is formed by lighter grey stripes (#F9F7F8) and darker charcoal grey stripes (#717176), creating a subtle tonal variation.",
+    "feel": "The surface has a fine, slightly fuzzy texture characteristic of wool, with minimal relief depth. Individual fibers are not distinctly visible, but the overall impression is soft and tactile, not smooth or slick.",
+    "grain": "A regular Glen plaid pattern, also known as Prince of Wales check, formed by intersecting light grey and dark grey stripes on a medium grey ground. The pattern consists of alternating bands of plain weave and twill weave, creating a complex grid. The overall pattern is symmetrical and runs consistently across the fabric.",
+    "keywords": [
+     "wool",
+     "glen plaid",
+     "prince of wales check",
+     "plaid",
+     "check",
+     "woven",
+     "suiting fabric",
+     "grey",
+     "charcoal",
+     "light grey",
+     "textile",
+     "matte",
+     "classic",
+     "patterned"
+    ],
+    "patternScale": "30mm",
+    "specular": "The fabric exhibits a soft, diffuse specular highlight, indicating a matte to satin finish. The highlights are broad and slightly blurred, typical of a woven textile with a slight nap. There is no noticeable anisotropy or strong sheen."
+   },
+   "dominantHex": [
+    "#8B8B90",
+    "#F9F7F8",
+    "#717176"
+   ],
+   "finish": "woven",
+   "images": {
+    "crop": {
+     "bytes": 2964618,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0058-i00.png",
+     "sha256": "cbfcd9d28c78d9ccc1c9d05705c91fb25bfc4ff50c892ca5fa90b17a74a23c12",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 32255,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0058-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0058-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3879,
+    0.3118,
+    0.3003
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 58,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "wool blend suiting fabric",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0059-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0059-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "wallcovering_paper",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The material features alternating vertical stripes of dark grey (#2E2C2B) and light grey (#8A8885), with subtle variations towards off-white (#EDECEC) on the highlights of the ridges.",
+    "feel": "The surface has a fine, uniform texture, possibly a very subtle stipple or fine grain, with a significant embossed relief depth of approximately 1-2mm for the ridges.",
+    "grain": "Regular, vertical, parallel ridges and valleys, resembling louvers or corrugated material. The ridges are rounded.",
+    "keywords": [
+     "embossed",
+     "vertical stripes",
+     "louvers",
+     "corrugated",
+     "grey",
+     "black",
+     "matte",
+     "textured",
+     "geometric",
+     "modern",
+     "wallcovering",
+     "paper",
+     "monochrome",
+     "ridged"
+    ],
+    "patternScale": "10mm",
+    "specular": "Matte finish with very small, soft specular highlights, indicating low gloss. There is no noticeable anisotropy."
+   },
+   "dominantHex": [
+    "#EDECEC",
+    "#8A8885",
+    "#2E2C2B"
+   ],
+   "finish": "embossed",
+   "images": {
+    "crop": {
+     "bytes": 1891221,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0059-i00.png",
+     "sha256": "aa55e5d5bb26b18b2c91227d702cd4171956c88c7fae29dc780e0a228b8addc7",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 25850,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0059-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0059-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3751,
+    0.3341,
+    0.2908
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 59,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "embossed paper",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0060-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0060-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "composite",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The primary color is a rich, dark brown (#785231), with deeper, almost black-brown shadows (#26180D) in the recesses of the flutes, and very subtle lighter brown highlights on the edges.",
+    "feel": "The micro-surface appears finely granular or sandy, contributing to the matte finish. The relief depth of the flutes is significant, approximately 10-15mm.",
+    "grain": "Regular, parallel vertical flutes with a rounded profile, creating a corrugated or reeded surface.",
+    "keywords": [
+     "fluted panel",
+     "reeded",
+     "corrugated",
+     "dark brown",
+     "black brown",
+     "matte",
+     "textured",
+     "vertical pattern",
+     "architectural panel",
+     "wall panel",
+     "acoustic panel",
+     "modern",
+     "contemporary",
+     "grooved"
+    ],
+    "patternScale": "25mm",
+    "specular": "The surface exhibits a matte to satin sheen with small, soft, diffused specular highlights, indicating a slightly rough texture. There is no noticeable anisotropy."
+   },
+   "dominantHex": [
+    "#785231",
+    "#26180D",
+    "#FEFCFC"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1562329,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0060-i00.png",
+     "sha256": "fff9b8b43edd0f8fa15fc60844c763643e171be9d6921e88338ddfcbce52f66b",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 24941,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0060-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0060-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.401,
+    0.3031,
+    0.2959
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 60,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "fluted panel",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0061-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0061-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base color is a warm, medium orange-brown (#CB6830), with darker reddish-brown grain lines (#BB5625) and very subtle lighter highlights (#FDFBFC) within the grain.",
+    "feel": "A subtle, embossed texture follows the wood grain, creating a very shallow relief, mimicking the feel of natural wood pores and fibers.",
+    "grain": "Straight, irregular wood grain running vertically with occasional wavy interruptions and small knots. The grain lines are fine and closely spaced.",
+    "keywords": [
+     "laminate",
+     "wood grain",
+     "orange brown",
+     "textured",
+     "matte",
+     "straight grain",
+     "warm",
+     "synthetic",
+     "panel",
+     "surface",
+     "interior",
+     "furniture",
+     "decorative",
+     "walnut look"
+    ],
+    "patternScale": "150 mm",
+    "specular": "Small, soft specular highlights indicate a low-to-medium roughness. There is no apparent anisotropy or strong sheen."
+   },
+   "dominantHex": [
+    "#CB6830",
+    "#FDFBFC",
+    "#BB5625"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1686217,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0061-i00.png",
+     "sha256": "3c2dc82f1ea20bdcc46b5549f65715e3de6c5e72db8ad1e333bd502b62bd0701",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 26154,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0061-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0061-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4179,
+    0.2952,
+    0.2869
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 61,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0062-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0062-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base tone is a rich, dark brown (#6C442E), with darker, almost black grain lines (#4C2E1F) and lighter, reddish-brown highlights (#FDFBFC) within the grain.",
+    "feel": "The surface has a very shallow, embossed texture mimicking wood grain, with minimal relief depth. Pores are not individually discernible, but contribute to the overall texture.",
+    "grain": "Prominent, irregular, straight wood grain running vertically with occasional wavy patterns and a distinct knot feature. The grain lines are fine and closely spaced.",
+    "keywords": [
+     "laminate",
+     "dark walnut",
+     "wood grain",
+     "satin finish",
+     "brown",
+     "wood effect",
+     "vertical grain",
+     "knot",
+     "textured",
+     "interior finish",
+     "furniture material",
+     "decorative laminate"
+    ],
+    "patternScale": "300mm",
+    "specular": "Small, slightly diffused highlights indicate a satin finish. There is a subtle anisotropy along the grain direction, and the surface appears moderately rough."
+   },
+   "dominantHex": [
+    "#6C442E",
+    "#4C2E1F",
+    "#FDFBFC"
+   ],
+   "finish": "satin",
+   "images": {
+    "crop": {
+     "bytes": 1667722,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0062-i00.png",
+     "sha256": "a34cd7ae6ae89badac61502277bdd8547fb7a42c0afa70b1f9924e0191b0b9fb",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 28870,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0062-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0062-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4055,
+    0.3004,
+    0.2941
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 62,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "walnut wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0063-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0063-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The dominant color is a rich, warm brown (#AB5E24), with darker brown tones (#773D19) defining the grain and knots, and lighter, almost golden highlights (#FDFBFC) appearing on raised areas of the texture.",
+    "feel": "The micro-relief suggests a wood grain texture with varying depths, mimicking natural wood pores and the subtle undulations of growth rings. The embossing depth is shallow to medium.",
+    "grain": "Irregular, straight-grained wood pattern with prominent cathedral grain features and occasional knots, running vertically.",
+    "keywords": [
+     "laminate",
+     "wood grain",
+     "textured",
+     "brown",
+     "warm brown",
+     "dark wood",
+     "natural wood look",
+     "vertical grain",
+     "satin finish",
+     "wood panel",
+     "rustic",
+     "traditional",
+     "engineered wood",
+     "faux wood"
+    ],
+    "patternScale": "600mm",
+    "specular": "The surface exhibits a satin sheen with medium-sized, slightly diffused specular highlights, indicating a moderate roughness. There is no apparent anisotropy."
+   },
+   "dominantHex": [
+    "#AB5E24",
+    "#773D19",
+    "#FDFBFC"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1943559,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0063-i00.png",
+     "sha256": "b5c3eb5f486238834c321a84a59f2f819e40394239fab1cb982750ce0eaf6ce9",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 33618,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0063-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0063-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3923,
+    0.3148,
+    0.2929
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 63,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0064-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0064-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The dominant color is a rich, warm orange-brown (#BF5D18), with lighter, brighter orange-brown highlights (#FDFBFB) and darker, deeper brown tones (#A14814) defining the grain and knots.",
+    "feel": "The surface has a subtle, embossed texture that mimics the natural pores and irregularities of wood grain, with a relief depth of approximately 0.1-0.2 mm.",
+    "grain": "Irregular, vertical wood grain with prominent cathedral grain patterns and occasional knots, running predominantly along the length of the sample.",
+    "keywords": [
+     "laminate",
+     "teak",
+     "wood grain",
+     "orange brown",
+     "textured",
+     "satin",
+     "warm",
+     "natural wood look",
+     "vertical grain",
+     "cathedral grain",
+     "knots",
+     "wood effect",
+     "decorative laminate",
+     "medium gloss"
+    ],
+    "patternScale": "600 mm",
+    "specular": "The surface exhibits a low-to-medium sheen with soft, slightly diffused specular highlights, indicating a satin to semi-gloss finish. There is no noticeable anisotropy."
+   },
+   "dominantHex": [
+    "#BF5D18",
+    "#FDFBFB",
+    "#A14814"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1625662,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0064-i00.png",
+     "sha256": "d0236eb8a3b37e05def55eb2dec06b6b9a9a07019dc86c034b95a83d6bb0f3ba",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 25335,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0064-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0064-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.5066,
+    0.2955,
+    0.1979
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 64,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "teak wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0065-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0065-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The dominant color is a rich, deep reddish-orange (#BE330B), with slightly darker reddish-brown tones (#B1300A) appearing in the grain, and very subtle, almost imperceptible lighter highlights (#FDFAFB) on the highest points of the texture.",
+    "feel": "The micro-surface has a noticeable, irregular texture mimicking wood grain, with a relief depth of approximately 0.1-0.3 mm. There are no visible pores or fibers.",
+    "grain": "Straight, irregular wood grain running vertically, with occasional subtle wavy patterns and short, darker streaks.",
+    "keywords": [
+     "laminate",
+     "wood grain",
+     "textured",
+     "reddish orange",
+     "rosewood",
+     "matte",
+     "satin",
+     "vertical grain",
+     "warm",
+     "contemporary",
+     "interior finish",
+     "decorative panel"
+    ],
+    "patternScale": "200mm",
+    "specular": "The surface exhibits a matte to satin sheen with small, soft specular highlights, indicating a low to medium roughness. There is no apparent anisotropy."
+   },
+   "dominantHex": [
+    "#BE330B",
+    "#B1300A",
+    "#FDFAFB"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1846651,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0065-i00.png",
+     "sha256": "16fbd53f5fcf13a3445cfc97563e6f3d1d9fb279e97d0c7f4fad70b6c5025d4e",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 19437,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0065-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0065-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3909,
+    0.3132,
+    0.2959
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 65,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0066-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0066-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "stone",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The dominant base color is a very dark brown to black (#271C1C), interspersed with lighter brown tones (#624A41). Prominent, irregular veins are a creamy white to light beige (#F1ECEA).",
+    "feel": "Extremely smooth and flat, with no discernible micro-relief or texture. The polished finish suggests a glass-like tactile feel.",
+    "grain": "Irregular, fractured veining in white and light brown against a dark brown to black background. The veins are thin and highly branched, creating a chaotic, web-like pattern with no discernible directionality.",
+    "keywords": [
+     "marble",
+     "dark marble",
+     "brown marble",
+     "black marble",
+     "polished",
+     "high gloss",
+     "veined",
+     "natural stone",
+     "luxury",
+     "interior design",
+     "countertop",
+     "flooring",
+     "wall cladding",
+     "emperador dark",
+     "dramatic"
+    ],
+    "patternScale": "300-500mm",
+    "specular": "High gloss with sharp, distinct specular highlights, indicating a smooth, reflective surface. There is no apparent anisotropy."
+   },
+   "dominantHex": [
+    "#271C1C",
+    "#F1ECEA",
+    "#624A41"
+   ],
+   "finish": "polished",
+   "images": {
+    "crop": {
+     "bytes": 2352581,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0066-i00.png",
+     "sha256": "4aa4c458f8403dd8c02cd4f5ea4f902fb46e8f68589ac7cd249cc18aa1733ebc",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 51256,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0066-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0066-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.3838,
+    0.3532,
+    0.2629
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 66,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "marble",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0067-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0067-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The dominant color is a rich, warm orange-brown (#BD5C0A), interspersed with lighter, almost golden-brown tones (#FDFBFB) and striking, irregular dark brown to black streaks (#873C07) that define the grain.",
+    "feel": "The micro-surface appears smooth with a very subtle texture, likely mimicking the natural pores of wood but flattened by the laminate process. There is no significant relief depth.",
+    "grain": "Straight, irregular vertical grain with prominent dark brown to black streaks running parallel to the length, characteristic of macassar ebony. Some areas show subtle wavy patterns and lighter, finer grain lines within the dominant orange-brown wood.",
+    "keywords": [
+     "laminate",
+     "macassar ebony",
+     "wood grain",
+     "dark wood",
+     "orange brown",
+     "satin finish",
+     "vertical grain",
+     "streaky",
+     "exotic wood",
+     "decorative laminate",
+     "warm tone",
+     "wood effect",
+     "engineered wood",
+     "smooth"
+    ],
+    "patternScale": "300mm",
+    "specular": "The surface exhibits a soft, diffused specular highlight, indicating a satin finish. Highlights are medium-sized and slightly blurred, with minimal anisotropy, suggesting a relatively smooth but not highly polished surface."
+   },
+   "dominantHex": [
+    "#BD5C0A",
+    "#FDFBFB",
+    "#873C07"
+   ],
+   "finish": "satin",
+   "images": {
+    "crop": {
+     "bytes": 1733165,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0067-i00.png",
+     "sha256": "1307e5a97b58a93c886c4159d6afafb5c42dcdcc7626c2dc01c395fc8cfad057",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 28957,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0067-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0067-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4893,
+    0.2948,
+    0.2159
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 67,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "macassar ebony wood print laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0068-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0068-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The dominant color is a light beige-cream (#BFB095), with lighter, almost white highlights (#FEFCFD) and darker, muted brown-grey grain lines (#9D8D7B).",
+    "feel": "A subtly embossed texture mimicking the natural pores and grain of wood, with a relief depth of less than 0.1mm.",
+    "grain": "Fine, irregular, linear wood grain running vertically, with darker lines representing pores or growth rings.",
+    "keywords": [
+     "laminate",
+     "wood grain",
+     "creme oak",
+     "light wood",
+     "beige",
+     "cream",
+     "vertical grain",
+     "textured",
+     "satin",
+     "contemporary",
+     "natural look",
+     "fine grain",
+     "neutral"
+    ],
+    "patternScale": "2-5mm",
+    "specular": "Low to medium specular highlight, slightly diffused, indicating a satin to semi-gloss finish. Highlights are small and somewhat soft, suggesting a subtle texture. No obvious anisotropy."
+   },
+   "dominantHex": [
+    "#BFB095",
+    "#FEFCFD",
+    "#9D8D7B"
+   ],
+   "finish": "textured",
+   "images": {
+    "crop": {
+     "bytes": 1974387,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0068-i00.png",
+     "sha256": "2464e075eeee9e3c4f388cd8dc73cbf5907d06bfce9ad405d62f5923c00d7164",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 30737,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0068-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0068-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4453,
+    0.2965,
+    0.2583
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 68,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "wood grain laminate",
+   "updatedAt": 1793573413123
+  },
+  "2e10320006fe-p0069-i00": {
+   "_id": "superbond-colour|2e10320006fe-p0069-i00",
+   "attributes": {},
+   "captionModel": "gemini-2.5-flash",
+   "captionVersion": "5ad77cde2d93",
+   "catalogue": "superbond-colour",
+   "category": "laminate",
+   "createdAt": 1793573413123,
+   "description": {
+    "colour": "The base color is a bright white (#F5F4F4), with a secondary light grey tone (#C4C6C3) forming subtle background variations. The prominent veining is a darker, warm grey (#94928D), with some areas appearing slightly lighter or darker due to perceived depth and overlap.",
+    "feel": "The micro-surface appears smooth with minimal relief, consistent with a printed laminate. There are no visible pores or fibrous textures. Any perceived depth in the veining is purely visual from the print.",
+    "grain": "Irregular, organic veining pattern, predominantly diagonal with some horizontal and vertical elements, resembling natural marble.",
+    "keywords": [
+     "laminate",
+     "marble effect",
+     "white",
+     "grey",
+     "veined",
+     "satin",
+     "smooth",
+     "modern",
+     "classic",
+     "countertop",
+     "surface",
+     "decorative",
+     "patterned"
+    ],
+    "patternScale": "300-500mm",
+    "specular": "The surface exhibits a soft, diffused specular highlight, indicating a satin finish. Highlights are medium-sized and slightly blurred, without strong anisotropy. The material has a low to medium sheen."
+   },
+   "dominantHex": [
+    "#F5F4F4",
+    "#C4C6C3",
+    "#94928D"
+   ],
+   "finish": "satin",
+   "images": {
+    "crop": {
+     "bytes": 1250944,
+     "height": 1537,
+     "key": "crops/superbond-colour/2e10320006fe-p0069-i00.png",
+     "sha256": "5f531a5cc5c252c34d33eb2192a8f0d1796023dd5543f61fc8b8eb3e4be15069",
+     "width": 1025
+    },
+    "thumb": {
+     "bytes": 20517,
+     "height": 480,
+     "key": "thumbs/superbond-colour/2e10320006fe-p0069-i00.jpg",
+     "width": 320
+    }
+   },
+   "itemId": "2e10320006fe-p0069-i00",
+   "jobId": "import-20261101T225013Z",
+   "label": null,
+   "productId": null,
+   "productIdSource": null,
+   "proportions": [
+    0.4543,
+    0.4052,
+    0.1405
+   ],
+   "releaseFirst": "rel-20261101225013-57cdcb",
+   "source": {
+    "bbox": [
+     26.833,
+     15.0,
+     568.166,
+     827.0
+    ],
+    "idBbox": null,
+    "inpainted": false,
+    "itemIndex": 0,
+    "matchCost": null,
+    "matchRelation": null,
+    "matchType": "none",
+    "method": "embedded_image",
+    "name": "Superbond colour image.pdf",
+    "page": 69,
+    "pageHeight": 842.0,
+    "pageWidth": 595.0,
+    "pdfProductId": null,
+    "rotation": 0,
+    "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880"
+   },
+   "status": "ok",
+   "subtype": "marble effect laminate",
+   "updatedAt": 1793573413123
+  }
+ },
+ "releases": [
+  {
+   "_id": "rel-20261101225013-57cdcb",
+   "catalogue": "superbond-colour",
+   "createdAt": 1793573413123,
+   "createdBy": "import",
+   "featureVersions": {
+    "color": "lab6x8x8|ab80|clahe2x8|s0.6|hw0.8|k3|m384|v1",
+    "dino": "facebook/dinov2-large|448|r512|w0.5,0.25,0.25|clahe1.5x8|v1",
+    "siglip": "google/siglip-so400m-patch14-384|clahe1.5x8|v1",
+    "text": "gemini-embedding-001|d768|cap5ad77cde2d93|v1",
+    "vertex_mm": "multimodalembedding@001|d1408|v1"
+   },
+   "gcsPrefix": "releases/superbond-colour/rel-20261101225013-57cdcb/",
+   "jobId": "import-20261101T225013Z",
+   "manifestSha256": "78358edef0f7c70a3acabc30d579840aac3afd415470ef6aeebcb344cf13933f",
+   "nItems": 69,
+   "parent": null,
+   "pillars": {
+    "color": {
+     "count": 69,
+     "dim": 396
+    },
+    "dino": {
+     "count": 69,
+     "dim": 3072
+    },
+    "siglip": {
+     "count": 69,
+     "dim": 1152
+    },
+    "text": {
+     "count": 69,
+     "dim": 768
+    },
+    "vertex_mm": {
+     "count": 69,
+     "dim": 1408
+    }
+   }
+  }
+ ]
+}

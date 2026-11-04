@@ -348,6 +348,7 @@
     {
       "id": "start-project-links",
       "op": "replaceAll",
+      "style": "route",
       "why": "every \"Start a project\" link opens its own page, /start-project, instead of the landing page's form at the bottom (/#enquire)",
       "anchor": "href=\"/#enquire\"",
       "with": "href=\"/start-project\"",
@@ -356,9 +357,54 @@
     {
       "id": "quote-link",
       "op": "replace",
+      "style": "route",
       "why": "the shop's quote link (\"Get a quote\") goes to the Start a project page too, not to the landing page's form",
       "anchor": "quote: HOME + '#enquire',",
       "with": "quote: '/start-project',"
+    },
+    {
+      "id": "catalogue-products",
+      "op": "insertBefore",
+      "target": "asset:content=window.TeruconStore",
+      "why": "list the SuperBond colour catalogue's designs (TIPL- ids) as shop products, next to the shop's own 24 (target A1; sample size and price, see tools/build-shop-catalogue.js)",
+      "anchor": "  // ---------- build variants ----------",
+      "insert": [
+        {
+          "file": "snippets/shop-catalogue.js"
+        }
+      ]
+    },
+    {
+      "id": "catalogue-sku",
+      "op": "replace",
+      "target": "asset:content=window.TeruconStore",
+      "why": "a catalogue design's SKU is its product id (TIPL-SB804), not a generated TRC-... code",
+      "anchor": "sku: ['TRC', p.code,",
+      "with": "sku: p.skuOverride ? p.skuOverride : ['TRC', p.code,"
+    },
+    {
+      "id": "catalogue-photo-path",
+      "op": "replace",
+      "target": "asset:content=window.TeruconStore",
+      "why": "a catalogue design's photograph is a file under /media/materials/ (tipl-<code>.jpg), not one of the export's embedded resources: it is asked for with an absolute address, so it loads from any page address. Only those names: the export's own photographs keep the string the page resolves again later (an absolute address there would no longer be found in its resource table and would 404)",
+      "anchor": "if (typeof u === 'string' && u) { RMAP[u] = p; return u; } return p; };",
+      "with": "if (typeof u === 'string' && u) { RMAP[u] = p; return u; } return typeof p === 'string' && p.startsWith('media/materials/tipl-') ? '/' + p : p; };"
+    },
+    {
+      "id": "surfaces-assets",
+      "op": "insertBefore",
+      "why": "the shop's \"Find it from a photo\" is now a real search (targets C4, A1): the photo's surfaces are outlined by the models, a tap on one finds the closest catalogue designs with the shop's price. The dialog is a module and a stylesheet served from /catalogue-ui/assets/ (server/routes/catalogueUi.js), not inline text",
+      "anchor": "</helmet>",
+      "insert": [
+        "<link rel=\"stylesheet\" href=\"/catalogue-ui/assets/surfaces.css\">\n<script type=\"module\" src=\"/catalogue-ui/assets/surfaces.js\"></script>\n"
+      ]
+    },
+    {
+      "id": "surfaces-open",
+      "op": "replace",
+      "why": "every way into the photo search (the search bar's camera, the \"Take or upload a photo\" card) opens the new dialog when it is there; the shop's own colour preview stays as openPhotoPreview and is what opens when the catalogue search is not available",
+      "anchor": "openPhoto = () => { this.setState({ photo: { ...PH0(), open: true }, srch: { ...this.state.srch, open: false }, menu: false }); }",
+      "with": "openPhotoPreview = () => { this.setState({ photo: { ...PH0(), open: true }, srch: { ...this.state.srch, open: false }, menu: false }); }\n  openPhoto = () => { const S = window.TeruconSurfaces; if (S && S.open({ fallback: () => this.openPhotoPreview() })) { this.setState({ srch: { ...this.state.srch, open: false }, menu: false }); return; } this.openPhotoPreview(); }"
     }
   ]
 }

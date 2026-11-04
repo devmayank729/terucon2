@@ -19,8 +19,9 @@ import { makeTempRoot } from './tempRoot.js';
  * @param {Record<string, string>} [options.environ]
  * @param {object} [options.terubot] more overrides (rooms, googleDir, now ...)
  * @param {object} [options.catalogue] catalogue overrides (tests/helpers/fakeCatalogueModal.js)
+ * @param {object} [options.inspiration] the inspiration import's fakes ({gallery, fetcher}, as in tests/js/inspiration-routes.test.js)
  */
-export async function startBotApp({ script, gemini, env = '', environ = {}, terubot = {}, catalogue = {} } = {}) {
+export async function startBotApp({ script, gemini, env = '', environ = {}, terubot = {}, catalogue = {}, inspiration } = {}) {
   const temp = makeTempRoot();
   fs.writeFileSync(temp.envPath, env);
   const log = collectLog();
@@ -35,6 +36,7 @@ export async function startBotApp({ script, gemini, env = '', environ = {}, teru
     host: '127.0.0.1',
     auth: { providers: capture.providers, secret: SECRET },
     catalogue,
+    ...(inspiration ? { inspiration } : {}),
     terubot: { gemini: fake, ...terubot },
   });
   const call = (path, options = {}) => request(started.port, { path, ...options });

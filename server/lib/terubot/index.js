@@ -33,12 +33,13 @@ export const OFF_REPLY = {
  * @param {{dir: string} | null} options.dist
  * @param {{info: Function, warn: Function}} options.log
  * @param {string} options.googleDir the folder that holds server/google/vertex.js
+ * @param {string | null} [options.mediaDir] the folder of the shop photographs that are files of this project (media/materials)
  * @param {object} [options.overrides] tests: gemini (a fake with describe() and generate()), shop, form, now
  */
-export function createTerubot({ settings, site, dist, log, googleDir, overrides = {} }) {
+export function createTerubot({ settings, site, dist, log, googleDir, mediaDir = null, overrides = {} }) {
   const shop = overrides.shop ?? loadShop();
   const form = overrides.form ?? loadForm();
-  const images = createImageResolver(dist);
+  const images = createImageResolver(dist, { mediaDir });
   const gemini = overrides.gemini ?? createGemini({ googleDir, settings, log });
   const limits = createLimits({ limits: () => settings().terubot, now: overrides.now });
 
@@ -56,9 +57,9 @@ export function createTerubot({ settings, site, dist, log, googleDir, overrides 
     },
 
     /** One answer. Throws GeminiError (gemini.js) when the model cannot be used. */
-    answer({ messages, context, account, catalogue, signal, timedOut }) {
+    answer({ messages, context, account, catalogue, photo = null, linkNote = '', signal, timedOut }) {
       const t = settings().terubot;
-      return runChat({ messages, context, account, catalogue, signal, timedOut, deps: { shop, site, form, images, gemini, maxRounds: t.toolRounds, log } });
+      return runChat({ messages, context, account, catalogue, photo, linkNote, signal, timedOut, deps: { shop, site, form, images, gemini, maxRounds: t.toolRounds, log } });
     },
 
     close() {
