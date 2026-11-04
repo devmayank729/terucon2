@@ -1,7 +1,18 @@
 import assert from 'node:assert/strict';
 import test, { describe } from 'node:test';
+import jpeg from 'jpeg-js';
 import { createDesigns, readStudio, slugOf } from '../../server/catalogue/designs.js';
 import { createFakeSigner, makeJpeg, makeMemoryDb, seedCatalogue, startCatalogueApp } from '../helpers/fakeCatalogueModal.js';
+
+/** A real, decodable JPEG (unlike makeJpeg's fake marker structure above): what ?tile=1 needs to actually crop and mirror. */
+function realJpeg(width, height) {
+  const data = Buffer.alloc(width * height * 4);
+  for (let y = 0; y < height; y += 1) for (let x = 0; x < width; x += 1) {
+    const i = (y * width + x) * 4;
+    data[i] = x % 256; data[i + 1] = y % 256; data[i + 2] = (x + y) % 256; data[i + 3] = 255;
+  }
+  return jpeg.encode({ data, width, height }, 90).data;
+}
 
 // The designs of the catalogue as products with their pictures (targets A1, C1): the data from MongoDB (here the in-memory stand-in), the pictures from
 // Cloud Storage (here a fake fetch that records what it was asked), through the real server. Nothing is a file of the server.
@@ -173,6 +184,41 @@ describe('through the real server', () => {
     }
   });
 
+  test('/media/materials/tipl-sb804.jpg?tile=1 is a seamlessly-tileable crop for the Design Studio\'s instant preview (target C1), cached once, with its own ETag', async () => {
+    const real = realJpeg(600, 440);
+    const bucket = fakeBucket(objects({ [`cards/demo-materials/${IDS[0]}.jpg`]: { body: real } }));
+    const c = await startCatalogueApp({ seed: { ids: IDS, overrides }, fetch: bucket.fetch });
+    try {
+      const plain = await c.app.get('/media/materials/tipl-sb804.jpg');
+      assert.ok(plain.buffer.equals(real));
+      const r = await c.app.get('/media/materials/tipl-sb804.jpg?tile=1');
+      assert.equal(r.status, 200);
+      assert.equal(r.headers['content-type'], 'image/jpeg');
+      assert.ok(!r.buffer.equals(real), 'the tile is a different picture from the plain one, not a passthrough');
+      const decoded = jpeg.decode(r.buffer, { useTArray: true });
+      assert.equal(decoded.width, 640);
+      assert.equal(decoded.height, 448);
+      assert.ok(r.headers.etag && r.headers.etag !== plain.headers.etag, 'the tile has its own validator');
+      assert.equal((await c.app.get('/media/materials/tipl-sb804.jpg?tile=1', { 'If-None-Match': r.headers.etag })).status, 304);
+      const again = await c.app.get('/media/materials/tipl-sb804.jpg?tile=1');
+      assert.ok(again.buffer.equals(r.buffer), 'the same tile comes back, from the cache');
+      assert.equal(bucket.asked.filter((k) => k.startsWith('cards/')).length, 1, 'the card was read from the bucket once; the tile is made from it once and kept');
+    } finally {
+      await c.stop();
+    }
+  });
+
+  test('a picture that cannot be decoded as a JPEG: ?tile=1 quietly falls back to the plain picture, never a 500', async () => {
+    const c = await startCatalogueApp({ seed: { ids: IDS, overrides }, fetch: fakeBucket(objects()).fetch });
+    try {
+      const r = await c.app.get('/media/materials/tipl-sb804.jpg?tile=1');
+      assert.equal(r.status, 200);
+      assert.ok(r.buffer.equals(CARD), 'CARD (makeJpeg) is not really decodable; the plain bytes are served as-is');
+    } finally {
+      await c.stop();
+    }
+  });
+
   test('a design the catalogue does not list is a 404; a name that is not a design falls through to the media folder', async () => {
     const c = await startCatalogueApp({ seed: { ids: IDS, overrides }, fetch: fakeBucket(objects()).fetch });
     try {
@@ -223,6 +269,7 @@ describe('through the real server', () => {
       const [sb804, sb805] = body.finishes;
       assert.equal(sb804.id, 'tipl-sb804');
       assert.equal(sb804.image, '/media/materials/tipl-sb804.jpg?w=320');
+      assert.deepEqual(sb804.texture, { url: '/media/materials/tipl-sb804.jpg?tile=1', tileWidthM: 1.22, tileHeightM: 2.44 });
       assert.equal(sb804.described, true);
       assert.match(sb804.sub, /^SB804 · marble-like veining, gloss$/);
       assert.match(sb804.about, /Terucon catalogue design TIPL-SB804\. A dark brown surface/);

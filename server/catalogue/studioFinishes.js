@@ -82,6 +82,23 @@ export function briefOf(design) {
   return lines.join(' ');
 }
 
+// The real-world size of one sheet of the design (2026-11-04: the same placeholder A1 already flags on the shop's product
+// pages, "Size and price: Sample values until the price list is loaded" - 1220 x 2440 mm. Reused here, not re-guessed, so
+// the one open question (open decision 23, TARGETS.md) has one answer everywhere it appears. It only sets how often the
+// instant preview's texture repeats across a wall; a wrong number does not break the preview, just its scale.
+const SHEET_WIDTH_M = 1.22;
+const SHEET_HEIGHT_M = 2.44;
+
+/**
+ * The finish's texture for the studio's instant (browser-side) preview: a seamlessly-tileable crop of the design's own
+ * photograph (server/lib/tileTexture.js, served by server/routes/catalogueMedia.js's `?tile=1`), at the sheet's own real
+ * size. Without this the design still works, it just always renders with the AI (swatchroom/public/js/lib/fastrender/tiers.js
+ * canFastRenderItem: no `texture.url`, no fast path) - true until 2026-11-04, see TARGETS.md C1.
+ */
+function textureOf(design) {
+  return { url: `/media/materials/${design.id}.jpg?tile=1`, tileWidthM: SHEET_WIDTH_M, tileHeightM: SHEET_HEIGHT_M };
+}
+
 /** The finish as the studio's list needs it (the same fields as swatchroom/public/js/data/catalog.js, plus the picture). */
 export function finishOf(design) {
   return {
@@ -94,6 +111,7 @@ export function finishOf(design) {
     prompt: briefOf(design),
     hex: design.hex,
     image: `/media/materials/${design.id}.jpg?w=320`,
+    texture: textureOf(design),
     described: Boolean(design.studio),
   };
 }

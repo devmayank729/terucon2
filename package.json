@@ -31,6 +31,10 @@
   },
   "dependencies": {
     "compression": "^1.8.2",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "jpeg-js": "^0.4.4"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^25.16.0"
   }
 }

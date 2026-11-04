@@ -1,0 +1,90 @@
+/* Mindful icon hiding: on a page that carries both launchers (the Design Studio, Inspiration and Finder pages: TeruBot's "Ask TeruBot"
+   and capture.js's "Photos from phone", one stacked above the other, see capture.css), two floating buttons sit over the page at once even
+   though most visits need neither right away. This file (with launcher-dock.js, which finds both and decides whether to act) adds one small
+   toggle in their place; a tap reveals the two real buttons, each exactly as it always was, in their usual spot. Elsewhere - a page with only
+   TeruBot, or the Design Studio's full-screen working view, which already places both as small, out-of-the-way icons near the top - nothing
+   here applies and neither launcher is touched.
+
+   launcher-dock.js never changes a real launcher's position or default visuals: it only toggles `.tcd-hidden` on it (opacity/pointer-events,
+   geometry untouched, so nothing that measures the launcher's own position needs to know this file exists) and builds `.tcd-toggle`, a plain
+   button, as a child of TeruBot's own root (#terubot) so it is never mistaken for a page control sitting over the launcher's old place. */
+.tcd-toggle {
+  position: fixed;
+  z-index: 47;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: calc(var(--tc-dock-h, 0px) + var(--tb-bottom, 20px) + env(safe-area-inset-bottom, 0px));
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(225, 212, 194, 0.26);
+  background: var(--tb-bg-2);
+  color: var(--tb-ink);
+  box-shadow: 0 12px 30px rgba(20, 12, 4, 0.34), 0 0 0 1px rgba(20, 12, 4, 0.2);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: opacity 0.18s ease, transform 0.18s ease, background-color 0.2s, border-color 0.2s;
+}
+.tcd-toggle:hover {
+  transform: translateY(-2px);
+  background: #34230f;
+  border-color: rgba(225, 212, 194, 0.5);
+}
+.tcd-toggle:focus-visible {
+  outline: 2px solid var(--tb-amber, #f5b357);
+  outline-offset: 2px;
+}
+.tcd-toggle svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.2s ease;
+}
+/* the "+" becomes a "×" once the two real launchers are shown, so there is always an obvious way back */
+.tcd-toggle[aria-expanded="true"] svg {
+  transform: rotate(45deg);
+}
+.tcd-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--tb-amber, #f5b357);
+  border: 2px solid var(--tb-bg-2);
+}
+.tb-root.is-studio .tcd-toggle {
+  bottom: calc(var(--tc-dock-h, 0px) + var(--tb-bottom-studio, 172px) + env(safe-area-inset-bottom, 0px));
+}
+
+/* the two real launchers, while the dock holds them back: geometry (position, size) is never touched, so any code that measures
+   `.tb-launch` or `.cap-launch` sees the same box as always, hidden or not */
+.tcd-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(6px) scale(0.92);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+@media (max-width: 719px) {
+  .tcd-toggle,
+  .tb-root.is-studio .tcd-toggle {
+    right: max(12px, env(safe-area-inset-right, 0px));
+    bottom: calc(var(--tc-dock-h, 0px) + var(--tb-bottom, 16px) + env(safe-area-inset-bottom, 0px));
+    width: 52px;
+    height: 52px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tcd-toggle,
+  .tcd-toggle:hover,
+  .tcd-toggle svg,
+  .tcd-hidden {
+    transition: none;
+    transform: none;
+  }
+}

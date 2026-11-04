@@ -53,10 +53,17 @@ describe('the finish and its brief', () => {
 
   test('the finish carries what the studio\'s list needs and nothing secret; the kinds are wall, door and furniture', () => {
     const f = finishOf(design());
-    assert.deepEqual(Object.keys(f).sort(), ['about', 'code', 'described', 'hex', 'id', 'image', 'name', 'productId', 'prompt', 'sub']);
+    assert.deepEqual(Object.keys(f).sort(), ['about', 'code', 'described', 'hex', 'id', 'image', 'name', 'productId', 'prompt', 'sub', 'texture']);
     assert.equal(f.sub, 'SB804 · marble-like veining, gloss');
     assert.equal(f.image, '/media/materials/tipl-sb804.jpg?w=320');
     assert.deepEqual([...STUDIO_KINDS], ['wall', 'door', 'furniture']);
+  });
+
+  test('the finish\'s texture: the same picture\'s seamless crop, at the sheet\'s own (placeholder) real size, so the studio\'s instant preview can use it on a wall (C1)', () => {
+    const f = finishOf(design());
+    assert.deepEqual(f.texture, { url: '/media/materials/tipl-sb804.jpg?tile=1', tileWidthM: 1.22, tileHeightM: 2.44 });
+    // every design gets one, described by Gemini or not: the texture comes from the photograph itself, not from the description
+    assert.ok(finishOf(design({ studio: null })).texture.url);
   });
 });
 

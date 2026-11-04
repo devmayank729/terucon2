@@ -2575,6 +2575,38 @@ await test('studio: the catalogue designs are added to the finish list before th
   }
 });
 
+await test('studio: a catalogue design with a texture passes the studio\'s own fast-render gate (canFastRenderItem); one with no texture, or a malformed one, still opens fine and stays AI-only (target C1: the instant preview, previously none for any catalogue design)', async () => {
+  const finishes = [
+    { id: 'tipl-sb804', code: 'SB804', productId: 'TIPL-SB804', name: 'Emperador Dark', sub: 'SB804', about: 'Emperador Dark.', prompt: 'Apply the design. [[terucon-design:TIPL-SB804]]', hex: '#271c1c', image: '/media/materials/tipl-sb804.jpg?w=320', texture: { url: '/media/materials/tipl-sb804.jpg?tile=1', tileWidthM: 1.22, tileHeightM: 2.44 }, described: true },
+    { id: 'tipl-sb008', code: 'SB008', productId: 'TIPL-SB008', name: 'Burmese Teak', sub: 'SB008', about: 'Burmese Teak.', prompt: 'Apply the design. [[terucon-design:TIPL-SB008]]', hex: '#7b4312', image: '/media/materials/tipl-sb008.jpg?w=320', described: false }, // no texture at all
+    { id: 'tipl-sb009', code: 'SB009', productId: 'TIPL-SB009', name: 'Sand Wave', sub: 'SB009', about: 'Sand Wave.', prompt: 'Apply the design. [[terucon-design:TIPL-SB009]]', hex: '#c9b48a', image: '/media/materials/tipl-sb009.jpg?w=320', texture: { url: '/media/materials/tipl-sb009.jpg?tile=1', tileWidthM: 0 }, described: false }, // malformed (no tileHeightM, tileWidthM is 0)
+  ];
+  const page = await newPage({ width: 1440, height: 900 });
+  await page.setRequestInterception(true);
+  page.on('request', (req) => {
+    const u = new URL(req.url());
+    if (u.pathname === '/api/catalogue/studio-finishes') return req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify({ group: 'Terucon catalogue', kinds: ['wall', 'door', 'furniture'], finishes, state: 'ok' }) });
+    if (/^\/media\/materials\/tipl-/.test(u.pathname)) return req.respond({ status: 200, contentType: 'image/png', body: TB_PNG });
+    req.continue();
+  });
+  try {
+    await page.goto(base + '/design-studio', { waitUntil: 'domcontentloaded' });
+    await until(() => page.evaluate(() => /Add a room photo/.test(document.body.innerText)), 'the studio', 25000);
+    const r = await page.evaluate(async () => {
+      const { findItem } = await import('/js/data/catalog.js');
+      const { canFastRenderItem } = await import('/js/lib/fastrender/tiers.js');
+      const describe = (id) => { const i = findItem(id); return i && { texture: i.texture, canFastRender: canFastRenderItem(i) }; };
+      return { good: describe('tipl-sb804'), none: describe('tipl-sb008'), bad: describe('tipl-sb009') };
+    });
+    assert(r.good && r.good.canFastRender === true && r.good.texture.url === '/media/materials/tipl-sb804.jpg?tile=1', 'a design with a real texture passes the studio\'s own gate: ' + JSON.stringify(r.good));
+    assert(r.none && r.none.canFastRender === false && !r.none.texture, 'no texture at all: AI-only, exactly as before, no crash: ' + JSON.stringify(r.none));
+    assert(r.bad && r.bad.canFastRender === false && !r.bad.texture, 'a malformed texture from the server is dropped, not passed through half-built: ' + JSON.stringify(r.bad));
+    assert(page.problems.length === 0, 'problems: ' + page.problems.join(' | '));
+  } finally {
+    await page.close();
+  }
+});
+
 await test('terubot: the same assistant on every page: the launcher, the panel, Talk, dictation, attach and New chat are all there, in the studio and the Finder too', async () => {
   // Pages that carry TeruBot (the offline and error pages and the sign-in-free coming-soon page excepted by design are not in this list). One signature per
   // page; they must all be the same. A control that is missing on one page (Talk used to be, on the studio and the Finder) makes the signatures differ.
@@ -3820,6 +3852,10 @@ await test('capture: the launcher is on the Design Studio, Inspiration and the F
   await page.goto(base + '/finder', { waitUntil: 'domcontentloaded' });
   await until(() => page.$('.cap-launch'), 'the launcher', 15000);
   await until(() => page.evaluate(() => !document.documentElement.classList.contains('tc-ld-lock')), 'the loader', 15000);
+  // the mindful launcher dock holds both launchers back behind one toggle on this page: open it first (its own test below)
+  await until(() => page.$('.tcd-toggle'), 'the combined launcher toggle', 15000);
+  await page.click('.tcd-toggle');
+  await until(() => page.evaluate(() => getComputedStyle(document.querySelector('.cap-launch')).pointerEvents !== 'none'), 'the launcher to be reachable');
   await page.click('.cap-launch');
   await until(() => page.$('.cap-way'), 'the panel');
   await page.click('.cap-way');
@@ -3838,6 +3874,70 @@ await test('capture: the launcher is on the Design Studio, Inspiration and the F
   await until(() => page.$('.cap-toast'), 'the pop-up on the shop page', 20000);
   assert(await page.$eval('.cap-toast', (e) => /1 new photo from Meera/.test(e.textContent) && /Finder/.test(e.textContent)), 'it says who and for which page');
   await phone.close();
+  await page.close();
+});
+
+await test('launcher dock: on a page with both launchers, one small toggle shows by default and the two real buttons stay reachable (same position, same clicks) once it is tapped open; opening either panel, Escape and a tap outside all collapse it back; a page with only TeruBot never gets a toggle', async () => {
+  const page = await newPage({ width: 1280, height: 800 });
+  // a page with only TeruBot, no second launcher, so nothing to combine
+  await page.goto(base + '/account', { waitUntil: 'domcontentloaded' });
+  await until(() => page.evaluate(() => !!document.querySelector('.tb-launch')), 'TeruBot on /account', 15000);
+  await sleep(8500); // the dock's own full find-timeout, and more
+  assert(await page.evaluate(() => !document.querySelector('.tcd-toggle') && getComputedStyle(document.querySelector('.tb-launch')).opacity === '1'), 'TeruBot alone must never grow a toggle or be hidden by one');
+
+  await page.goto(base + '/finder', { waitUntil: 'domcontentloaded' });
+  await until(() => page.$('.cap-launch'), 'the capture launcher', 15000);
+  await until(() => page.$('.tcd-toggle'), 'the toggle', 15000);
+  // DOMRect's fields are getters, not own properties: page.evaluate's return is JSON-serialized, so they must be picked out by hand
+  const style = (sel) => page.evaluate((s) => { const e = document.querySelector(s); const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return { opacity: cs.opacity, pointerEvents: cs.pointerEvents, right: r.right }; }, sel);
+  const toggleExpanded = () => page.evaluate(() => document.querySelector('.tcd-toggle').getAttribute('aria-expanded'));
+
+  await until(async () => (await style('.tb-launch')).opacity === '0', 'collapsed: TeruBot\'s launcher hidden (the 0.18s fade to settle)');
+  let [tb, cap] = [await style('.tb-launch'), await style('.cap-launch')];
+  assert((await toggleExpanded()) === 'false' && tb.pointerEvents === 'none' && cap.opacity === '0' && cap.pointerEvents === 'none', 'collapsed: one icon, both real launchers hidden: ' + JSON.stringify({ tb, cap }));
+  const rightEdgeBefore = tb.right;
+
+  await page.click('.tcd-toggle');
+  await until(async () => (await style('.tb-launch')).opacity === '1', 'expanded: TeruBot\'s launcher shown');
+  [tb, cap] = [await style('.tb-launch'), await style('.cap-launch')];
+  assert((await toggleExpanded()) === 'true' && tb.pointerEvents !== 'none' && cap.opacity === '1' && cap.pointerEvents !== 'none', 'a tap reveals both, reachable: ' + JSON.stringify({ tb, cap }));
+  assert(Math.abs(tb.right - rightEdgeBefore) < 1, 'TeruBot\'s launcher is not moved by being tucked behind the toggle: ' + JSON.stringify([tb.right, rightEdgeBefore]));
+
+  // opening TeruBot from the revealed launcher collapses the dock, and closing the panel returns to one quiet icon
+  await page.click('.tb-launch');
+  await until(() => page.evaluate(() => { const p = document.getElementById('terubot-panel'); return !!p && !p.hidden; }), 'the panel to open');
+  await until(async () => (await style('.tcd-toggle')).opacity === '0', 'the toggle to hide while a panel is open');
+  await page.evaluate(() => window.TeruBot.close());
+  await until(async () => (await style('.tcd-toggle')).opacity === '1', 'the toggle to come back, collapsed');
+  assert((await toggleExpanded()) === 'false', 'closing the panel does not leave the fan open');
+
+  // Escape collapses an open fan with no panel open
+  await page.click('.tcd-toggle');
+  await until(async () => (await toggleExpanded()) === 'true', 'the fan to open again');
+  await page.keyboard.press('Escape');
+  await until(async () => (await toggleExpanded()) === 'false', 'Escape to collapse the fan');
+
+  // a tap outside both launchers collapses it too
+  await page.click('.tcd-toggle');
+  await until(async () => (await toggleExpanded()) === 'true', 'the fan to open a third time');
+  await page.click('body', { offset: { x: 20, y: 20 } });
+  await until(async () => (await toggleExpanded()) === 'false', 'an outside tap to collapse the fan');
+
+  // the same, for capture's own launcher: a tap on it after opening the fan still opens its panel (what the capture
+  // test above now does on /finder too)
+  await page.click('.tcd-toggle');
+  await until(async () => (await style('.cap-launch')).pointerEvents !== 'none', 'the capture launcher to be reachable');
+  await page.click('.cap-launch');
+  await until(() => page.$('.cap-way'), 'the capture panel to open from the revealed launcher');
+  await page.click('.cap-x');
+
+  // a pending reply (TeruBot) or new photos (capture) show as one dot on the toggle while it is collapsed
+  await page.evaluate(() => { document.querySelector('.tb-launch').classList.add('is-unread'); });
+  await until(() => page.evaluate(() => !document.querySelector('.tcd-dot').hidden), 'the combined badge to pick up TeruBot\'s unread mark', 2000);
+  await page.evaluate(() => { document.querySelector('.tb-launch').classList.remove('is-unread'); });
+  await until(() => page.evaluate(() => document.querySelector('.tcd-dot').hidden), 'the combined badge to clear', 2000);
+
+  assert(page.problems.length === 0, 'problems: ' + page.problems.join(' | '));
   await page.close();
 });
 // ==== capture from a phone (end) ====
