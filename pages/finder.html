@@ -67,8 +67,14 @@
   .viewfinder .actions-row { position:absolute; left:0; right:0; bottom:0; margin:0; padding:16px 16px calc(14px + env(safe-area-inset-bottom)); justify-content:center; background:linear-gradient(to top, rgba(0,0,0,.62), rgba(0,0,0,.25) 65%, rgba(0,0,0,0)); }
   .viewfinder .actions-row .btn.ghost { background:rgba(255,255,255,.14); color:#fff; border-color:rgba(255,255,255,.55); }
   .viewfinder .actions-row .btn.ghost:hover { background:rgba(255,255,255,.24); border-color:#fff; }
-  /* finder.js scrolls the photo into view when it appears: this is how much room it leaves below it (the phone tab bar, --tc-dock-h in dock.css, is fixed over the bottom of the window) and above it (the pill header) */
-  .viewfinder { scroll-margin:76px 0 calc(var(--tc-dock-h, 0px) + 12px + env(safe-area-inset-bottom, 0px)); }
+  /* finder.js scrolls the photo into view when it appears: this is how much room it leaves below it (the phone tab bar, --tc-dock-h in dock.css, is fixed over the bottom of the window; above the bar, at the right, the launcher "+" of site/brand/launcher-dock.css, 52 px tall, sits over the frame's bottom-right corner, so the frame comes to rest just above it) and above it (the pill header) */
+  .viewfinder { scroll-margin:76px 0 calc(var(--tc-dock-h, 0px) + var(--tb-bottom, 20px) + 52px + 8px + env(safe-area-inset-bottom, 0px)); }
+  /* On a phone the three buttons are one row, not three stacked (stacked they covered about 45 % of the photo): the middle button, with the longest label, takes the room that is left and may use two lines. A frame too narrow for that (the middle button would be under ~84 px) lets the row wrap again. */
+  @media (max-width:600px) {
+    .viewfinder .actions-row { gap:5px; padding:10px 10px calc(10px + env(safe-area-inset-bottom)); }
+    .viewfinder .actions-row .btn { flex:0 0 auto; height:46px; padding:0 10px; font-size:13px; line-height:1.15; text-align:center; }
+    .viewfinder .actions-row #whole-photo { flex:1 1 84px; min-width:0; }
+  }
 
   .notice { margin:0; padding:12px 16px; border-radius:14px; font:400 14px/1.5 Switzer, Helvetica, Arial, sans-serif; border:1px solid var(--line2); }
   .notice.bad { border-color:var(--bad); color:var(--bad); background:rgba(140,47,27,.07); }
