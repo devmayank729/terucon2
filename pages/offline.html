@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-tc-sidebar="off" data-tc-account="off" data-tc-title="Offline">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -10,6 +10,9 @@
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32.png">
 <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
+<link rel="stylesheet" href="/brand/brand.css">
+<link rel="stylesheet" href="/brand/chrome.css">
+<script src="/brand/chrome.js"></script>
 <style>
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
@@ -18,9 +21,6 @@ body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;backg
 body::before{content:"";position:fixed;left:50%;top:34%;width:min(140vw,980px);height:min(100vw,640px);transform:translate(-50%,-50%);background:radial-gradient(closest-side,rgba(245,179,87,.13),rgba(245,179,87,.04) 58%,transparent);pointer-events:none}
 a{color:inherit}
 :focus-visible{outline:2px solid #F5B357;outline-offset:3px}
-header{position:relative;display:flex;align-items:center;min-height:68px;padding:12px max(20px,env(safe-area-inset-right)) 12px max(20px,env(safe-area-inset-left))}
-header a{display:inline-flex;align-items:center;min-height:44px}
-header img{display:block;height:32px;width:auto;aspect-ratio:1834/314}
 main{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 24px 56px;text-align:center}
 .art{display:block;width:min(74vw,320px);height:auto;aspect-ratio:862/552;margin:0 auto calc(min(74vw,320px)*.2);overflow:visible;fill:none;stroke:#E1D4C2;stroke-width:3;stroke-linejoin:round}
 .art .d,.art .a{stroke-dasharray:1;stroke-dashoffset:1;animation:dr 1s cubic-bezier(.55,0,.2,1) forwards}
@@ -36,7 +36,6 @@ h1{margin:0;max-width:16ch;font:300 clamp(30px,8.6vw,52px)/1.08 Zodiak,"Iowan Ol
 .btn:hover{background:#fff}
 .link{display:inline-flex;align-items:center;min-height:48px;font:500 15px/1 Switzer,"Avenir Next","Helvetica Neue",Helvetica,Arial,sans-serif;text-decoration:underline;text-underline-offset:5px;text-decoration-color:rgba(225,212,194,.45)}
 .link:hover{text-decoration-color:#E1D4C2}
-footer{position:relative;padding:0 24px calc(22px + env(safe-area-inset-bottom));text-align:center;font:400 10px/1.4 Switzer,"Avenir Next","Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.26em;text-transform:uppercase;color:#8f7a68}
 @keyframes dr{to{stroke-dashoffset:0}}
 @media (max-width:420px){.actions{flex-direction:column;gap:2px;width:100%}.btn{width:100%;max-width:320px}}
 @media (prefers-reduced-motion:reduce){.art .d,.art .a{animation:none;stroke-dashoffset:0}}
@@ -63,7 +62,10 @@ footer{position:relative;padding:0 24px calc(22px + env(safe-area-inset-bottom))
 <p class="lead">Please check your internet connection. This page will try again by itself as soon as you are back online.</p>
 <div class="actions"><button type="button" class="btn" id="retry">Retry</button><a class="link" href="/">Go to the home page</a></div>
 </main>
-<footer>Interiors for businesses</footer>
+<footer class="tc-foot">
+  <img class="tc-footer-logo" src="/brand/logo-header-320.webp" srcset="/brand/logo-header-320.webp 320w, /brand/logo-header-480.webp 480w" sizes="257px" width="257" height="44" alt="" loading="lazy" decoding="async">
+  <span>© 2026 Terucon India Private Limited · CIN U45400KA2021PTC153053</span>
+</footer>
 <script>
 document.getElementById('retry').addEventListener('click', function () { window.location.reload(); });
 window.addEventListener('online', function () { window.location.reload(); });

@@ -5,6 +5,7 @@
  *      and a browser Origin must be this site. The Design Studio's own API (ctx.swatchroom.ownsApi) is exempt from the
  *      JSON rule only: it carries photos, masks and renders as raw image bytes. It keeps the Origin rule. So does exactly one route of
  *      the website's own: POST /api/catalogue/search, whose body is the query photo (image/jpeg, image/png or image/webp, and nothing else).
+ *      And one more: POST /api/capture/s/photos, the photo a phone sends through a capture link (same three types).
  */
 import { sendError } from '../lib/errors.js';
 
@@ -12,6 +13,8 @@ const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
 const WRITE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 // the one write route of the website that carries raw bytes instead of JSON: the catalogue's photo search
 const PHOTO_SEARCH_PATH = '/api/catalogue/search';
+// the second: a photo taken on a phone, sent through a capture link (server/capture/routes.js)
+const CAPTURE_PHOTO_PATH = '/api/capture/s/photos';
 const PHOTO_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 /** "localhost:8080" -> "localhost"; "[::1]:8080" -> "[::1]" */
@@ -40,8 +43,8 @@ export function guards(ctx) {
     }
     if (req.path.startsWith('/api/') && WRITE_METHODS.has(req.method)) {
       const type = (req.headers['content-type'] ?? '').split(';')[0].trim().toLowerCase();
-      const photoSearch = req.method === 'POST' && req.path === PHOTO_SEARCH_PATH && PHOTO_TYPES.has(type);
-      if (type !== 'application/json' && !photoSearch && !ctx.swatchroom?.ownsApi(req.path)) return sendError(res, 415, 'Send application/json.');
+      const photoBody = req.method === 'POST' && (req.path === PHOTO_SEARCH_PATH || req.path === CAPTURE_PHOTO_PATH) && PHOTO_TYPES.has(type);
+      if (type !== 'application/json' && !photoBody && !ctx.swatchroom?.ownsApi(req.path)) return sendError(res, 415, 'Send application/json.');
       const origin = req.headers.origin;
       if (origin && originNetloc(origin) !== host) return sendError(res, 403, 'Cross-origin requests are not allowed.');
     }

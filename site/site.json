@@ -33,7 +33,7 @@
       "file": "pages/studio.html",
       "aliases": ["/design-studio.html", "/Terucon Swatchroom.html", "/studio", "/swatchroom"],
       "headers": {
-        "Permissions-Policy": "camera=(self), microphone=(), geolocation=()"
+        "Permissions-Policy": "camera=(self), microphone=(self), geolocation=()"
       },
       "access": "signed-in"
     },
@@ -97,6 +97,15 @@
       "access": "signed-in",
       "csp": "strict"
     },
+    "startProject": {
+      "label": "Start a project",
+      "description": "Tell Terucon about your space: what you are planning, where, how big, when, and how to reach you. A project lead answers within one working day (the promise the landing page makes). Open to everybody; the enquiry is kept on the server (POST /api/enquiry) and is not sent to a CRM yet.",
+      "route": "/start-project",
+      "file": "pages/start-project.html",
+      "aliases": ["/start", "/enquire", "/enquiry", "/contact", "/start-project.html"],
+      "access": "public",
+      "csp": "strict"
+    },
     "inspiration": {
       "label": "Inspiration",
       "description": "Paste a link to a photo, a Pinterest pin or board, or a web page; crop the picture; open it in the Design Studio.",
@@ -112,7 +121,7 @@
       "route": "/finder",
       "file": "pages/finder.html",
       "aliases": ["/finder.html", "/point-to-find"],
-      "headers": { "Permissions-Policy": "camera=(self), microphone=(), geolocation=()" },
+      "headers": { "Permissions-Policy": "camera=(self), microphone=(self), geolocation=()" },
       "access": "signed-in",
       "csp": "strict+catalogue"
     },
@@ -124,6 +133,16 @@
       "aliases": ["/admin/catalogue.html"],
       "access": "signed-in",
       "csp": "strict+catalogue-admin"
+    },
+    "capture": {
+      "label": "Add photos from your phone",
+      "description": "The page a phone opens from a QR code or a WhatsApp link: take or choose photos, label them, say where you are, send them to the person who asked. Open to anybody who holds the link (the link is the key and ends by itself); the token is in the address after the # sign, which the server never sees. Foundation work, serves no target of the quotation.",
+      "route": "/capture",
+      "file": "pages/capture.html",
+      "aliases": ["/capture.html"],
+      "access": "public",
+      "csp": "strict+capture",
+      "headers": { "Permissions-Policy": "camera=(self), geolocation=(self), microphone=()", "X-Robots-Tag": "noindex, nofollow" }
     }
   },
   "assets": [
@@ -136,6 +155,11 @@
       "_comment": "The browser code of the finder page, the shop's search overlay, the inspiration hand-off's matching hook, and the admin catalogue screen (targets C3/C4/C5/C7/D1): served from `dir` under `route`, by a fixed list of names (server/routes/catalogueUi.js).",
       "route": "/catalogue-ui/assets",
       "dir": "site/catalogue-ui"
+    },
+    {
+      "_comment": "The browser code of the phone capture page (/capture): served from `dir` under `route`, by a fixed list of names (server/capture/routes.js).",
+      "route": "/capture-ui/assets",
+      "dir": "site/capture"
     },
     {
       "_comment": "The brand files (logos, icons, brand.css, the mobile dock dock.css/dock.js): served by server/routes/brand.js. Pages link to them as /brand/<name>; tools/check-links.js checks that every such file exists.",

@@ -6,6 +6,9 @@
 <meta name="theme-color" content="#1F150A">
 <meta name="robots" content="noindex">
 <title>Finder — Terucon India</title>
+<!-- the Terucon loader: the same one the built pages carry (site/brand/loader.html); loader.js is generated from it (node site/brand/build-loader.mjs) -->
+<link rel="stylesheet" href="/brand/loader.css">
+<script src="/brand/loader.js"></script>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32.png">
 <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
@@ -14,8 +17,13 @@
 <link rel="stylesheet" href="/css/fonts.css">
 <link rel="stylesheet" href="/catalogue-ui/assets/catalogue-ui.css">
 <link rel="stylesheet" href="/brand/brand.css">
+<link rel="stylesheet" href="/brand/chrome.css">
+<script src="/brand/chrome.js"></script>
 <link rel="stylesheet" href="/brand/dock.css">
 <script src="/brand/dock.js" defer></script>
+<link rel="stylesheet" href="/brand/terubot.css">
+<script src="/brand/terubot.js" defer></script>
+<script src="/brand/transition.js" defer></script>
 <style>
   :root { --bg:#E1D4C2; --card:#EFE6D8; --ink:#291C0E; --ink2:#6E473B; --sand:#A78D78; --line:rgba(41,28,14,.16); --line2:rgba(41,28,14,.34); --bad:#8C2F1B; --good:#3B5B2E; --night:#1F150A; --gx:clamp(16px, 5vw, 72px); }
   * { box-sizing:border-box; }
@@ -28,14 +36,6 @@
   [hidden] { display:none !important; }
   svg { flex:none; }
 
-  /* the frame, the same on every signed-in page: a dark header band with the logo, a dark footer band */
-  header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0 16px; min-height:calc(64px + env(safe-area-inset-top)); padding:calc(8px + env(safe-area-inset-top)) max(var(--gx), env(safe-area-inset-right)) 8px max(var(--gx), env(safe-area-inset-left)); background:var(--night); color:#E1D4C2; border-bottom:1px solid rgba(225,212,194,.14); }
-  header :focus-visible, footer :focus-visible { outline-color:#E1D4C2; }
-  nav { display:flex; flex-wrap:wrap; align-items:center; gap:0 clamp(14px, 2.2vw, 28px); font:500 13px/1 Switzer, Helvetica, Arial, sans-serif; }
-  nav a { display:inline-flex; align-items:center; min-height:44px; text-decoration:none; opacity:.82; transition:opacity .25s; }
-  nav a:hover, nav a[aria-current="page"] { opacity:1; }
-  nav a[aria-current="page"] { text-decoration:underline; text-underline-offset:6px; text-decoration-thickness:1px; }
-  @media (max-width:899px) { html.tc-dock-on header nav a:not(.keep) { display:none; } } /* on a phone the dock at the bottom carries the destinations */
 
   main { flex:1; padding:clamp(32px, 7vh, 84px) max(var(--gx), env(safe-area-inset-right)) clamp(40px, 8vh, 96px) max(var(--gx), env(safe-area-inset-left)); }
   .wrap { width:100%; max-width:940px; margin:0 auto; display:flex; flex-direction:column; gap:clamp(28px, 5vh, 52px); }
@@ -67,6 +67,8 @@
   .viewfinder .actions-row { position:absolute; left:0; right:0; bottom:0; margin:0; padding:16px 16px calc(14px + env(safe-area-inset-bottom)); justify-content:center; background:linear-gradient(to top, rgba(0,0,0,.62), rgba(0,0,0,.25) 65%, rgba(0,0,0,0)); }
   .viewfinder .actions-row .btn.ghost { background:rgba(255,255,255,.14); color:#fff; border-color:rgba(255,255,255,.55); }
   .viewfinder .actions-row .btn.ghost:hover { background:rgba(255,255,255,.24); border-color:#fff; }
+  /* finder.js scrolls the photo into view when it appears: this is how much room it leaves below it (the phone tab bar, --tc-dock-h in dock.css, is fixed over the bottom of the window) and above it (the pill header) */
+  .viewfinder { scroll-margin:76px 0 calc(var(--tc-dock-h, 0px) + 12px + env(safe-area-inset-bottom, 0px)); }
 
   .notice { margin:0; padding:12px 16px; border-radius:14px; font:400 14px/1.5 Switzer, Helvetica, Arial, sans-serif; border:1px solid var(--line2); }
   .notice.bad { border-color:var(--bad); color:var(--bad); background:rgba(140,47,27,.07); }
@@ -87,8 +89,6 @@
   .steps b { font:500 16px/1.3 Switzer, Helvetica, Arial, sans-serif; }
   .steps p { margin:0; font:400 14.5px/1.6 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
 
-  footer { display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; padding:20px max(var(--gx), env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) max(var(--gx), env(safe-area-inset-left)); background:var(--night); border-top:1px solid rgba(225,212,194,.14); color:rgba(225,212,194,.72); font:400 12px/1.5 Switzer, Helvetica, Arial, sans-serif; }
-  html.tc-dock-on footer { padding-bottom:20px; } /* the phone dock brings its own room (and the home-bar inset) below the footer */
   @keyframes rise { from { opacity:0; transform:translateY(14px); } }
   @media (max-width: 620px) {
     .field { flex-wrap:wrap; padding:14px; border-radius:26px; min-height:0; }
@@ -101,19 +101,6 @@
 </style>
 </head>
 <body>
-<header>
-  <a class="tc-logo-link" href="/" aria-label="Terucon India, home"><img class="tc-logo tc-logo--header" src="/brand/logo-header-320.webp" srcset="/brand/logo-header-160.webp 160w, /brand/logo-header-320.webp 320w, /brand/logo-header-480.webp 480w" sizes="210px" width="210" height="36" alt="Terucon India" decoding="async"></a>
-  <nav aria-label="Pages">
-    <a href="/">Home</a>
-    <a href="/materials">Materials</a>
-    <a href="/design-studio">Design Studio</a>
-    <a href="/inspiration">Inspiration</a>
-    <a href="/finder" aria-current="page">Finder</a>
-    <a href="/my-project">My project</a>
-    <a class="keep" href="/account">Account</a>
-  </nav>
-</header>
-
 <main>
   <div class="wrap">
     <section class="hero" aria-labelledby="h-title">
@@ -135,6 +122,8 @@
         <div class="viewfinder" id="viewfinder" hidden>
           <video id="video" autoplay muted playsinline></video>
           <img class="still" id="still" alt="" hidden>
+          <canvas class="outline" id="outline" aria-hidden="true" hidden></canvas>
+          <span class="outline-tip" id="outline-tip" hidden></span>
           <div class="reticle" id="reticle" hidden role="slider" aria-label="The spot to search (drag to move)" tabindex="0"></div>
           <p class="hint" id="hint">Drag the box onto one material, or search the whole photo</p>
           <div class="actions-row" id="photo-actions" hidden>
@@ -156,6 +145,19 @@
               <input id="file" type="file" accept="image/jpeg,image/png,image/webp">
             </label>
           </div>
+        </div>
+
+        <!-- "Search the whole photo": the photo is outlined into its items (floor, wall, a table ...); a tap on one searches the catalogue for it (finder.js). Right under the photo, so on a phone the wait, Cancel and the items are in view -->
+        <div class="outline-panel" id="outline-panel" hidden>
+          <p class="outline-status" id="outline-status" role="status"></p>
+          <div class="actions-row" id="outline-actions">
+            <button class="btn ghost" id="outline-cancel" type="button" hidden>Cancel</button>
+            <button class="btn ghost" id="outline-signin" type="button" hidden>Sign in</button>
+            <button class="btn ghost" id="outline-retry" type="button" hidden>Try again</button>
+            <button class="btn ghost" id="outline-anyway" type="button" hidden>Search the whole photo anyway</button>
+            <button class="btn ghost" id="outline-spot" type="button" hidden>Pick a spot instead</button>
+          </div>
+          <div class="chips" id="outline-chips" role="group" aria-label="Items in the photo" hidden></div>
         </div>
       </div>
 
@@ -180,16 +182,16 @@
       <h2 id="h-how">How it works</h2>
       <ol class="steps">
         <li><b>Show it a material</b><p>Point your camera, upload a photo, or describe it in words.</p></li>
-        <li><b>Pick a spot, or not</b><p>Drag the box onto one material in a busy photo, or search the whole frame.</p></li>
+        <li><b>Pick a spot, or not</b><p>Drag the box onto one material in a busy photo, or let us outline everything in it and tap the item you want.</p></li>
         <li><b>See the closest matches</b><p>Real items from the catalogue, nearest first — never shown as a percentage.</p></li>
       </ol>
     </section>
   </div>
 </main>
 
-<footer>
+<footer class="tc-foot">
   <img class="tc-footer-logo" src="/brand/logo-header-320.webp" srcset="/brand/logo-header-320.webp 320w, /brand/logo-header-480.webp 480w" sizes="257px" width="257" height="44" alt="" loading="lazy" decoding="async">
-  <span>Terucon India Private Limited</span>
+  <span>© 2026 Terucon India Private Limited · CIN U45400KA2021PTC153053</span>
 </footer>
 
 <noscript><p class="notice bad">This page needs JavaScript to search the catalogue.</p></noscript>

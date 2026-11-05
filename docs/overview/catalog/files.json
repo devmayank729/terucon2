@@ -34,9 +34,76 @@
     "server/lib/inspiration/": "The server side of the inspiration import: safe fetching of an address a visitor chose, gallery-dl, picture checks, tokens and limits.",
     "server/catalogue/": "The website's catalogue gateway (targets C3, C4, C5, C7, D1): client and admin routes, the Modal client, the GCS signer, validation and settings. Mints signed URLs and forwards small requests; never does model work itself. See catalogue/ARCHITECTURE.md section 7.",
     "site/catalogue-ui/": "The browser side of the Finder page and the catalogue admin screen (targets C3, C4, C5, C7, D1): client.js (the shared API client, camera and photo-resize helpers), finder.js, admin.js, catalogue-ui.css. Served from /catalogue-ui/assets/ by a fixed list of names (server/routes/catalogueUi.js), the same pattern as site/inspiration/.",
-    "catalogue/": "The real-catalogue retrieval engine (Python), ported from terucon-cat-1.ipynb: extraction, encoders, the Vertex/Gemini captions, the publisher (MongoDB + GCS + a Modal cache), the search service and the Modal app. Not shipped in the website's Docker image. Start with catalogue/ARCHITECTURE.md."
+    "catalogue/": "The real-catalogue retrieval engine (Python), ported from terucon-cat-1.ipynb: extraction, encoders, the Vertex/Gemini captions, the publisher (MongoDB + GCS + a Modal cache), the search service and the Modal app. Not shipped in the website's Docker image. Start with catalogue/ARCHITECTURE.md.",
+    "server/capture/": "Capture from a phone: the settings, the in-memory or MongoDB store, the sessions and photos logic, the metadata stripper, the WhatsApp client and the routes.",
+    "site/capture/": "The browser code of the phone page /capture (take or choose photos, labels, location, a queue that survives a reload and a lost connection). Served from /capture-ui/assets/ by a fixed list of names.",
+    "site/overlays/": "Improved copies of some of the studio's own browser files, served ahead of the studio's own (STUDIO_PREVIEW_OVERLAY)."
   },
   "files": [
+    {
+      "match": "server/capture/**",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Capture from a phone (foundation work): config.js (the CAPTURE_* and WHATSAPP_* settings), db.js (three collections, in memory or MongoDB), service.js (links, uploads that are safe to retry, the owner-only reads, deletes, limits, WhatsApp alerts), strip.js (takes Exif/GPS and text blocks out of a JPEG, PNG or WebP), validate.js (everything a stranger's phone can send), whatsapp.js (the Cloud API client and wa.me links), routes.js."
+    },
+    {
+      "match": "pages/capture.html",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The page a phone opens from a QR code or a WhatsApp link, written by hand with the Terucon loader and the same cream-and-brown theme. Served at /capture to anybody who holds a link, under a strict policy that also allows blob: pictures (`csp: strict+capture` in site/site.json) and with camera and location allowed for itself only."
+    },
+    {
+      "match": "site/capture/**",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "A browser file of the phone page /capture: capture-page.js (the page), camera.js (the camera inside the page, never the phone's camera app), resize.js (draws a photo again at 2560 px, which also drops its hidden data), queue.js (unsent photos kept in IndexedDB), capture-page.css."
+    },
+    {
+      "match": "site/brand/capture.js",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The requester's side of capture from a phone: the launcher on the Design Studio, Inspiration and Finder pages, the panel with the QR code and the WhatsApp send, the photos that arrived (move to a page, download, delete) and the pop-up on any page. Loaded lazily by site/brand/chrome.js."
+    },
+    {
+      "match": "site/brand/capture.css",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Styles of the capture launcher, panel and pop-up: TeruBot's dark brown and cream, stacked above TeruBot's launcher."
+    },
+    {
+      "match": "site/brand/qrcode-generator.js",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "QR Code Generator for JavaScript 2.0.4 by Kazuhiko Arase (MIT), unchanged, from the npm package whose hash matched the registry's. Loaded the first time a QR code is drawn. Licence and source in site/vendor/README.md."
+    },
+    {
+      "match": "tests/js/capture-service.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "Capture from a phone through the real server: who may ask, retried and simultaneous uploads, limits and expiry, what is refused, metadata stripping, deleting, and the WhatsApp requests against a fake Meta."
+    },
+    {
+      "match": "docs/CAPTURE_FROM_PHONE.md",
+      "owner": "docs",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "How capture from a phone works and how to set it up: the two ways to send the link, what is stored where, the WhatsApp Business setup and the templates to submit, security decisions, and what has and has not been run."
+    },
     {
       "match": "app.js",
       "owner": "website",
@@ -862,7 +929,7 @@
       "tags": [
         "Edit"
       ],
-      "desc": "A browser file of the Finder page or the catalogue admin screen (targets C3, C4, C5, C7, D1): served from /catalogue-ui/assets/ (server/routes/catalogueUi.js). No inline script or style attribute on the pages that load these."
+      "desc": "A browser file of the Finder page, the catalogue admin screen or the shop's Find it from a photo (regions.js is the outlining and patch code the Finder and the shop share) (targets C3, C4, C5, C7, D1): served from /catalogue-ui/assets/ (server/routes/catalogueUi.js). No inline script or style attribute on the pages that load these."
     },
     {
       "match": "terucon-cat-1.ipynb",
@@ -1057,6 +1124,31 @@
       "desc": "Setting up the catalogue (Finder, catalogue admin) step by step: the Google Cloud bucket, two service accounts and the CORS rule, MongoDB, the three Modal secrets, deploy, the website settings, three ways to bring a catalogue in, how to check it, and what is not verified."
     },
     {
+      "match": "docs/CATALOGUE_STUDIO.md",
+      "owner": "docs",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "How the catalogue's designs reach the Design Studio and where their pictures live: the finish group, the render prompt and the reference photograph, what Gemini may write, the before/after evidence, the undo paths and what was not checked."
+    },
+    {
+      "match": "docs/DESIGN_STUDIO_ARCHITECTURE.md",
+      "owner": "docs",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The Design Studio's calls and behaviour, verified (2026-11-03): who calls whom for each action (upload, tap, pick a finish, render, history), when MoGe-2, Marigold, SAM 3 and OneFormer run, why a design can load slowly or look 2D before 3D, and what the console's job lines mean. Evidence-tagged; the studio's six existing guides are copied in as appendices, with a table of what in them is out of date."
+    },
+    {
+      "match": "docs/design-studio-checks/**",
+      "owner": "docs",
+      "tags": [
+        "Dev",
+        "Run"
+      ],
+      "desc": "Checks that back docs/DESIGN_STUDIO_ARCHITECTURE.md: two scripts that run the studio's real pipeline route and runner (verify_pipeline.cjs) and its pure preview modules (verify_preview.mjs) with every database, storage, model and network call stubbed; render-preview/, a real-browser before/after of the instant preview (no network, no live service; section 12); instant-preview-quality.patch, the same preview change for the user's own Swatchroom project; and the catalogue-reference/ render comparison. Nothing leaves the machine."
+    },
+    {
       "match": "SESSION_OVERVIEW.md",
       "owner": "docs",
       "tags": [
@@ -1087,6 +1179,14 @@
         "Edit"
       ],
       "desc": "A written account of the Terucon + Swatchroom merge: what was done, how long it took and why."
+    },
+    {
+      "match": "WORK_LOG.md",
+      "owner": "docs",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The running work log, newest first: for every task what was asked, what exactly was done (steps, files, commands), what was and was not checked, and a closing summary of what was done."
     },
     {
       "match": "TARGETS.md",
@@ -1431,6 +1531,14 @@
         "Edit"
       ],
       "desc": "The Finder page, written by hand, same theme as pages/inspiration.html: point a camera (or upload a photo, or type) to find the closest match in the real catalogue — the whole photo, one spot (point-to-find), or colour alone (targets C4, C5, C7). Served at /finder, members only, under a strict Content-Security-Policy (`strict+catalogue`). No inline script or style attribute; behaviour is site/catalogue-ui/finder.js."
+    },
+    {
+      "match": "pages/start-project.html",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The Start a project page, written by hand: a three-step enquiry form (what is planned, the space, how to reach the person) that posts to POST /api/enquiry (server/routes/enquiry.js), kept on the server and not sent to a CRM yet. Served at /start-project, open to everybody, under a strict Content-Security-Policy (`strict`), with the shared header from site/brand/chrome.js. It can be pre-filled from `?type=`, from TeruBot's hand-over (sessionStorage `terucon.enquiry.prefill`) and from the signed-in account. The contact details in it are the landing page's placeholders."
     },
     {
       "match": "pages/admin-catalogue.html",
@@ -1796,6 +1904,14 @@
       "desc": "The loading screen: the T-block drawn as an architect's line plan, LED strips lighting, then timber louvres opening onto the page. Inline, a few KB, with a calm reduced-motion version and a 'taking longer than usual, Retry' state. tools/build-dist.js puts it first in every built page."
     },
     {
+      "match": "site/brand/loader.js",
+      "owner": "site-data",
+      "tags": [
+        "Generated"
+      ],
+      "desc": "The same loading screen for the hand-written pages (Finder, Inspiration, the project form, sign-in, account, admin, coming soon), generated from loader.html by site/brand/build-loader.mjs: they load loader.css and this first in the head, it puts the loader on screen at once and lets it go when the page is read, its fonts are in and two frames are painted. Never edited by hand."
+    },
+    {
       "match": "site/brand/head.html",
       "owner": "site-data",
       "tags": [
@@ -1874,6 +1990,39 @@
         "Run"
       ],
       "desc": "Makes the WebP copies in site/optimized/ using the installed Chrome. --check (plain Node) fails when the index is stale; --report lists coverage."
+    },
+    {
+      "match": "site/overlays/studio/js/**",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Improved copies of 8 of the Design Studio's instant-preview files, at the addresses they replace (served at /js/... ahead of the studio's own by server/middleware/studioOverlay.js). swatchroom/ is not edited. STUDIO_PREVIEW_OVERLAY=off serves the studio's own. DESIGN_STUDIO_ARCHITECTURE.md section 12."
+    },
+    {
+      "match": "site/overlays/studio/manifest.json",
+      "owner": "site-data",
+      "tags": [
+        "Generated"
+      ],
+      "desc": "SHA-256 of every file of swatchroom/public/js/lib/fastrender/ and previewScene.js the overlay was merged with, and of the overlay's own files. tests/js/studio-overlay.test.js fails when swatchroom/ no longer matches (re-merge, then run node tools/studio-overlay-manifest.js)."
+    },
+    {
+      "match": "server/middleware/studioOverlay.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "Serves site/overlays/studio/js at /js ahead of the studio's own files, from a fixed list of names, with the studio's cache policy and an X-Terucon-Overlay header. STUDIO_PREVIEW_OVERLAY=off (read per request) or no folder passes everything on."
+    },
+    {
+      "match": "tools/studio-overlay-manifest.js",
+      "owner": "tooling",
+      "tags": [
+        "Dev",
+        "Run"
+      ],
+      "desc": "Writes site/overlays/studio/manifest.json; --check says what differs between swatchroom/, the overlay and the manifest (exit 1)."
     }
   ]
 }

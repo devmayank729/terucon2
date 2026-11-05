@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import http from 'node:http';
 import net from 'node:net';
 import path from 'node:path';
@@ -21,6 +22,10 @@ const freePort = () => new Promise((resolve) => {
   s.listen(0, '127.0.0.1', () => { const { port } = s.address(); s.close(() => resolve(port)); });
 });
 
+// NOT part of this comparison: the website serves improved copies of 8 of the studio's instant-preview files (js/lib/fastrender/*, js/lib/previewScene.js)
+// ahead of the studio's own (site/overlays/studio/, server/middleware/studioOverlay.js). This test is about everything else, and its throw-away
+// project has no site/overlays/, so both sides serve the studio's own files. The overlay has its own tests (studio-overlay*.test.js), and
+// docs/DESIGN_STUDIO_ARCHITECTURE.md section 12 says plainly that the website's instant preview is NOT the standalone studio's.
 const STUDIO = { STUDIO_PASSCODE: 'letmein', SESSION_SECRET: 'parity-secret' };
 setStudioEnv(STUDIO);
 const project = makeProjectRoot();
@@ -156,4 +161,9 @@ test('the studio\'s API answers the same: the session, the passcode refusals, th
 
 test('the standalone run really was the studio on its own (so the comparison means something)', () => {
   assert.match(aloneLog, /Swatchroom is running on http:\/\/localhost:\d+/);
+});
+
+test('the mounted side of this comparison has no preview overlay, so it is the studio\'s own files against the studio\'s own files', () => {
+  assert.equal(fs.existsSync(path.join(project.root, 'site', 'overlays')), false);
+  assert.equal(app.locals.terucon.studioOverlay.present, false);
 });

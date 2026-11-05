@@ -22,6 +22,14 @@ import {
 } from '../../tools/build-site.js';
 import { PAGE_KEYS, PRISTINE, ROOT, SITE, makeTempRoot, memoBuild, removeTempRoot } from './site-helpers.js';
 
+/** The text of the one script of a bundle that contains `marker` (what an `asset:content=` target means). */
+function contentAsset(bundle, marker) {
+  const found = bundle.uuids.filter((u) => /javascript/.test(bundle.mime(u)) && bundle.assetText(u).includes(marker));
+  assert.equal(found.length, 1, `exactly one script contains ${marker}`);
+  return bundle.assetText(found[0]);
+}
+
+
 const patchFile = (key) => path.join(ROOT, 'site', 'patches', `${key}.json`);
 const readSpec = (key) => JSON.parse(fs.readFileSync(patchFile(key), 'utf8'));
 const components = JSON.parse(fs.readFileSync(path.join(ROOT, 'site', 'components.json'), 'utf8'));
@@ -56,7 +64,7 @@ for (const key of PAGE_KEYS) {
     const b = Bundle.load(PRISTINE[key]);
     for (const step of spec.steps) {
       if (step.op === 'inJsString') continue; // inside the worker string: checked by the build itself
-      const text = !step.target || step.target === 'template' ? b.template : b.assetText(b.extUuid(step.target.slice(6)));
+      const text = !step.target || step.target === 'template' ? b.template : step.target.startsWith('asset:content=') ? contentAsset(b, step.target.slice('asset:content='.length)) : b.assetText(b.extUuid(step.target.slice(6)));
       for (const l of leaves(step.steps || [step])) {
         if (l.step.anchor === undefined || l.step.op === 'replaceAll') continue;
         assert.equal(countOccurrences(text, l.step.anchor), 1, `${key}/${step.id}/${l.step.id}`);
@@ -73,10 +81,11 @@ test('every step has a why, ids are unique, every file passes validation', () =>
   }
 });
 
-test('home: header, menu and footer entries are added once each, as route links', () => {
+test('home: the menu and footer entries are added once each, as route links (the header entries are retired: the site chrome is the header)', () => {
   const t = memoBuild('route').results.find((r) => r.key === 'home').bundle.template;
-  assert.equal(countOccurrences(t, '<a href="/materials" data-m="display:none" style="display:flex;align-items:center;gap:8px'), 1);
-  assert.equal(countOccurrences(t, '<a href="/my-project" data-m="display:none" style="display:flex;align-items:center;gap:8px'), 1);
+  // the export's header links are retired: the site chrome (site/brand/chrome.js) is the header now and draws these links itself
+  assert.equal(countOccurrences(t, '<a href="/materials" data-m="display:none" style="display:flex;align-items:center;gap:8px'), 0);
+  assert.equal(countOccurrences(t, '<a href="/my-project" data-m="display:none" style="display:flex;align-items:center;gap:8px'), 0);
   assert.equal(countOccurrences(t, '>Open My project →</span>'), 1);
   assert.equal(countOccurrences(t, '>Shop materials →</span>'), 1);
   assert.equal(countOccurrences(t, '>Shop materials</a>'), 1);
@@ -89,8 +98,17 @@ test('studio: the shell is patched (links, footer wording, warm-up) and the stud
   const { bundle } = memoBuild('route').results.find((r) => r.key === 'studio');
   const exported = Bundle.load(path.join(ROOT, SITE.pages.studio.source));
   const id = exported.extUuid('swatchroomApp');
-  assert.ok(bundle.asset(id).equals(exported.asset(id)), 'the swatchroomApp asset (a loader for /js/swatchroom-app.js) is not patched');
-  assert.match(bundle.assetText(id), /import\(new URL\("\/js\/swatchroom-app\.js", window\.location\.href\)\.href\);/);
+  // The studio inside is the swatchroom's own and is not patched. Its LOADER (the one asset, which only imports /js/swatchroom-app.js) is: it first adds the
+  // catalogue's designs to the studio's finish list (site/catalogue-ui/studio-finishes.js), then starts the studio whatever happened.
+  assert.ok(!bundle.asset(id).equals(exported.asset(id)), 'the loader is patched (catalogue-loader step)');
+  assert.match(exported.assetText(id), /import\(new URL\("\/js\/swatchroom-app\.js", window\.location\.href\)\.href\);/, 'the export\'s own loader is the one the step anchors on');
+  const loader = bundle.assetText(id);
+  // the loader runs from a blob address, where a bare "/path" specifier cannot be resolved: the address must be made absolute with new URL (a bare one
+  // failed silently in the browser, the studio opened without the group)
+  assert.match(loader, /import\(new URL\("\/catalogue-ui\/assets\/studio-finishes\.js", window\.location\.href\)\.href\)/, 'the loader asks for the catalogue\'s finishes first, by an absolute address');
+  assert.ok(!/import\("\//.test(loader), 'no import in the loader has a bare path');
+  assert.match(loader, /\.catch\(function \(\) \{\}\)\.then\(begin\)/, 'and starts the studio after them, whatever the outcome');
+  assert.match(loader, /import\(new URL\("\/js\/swatchroom-app\.js", window\.location\.href\)\.href\)/, 'the studio is still the swatchroom\'s own app');
   for (const uuid of exported.uuids.filter((u) => u !== id)) assert.ok(bundle.asset(uuid).equals(exported.asset(uuid)), `asset ${uuid} is untouched`);
   const t = bundle.template;
   assert.ok(t.includes('/api/studio/warmup'), 'the page wakes the studio services');
@@ -356,7 +374,7 @@ test('a syntax error in code injected into an asset is caught by the node --chec
       why: 'inject a broken snippet into the loader',
       target: 'asset:swatchroomApp',
       steps: [
-        { id: 'inject', op: 'insertBefore', why: 'a snippet with a syntax error', anchor: 'import(new URL(', insert: { file: 'snippets/broken.js' } },
+        { id: 'inject', op: 'insertBefore', why: 'a snippet with a syntax error', anchor: '// Swatchroom loader: the studio comes from the Swatchroom server', insert: { file: 'snippets/broken.js' } }, // the loader's header comment (one occurrence; `import(new URL(` has two since the catalogue-loader step)
         { id: 'check-syntax', op: 'checkSyntax', why: 'parse the patched loader', name: 'app.mjs' },
       ],
     });
@@ -427,8 +445,12 @@ test('makeContext defaults: link style from site.json, overridable', () => {
 test('the snippets are plain JavaScript that parses on its own (as a module)', () => {
   const dir = path.join(ROOT, 'site', 'patches', 'snippets');
   const files = fs.readdirSync(dir).filter((f) => f.endsWith('.js'));
-  assert.deepEqual(files.sort(), ['analytics.js', 'auth.js', 'warmup.js']);
-  for (const f of files) checkSyntax(fs.readFileSync(path.join(dir, f), 'utf8'), f.replace(/\.js$/, '.mjs'), `[${f}] `);
+  assert.deepEqual(files.sort(), ['analytics.js', 'auth.js', 'hero-curtain.js', 'shop-catalogue.js', 'studio-loader.js', 'warmup.js']);
+  for (const f of files) {
+    const code = fs.readFileSync(path.join(dir, f), 'utf8');
+    // hero-curtain.js is a fragment of the landing component's class body (spliced in by the home patch), so it parses inside a class
+    checkSyntax(f === 'hero-curtain.js' ? `class HeroCurtain {\n${code}\n}` : code, f.replace(/\.js$/, '.mjs'), `[${f}] `);
+  }
 });
 
 test('no snippet has a camelCase name straight before an "=": the exported pages\' runtime rewrites those inside inline scripts', () => {
@@ -437,8 +459,24 @@ test('no snippet has a camelCase name straight before an "=": the exported pages
   // dies with "Unexpected token '-'". A name after a dot (`nav.doNotTrack === '1'`) is not touched.
   const dir = path.join(ROOT, 'site', 'patches', 'snippets');
   const hazard = /(\s)([a-z]+[A-Z][A-Za-z0-9]*)(\s*=)/g;
-  for (const f of fs.readdirSync(dir).filter((name) => name.endsWith('.js'))) {
+  // hero-curtain.js is spliced into the landing component's own script (the x-dc script), whose members are named the same way
+  // (`buildFins = () => {`), not into an inline script of the page text, so the rewrite does not apply to it
+  for (const f of fs.readdirSync(dir).filter((name) => name.endsWith('.js') && name !== 'hero-curtain.js')) {
     const code = fs.readFileSync(path.join(dir, f), 'utf8').split('\n').filter((line) => !/^\s*\/\//.test(line)).join('\n'); // comments are text, not code
     assert.deepEqual([...code.matchAll(hazard)].map((m) => m[2]), [], `${f}: rename these to all-lowercase names`);
   }
+});
+
+test('a step with a "style" runs only in that link style; an unknown style is refused', () => {
+  const steps = [{ id: 'route-only', op: 'replace', style: 'route', why: 'a step that names a link in route style', anchor: 'A', with: 'B' }];
+  assert.equal(patchText('A', steps, { linkStyle: 'route' }).text, 'B');
+  assert.equal(patchText('A', steps, { linkStyle: 'file' }).text, 'A', 'in file style the step is skipped, not failed');
+  assert.throws(() => patchText('A', [{ ...steps[0], style: 'pretty' }], { linkStyle: 'route' }), /"style" must be one of route, file/);
+});
+
+test('an asset target by content finds the one script that holds the text, and says so when it is none or several', () => {
+  const b = Bundle.load(PRISTINE.materials);
+  assert.equal(contentAsset(b, 'window.TeruconStore =').includes('FRONTEND DEMO'), true);
+  const built = memoBuild('route').results.find((r) => r.key === 'materials').bundle;
+  assert.ok(contentAsset(built, 'window.TeruconStore =').includes('tipl-'), 'the built shop has the catalogue designs in its data script');
 });

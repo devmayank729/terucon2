@@ -208,7 +208,7 @@ export function checkSyntax(code, name, where = '') {
 
 // ---- patch files --------------------------------------------------------------------------------------
 
-const COMMON_KEYS = ['id', 'op', 'why', 'target'];
+const COMMON_KEYS = ['id', 'op', 'why', 'target', 'style'];
 const OP_KEYS = {
   relink: ['expect'],
   replace: ['anchor', 'with'],
@@ -257,8 +257,9 @@ export function validatePatchSpec(spec, key, nested = false, prefix = key) {
       if (!allowed.has(k) && !k.startsWith('_')) throw new PatchError(`[${where}] unknown field ${JSON.stringify(k)} for op ${step.op}`);
     }
     for (const k of REQUIRED[step.op]) if (!(k in step)) throw new PatchError(`[${where}] op ${step.op} needs "${k}"`);
+    if (step.style !== undefined && !LINK_STYLES.includes(step.style)) throw new PatchError(`[${where}] "style" must be one of ${LINK_STYLES.join(', ')}`);
     if (step.target !== undefined && (nested || !(step.target === 'template' || /^asset:[^\s]+$/.test(step.target)))) {
-      throw new PatchError(`[${where}] "target" must be "template" or "asset:<ext resource name>" and only on top-level steps`);
+      throw new PatchError(`[${where}] "target" must be "template" or "asset:<ext resource name>" (or "asset:content=<text in the script>") and only on top-level steps`);
     }
     if ('anchor' in step && (typeof step.anchor !== 'string' || !step.anchor)) throw new PatchError(`[${where}] "anchor" must be a non-empty string`);
     if ('with' in step) validateParts(step.with, where);
@@ -294,15 +295,22 @@ class Workspace {
     this.assets = new Map(); // ext name -> {uuid, original, text}
   }
 
+  /** `name` is an ext-resource name, or `content=<text>`: the one JavaScript asset whose text contains <text> (for scripts the export gives no name). */
   asset(name) {
     let a = this.assets.get(name);
     if (!a) {
-      const uuid = this.bundle.extUuid(name);
+      const uuid = name.startsWith('content=') ? this.uuidByContent(name.slice('content='.length)) : this.bundle.extUuid(name);
       const text = this.bundle.assetText(uuid);
       a = { uuid, original: text, text };
       this.assets.set(name, a);
     }
     return a;
+  }
+
+  uuidByContent(marker) {
+    const found = this.bundle.uuids.filter((u) => /javascript/.test(this.bundle.mime(u)) && this.bundle.assetText(u).includes(marker));
+    if (found.length !== 1) throw new PatchError(`target "asset:content=${marker}" matched ${found.length} scripts (expected exactly 1)`);
+    return found[0];
   }
 
   scopeFor(target = 'template') {
@@ -394,6 +402,7 @@ const OPS = {
 function runSteps(steps, scopeFor, ctx, prefix, notes) {
   for (const step of steps) {
     const where = `${prefix}/${step.id}`;
+    if (step.style !== undefined && step.style !== ctx.style) continue; // a step for one link style only (its anchor or its text names a link in that style)
     const scope = scopeFor(step);
     if (step.op === 'group') {
       runSteps(step.steps, () => scope, ctx, where, notes);

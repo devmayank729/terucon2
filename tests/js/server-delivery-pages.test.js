@@ -140,7 +140,7 @@ describe('a page answered from dist/', () => {
   test('the headers site.json adds to a page are still added', async () => {
     const r = await app.get('/design-studio', { ...member.headers, 'Accept-Encoding': 'gzip' });
     assert.equal(r.status, 200);
-    assert.equal(r.headers['permissions-policy'], 'camera=(self), microphone=(), geolocation=()');
+    assert.equal(r.headers['permissions-policy'], 'camera=(self), microphone=(self), geolocation=()', 'the studio page lets its own page use the microphone: TeruBot (dictation and Talk) is on this page like on every other');
     assert.equal(zlib.gunzipSync(r.buffer).toString('utf8'), pageText('studio'));
   });
 

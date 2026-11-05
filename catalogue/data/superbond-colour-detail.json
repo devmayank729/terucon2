@@ -1,0 +1,1022 @@
+{
+ "_comment": "Written by tools/describe-designs.js from the studio field of the MongoDB items: what Gemini saw in each design's picture. Appearance only. Do not edit by hand.",
+ "catalogue": "superbond-colour",
+ "designs": {
+  "TIPL-CMT6001": {
+   "look": "A rich rust-orange and terracotta surface dappled with dense, dark charcoal-brown mottling. It has the textured, organic look of weathered or rusted metal with a subtle matte finish.",
+   "render": "Render a dense, mottled surface mixing vibrant rust orange and deep terracotta with dark charcoal-brown speckles. The marks are finely stippled and sponge-like, randomly clustered across the entire area with no directional flow. Dark charcoal patches overlap and interlock with the lighter warm-orange base, creating a rough, oxidized patina. The surface has an even, matte finish without gloss or directional veining, presenting a continuous, weathered mineral texture.",
+   "pattern": "mottled sponge texture",
+   "sheen": "matte",
+   "grain": "none",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "rust orange",
+    "terracotta",
+    "charcoal brown"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772323954
+  },
+  "TIPL-CMT6002": {
+   "look": "A rusted, weathered surface in deep terracotta and burnt orange tones, covered with dark, corroded blotches and scattered dark brown speckles.",
+   "render": "Render a rich rust-like decorative finish over a warm terracotta and deep burnt-orange background. Layer dense, irregular patches of dark charcoal and blackened-brown corrosion across the field. Add scattered rounded spots and dark pitted flecks of various sizes, blending into soft cloudy smudges and raw oxidized textures. Keep the surface completely non-directional with a flat, matte appearance, showing high contrast between the vibrant orange base and the deeply tarnished, decayed dark markings.",
+   "pattern": "corroded rust mottling",
+   "sheen": "matte",
+   "grain": "none",
+   "scale": "medium",
+   "relief": "fine texture",
+   "colours": [
+    "terracotta orange",
+    "rust brown",
+    "charcoal black"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772323496
+  },
+  "TIPL-CMT6003": {
+   "look": "A warm, mottled surface featuring bright orange sponge-like stippling over a pale beige background. The texture has a painterly, abstract feel with random coverage.",
+   "render": "Render a smooth, flat decorative wall surface with a two-tone sponge or stippled finish. The base layer is a solid, warm pale beige. On top, apply a dense, irregular scattering of bright orange and terracotta pigment resembling textured sea-sponge dabbing or fine spray. The orange marks form irregular, broken clusters and speckles with soft, granulated edges, leaving patches of the beige background visible throughout. Distribute the mottling evenly across the entire surface with no directional flow or strong contrast jumps.",
+   "pattern": "sponged stipple",
+   "sheen": "matte",
+   "grain": "random",
+   "scale": "fine",
+   "relief": "flat",
+   "colours": [
+    "bright orange",
+    "pale beige",
+    "terracotta"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772323308
+  },
+  "TIPL-CMT6004": {
+   "look": "A mottled, weathered surface blending muted terracotta rust with cool grey undertones in a dense, granular pattern reminiscent of aged stone or patinated metal.",
+   "render": "Paint a non-directional, densely mottled composite texture of earthy terracotta and cool slate grey. Scatter irregular, cloud-like flecks of pale grey and darker charcoal throughout. Blend the soft reddish-brown patches unevenly across the grey base to simulate aged, weathered stone or oxidised metal. Distribute subtle granular specks and sponge-like dabs across the entire plane with low-to-moderate contrast and a soft matte finish.",
+   "pattern": "mottled stone speckle",
+   "sheen": "matte",
+   "grain": "none",
+   "scale": "medium",
+   "relief": "fine texture",
+   "colours": [
+    "terracotta rust",
+    "medium grey",
+    "pale grey"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772652444
+  },
+  "TIPL-CMT6007": {
+   "look": "A richly weathered copper-orange surface covered with organic mottling, dark rust-toned spots, and antique patinated markings.",
+   "render": "Render a rich, warm surface of deep amber and glowing burnt ochre. Scatter organic clusters of dark rust-brown stippling, blotches, and corroded speckles across the base, denser in some areas and spreading into lighter, cloudy washes. Layer soft, sponge-like abrasions with sharper dark spots to simulate antique metal corrosion or oxidised stone. The tones should blend seamlessly with low to moderate contrast, giving the appearance of an aged, subtly shimmering metallic or satin patina.",
+   "pattern": "mottled patina",
+   "sheen": "satin",
+   "grain": "random",
+   "scale": "medium",
+   "relief": "fine texture",
+   "colours": [
+    "deep amber orange",
+    "burnt ochre",
+    "dark brown rust"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772422256
+  },
+  "TIPL-CMT6008": {
+   "look": "A patinated, oxidised surface featuring an irregular mix of warm rust-orange spots and mottling against a soft, pale verdigris-green background.",
+   "render": "Paint a pale, dusty sage or verdigris-green base with a soft, uniform sheen. Overlay an organic, irregular pattern of warm rust-orange and amber-ochre patches that evoke oxidised or weathered metal. Distribute the rust markings as a mix of fine spatter, stippled clusters, and larger softened droplets across the entire surface. Blend edges between the rust areas and green ground with subtle, semi-translucent halos. Maintain a flat, non-embossed texture with a faint metallic-satin glow across both the green and rusted areas.",
+   "pattern": "mottled oxidation",
+   "sheen": "satin",
+   "grain": "none",
+   "scale": "medium",
+   "relief": "flat",
+   "colours": [
+    "verdigris green",
+    "rust orange",
+    "ochre"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772330876
+  },
+  "TIPL-SB005": {
+   "look": "A warm amber-brown surface featuring a natural wood grain with vertical striations, fine pores, and scattered dark rustic cracks and small knots.",
+   "render": "Render a rich amber-brown wood surface with dominant vertical graining. Layer warm honey undertones with darker golden-brown cathedrals and fine linear fibres running top to bottom. Intersperse slender, dark-brown fissure lines and subtle vertical splits along the grain, accompanied by small pin knots and feathered grain arches. The background has a soft matte finish with low contrast between tonal shifts, accented by sharp, dark linear crevices.",
+   "pattern": "wood grain",
+   "sheen": "matte",
+   "grain": "vertical",
+   "scale": "medium",
+   "relief": "fine texture",
+   "colours": [
+    "amber brown",
+    "warm honey",
+    "dark brown"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772338373
+  },
+  "TIPL-SB008": {
+   "look": "A warm golden-brown wood appearance featuring fine vertical grain lines, subtle linear shading, and small rustic knots. The overall surface offers a smooth, rich timber aesthetic.",
+   "render": "Render a rich timber surface with a dominant warm amber and golden-brown undertone. Paint continuous, straight-to-slightly wavy vertical grain lines in fine dark brown strokes across the entire surface. Introduce subtle vertical bands of lighter honey-caramel tone alongside deeper chestnut shadows to create natural planks of varied depth. Scatter occasional small, diffused dark brown knots and subtle linear fissures vertically along the fibers. Keep contrast soft and blended, finishing with a flat, matte appearance free of high gloss reflections.",
+   "pattern": "wood grain",
+   "sheen": "matte",
+   "grain": "vertical",
+   "scale": "medium",
+   "relief": "flat",
+   "colours": [
+    "warm amber brown",
+    "golden brown",
+    "dark espresso brown"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772345177
+  },
+  "TIPL-SB101": {
+   "look": "A refined grey Prince of Wales glen plaid fabric look with a subtle woven crosshatch grid, offering an elegant tailored appearance.",
+   "render": "Draw a uniform, woven glen plaid suiting pattern on a neutral medium grey background. Form a repeating check layout using thin charcoal grey intersecting lines alongside parallel muted light grey threads. Intersect the bands to form subtle houndstooth-like micro-patterns where the vertical and horizontal stripes cross. The surface features a very fine, fibrous woven textile texture with no shine, producing an even, matte finish with sharp, tailored grid lines.",
+   "pattern": "glen plaid check",
+   "sheen": "matte",
+   "grain": "vertical",
+   "scale": "medium",
+   "relief": "fine texture",
+   "colours": [
+    "medium grey",
+    "light grey",
+    "charcoal grey"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772346440
+  },
+  "TIPL-SB103": {
+   "look": "A regular fluted surface of alternating vertical slats in charcoal grey and dark slate, offering a bold architectural ribbed effect with a subtle satin texture.",
+   "render": "Render a uniform vertical array of narrow, evenly spaced 3D fluted ribs or louvers covering the entire surface. Each slat has a rounded crest that catches the light in soft medium grey, fading evenly into deep charcoal and shaded slate black in the recessed troughs between them. The rhythm is completely straight and parallel without breaks or wood grain. The surface shows a subtle, finely textured satin finish across the continuous peaks and valleys, producing gentle diffuse highlights along the edges.",
+   "pattern": "vertical fluted slats",
+   "sheen": "satin",
+   "grain": "vertical",
+   "scale": "medium",
+   "relief": "embossed",
+   "colours": [
+    "charcoal grey",
+    "deep slate black",
+    "soft medium grey"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772350462
+  },
+  "TIPL-SB104": {
+   "look": "A structured wall surface featuring narrow vertical louvres in a rich warm brown tone, creating an elegant linear rhythm of light and shadow.",
+   "render": "Render a repeating sequence of uniform, slender vertical ridges and deep parallel recesses. The raised face of each lath catches a soft, warm light in caramel brown, while the recessed sides transition smoothly into deep, shadow-filled dark brown. Each slat is straight, continuous, and vertically aligned with crisp edges. The surface finish is completely uniform and velvety matte with no visible gloss or wood grain, maintaining strong depth and geometric clarity across the entire field.",
+   "pattern": "vertical fluted slats",
+   "sheen": "matte",
+   "grain": "vertical",
+   "scale": "medium",
+   "relief": "pronounced texture",
+   "colours": [
+    "warm brown",
+    "dark brown",
+    "caramel brown"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772351017
+  },
+  "TIPL-SB2001": {
+   "look": "A weathered, oxidised metal appearance dominated by deep rust-red and terracotta tones, mottled with patches of verdigris green and warm ochre yellow running vertically.",
+   "render": "Paint a textured background blending rich rust red and burnt orange tones. Layer uneven, streaked vertical patches of pale verdigris turquoise and aged ochre yellow across the surface. Ensure the markings display a soft, weathered patina with feathered edges, simulating oxidised and corroded metal. Add a fine, powdery, granular texture throughout with low contrast transitions between the rusted fields and the pale verdigris undertones. Maintain an even, diffuse matte finish without directional highlights.",
+   "pattern": "mottled weathering",
+   "sheen": "matte",
+   "grain": "vertical",
+   "scale": "medium",
+   "relief": "fine texture",
+   "colours": [
+    "rust red",
+    "terracotta",
+    "verdigris green",
+    "ochre yellow"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772356166
+  },
+  "TIPL-SB2002": {
+   "look": "A weathered, oxidised metal appearance with rich rust orange, verdigris green, and warm ochre tones. Vertical streaks and mottled patches create an aged industrial patina.",
+   "render": "Render a heavily patinated, weathered metal surface featuring layered vertical drips, smudges, and mottled stains. Use deep rust orange and terracotta as dominant undertones, overlaid with patchy washes of dull verdigris green and muted olive ochre. The markings should run vertically in soft, uneven streaks, interspersed with fine speckling and stippled corrosion textures. Maintain a low-contrast, weathered transition between the warm coppery hues and cool green oxidation, keeping the surface flat and non-reflective with a dry, chalky matte finish.",
+   "pattern": "mottled rust streaks",
+   "sheen": "matte",
+   "grain": "vertical",
+   "scale": "medium",
+   "relief": "fine texture",
+   "colours": [
+    "rust orange",
+    "verdigris green",
+    "olive brown",
+    "mustard ochre"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772356168
+  },
+  "TIPL-SB2003": {
+   "look": "A deep forest green surface with an aged patina of oxidized bronze speckles, fine scratches, and mottled rust-brown undertones.",
+   "render": "Paint a background of rich forest green and muted olive with subtle tonal clouds. Scatter clusters of fine rust-brown stippling, oxidized speckles, and worn scuff marks across the surface. Layer fine, faint directional scratches and smudges randomly across the plane. Add soft patches of lighter sage green to suggest wear, creating a weathered, verdigris-style patina with a flat, matte finish.",
+   "pattern": "mottled oxidized patina",
+   "sheen": "matte",
+   "grain": "random",
+   "scale": "medium",
+   "relief": "fine texture",
+   "colours": [
+    "forest green",
+    "deep olive green",
+    "rusty brown",
+    "sage green"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772362149
+  },
+  "TIPL-SB2004": {
+   "look": "A deep charcoal and slate-grey surface with a weathered, textured look reminiscent of aged concrete or charred timber. Soft vertical brush-like streaks and mottled tonal shifts give it depth.",
+   "render": "Render a moody, dark charcoal to ashen-grey surface with broad, cloudy tonal variations. Paint subtle, broken vertical drag marks and mottled trowel-like patches, layering lighter slate-grey washes over a deep matte-black base. Incorporate faint, hairline crack-like lines running predominantly vertically across the surface. Ensure the contrast remains soft and muted, producing a hazy, weathered plaster or burnt timber effect with zero shine and an even, micro-stippled matte finish.",
+   "pattern": "weathered stucco texture",
+   "sheen": "matte",
+   "grain": "vertical",
+   "scale": "large",
+   "relief": "fine texture",
+   "colours": [
+    "dark charcoal grey",
+    "slate grey",
+    "ashen black"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772363151
+  },
+  "TIPL-SB2005": {
+   "look": "A weathered, industrial surface blending warm titanium and pewter tones with dark charcoal patches, featuring subtle vertical brushing and a mottled patina.",
+   "render": "Render a mottled metallic surface with a predominant vertical wash. Layer an aged titanium and warm pewter base with distressed, smoky charcoal streaks running vertically. Concentrate the darker, oxidised markings towards the flanks and lower zones, leaving softer diffused tones through the central and upper sections. Include fine, worn vertical striations and stippled abrasions that blur organically into the lighter fields. Give the surface a subtle satin metallic sheen that catches light unevenly across the textured, weathered patina.",
+   "pattern": "weathered patina streaks",
+   "sheen": "satin",
+   "grain": "vertical",
+   "scale": "medium",
+   "relief": "fine texture",
+   "colours": [
+    "titanium grey",
+    "charcoal grey",
+    "pewter",
+    "bronze undertones"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772368590
+  },
+  "TIPL-SB2006": {
+   "look": "A deep charcoal-black surface overlaid with dense, irregular stippling and faint hairline fissures in dark slate grey, creating a weathered, cast-iron metal appearance.",
+   "render": "Render a dark charcoal-black matte surface covered in a dense, granular pattern of lighter slate-grey flecks and mottled stippling. Scatter fine, irregular speckles evenly across the surface with low tonal contrast, giving the impression of sandblasted or pitted metal. Introduce a few faint, sporadic hairline fracture lines that wander irregularly through the lower section without dominant direction. Maintain a uniformly flat, unreflective sheen with subtle microscopic tactile grain.",
+   "pattern": "mottled stipple texture",
+   "sheen": "matte",
+   "grain": "none",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "dark charcoal",
+    "slate grey",
+    "matte black"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772370331
+  },
+  "TIPL-SB3001": {
+   "look": "A warm, uniform copper tone with an extremely fine metallic shimmer and subtle grain.",
+   "render": "Render a seamless, uniform surface in a warm copper tone with soft terracotta and rose-gold undertones. Cover the entire field with a microscopic, evenly distributed stippled grain that catches light with a soft metallic glow. Keep tonal variations completely smooth and diffuse, with no sharp lines, veins, or directional brush marks. The finish should look gently pearlescent with an ultra-fine tactile micro-texture across the whole plane.",
+   "pattern": "plain colour",
+   "sheen": "metallic",
+   "grain": "none",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "warm copper",
+    "terracotta peach",
+    "rose gold"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772375834
+  },
+  "TIPL-SB3002": {
+   "look": "A warm oxidized copper appearance combining earthy brown tones with subtle greyish undertones. A dense, stippled micro-texture covers faint, cloudy underlying mottling.",
+   "render": "Render a background of warm copper brown blended with soft, irregular clouds of cool slate grey. Layer a fine, dense stippling of lighter tan speckles across the entire surface, creating a granulated texture. Include faint, hairline crackle lines that randomly wander across the plane, partially obscured by the stipple. Maintain low to moderate contrast across the composition, presenting an aged, matte metallic patina without specular glare.",
+   "pattern": "mottled stipple",
+   "sheen": "matte",
+   "grain": "random",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "warm copper brown",
+    "slate grey",
+    "tan"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772375455
+  },
+  "TIPL-SB3003": {
+   "look": "A weathered, verdigris copper surface featuring patches of chalky turquoise-green beneath stippled areas of warm, muted tan-copper tones with a matte finish.",
+   "render": "Create an oxidized, aged copper surface dominated by a soft, matte patina. Blend an underlying base of weathered teal and chalky turquoise-green with an overlay of warm, powdery tan-copper. Distribute the copper-tan layer as dense, fine stippling across the lower area, gradually giving way to vertical streaks and worn exposed patches of turquoise higher up. Ensure the transition between the oxidized green and the metallic tan is soft, uneven, and organic, replicating natural weathering with subtle, low-contrast variations.",
+   "pattern": "oxidized metal patina",
+   "sheen": "matte",
+   "grain": "vertical",
+   "scale": "large",
+   "relief": "fine texture",
+   "colours": [
+    "muted turquoise green",
+    "warm tan copper",
+    "soft olive grey"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772382373
+  },
+  "TIPL-SB3004": {
+   "look": "A smooth, uniform surface in muted greenish olive and dark greyish bronze tones with a soft, brushed metallic lustre.",
+   "render": "Create an even, uniform surface in a dark olive-toned charcoal and titanium bronze. Blend the subtle warm undertones across the plane with extremely low contrast and no visible pattern or grain. Introduce a diffuse, satin metallic sheen that catches soft light across its smooth face. Keep the surface completely flat with a micro-fine pearlescent lustre, free of veins, speckles, or brushed lines.",
+   "pattern": "plain colour",
+   "sheen": "metallic",
+   "grain": "none",
+   "scale": "fine",
+   "relief": "flat",
+   "colours": [
+    "dark olive grey",
+    "muted bronze"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772380868
+  },
+  "TIPL-SB621": {
+   "look": "A warm, natural wood look featuring rich caramel and honey tones, marked by prominent vertical grain, soft arches, and knot details.",
+   "render": "Render a rich wood plank surface in warm golden honey and caramel brown tones. Draw long, fluid vertical grain lines running continuously from top to bottom, curving around knots and forming elongated cathedral arches. Incorporate prominent dark brown split lines, fissures, and circular knot eyes with radiating concentric rings. Overlay a dense, fine linear texture across the planks mimicking natural timber pores. Maintain medium contrast with a low-sheen, matte finish and soft, non-reflective highlights.",
+   "pattern": "wood grain",
+   "sheen": "matte",
+   "grain": "vertical",
+   "scale": "large",
+   "relief": "fine texture",
+   "colours": [
+    "warm caramel brown",
+    "golden honey",
+    "dark brown"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772393093
+  },
+  "TIPL-SB625": {
+   "look": "A warm amber and caramel wood look with fine, straight vertical grain and darker espresso streaks running throughout.",
+   "render": "Draw a smooth vertical timber surface dominated by warm caramel and amber brown tones. Layer densely packed, fine vertical grain lines running from top to bottom. Intersperse prominent, soft-edged streaks of dark espresso brown alongside lighter honey-tan highlights to create natural plank variation. The flowing grain lines should remain mostly parallel with subtle waviness and fine linear splits. Apply a uniform satin sheen across the wood with delicate, microscopic linear pore texture.",
+   "pattern": "wood grain",
+   "sheen": "satin",
+   "grain": "vertical",
+   "scale": "medium",
+   "relief": "fine texture",
+   "colours": [
+    "warm caramel brown",
+    "amber brown",
+    "dark espresso brown",
+    "honey tan"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772388662
+  },
+  "TIPL-SB8001": {
+   "look": "A dramatic stone-like surface blending deep charcoal and slate blue with rich beige and cream striations. Layered, flowing mineral bands give it a dynamic, natural geological appearance.",
+   "render": "Render a layered geological stone pattern dominated by a wide, sweeping diagonal band of dark charcoal and slate blue. Across the top and lower sections, blend in broad patches of warm beige and jagged ribbons of creamy white containing tiny rusty specks. Through the central dark field, paint fine, undulating veins and striations of light grey, soft brown, and muted tan running diagonally. In the lower corners, introduce mottled, crystalline white and silver-grey flecks with high contrast against the dark background. The surface should have a subtle satin luster with micro-fine mineral texture.",
+   "pattern": "marble-like veining",
+   "sheen": "satin",
+   "grain": "diagonal",
+   "scale": "large",
+   "relief": "fine texture",
+   "colours": [
+    "slate blue",
+    "charcoal black",
+    "warm beige",
+    "creamy white"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772394735
+  },
+  "TIPL-SB8002": {
+   "look": "A dramatic grey stone look featuring bold, jagged fissures and intricate mineral veining. Mottled pale grey and charcoal tones give the surface a rugged, dynamic presence.",
+   "render": "Render a rugged natural stone surface in shades of medium and light grey. Break up the background with prominent, jagged diagonal fissures in dark charcoal that branch into finer, webbed cracks. Layer in mottled patches of pale grey and washed-out off-white to create an uneven, fractured stone topography. Add subtle granular mineral speckling and micro-fissures throughout the lighter sections. Keep the overall finish completely matte with no glossy reflections, accentuating the dry, weathered rock appearance.",
+   "pattern": "marble-like veining",
+   "sheen": "matte",
+   "grain": "diagonal",
+   "scale": "large",
+   "relief": "fine texture",
+   "colours": [
+    "mid grey",
+    "light grey",
+    "charcoal",
+    "off-white"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772405341
+  },
+  "TIPL-SB801": {
+   "look": "A warm cream surface with soft, vertical banded striations and delicate porous-looking fissures, resembling vein-cut sedimentary stone.",
+   "render": "Render a uniform warm cream base overlaid with vertical, soft-edged striations in pale sandy beige and light ochre. Paint these banded layers running parallel from top to bottom, with subtle density shifts and gentle blending across the bands. Intersperse slender, intermittent vertical fissures and tiny pitting effects that track along the grain direction. Keep contrast low and subtle between the creamy ground and the slightly deeper beige bands. The finish is completely matte with no gloss highlights, featuring a faint, micro-granular surface texture.",
+   "pattern": "linear sedimentary veining",
+   "sheen": "matte",
+   "grain": "vertical",
+   "scale": "medium",
+   "relief": "fine texture",
+   "colours": [
+    "warm cream",
+    "sandy beige",
+    "light ochre"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772406173
+  },
+  "TIPL-SB804": {
+   "look": "A rich dark brown marble look dense with complex, web-like pale beige and white veins. The appearance is polished, dramatic, and intricately fractured.",
+   "render": "Render a dense, polished dark marble surface with a deep espresso-brown and charcoal field. Interlace the entire surface with an intricate, irregular brecciated network of fine and medium veins in creamy white and light caramel beige. Include jagged, branching cracks that cross and cluster, creating fractured mosaic-like stone fragments with sharp tonal transitions. Blend softer, smoky beige clouds behind the sharpest white vein lines to give depth. Ensure a smooth, reflective gloss finish across the entire plane with high-contrast, organic movement throughout.",
+   "pattern": "intricate marble veining",
+   "sheen": "gloss",
+   "grain": "random",
+   "scale": "medium",
+   "relief": "flat",
+   "colours": [
+    "deep espresso brown",
+    "warm beige",
+    "creamy white",
+    "charcoal"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772413534
+  },
+  "TIPL-SB825": {
+   "look": "A pale grey and off-white marble look defined by prominent, jagged charcoal veins running diagonally across a finely textured mineral ground.",
+   "render": "Render a dense marble stone texture dominated by pale grey and misty off-white tones. Draw sharp, jagged, fragmented dark charcoal veins running primarily in a parallel diagonal direction from bottom left to top right. Intersperse with finer, hairline fractures and web-like branching lines that weave through the background. Blend soft cloudy patches of mid-grey alongside crisp, pale white fissures flanking the dark lines. Give the surface a smooth, flat look with a subtle low-sheen satin finish across the entire mineral surface.",
+   "pattern": "marble veining",
+   "sheen": "satin",
+   "grain": "diagonal",
+   "scale": "medium",
+   "relief": "flat",
+   "colours": [
+    "light grey",
+    "charcoal grey",
+    "off-white"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772413194
+  },
+  "TIPL-SB826": {
+   "look": "A pale, creamy-white marble look covered in a dense network of fine, dark charcoal fractures and branching veins running vertically.",
+   "render": "Render a pale off-white and warm light grey stone ground with subtle tonal clouding. Paint an intricate, dense web of fine, sharp, thread-like charcoal veins running predominantly vertical and steeply diagonal. Let the veins splinter, crack, and branch sharply across the surface, with faint shadow halos in soft grey flanking the crispest lines. The surface should appear smooth, flat, and uniform with an understated satin sheen across the pale stone.",
+   "pattern": "fine veined marble",
+   "sheen": "satin",
+   "grain": "vertical",
+   "scale": "medium",
+   "relief": "flat",
+   "colours": [
+    "off-white",
+    "charcoal grey",
+    "pale grey"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772421825
+  },
+  "TIPL-SB828": {
+   "look": "A deep solid black surface striking with bold, crisp diagonal veins in warm copper-orange and fine hairline white cracks.",
+   "render": "Render an opaque, deep jet-black flat field. Trace several long, sharp, intersecting diagonal veins cutting diagonally across the canvas. Make the most prominent veins a distinct warm copper-orange with subtly jagged, organic edges. Add thinner, secondary hair-thin straight cracks in sharp white that run along the same diagonal angles. Keep the contrast extremely high between the dark solid background and the vivid, clean linear fissures, with no shading or mottling in the black area.",
+   "pattern": "marble-like veining",
+   "sheen": "satin",
+   "grain": "diagonal",
+   "scale": "large",
+   "relief": "flat",
+   "colours": [
+    "solid black",
+    "warm copper-orange",
+    "bright white"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772418466
+  },
+  "TIPL-SB829": {
+   "look": "A warm taupe-brown marble look patterned with fine, jagged white and pale grey veins traversing across a smooth, polished stone field.",
+   "render": "Create an earthy taupe-brown polished stone background with subtle tonal shifts between milk chocolate and warm medium grey. Overlay crisp, bright white and faint grey hairline veins running diagonally from upper right to lower left. Several prominent long veins cut across the surface, flanked by delicate, spidery crackle lines and wispy calcite trails. Keep the base stone smooth with faint crystalline mottling and an even, reflective polish.",
+   "pattern": "marble-like veining",
+   "sheen": "gloss",
+   "grain": "diagonal",
+   "scale": "medium",
+   "relief": "flat",
+   "colours": [
+    "taupe brown",
+    "warm grey-brown",
+    "bright white"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772425312
+  },
+  "TIPL-SB830": {
+   "look": "A crisp white marble look patterned with branching grey veining that runs diagonally across a smooth, matte surface.",
+   "render": "Draw a bright, solid white field with dramatic diagonal veining running from the lower left to upper right. Render the veins with jagged, feathered charcoal grey contours containing softer mid-grey shading inside. Break the veins into branching tributaries, jagged forks, and narrow tendrils, leaving open spaces of clean white between the clusters. Keep the surface completely flat and matte, with high contrast between the crisp background and the complex, stippled grey streaks.",
+   "pattern": "marble-like veining",
+   "sheen": "matte",
+   "grain": "diagonal",
+   "scale": "large",
+   "relief": "flat",
+   "colours": [
+    "white",
+    "charcoal grey",
+    "pale grey"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772431627
+  },
+  "TIPL-SB902": {
+   "look": "A vibrant terracotta red surface featuring delicate, linear wood grain textures running vertically with subtle variations in tone.",
+   "render": "Fill the surface with a saturated terracotta red base. Apply dense, fine vertical grain streaks in slightly darker shades of rust and reddish brown, creating subtle tone variations across the plane. Weave in very fine, low-contrast feathering and faint directional fibers that flow vertically with soft irregularities. Keep the tonal shifts gentle without stark contrast or distinct knots. Give the surface a soft satin sheen with visible microscopic grain texture across the plane.",
+   "pattern": "wood grain",
+   "sheen": "satin",
+   "grain": "vertical",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "vibrant terracotta red",
+    "rust orange",
+    "deep reddish brown"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772435041
+  },
+  "TIPL-SB905": {
+   "look": "A rich, exotic dark wood look featuring deep espresso and black tones contrasted by warm reddish-brown vertical grain lines with subtle tactile pores.",
+   "render": "Render a dark, exotic hardwood surface with prominent linear vertical grain. Lay down a deep charcoal and espresso brown base. Draw dense, straight and slightly wavering streaks of warm reddish-brown and caramel running top to bottom. Create high contrast between the broad near-black bands and the thinner, fibrous warm brown highlights. Add fine, open-pore linear micro-textures etched into the surface along the grain, giving it a soft satin sheen without sharp glare.",
+   "pattern": "linear wood grain",
+   "sheen": "satin",
+   "grain": "vertical",
+   "scale": "medium",
+   "relief": "fine texture",
+   "colours": [
+    "dark espresso brown",
+    "black",
+    "warm reddish brown",
+    "caramel brown"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772431692
+  },
+  "TIPL-SB910": {
+   "look": "A warm reddish-brown wood grain with prominent vertical grain lines and subtle knots, offering a classic timber appearance with a soft satin finish.",
+   "render": "Render a rich reddish-brown wood surface with vertical grain flow. Use a blend of warm amber undertones and deep espresso brown linear graining. Feature cathedral-like flowing arches and small, elongated wood knots interspersed among fine, dense vertical striations. Maintain soft, organic transitions between the darker streaks and the lighter auburn base. Give the overall finish an even, low-sheen satin quality with smooth texture across the entire surface.",
+   "pattern": "wood grain",
+   "sheen": "satin",
+   "grain": "vertical",
+   "scale": "medium",
+   "relief": "flat",
+   "colours": [
+    "reddish brown",
+    "warm amber",
+    "dark espresso brown"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772437754
+  },
+  "TIPL-SB912": {
+   "look": "A warm natural wood-grain surface in medium caramel and tan tones, accented by distinct vertical dark brown linear graining and open pore marks.",
+   "render": "Render a natural wood surface featuring warm caramel brown and medium tan as the base background. Overlay prominent vertical wood grain with fine, dark brown linear fibers running top to bottom. Intersperse darker, softly wavy grain lines alongside dense, tiny dashed pores throughout the timber pattern. Keep the contrast gentle between the golden-brown base and the deeper brown grain accents, with a non-reflective, flat matte finish that displays subtle open-pore texture.",
+   "pattern": "wood grain",
+   "sheen": "matte",
+   "grain": "vertical",
+   "scale": "medium",
+   "relief": "fine texture",
+   "colours": [
+    "medium tan",
+    "warm caramel brown",
+    "dark brown"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772438935
+  },
+  "TIPL-SB913": {
+   "look": "A linear wood-grain surface with pale taupe-brown and beige tones, filled with dense, fine vertical pores and subtle striping.",
+   "render": "Draw an open-pore, straight-grained wood surface in muted taupe and warm grey-beige. Render prominent, soft-edged vertical grain bands with low-to-medium contrast alternating across the surface. Populate the entire field with countless fine, short, dark brownish-grey pore striations aligned strictly vertically. Keep the transitions soft and natural without knots or high-contrast growth rings. The finish is completely matte, revealing subtle tactile micro-grooves along the pores.",
+   "pattern": "linear wood grain",
+   "sheen": "matte",
+   "grain": "vertical",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "taupe brown",
+    "pale beige",
+    "warm grey"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772441080
+  },
+  "TIPL-SB915": {
+   "look": "A warm reddish-amber surface with a fine, natural wood-grain look and a soft satin sheen.",
+   "render": "Render a continuous wood grain pattern flowing vertically across the surface in rich, warm reddish-amber tones. Paint long, slender vertical grain lines and subtle cathedral arches using darker rust-brown strokes against a lighter copper-amber base. Keep the lines finely detailed, dense, and slightly wavy, with low to moderate contrast for a smooth, cohesive appearance. Add micro-fine vertical pore ticks distributed evenly along the flow. The surface should have a consistent, low-luster satin sheen with a very subtle tactile linear texture.",
+   "pattern": "wood grain",
+   "sheen": "satin",
+   "grain": "vertical",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "reddish brown",
+    "warm amber",
+    "dark rust brown"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772449180
+  },
+  "TIPL-SB920": {
+   "look": "A warm teak-toned wood look with fine, straight vertical grain and subtle tonal striping.",
+   "render": "Render a smooth, flat decorative surface with a warm golden-brown base tone overlaid with dense, straight vertical wood grain. Draw continuous fine lines and elongated streaks running strictly parallel from top to bottom in dark brown and amber shades. Incorporate soft vertical bands of lighter honey brown alternating with slightly deeper tones to give subtle natural depth. Keep the grain lines narrow, closely spaced, and gently blended with low-to-medium contrast, avoiding prominent knots or swirls. The overall finish is uniform and matte.",
+   "pattern": "wood grain",
+   "sheen": "matte",
+   "grain": "vertical",
+   "scale": "fine",
+   "relief": "flat",
+   "colours": [
+    "warm golden brown",
+    "medium amber brown",
+    "dark brown"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772444872
+  },
+  "TIPL-SB921": {
+   "look": "A warm golden-honey wood grain look with dense, fine vertical graining. The surface appears flat with a subtle matte finish and uniform, linear texture.",
+   "render": "Render a uniform warm golden honey wood surface with a continuous, dense vertical grain pattern. Paint fine, delicate linear streaks running parallel from top to bottom with subtle wavy variations and gentle tapering. The tonal contrast between the warm amber base and the slightly darker caramel and lighter ochre grain lines should remain low and harmonious. Ensure the texture is finely blended across the entire surface without any knots, whorls, or harsh contrasts, capturing an even matte appearance.",
+   "pattern": "straight wood grain",
+   "sheen": "matte",
+   "grain": "vertical",
+   "scale": "fine",
+   "relief": "flat",
+   "colours": [
+    "golden honey brown",
+    "warm amber",
+    "light ochre"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772447427
+  },
+  "TIPL-SB922": {
+   "look": "A pale, warm blonde wood look with fine vertical graining and scattered small, soft knots. The surface has a smooth, understated, natural appearance.",
+   "render": "Draw a pale blonde wood surface oriented vertically. Paint very subtle, straight to gently wavy vertical grain lines in soft warm cream and light tan, blending smoothly against a pale beige base. Scatter small, organic wood knots across the plane, featuring concentrated brownish-tan centers with delicate concentric grain contours looping around them. Maintain low overall contrast with smooth transitions, giving a soft, matte timber effect with no harsh shadows or glossy reflections.",
+   "pattern": "wood grain",
+   "sheen": "matte",
+   "grain": "vertical",
+   "scale": "medium",
+   "relief": "flat",
+   "colours": [
+    "blonde beige",
+    "warm cream",
+    "light tan"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772451755
+  },
+  "TIPL-SB923": {
+   "look": "A vibrant macassar wood look with rich amber tones and stark, dark vertical grain lines, creating an exotic, high-contrast surface.",
+   "render": "Render a rich, golden amber wood background filled with fine, straight vertical fibers in shades of warm honey and caramel. Paint irregular, dark charcoal-brown and deep espresso vertical grain streaks running through the height of the surface. These dark marks vary from wispy hairline fissures to broader, tapered bands that pinch, separate, and rejoin like natural ebony grain. Maintain a sharp, striking contrast between the dark vertical veins and the vibrant warm undertone, with a soft, uniform satin sheen across the entire plane.",
+   "pattern": "wood grain",
+   "sheen": "satin",
+   "grain": "vertical",
+   "scale": "medium",
+   "relief": "flat",
+   "colours": [
+    "golden amber",
+    "warm caramel",
+    "dark charcoal brown"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772470061
+  },
+  "TIPL-SB940": {
+   "look": "A warm, deep walnut wood look with expressive vertical graining, dramatic dark brown pores, and an organic knot feature.",
+   "render": "Render a rich vertical timber surface with a warm medium-brown base. Layer dense, narrow streaks of dark espresso and blackish brown that run vertically across the panel. On one side, introduce a distinct wood knot with concentric arching cathedral grains that bend and flow around an oval core. Scatter fine, porous tick marks across the linear grain lines to create natural timber texture. Maintain a smooth satin sheen with gentle light diffusion across the subtle tactile grain ridges.",
+   "pattern": "wood grain",
+   "sheen": "satin",
+   "grain": "vertical",
+   "scale": "large",
+   "relief": "fine texture",
+   "colours": [
+    "warm medium brown",
+    "dark espresso brown",
+    "blackish brown"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772458077
+  },
+  "TIPL-SB950": {
+   "look": "A warm honey-amber wood look with dense, pronounced vertical grain lines, weathered knots, and deep dark brown fissures.",
+   "render": "Render a rich, warm amber-brown timber surface dominated by dense vertical wood grain. Draw numerous fine, dark espresso-brown striations running top to bottom across the panel. Integrate several weathered vertical splits, dark cracks, and small circular knot clusters with concentric grain curves wrapping around them. Add subtle shifts between warm golden honey tones and darker, shadowy wood pores. Keep the surface finish non-reflective and matte, showing tactile, linear grain ridges throughout.",
+   "pattern": "rustic wood grain",
+   "sheen": "matte",
+   "grain": "vertical",
+   "scale": "medium",
+   "relief": "fine texture",
+   "colours": [
+    "warm amber brown",
+    "dark espresso brown",
+    "golden honey"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772959730
+  },
+  "TIPL-SB960": {
+   "look": "A pale cream oak-look surface with tight, fine vertical wood graining in contrasting dark grey-brown striations across a smooth, flat ground.",
+   "render": "Paint a uniform, flat surface of pale cream-beige. Fill the entire canvas with densely spaced, fine vertical striations resembling straight oak pores and grain lines. These vertical marks should be thin, broken, and varying slightly in length, rendered in a contrasting dark grey-brown tone. Keep the distribution very regular and uniform across the surface without large knots, heavy burls, or swirling arches. The overall appearance is linear, clean, and matte with a subtle organic variation in the spacing of the fine vertical pores.",
+   "pattern": "wood grain",
+   "sheen": "matte",
+   "grain": "vertical",
+   "scale": "fine",
+   "relief": "flat",
+   "colours": [
+    "pale cream",
+    "light beige",
+    "dark grey-brown"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772464837
+  },
+  "TIPL-SBA7001": {
+   "look": "A deep charcoal black surface with an extremely fine, stippled texture that gives off a subtle metallic shimmer.",
+   "render": "Render a uniform, deep charcoal to graphite black base. Distribute microscopic silver-gray metallic specks densely and evenly across the entire surface without any directional flow or grouping. The specks create a continuous, fine stippled grain that catches light with a subtle, granular metallic sheen. Ensure low contrast between the tiny reflective flecks and the dark matte-to-satin background, producing a refined cast-iron or micro-pebbled dark metal effect.",
+   "pattern": "fine speckle",
+   "sheen": "metallic",
+   "grain": "none",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "deep charcoal",
+    "graphite black",
+    "silver gray"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772472932
+  },
+  "TIPL-SBA7002": {
+   "look": "A vibrant, saturated orange surface featuring a very fine, uniform stippled texture with a soft matte finish.",
+   "render": "Render a solid, monochromatic field of warm, vivid orange. Apply an extremely subtle, microscopic granular stipple across the entire surface to simulate a fine pebble or powder-coated texture. Maintain a completely uniform tone with no visible grain, directionality, or distinct colour variation. Diffuse light evenly across the plane with a flat, soft matte sheen and no sharp specular highlights.",
+   "pattern": "plain colour",
+   "sheen": "matte",
+   "grain": "none",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "bright orange",
+    "warm amber orange"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772476721
+  },
+  "TIPL-SBA7003": {
+   "look": "A uniform sage green surface featuring an ultra-fine stippled texture with a soft satin sheen.",
+   "render": "Render an even, monochrome sage green field. Distribute a very fine, granular stipple across the entire surface without any grain or directional orientation. Intersperse microscopic specks of lighter pale green and slightly deeper olive tone to create a pebbled, tactile effect. Maintain a consistent satin finish with delicate, scattered specular pinpricks across the raised micro-texture.",
+   "pattern": "fine stippled speckle",
+   "sheen": "satin",
+   "grain": "none",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "sage green",
+    "pale olive green"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772478349
+  },
+  "TIPL-SBA7004": {
+   "look": "A uniform light beige surface with an ultra-fine stippled texture that gives it a soft, subtle shimmer.",
+   "render": "Create a smooth, uniform surface in a warm, light sand-beige hue. Scatter an extremely dense, microscopic stippling of slightly lighter, translucent pale dots across the entire plane without any clustering or orientation. The contrast between the speckles and background should be very subtle and low. Give the surface a soft satin sheen, catching light evenly across the micro-textured granular finish.",
+   "pattern": "fine speckle",
+   "sheen": "satin",
+   "grain": "none",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "light warm beige",
+    "pale sand"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772482525
+  },
+  "TIPL-SBA7005": {
+   "look": "A warm golden amber surface with a delicate, dense mottling of tiny pale flecks, offering a subtle frosted glass or pearlescent finish.",
+   "render": "Render a uniform, warm amber-gold field completely covered in a dense, randomly scattered stipple of minute, pale cream and soft white flecks. The microscopic speckles blend seamlessly into the warm yellow-ochre undertone without forming clumps or directional streaks. Maintain very low, soft contrast between the flecks and the background base. Incorporate a delicate, even satin sheen with soft micro-textural highlights across the entire surface, creating an appearance similar to frosted glass, fine cast acrylic, or fine shimmer parchment.",
+   "pattern": "fine speckle",
+   "sheen": "satin",
+   "grain": "none",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "amber gold",
+    "pale cream",
+    "warm beige"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772489343
+  },
+  "TIPL-SBA7006": {
+   "look": "A uniform cool grey surface with a finely stippled, pebbled texture that creates subtle light-catching highlights across an all-over cellular grain.",
+   "render": "Paint a seamless, uniform medium cool-grey backdrop covered in a dense, non-directional cellular stipple pattern. Render tiny, rounded pebble-like cells tightly packed across the entire surface. Outline each minute cell with slightly darker grey crevice lines. Highlight the top ridges of the microscopic raised nodules with delicate silver-grey and light grey specks to convey a pebbled tactile relief. Maintain an even, isotropic distribution with no dominant grain direction and a soft satin finish.",
+   "pattern": "pebbled texture",
+   "sheen": "satin",
+   "grain": "none",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "medium grey",
+    "silver grey",
+    "light grey"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772489601
+  },
+  "TIPL-SD5001": {
+   "look": "A deep charcoal-grey surface featuring a very fine, uniform sandy stipple that creates a quiet, subtle stone-like texture with a muted satin sheen.",
+   "render": "Render a solid, uniform field of deep charcoal grey infused with undertones of dark slate brown. Scatter an extremely dense, micro-fine speckling evenly across the entire surface to evoke smooth honed sandstone. Keep contrast minimal, with minute stipples barely shifting in tonal value relative to the base tone. Ensure the distribution has no directionality, lines, or clusters. Apply a soft satin finish that yields a very gentle, subtle sheen without sharp specular highlights.",
+   "pattern": "fine speckle",
+   "sheen": "satin",
+   "grain": "none",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "dark charcoal grey",
+    "deep slate brown",
+    "muted graphite"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772496211
+  },
+  "TIPL-SD5002": {
+   "look": "A warm sandy beige surface with a delicate, fine-grained stippled texture. It features a soft matte appearance reminiscent of fine sand or textured plaster.",
+   "render": "Render a seamless, uniform surface in a warm sandy beige hue. Overlay a very dense, microscopic stipple of pale tan and warm cream granules to create a subtle powdery texture. Ensure the tonal variation is extremely low-contrast, creating an almost monochrome field with delicate micro-flecking throughout. The finish is entirely flat and non-reflective matte with no directional grain or prominent veins.",
+   "pattern": "fine speckle",
+   "sheen": "matte",
+   "grain": "none",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "sandy beige",
+    "pale tan",
+    "warm cream"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772495972
+  },
+  "TIPL-SD5003": {
+   "look": "A warm beige, sand-toned surface with a subtle, fine stippled texture. It presents a uniform, soft appearance with minimal tonal variation.",
+   "render": "Paint a flat, solid surface in a warm beige sand colour. Overlay an extremely dense, micro-fine stipple texture evenly across the whole area. Use minute, barely discernible variations between soft cream and slightly darker sand-beige to create a tactile, granular depth. Keep the tonal contrast very low and non-directional, creating a smooth matte appearance with a subtle sandy micro-relief.",
+   "pattern": "fine stippled speckle",
+   "sheen": "matte",
+   "grain": "none",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "warm beige",
+    "pale sand",
+    "soft cream"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772503238
+  },
+  "TIPL-SD5004": {
+   "look": "A vibrant solid marigold orange surface featuring an extremely fine, stippled sand-like texture across the entire face with a subtle matte sheen.",
+   "render": "Fill the surface with a rich, uniform marigold orange base. Over this, overlay a microscopic, dense stippling of slightly lighter amber and deeper terracotta micro-granules to mimic a fine sand-cast or lightly beaded plastic texture. There are no veins, directional streaks, or distinct shapes. The distribution of speckling is completely isotropic and homogenous across the entire plane, producing an even, non-reflective matte finish with microscopic surface grain.",
+   "pattern": "fine speckle",
+   "sheen": "matte",
+   "grain": "none",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "marigold orange",
+    "warm amber",
+    "terracotta"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772594789
+  },
+  "TIPL-SD5005": {
+   "look": "A subtle, uniform deep olive green surface with an extremely fine sandy texture and soft satin finish.",
+   "render": "Render a seamless, uniform surface in a muted dark olive green. Layer an extremely fine, micro-sand stippling across the plane to create a soft, non-directional textural depth. Maintain consistent, low-contrast coloration throughout with no distinct veining, lines, or blotches. Apply a delicate satin sheen that catches light softly and evenly, diffusing highlights across the subtle granular relief without harsh reflections.",
+   "pattern": "plain colour",
+   "sheen": "satin",
+   "grain": "none",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "deep olive green",
+    "muted moss green",
+    "dark khaki"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772507741
+  },
+  "TIPL-SK4001": {
+   "look": "A smooth, deep charcoal grey surface with a warm undertone and a soft, velvety matte finish. It presents a completely uniform and solid appearance without any visible grain or pattern.",
+   "render": "Render a seamless, flat plane of uniform deep charcoal grey with subtle warm taupe undertones. Apply a smooth, ultra-matte skin-touch finish that absorbs harsh light and diffuses soft illumination evenly across the surface. Ensure there are no veins, marbling, speckles, wood grain, or texture marks. The colour must remain completely solid and consistent from edge to edge with a clean, contemporary appearance.",
+   "pattern": "plain colour",
+   "sheen": "matte",
+   "grain": "none",
+   "scale": "fine",
+   "relief": "flat",
+   "colours": [
+    "charcoal grey",
+    "dark slate",
+    "warm dark grey"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772513036
+  },
+  "TIPL-SK4002": {
+   "look": "A warm, uniform sand-yellow surface with an ultra-fine, velvety matte appearance. It offers an even, soft monochrome look with almost imperceptible micro-variations.",
+   "render": "Render a completely uniform flat surface in a soft, warm sand yellow tone. Disperse extremely subtle, near-invisible micro-tonal variations to create a soft, non-reflective matte finish resembling smooth plaster or paper. Ensure there are no visible veins, grain, or directional lines, keeping the colour consistent and non-contrasting throughout. The surface should absorb light evenly with zero specular highlights, gloss, or metallic shine.",
+   "pattern": "plain colour",
+   "sheen": "matte",
+   "grain": "none",
+   "scale": "fine",
+   "relief": "flat",
+   "colours": [
+    "sand yellow",
+    "pale beige",
+    "warm ochre"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772518777
+  },
+  "TIPL-SK4003": {
+   "look": "A smooth, ultra-minimal surface in a warm cream tone. It presents a completely solid, uniform appearance with a soft matte touch.",
+   "render": "Render a perfectly smooth, untextured plane in an even, warm cream colour. Keep the tone consistent across the entire surface with virtually no variation, grain, or visible brushwork. The finish is non-reflective and completely matte, scattering ambient light evenly with no specular highlights. The surface should read as a seamless, flat, monochrome architectural finish.",
+   "pattern": "plain colour",
+   "sheen": "matte",
+   "grain": "none",
+   "scale": "fine",
+   "relief": "flat",
+   "colours": [
+    "warm cream",
+    "soft ivory",
+    "pale beige"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772524014
+  },
+  "TIPL-SK4004": {
+   "look": "A smooth, uniform surface in a warm caramel brown tone with subtle leather-like tactile depth and a low-sheen finish.",
+   "render": "Render a uniform, warm caramel-brown surface with an ultra-fine, even leatherette or skin-like stipple across the entire plane. The coloration is completely solid and homogeneous with no veining, mottling, or visible grain direction. Reflect light with a soft, diffuse matte sheen that reveals only microscopic surface irregularities. Maintain a smooth, monolithic appearance with gentle warmth throughout.",
+   "pattern": "plain colour",
+   "sheen": "matte",
+   "grain": "none",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "caramel brown",
+    "warm beige",
+    "tan"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772529144
+  },
+  "TIPL-STC9050": {
+   "look": "A heavily mottled rust-like surface blending warm terracotta, rich amber, and dark brown speckles into an earthy, weathered texture.",
+   "render": "Render an all-over, densely stippled surface reminiscent of oxidized corten steel or weathered stone. Blend an uneven base of warm rust orange, soft terracotta, and pale ochre patches. Layer very fine, chaotic speckles and granular flecks of deep umber and dark brown across the entire field. The speckles cluster naturally in some spots to create darker, rougher zones while leaving other areas slightly lighter. Maintain a flat, unreflective matte finish with a subtle tactile grit throughout, completely free of any directional grain or linear veining.",
+   "pattern": "mottled rust speckle",
+   "sheen": "matte",
+   "grain": "random",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "rust orange",
+    "terracotta",
+    "dark brown",
+    "pale ochre"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772536911
+  },
+  "TIPL-STC9067": {
+   "look": "A heavily mottled rust-red and charcoal surface with a dense, stippled texture resembling weathered stone or oxidised metal.",
+   "render": "Render an intricate, high-density mottled texture combining vibrant rust red, terracotta, and deep charcoal black over a pale peach undertone. Scatter irregular, sponge-like and speckle-shaped flecks across the surface with no dominant direction. Layer fine black granulations tightly alongside rich fiery orange-red splotches to create a stippled, worn appearance. Keep the overall texture matte and powdery without any sheen, maintaining sharp high contrast between the deep shadowy charcoal specks and the warm red tones.",
+   "pattern": "dense mottled speckle",
+   "sheen": "matte",
+   "grain": "random",
+   "scale": "fine",
+   "relief": "fine texture",
+   "colours": [
+    "rust red",
+    "charcoal black",
+    "terracotta orange",
+    "pale peach"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772544671
+  },
+  "TIPL-STC9092": {
+   "look": "A weathered, industrial concrete look with fine fissures and mottling. Ash-grey tones mix with charcoal distressing across a raw, matte surface.",
+   "render": "Render a distressed, weathered cement surface in shades of medium grey, ash, and charcoal. Blend cloudy, irregular patches of lighter concrete with darker mottled distressing. Include thin, delicate vertical hairline fissures and micro-cracks that wander and branch subtly down the surface. Add rough, stippled abrasions and subtle vertical wiping marks across the composition. Keep the overall contrast moderate, creating an authentic industrial finish entirely flat and matte with no gloss or metallic highlights.",
+   "pattern": "distressed concrete texture",
+   "sheen": "matte",
+   "grain": "vertical",
+   "scale": "medium",
+   "relief": "fine texture",
+   "colours": [
+    "medium grey",
+    "ash grey",
+    "charcoal grey",
+    "off-white"
+   ],
+   "model": "gemini-3.8-flash",
+   "generatedAt": 1793772612908
+  }
+ }
+}

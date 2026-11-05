@@ -40,7 +40,7 @@ describe('status', () => {
       const me = await app.signIn();
       const status = await app.get('/api/catalogue/status', me.headers);
       assert.equal(status.status, 200);
-      assert.deepEqual(status.json(), { enabled: false, ready: false, reasons: ['modal-not-configured'], default: null, catalogues: [], limits: { maxPhotoBytes: 6 * 1024 * 1024, maxSide: 1024 }, profile: 'fast' });
+      assert.deepEqual(status.json(), { enabled: false, ready: false, reasons: ['modal-not-configured'], default: null, catalogues: [], limits: { maxPhotoBytes: 6 * 1024 * 1024, maxSide: 1024 }, profile: 'balanced' });
       for (const [method, path, body] of [['POST', '/api/catalogue/warm', {}], ['POST', '/api/catalogue/search-text', { text: 'oak' }]]) {
         const r = await app.request(path, { method, headers: me.headers, body });
         assert.equal(r.status, 503, path);
@@ -121,7 +121,7 @@ describe('status', () => {
     const ready = await startCatalogueApp({ seed: { hidden: [ids[0], ids[1]] } });
     try {
       const s = (await ready.status()).json();
-      assert.deepEqual([s.enabled, s.ready, s.reasons, s.default, s.profile], [true, true, [], SEED_CATALOGUE, 'fast']);
+      assert.deepEqual([s.enabled, s.ready, s.reasons, s.default, s.profile], [true, true, [], SEED_CATALOGUE, 'balanced']);
       assert.deepEqual(s.catalogues, [{ id: SEED_CATALOGUE, name: 'Demo materials', kind: 'materials', items: 10 }], 'hidden designs are not counted');
       assert.deepEqual(s.limits, { maxPhotoBytes: 6 * 1024 * 1024, maxSide: 1024 });
     } finally {
@@ -176,7 +176,7 @@ describe('a photo search', () => {
       assert.ok(first.scores.final > body.items[3].scores.final, 'best first');
       assert.deepEqual(first.attributes, {});
       assert.deepEqual(Object.keys(body.query).sort(), ['dominantHex', 'preprocessing', 'profile', 'signals', 'timingsMs']);
-      assert.deepEqual([body.query.preprocessing, body.query.profile, body.query.signals], ['center_crop', 'fast', ['dino_image', 'siglip_image', 'color_image']]);
+      assert.deepEqual([body.query.preprocessing, body.query.profile, body.query.signals], ['center_crop', 'balanced', ['dino_image', 'siglip_image', 'color_image']]);
       assert.equal(typeof body.query.timingsMs.total, 'number');
       assert.deepEqual(body.warnings, []);
       assert.equal(JSON.stringify(body).includes('%'), false, 'a score is never turned into a percentage');
@@ -203,6 +203,59 @@ describe('a photo search', () => {
       assert.ok(c.fake.requests.every((r) => r.authorized && r.contentType === 'image/jpeg'));
       const colour = await c.photo(makeJpeg(), { query: 'mode=colour&k=1' });
       assert.deepEqual(Object.keys(colour.json().items[0].scores.signals), ['color_image']);
+    } finally {
+      await c.stop();
+    }
+  });
+
+  test('a patch somebody already cut out is searched as it is: Modal gets the box of the whole picture, never the whole-photo path', async () => {
+    const c = await startCatalogueApp();
+    try {
+      assert.equal((await c.photo(makeJpeg({ width: 300, height: 220 }), { query: 'patch=1&k=3' })).status, 200);
+      assert.equal((await c.photo(makeJpeg(), { query: 'patch=true&mode=colour' })).status, 200);
+      assert.equal((await c.photo(makeJpeg(), { query: 'patch=0' })).status, 200);
+      assert.equal((await c.photo(makeJpeg())).status, 200);
+      assert.equal((await c.photo(makeJpeg(), { query: 'point=0.5,0.25&patch=0' })).status, 200);
+      assert.equal((await c.photo(makeJpeg(), { query: 'box=0.1,0.2,0.6,0.7' })).status, 200);
+      const [asPatch, asPatchColour, no, plain, pointed, boxed] = c.fake.of('search');
+      assert.deepEqual([asPatch.query.box, asPatchColour.query.box], ['0,0,1,1', '0,0,1,1']);
+      assert.equal(asPatchColour.query.mode, 'colour');
+      assert.deepEqual([no.query.box, plain.query.box, pointed.query.box], [undefined, undefined, undefined], 'patch=0 and no patch at all are the whole-photo path, as before');
+      assert.deepEqual([pointed.query.point, boxed.query.box], ['0.5,0.25', '0.1,0.2,0.6,0.7'], 'a point or a box of its own is passed on untouched');
+      assert.ok(!('patch' in asPatch.query), 'the word "patch" is ours: Modal is only ever told the box');
+      assert.equal((await c.photo(makeJpeg(), { query: 'patch=1' })).json().query.preprocessing, 'region');
+    } finally {
+      await c.stop();
+    }
+  });
+
+  test('"patch" must be 1 or 0, and cannot be given together with a point or a box', async () => {
+    const c = await startCatalogueApp();
+    try {
+      for (const query of ['patch=yes', 'patch=2', 'patch=1&patch=0', 'patch=1&point=0.5,0.5', 'patch=1&box=0.1,0.1,0.9,0.9']) {
+        const r = await c.photo(makeJpeg(), { query });
+        assert.equal(r.status, 400, query);
+        assert.equal(r.json().error.reason, 'bad-request', query);
+      }
+      assert.equal(searches(c), 0, 'nothing reached Modal');
+    } finally {
+      await c.stop();
+    }
+  });
+
+  test('a design that has its card picture shows that, not the page thumbnail with its margin and label', async () => {
+    const card = (id) => ({ shopImage: { key: `cards/${SEED_CATALOGUE}/${id}.jpg`, width: 800, height: 1220, bytes: 90000, sha256: 'ab'.repeat(32) } });
+    const c = await startCatalogueApp({ seed: { overrides: { [ids[0]]: card(ids[0]), [ids[2]]: { shopImage: { key: '../crops/evil.png', width: 800, height: 1220 } } } } });
+    try {
+      const body = (await c.photo(makeJpeg(), { query: 'k=3' })).json();
+      const [first, second, third] = body.items;
+      assert.equal(first.image.thumbUrl, `https://signed.example/get/cards/${SEED_CATALOGUE}/${ids[0]}.jpg?expires=4500&sig=fake`);
+      assert.deepEqual([first.image.width, first.image.height], [800, 1220], 'the picture shown, so the card keeps its shape');
+      assert.equal(first.image.fullUrl, `https://signed.example/get/crops/${SEED_CATALOGUE}/${ids[0]}.png?expires=4500&sig=fake`, 'the link to the full page is still the page');
+      assert.equal(second.image.thumbUrl, `https://signed.example/get/thumbs/${SEED_CATALOGUE}/${ids[1]}.jpg?expires=4500&sig=fake`, 'no card picture: the thumbnail, as before');
+      assert.deepEqual([second.image.width, second.image.height], [541, 812]);
+      assert.equal(third.image.thumbUrl, `https://signed.example/get/thumbs/${SEED_CATALOGUE}/${ids[2]}.jpg?expires=4500&sig=fake`, 'an unsafe key is never signed: the thumbnail');
+      assert.ok(c.signer.calls.every((s) => /^(crops|thumbs|cards)\//.test(s.key) && !s.key.includes('..')));
     } finally {
       await c.stop();
     }

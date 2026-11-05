@@ -1,0 +1,94 @@
+#tc-loader{--cyc:2200ms;--w:min(70vw,300px);--bg:#1F150A;--sans:Switzer,"Avenir Next","Helvetica Neue",Helvetica,Arial,sans-serif;--serif:Zodiak,"Iowan Old Style","Palatino Linotype",Georgia,serif;display:none;position:fixed;inset:0;z-index:2147483000;align-items:center;justify-content:center;overflow:hidden;background:var(--bg);color:#E1D4C2;font-family:var(--sans);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+#tc-loader.tc-ld-on{display:flex}
+html.tc-ld-lock,html.tc-ld-lock body{overflow:hidden;overscroll-behavior:none}
+#tc-loader *{box-sizing:border-box}
+.tc-ld-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+.tc-ld-stage{position:relative;display:flex;flex-direction:column;align-items:center;transform:translateY(-3vh);transition:opacity .28s ease;animation:tc-sf .5s ease-out backwards}
+.tc-ld-fig{position:relative;width:var(--w);aspect-ratio:862/552;margin-bottom:calc(var(--w)*.19)}
+.tc-ld-art{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:none;stroke:#E1D4C2;stroke-width:3;stroke-linejoin:round;stroke-linecap:butt;opacity:0;animation:tc-art var(--cyc) linear infinite}
+.tc-ld-art .v{fill:#E1D4C2;fill-opacity:.06;stroke:none}
+.tc-ld-art .p{stroke-width:2;opacity:.34}
+.tc-ld-art .d6{stroke-width:2.2}
+.tc-ld-led-art{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:none;stroke:#F5B357;stroke-linejoin:round;opacity:0;animation:tc-ac var(--cyc) linear infinite}
+.tc-ld-led-art .a{stroke-width:4.5}
+.tc-ld-led-art .g{stroke-width:15;stroke-opacity:.13;stroke-linecap:round}
+.tc-ld-mark{position:absolute;inset:0;width:100%;height:100%;opacity:1;animation:tc-mk var(--cyc) linear infinite}
+.tc-ld-hide{position:absolute;inset:-8% -4%;background:var(--bg);animation:tc-hd 1ms linear calc(var(--cyc)*.18) forwards}
+.tc-ld-scan{position:absolute;top:-10%;bottom:-10%;left:0;width:240%;opacity:0;background:linear-gradient(90deg,rgba(255,196,110,0) 0,rgba(255,196,110,.0) 1%,rgba(255,196,110,.14) 4.4%,rgba(255,222,165,.85) 7.2%,var(--bg) 7.55%,var(--bg) 100%);animation:tc-sc var(--cyc) linear infinite;will-change:transform}
+.tc-ld-glow{position:absolute;left:50%;top:calc(var(--w)*.31);width:calc(var(--w)*1.9);height:calc(var(--w)*1.3);margin:calc(var(--w)*-.65) 0 0 calc(var(--w)*-.95);background:radial-gradient(closest-side,rgba(245,179,87,.17),rgba(245,179,87,.05) 58%,transparent);pointer-events:none;animation:tc-gb var(--cyc) ease-in-out infinite}
+.tc-ld-name{margin:0;font:600 15px/1 var(--sans);text-transform:uppercase;letter-spacing:.34em;padding-left:.34em;animation:tc-up .8s cubic-bezier(.2,.7,.2,1) calc(var(--cyc)*.06) backwards}
+.tc-ld-tag{margin:13px 0 0;font:400 10px/1.4 var(--sans);text-transform:uppercase;letter-spacing:.26em;padding-left:.26em;color:#A78D78;animation:tc-up .8s cubic-bezier(.2,.7,.2,1) calc(var(--cyc)*.12) backwards}
+.tc-ld-led{position:relative;width:var(--w);height:2px;margin-top:30px;background:rgba(225,212,194,.1);border-radius:2px;overflow:hidden;animation:tc-fi .6s ease-out calc(var(--cyc)*.08) backwards}
+.tc-ld-led i{position:absolute;left:0;top:0;bottom:0;width:34%;border-radius:2px;background:linear-gradient(90deg,transparent,#F5B357 45%,#FFD9A0 56%,transparent);opacity:0;animation:tc-gl var(--cyc) linear infinite}
+.tc-ld-status{margin:16px 0 0;min-height:1.5em;max-width:min(86vw,380px);text-align:center;font:400 13px/1.5 var(--sans);color:#BEB5A9;opacity:0;transition:opacity .5s ease}
+.tc-ld-noted .tc-ld-status{opacity:1}
+.tc-ld-fail{display:none;flex-direction:column;align-items:center;gap:10px;max-width:min(88vw,380px);margin-top:26px;text-align:center}
+.tc-ld-ft{margin:0;font:300 clamp(22px,6.4vw,30px)/1.18 var(--serif);letter-spacing:-.01em;text-wrap:balance}
+.tc-ld-fm{margin:0;font:400 14px/1.55 var(--sans);color:#BEB5A9}
+.tc-ld-fa{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 22px;margin-top:10px}
+.tc-ld-retry{min-height:44px;padding:0 28px;border:0;border-radius:999px;background:#E1D4C2;color:#291C0E;font:500 14px/1 var(--sans);cursor:pointer}
+.tc-ld-retry:hover{background:#fff}
+.tc-ld-home{display:inline-flex;align-items:center;min-height:44px;color:#E1D4C2;font:500 14px/1 var(--sans);text-decoration:underline;text-underline-offset:4px;text-decoration-color:rgba(225,212,194,.45)}
+.tc-ld-retry:focus-visible,.tc-ld-home:focus-visible{outline:2px solid #F5B357;outline-offset:3px}
+.tc-ld-failed .tc-ld-led,.tc-ld-failed .tc-ld-tag,.tc-ld-failed .tc-ld-status{display:none}
+.tc-ld-failed .tc-ld-fail{display:flex;animation:tc-up .7s cubic-bezier(.2,.7,.2,1) both}
+.tc-ld-failed .tc-ld-glow,.tc-ld-failed .tc-ld-scan,.tc-ld-failed .tc-ld-hide{animation:none;opacity:0}
+.tc-ld-failed .tc-ld-art,.tc-ld-failed .tc-ld-led-art{animation:none;opacity:.8}
+.tc-ld-failed .tc-ld-mark{animation:none;opacity:0}
+.tc-ld-again .tc-ld-art,.tc-ld-again .tc-ld-led-art,.tc-ld-again .tc-ld-scan,.tc-ld-again .tc-ld-hide{display:none}
+.tc-ld-again .tc-ld-mark{animation:none;opacity:1}
+.tc-ld-again .tc-ld-fig{margin-bottom:calc(var(--w)*.1)}
+.tc-ld-again .tc-ld-led i{animation-duration:1.8s;animation-name:tc-gl2}
+.tc-ld-nomark .tc-ld-mark,.tc-ld-nomark .tc-ld-hide,.tc-ld-nomark .tc-ld-scan{display:none}
+.tc-ld-nomark .tc-ld-art,.tc-ld-nomark .tc-ld-led-art{animation:none;opacity:.8}
+.tc-ld-curtain{position:absolute;inset:0;display:none;perspective:2400px;perspective-origin:50% 42%;pointer-events:none;overflow:hidden}
+.tc-ld-curtain i{position:relative;flex:1 1 0;margin:0 -.5px;transform-style:preserve-3d;backface-visibility:hidden;will-change:transform;background:linear-gradient(90deg,#160d05 0%,#2a1c10 16%,#4a3322 42%,#6d4d38 50%,#4a3322 58%,#2a1c10 84%,#160d05 100%)}
+.tc-ld-curtain i::after{content:"";position:absolute;inset:0;background:#0d0803;opacity:0}
+.tc-ld-curtain b{position:absolute;top:0;bottom:0;left:0;width:100%;opacity:0;pointer-events:none;background:linear-gradient(100deg,transparent 34%,rgba(255,206,140,.1) 43%,rgba(255,226,176,.3) 50%,rgba(255,206,140,.1) 57%,transparent 66%);transform:translateX(-100%);will-change:transform,opacity}
+.tc-ld-in{background:transparent}
+.tc-ld-in .tc-ld-stage{opacity:0}
+.tc-ld-in .tc-ld-curtain,.tc-ld-out .tc-ld-curtain{display:flex}
+.tc-ld-in .tc-ld-curtain i{transform:rotateY(0deg);animation:tc-cl .52s cubic-bezier(.2,.75,.2,1) calc((var(--m) - var(--k))*42ms) backwards}
+.tc-ld-held{background:var(--bg)}
+.tc-ld-held .tc-ld-stage{opacity:1;transition:opacity .4s ease .12s}
+.tc-ld-held .tc-ld-curtain{opacity:0;transition:opacity .34s ease}
+.tc-ld-out{pointer-events:none;animation:tc-bg 1ms .32s forwards}
+.tc-ld-out .tc-ld-stage{opacity:0;animation:none}
+.tc-ld-out .tc-ld-curtain i{opacity:0;transform:rotateY(0deg);animation:tc-fi .22s ease-out .02s forwards,tc-op .86s cubic-bezier(.66,0,.24,1) calc(.3s + var(--k)*55ms) forwards}
+.tc-ld-out .tc-ld-curtain i::after{animation:tc-sh .86s cubic-bezier(.4,0,.6,1) calc(.3s + var(--k)*55ms) forwards}
+.tc-ld-out .tc-ld-curtain b{animation:tc-lt 1.1s cubic-bezier(.4,0,.2,1) .22s forwards}
+.tc-ld-q{animation-delay:.16s}
+.tc-ld-q .tc-ld-curtain i{animation:tc-fi .12s ease-out forwards,tc-op .56s cubic-bezier(.66,0,.24,1) calc(.14s + var(--k)*32ms) forwards}
+.tc-ld-q .tc-ld-curtain i::after{animation-duration:.56s;animation-delay:calc(.14s + var(--k)*32ms)}
+.tc-ld-q .tc-ld-curtain b{animation-duration:.7s;animation-delay:.12s}
+.tc-ld-dis{animation:none;transition:opacity .55s cubic-bezier(.4,0,.2,1) .2s;opacity:0}
+.tc-ld-fade{transition:opacity .15s;opacity:0}
+@keyframes tc-sf{from{opacity:0}}
+@keyframes tc-fi{from{opacity:0}to{opacity:1}}
+@keyframes tc-up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes tc-hd{to{opacity:0}}
+@keyframes tc-gb{0%,100%{opacity:.5}50%{opacity:1}}
+@keyframes tc-art{0%,17.9%{opacity:0}18%{opacity:1}56%{opacity:1;animation-timing-function:ease-in-out}68%,100%{opacity:0}}
+@keyframes tc-ac{0%,17.9%{opacity:0}18%,36%{opacity:0;animation-timing-function:ease-out}50%,56%{opacity:1;animation-timing-function:ease-in-out}68%,100%{opacity:0}}
+@keyframes tc-mk{0%,8%{opacity:1;transform:none;animation-timing-function:ease-in-out}18%,54%{opacity:0;transform:scale(.985);animation-timing-function:ease-out}68%,100%{opacity:1;transform:none}}
+@keyframes tc-sc{0%,17.9%{opacity:0;transform:translateX(-7.5%)}18%{opacity:1;transform:translateX(-7.5%);animation-timing-function:cubic-bezier(.5,.08,.2,1)}58%{opacity:1;transform:translateX(36.3%)}62%,100%{opacity:0;transform:translateX(36.3%)}}
+@keyframes tc-gl{0%{opacity:0;transform:translateX(-100%)}18%{opacity:0;transform:translateX(-100%);animation-timing-function:cubic-bezier(.5,.08,.2,1)}22%{opacity:1}58%{opacity:1;transform:translateX(300%)}62%,100%{opacity:0;transform:translateX(300%)}}
+@keyframes tc-gl2{0%{opacity:0;transform:translateX(-100%)}15%{opacity:1}85%{opacity:1}100%{opacity:0;transform:translateX(300%)}}
+@keyframes tc-op{78%{opacity:1}to{transform:rotateY(86deg);opacity:0}}
+@keyframes tc-cl{from{transform:rotateY(86deg)}}
+@keyframes tc-sh{to{opacity:.62}}
+@keyframes tc-lt{0%{opacity:0;transform:translateX(-100%)}18%{opacity:1}78%{opacity:1}100%{opacity:0;transform:translateX(100%)}}
+@keyframes tc-bg{to{background-color:transparent}}
+@keyframes tc-pu{from{opacity:.55}to{opacity:1}}
+@media (min-width:700px){#tc-loader{--w:min(24vw,320px)}.tc-ld-name{font-size:16px}}
+@media (prefers-reduced-motion:reduce){
+#tc-loader *{animation:none!important}
+#tc-loader .tc-ld-art,#tc-loader .tc-ld-led-art,#tc-loader .tc-ld-scan,#tc-loader .tc-ld-hide,#tc-loader .tc-ld-glow,#tc-loader .tc-ld-curtain{display:none!important}
+#tc-loader .tc-ld-fig{margin-bottom:calc(var(--w)*.1)}
+#tc-loader .tc-ld-mark{opacity:1;transform:none;animation:tc-pu 2.4s ease-in-out infinite alternate!important}
+#tc-loader .tc-ld-led i{left:0;width:100%;opacity:1;background:rgba(245,179,87,.55);animation:tc-pu 2.4s ease-in-out infinite alternate!important}
+#tc-loader.tc-ld-in{background:var(--bg)}
+#tc-loader.tc-ld-in .tc-ld-stage{opacity:1}
+#tc-loader.tc-ld-out,#tc-loader.tc-ld-dis{transition:opacity .15s}
+#tc-loader.tc-ld-out .tc-ld-stage{transition:none}
+}

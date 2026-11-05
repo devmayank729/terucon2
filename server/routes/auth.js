@@ -53,12 +53,12 @@ export function mountAuthRoutes(app, ctx) {
   if (!auth) return;
 
   /** Wrap a handler: a down database is a 503, never a 500 or an open door; the per-address ceiling and same-site check come first. */
-  const route = (handler, { session = false, write = true } = {}) => async (req, res, next) => {
+  const route = (handler, { session = false, write = true, bucket = 'auth-api', times = 1 } = {}) => async (req, res, next) => {
     try {
       const site = req.headers['sec-fetch-site'];
       if (write && site && site !== 'same-origin' && site !== 'none') return refuse(res, 403, 'cross-site', 'Cross-site requests are not allowed.');
       const cfg = await auth.settings.get();
-      const ceiling = auth.limits.ip('auth-api', req.ip, cfg.limits.apiPerIpPerMinute, 'minute');
+      const ceiling = auth.limits.ip(bucket, req.ip, cfg.limits.apiPerIpPerMinute * times, 'minute');
       if (!ceiling.ok) return refuse(res, 429, 'rate-limited', 'Too many requests. Please slow down a little.', { retryAfter: ceiling.retryAfter });
       let current = null;
       if (session) {
@@ -86,7 +86,9 @@ export function mountAuthRoutes(app, ctx) {
       const current = await auth.resolve(req);
       if (!current) return res.json({ authenticated: false });
       return res.json({ authenticated: true, user: auth.publicView(current.user, await auth.rules()) });
-    }, { write: false }),
+      // every page asks this once (the header's account button), so it counts in a bucket of its own with five times the room: a
+      // household or an office behind one address must not lock itself out of the pages by simply opening them
+    }, { write: false, bucket: 'auth-me', times: 5 }),
   );
 
   // -------------------------------------------------------------------------------------------- e-mail / phone code
@@ -328,6 +330,13 @@ export function mountAuthRoutes(app, ctx) {
       } catch (error) {
         log.error(`auth  could not delete the studio rooms of a deleted account: ${String(error.message).slice(0, 160)}`);
         return refuse(res, 500, 'delete-failed', 'We could not delete your saved rooms just now, so your account was kept. Please try again in a minute.');
+      }
+      // 1b. the photos people sent this account from their phones (server/capture/): same rule, a failure keeps the account
+      try {
+        await ctx.capture?.service.deleteAllOf(user.ownerId);
+      } catch (error) {
+        log.error(`auth  could not delete the captured photos of a deleted account: ${String(error.message).slice(0, 160)}`);
+        return refuse(res, 500, 'delete-failed', 'We could not delete your photos just now, so your account was kept. Please try again in a minute.');
       }
       // 2. what is waiting to go to the CRM (and, if the admin chose, the CRM record itself)
       await auth.crm.forget(user);

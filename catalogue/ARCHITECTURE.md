@@ -117,7 +117,7 @@ the parent's the publish refuses** (a catalogue never mixes vector versions).
 ```
 terucon_catalogues        { _id: catalogueId, name, kind: "materials"|"paint"|"exterior"|"other", note: string|null, createdAt, updatedAt,
                             activeRelease: releaseId|null, previousRelease: releaseId|null,
-                            featureVersions: {…}|null, counts: { items: int, hidden: int } }
+                            featureVersions: {…}|null, counts: { items: int, hidden: int } }   // items = ALL items of the live release, hidden = how many of them are hidden: the website shows items - hidden (fixed 2026-11-04: the publisher had written items = visible only, so a hidden item was subtracted twice)
 terucon_catalogue_items   { _id: "<cat>|<itemId>", catalogue, itemId, status: "ok"|"hidden",
                             label: string|null,                                   // admin-set display name
                             productId: string|null, productIdSource: "pdf-text"|"admin"|null,
@@ -129,6 +129,11 @@ terucon_catalogue_items   { _id: "<cat>|<itemId>", catalogue, itemId, status: "o
                                       method, matchType, matchRelation, matchCost, inpainted: bool, pdfProductId: string|null },
                             images: { crop: { key, width, height, sha256, bytes }, thumb: { key, width, height, bytes } },
                             attributes: { },                                      // admin free-form (string/number/bool/null values); nothing reads it yet
+                            shopImage: { key, width, height, bytes, sha256, uploadedAt }|absent,   // the 800 px picture of the design: bucket cards/<cat>/<itemId>.jpg (2026-11-04,
+                                                                                  //   tools/publish-shop-images.js). OWNED BY THE WEBSITE: not in PUBLISHER_OWNED, so a re-ingest keeps it
+                            studio: { look, colours: [..], pattern, grain, scale, sheen, relief, render, model, generatedAt, basis: "photo" }|absent,
+                                                                                  // what Gemini SAW in the picture (appearance only; tools/describe-designs.js). Also website-owned.
+                                                                                  // Read by server/catalogue/designs.js; see docs/CATALOGUE_STUDIO.md
                             releaseFirst: releaseId, jobId: string|null, createdAt, updatedAt }
 terucon_catalogue_releases { _id: releaseId, catalogue, createdAt, createdBy: "ingest"|"cli"|"import", jobId: string|null, parent: releaseId|null,
                             nItems, featureVersions: {…}, pillars: { name: { count, dim } }, gcsPrefix: "releases/<cat>/<id>/", manifestSha256 }
@@ -153,14 +158,103 @@ embeddings and captions of any item whose crop bytes did not change, so paid wor
 * Signals and groups are the notebook's: `dino_image`→dino, `siglip_image`→mm, `color_image`→color, `vertex_mm_image`→mm, `text_from_photo`→text, `siglip_text`→mm, `text_query`→text, `vertex_mm_text`→mm.
   Group weights: photo `DEFAULT_PHOTO_WEIGHTS`, text `DEFAULT_TEXT_WEIGHTS`, renormalised over the signals that exist. Fusion `hybrid` (RRF + linear), `rrf_k` 60, lambda 0.5.
 * **Exact search at any size** (every item scored; the notebook did the same below 50,000 items and used FAISS only above). No FAISS dependency.
-* `profile` (photo queries): `fast` (default; dino + siglip + colour; **the only configuration with a measurement**), `balanced` (+ Vertex image embedding), `full` (+ Gemini description of the
-  query photo and its embedding: seconds and money per query). Text queries use every text signal that is available; `profile` is ignored for them.
+* `profile` (photo queries): `fast` (dino + siglip + colour; the notebook's own benchmark configuration), `balanced` (+ Vertex image embedding), `full` (+ Gemini description of the
+  query photo and its embedding: seconds and money per query). Text queries use every text signal that is available; `profile` is ignored for them. **The Modal app's own default stays `fast`;
+  the website sends its own setting with every search, and since 2026-11-04 that is `balanced` unless `CATALOGUE_SEARCH_PROFILE` says otherwise (section 5.1 has the numbers).**
 * `mode`: `look` (default) or `colour` (`weights = {"color": 1.0}`, colour signal only, no Vertex, no description).
 * **Region ("point to find")**: `point=x,y` (0..1, relative to the sent image) with optional `radius` (default 0.12 = a square of 24 % of the shorter side centred on the point, clipped to the image) or `box=x0,y0,x1,y1`.
-  A region query skips the notebook's card detection and 80 % centre crop (`preprocessing: "region"`). **This is new and unmeasured.**
+  A region query skips the notebook's card detection and 80 % centre crop (`preprocessing: "region"`). New; it was first measured on 2026-11-04 (section 5.1): on three real patches it is never worse than the whole-photo path.
 * Without a region the notebook's preprocessing runs unchanged: card/sample quadrilateral → perspective-rectified, else 80 % centre crop; horizontal-flip TTA on.
 * Filters: `category`, `finish` (comma lists) on `items.json`. De-duplication by `productId` as in the notebook (items with no productId are never merged: duplicates stay duplicates).
 * The response carries raw per-signal cosine `sim` and `rank` next to the relative `finalScore`. No percentage is ever derived from `finalScore`.
+
+### 5.1 What was measured on 2026-11-04, what it changed, and what it does not show
+
+Prompted by a report that the closest-item search is "very bad": a photo of a light tan wooden gym floor, a reticle on the plain floor, and the Finder answered a grey concrete design
+(`TIPL-STC9092` Russian Stone) and a white marble (`TIPL-SB826` Naxian White). **The reported list was only partly reproduced**, from a 134 px crop of a phone screenshot (not the original photo, which this investigation did not have; inside the reticle the floor is a pale tan, about #BFAF98, while in the second photo of the same floor it is orange-tan, about #9B7653): the cut patch gave Russian Stone first and Chester Oak second as a region under `fast` (White Marble, Russian Stone, White Beach Sand when sent with no region); the report's second result,
+Naxian White, was not in that top eight (it is 3rd by colour alone). Nothing was changed on Modal, in MongoDB or in the bucket to find out why; the live release
+`rel-20261103223526-3b7f28` was only read. **No accuracy figure exists.** The set below is 18 synthetic queries cut from the catalogue's own pictures plus three patches of the one photographed floor;
+the plausible answers for the patches are the label-writer's judgement (no physical sample, no agreed right answer). Real phone photos of real samples are still to be collected.
+
+**The set** (re-runnable: `python -I catalogue/tools/accuracy_eval.py table`; the saved live answers are in `catalogue/data/accuracy-eval/`): `V1` a whole capture (the notebook's `SyntheticPhoneCapture`, a table, a
+perspective, a colour cast), `V2` a patch of 24 % of the shorter side with light jitter, `V3` a 12 % patch magnified, 35 % less saturated and brighter (a pale, flat patch), for six designs (`TIPL-SB922` Chester
+Oak, `SB912` Natural Walnut, `SB621` African Ebony, `SB825` Williams Grey, `STC9092` Russian Stone, `SBA7004` Saturn), cut from the picture with its page margin and printed label removed (a query that carries the
+margin and label, as the notebook's benchmark did, is the index entry itself). Real patches: `A` inside the reticle of the reported photo (light tan, about #BFAF98), `B` plain floor from a second photo of the same
+floor (about #C0AE9A), `C` orange-tan floor from the same second photo (about #9B7653). 39 live calls in all, one at a time; each one asked for k = 60 with `profile=full`, which returns every signal's raw similarity and rank,
+so the same call also says what `fast` and `balanced` would have answered (`terucon_catalogue/accuracy.py`: the same arithmetic as `HybridRetriever.rank_signals`, proved against it in `tests/test_accuracy.py`, and
+checked on four live answers: `fast` and `balanced` rebuilt from a `full` answer equal the real `fast` and `balanced` answers, score differences under 1e-4, same top ten).
+
+| Profile | Synthetic hit@1 | hit@3 | hit@8 | Patch A: first plausible wood design | B | C |
+|---|---|---|---|---|---|---|
+| `fast` (what the website used) | 11 of 18 | 17 | 18 | 2nd (concrete and white marble above it: STC9092, then SB922 Chester Oak, SB830) | 9th | 1st |
+| `balanced` (the new website default) | 13 | 16 | 18 | 1st (SB922 Chester Oak, then STC9092, SD5002) | 3rd | 1st |
+| `full` | 11 | 17 | 17 | 1st | 5th | 1st |
+
+Eight observations, in the order they matter. Each is a measurement of this set, not a general claim.
+
+1. **The default profile has no signal that knows wood from stone.** `fast` is DINOv2 + SigLIP + colour: textures and a coarse colour histogram. A pale, plain patch of floor looks like pale plain concrete to all
+   three (patch A: DINOv2 ranks Russian Stone 16th and Chester Oak 3rd, SigLIP 3rd and 37th, colour 7th and 8th: the grey stone wins on being second-best everywhere). Adding the Vertex multimodal image embedding
+   (`balanced`) puts the light oak first for A and moves the first plausible design from 9th to 3rd for B; the Gemini description of the patch (`full`) does not do better than `balanced` on this set and costs about
+   5 s and a Gemini call per search (single calls on a warm GPU, patch A: 1.6 s `fast`, 1.8 s `balanced`, 6.2 s `full`). On the synthetic queries the three profiles are not distinguishable (n = 18: 11, 13, 11 first places). The text search
+   shows the semantic side works: "light oak wood laminate" lists Creme Oak, Chester Oak and Creme Walnut first, "light tan wooden floor" Chester Oak first.
+2. **The weights are not the problem.** Moving a group's weight (colour 0.10 to 0.55, DINO 0.2 to 0.5, SigLIP + Vertex 0.1 to 0.45, text 0.3 to 0.45) or the fusion (hybrid, RRF only, linear only) changes the synthetic
+   hit@1 by between minus 3 and plus 1 of 18 (on `balanced`, 10 to 14 against 13; on `full`, 9 to 11 against 11) and gives no consistent gain; the notebook's weights sit on a flat optimum for this set. Nothing was re-tuned.
+3. **The real-photo gap shows in the raw similarities, but they cannot be turned into a confidence.** The top answer for a patch of the real floor has DINO similarity 0.50 to 0.59 and SigLIP 0.28 to 0.45 (0.36 and 0.19
+   for the whole gym photo); for a synthetic patch of a catalogue picture, 0.57 to 0.94 and 0.35 to 0.53. The ranges overlap, and no raw similarity separates the right synthetic answers from the wrong ones (right: DINO 0.61 to
+   0.94, wrong: 0.57 to 0.86; the same with SigLIP, the colour similarity and how many signals agree). So **no confidence threshold could be calibrated, and none was invented**: the Finder cannot yet say
+   "no close match" on evidence. It needs a labelled set of real photos of real samples.
+4. **Colour cannot tell a pale tan wood from a pale marble.** The colour signal is a CIELAB histogram with lightness equalised (CLAHE) and 20-unit a*/b* bins. For patch A the colour-only ranking is Zurich Beige Sand,
+   White Beach Sand, Naxian White (3rd), Saturn, Creme Oak (5th), Williams Grey, Russian Stone (7th), Chester Oak (8th); with the colour signal alone, a pale tan floor is a pale marble. The same signal puts the orange floor
+   (patch C) among the woods. Replacing it by a plain mean-colour distance was tried offline on 63 x 3 queries: better for clean patches (hit@3 50 against 41 to 42 for V2), much worse for whole captures with a colour cast (hit@1 11
+   against 24 to 25 for V1); no clean win, so it was not changed.
+5. **The index is the whole catalogue PAGE, not the picture.** Each crop is 1025 x 1537 px with the picture at x 83 to 943, y 83 to 1391 (measured on all 69; the picture is 70.4 to 72.7 % of the pixels, mean 71.3 %) and a white
+   margin and the printed label ("SB826 NAXIAN WHITE" and a red rule) round it. The stored colour vectors equal the colour descriptor recomputed on the whole page (mean cosine 0.9996, minimum 0.971) and differ from the
+   picture's by cosine 0.835 to 0.991 (mean 0.913). Two designs' colour vectors have cosine 0.70 on average as indexed and 0.55 on the pictures alone: the page adds a common part that leaves less room between
+   designs. **Effect on the answers, colour only (63 designs x V1, V2, V3, exact): hit@1 25, 27, 10 as indexed and 24, 32, 12 on the pictures alone: small.** The same effect on DINOv2, SigLIP and Vertex could not be
+   measured (the weights are not on the machine this was done on, and re-indexing is an outward change): their stored vectors also have a large common part (mean pairwise cosine 0.55, 0.61, 0.58), but how much of it is the
+   page is unknown. A catalogue result's thumbnail is the whole page too (the white side strips and the cropped label in the report's screenshot); see "What changed" below.
+6. **A pre-cut patch sent with no region takes the whole-photo path**: card detection, then a centre crop of 80 %, which throws away a third of a patch's area. The same three patches, `fast`: first plausible design 22nd, 24th, 1st
+   sent alone; 2nd, 9th, 1st sent as the region of the whole picture. A patch is rarely taken for a card (1 of 126 synthetic V2 and V3 patches; 3 of 126 patches of 50 % and 80 % of a picture; none of the three real ones).
+   The Finder's reticle search sends the whole photo with a `point`, which was already the region path. The shop's tapped surface and the new Finder's tapped surface send only the patch.
+7. **The reticle maps to the right place by reading the code** (`site/catalogue-ui/catalogue-ui.css`: the viewfinder takes the photo's aspect ratio, `object-fit: cover` on a box of that ratio crops nothing, and the
+   server's window is 24 % of the shorter side, the same as the box); not tested on a phone. The patch is small: 24 % of a 1024 px photo is about 184 px, which DINOv2 enlarges to 448; a patch cut from the
+   original-resolution photo instead of the 1024 px copy would hold more real detail (not measured).
+8. **A "hub" design exists**: the speckled concrete `STC9092` Russian Stone is near almost everything pale or speckled, which is why it appears for a wooden floor and could not be found itself from a pale patch of itself
+   (V3: 5th under `fast`, 8th under `balanced`).
+
+**What changed (website side, shippable without a deploy of Modal; nothing live was touched):**
+* `CATALOGUE_SEARCH_PROFILE` now defaults to `balanced` (`server/catalogue/config.js`). **An explicit `fast` in `.env` or on Render still wins**: the local `.env` has `CATALOGUE_SEARCH_PROFILE=fast` written in, so it must be changed
+  there and on Render (or the line deleted) for the change to take effect. The Modal app needs no change: it takes the profile from each request.
+* `POST /api/catalogue/search` accepts `patch=1` (see section 7): the photo is a patch somebody already cut out and is sent to Modal with `box=0,0,1,1`. Nothing sends it yet: the Finder's and the shop's tapped-surface
+  searches (`site/catalogue-ui/client.js`, `finder.js`, `surfaces.js`) must add `patch: true` (observation 6).
+* A result's `image.thumbUrl` is the design's card picture (`shopImage`, 800 px, the picture alone) when the design has one, instead of the page thumbnail with its margin and label; `image.width` / `height` then
+  describe that picture; `image.fullUrl` is still the whole page. A design printed on two pages has its card on the first page only (`tools/publish-shop-images.js`), so when the second page is the match its thumbnail is still the page.
+
+* **Checked once end to end (live, read-only):** the website's own `createService` code with `profile=balanced` and `patch=1` against the real Modal search app and the real MongoDB and signer, sending patch A: preprocessing
+  `region`, the four signals of `balanced`, `TIPL-SB922 Chester Oak` first, then `STC9092`, `SD5002`, `SB3002`, `SB912`, and all eight results with their card picture as `thumbUrl` and the page crop as `fullUrl`. One call; it
+  does not show that the change works for other photos.
+
+**`tools/catalogue-probe.mjs` has run against the fake Modal only** (`tests/js/catalogue-probe.test.js`); the 39 live calls were made with a scratch script of the same shape, not with the committed tool.
+
+**What was left alone, and why:** the fusion, the weights, the colour signal, the region window, the search app. No change was supported by the numbers above. Scoring changes needs the live GPU (about 20 calls for this set,
+`tools/catalogue-probe.mjs` with the jobs file `accuracy_eval.py queries` writes).
+
+**Indexing the pictures instead of the pages (not done: it is an outward change and the evidence for it is weak).** What would change: the vectors of DINOv2, SigLIP, colour and Vertex for 68 pages, in a new release; the
+text vectors can stay. What it would fix: the common part the page adds (observation 5). What it is known to be worth: a few queries in 63 on the colour signal alone; on the others nothing is known. Cheapest way to
+find out, touching nothing live: build a SECOND catalogue from the pictures alone and run the same named set against it:
+```
+python -I catalogue/tools/accuracy_eval.py pictures --release <a copy of the live release folder> --crops <a copy of crops/superbond-colour/> --out clean-pictures   # 63 PNGs, margin and label cut away
+python -m terucon_catalogue --env-file <env file> catalogues create --id superbond-colour-clean --name "SuperBond colour, pictures only (experiment)" --kind other
+python -m terucon_catalogue --env-file <env file> compute --pdf clean-pictures --work-dir work-clean        # DINOv2 + SigLIP weights (about 5 GB) on this computer, or use the admin screen's photo upload on Modal's GPU; Vertex and Gemini calls for 63 pictures
+python -m terucon_catalogue --env-file <env file> publish --bundle work-clean --catalogue superbond-colour-clean --dry-run     # then without --dry-run (the release is stored, NOT live)
+node tools/catalogue-probe.mjs <jobs.json from accuracy_eval.py queries> --catalogue superbond-colour-clean --release <the new release id>    # ~20 live calls
+```
+Cost: 63 Gemini captions, 63 Vertex embeddings, a few GPU minutes, about 40 live search calls with the probes: cents. Risk: the live catalogue, its release and its pointer are untouched (a new catalogue id; kind `other` so the
+site never picks it as the default). Undo: delete the documents with that catalogue id from the three MongoDB collections a publish writes (`terucon_catalogues`, `terucon_catalogue_items`, `terucon_catalogue_releases`) and the bucket folders under the
+store's prefix that a publish writes (`crops/superbond-colour-clean/`, `thumbs/superbond-colour-clean/`, `releases/superbond-colour-clean/`, `bundles/superbond-colour-clean/`; `sources/` only if `--source-pdf` was given).
+The items of the new catalogue carry no product ids (a picture becomes a one-page PDF of its own, `work-clean/wrapped/<picture file name>_<8 hex>.pdf`, read in `pipeline.py` and `photos.py`); map them by `source.name` in each item
+(the wrapped PDF's name, which starts with the picture's file name, `TIPL-SB922_...`). If the numbers justify it, the real change is a
+trim step in `extract.py` behind a setting (not written) and one re-ingest of the PDF, with `python -m terucon_catalogue activate --catalogue superbond-colour --release <the old release>` as the way back.
 
 ## 6. HTTP between the website (Express) and Modal
 
@@ -198,13 +292,15 @@ JSON bodies use `application/json` and the usual Origin rule; the one exception 
 GET  /api/catalogue/status                                  -> { enabled, ready, reasons: ["off"|"modal-not-configured"|"database-unavailable"|"no-live-catalogue"], default: id|null,
                                                                  catalogues: [ { id, name, kind, items } ] (live ones only), limits: { maxPhotoBytes, maxSide: 1024 }, profile }
 POST /api/catalogue/warm                                    -> 202 { ok: true }     wakes the search container; fire and forget; limited per account
-POST /api/catalogue/search?catalogue=&mode=&k=&point=&radius=&box=&category=&finish=   body: image bytes
+POST /api/catalogue/search?catalogue=&mode=&k=&point=&radius=&box=&patch=&category=&finish=   body: image bytes
+   (patch=1: the photo is a patch somebody already cut out, so it is searched as it is: Modal gets box=0,0,1,1. Not allowed together with point or box. patch=0 or no patch: unchanged.)
 POST /api/catalogue/search-text                             { text, catalogue?, k?, category?, finish? }
    200 -> { ok: true, catalogue, release, mode, items: [ResultItem], query: { preprocessing, dominantHex, profile, signals: [..], timingsMs: { total } }, warnings: [..] }
 
 ResultItem = { rank, itemId, catalogue, title, titleSource: "label"|"caption"|"page", productId: null|string, productIdSource: null|"pdf-text"|"admin",
                category, finish, subtype, dominantHex: [..], source: { name, page },
-               image: { thumbUrl, fullUrl, width, height },              // signed GCS GET URLs, valid 1 hour; width/height are the crop's
+               image: { thumbUrl, fullUrl, width, height },              // signed GCS GET URLs, valid 1 hour. thumbUrl: the design's card picture (`shopImage`, the picture alone, 800 px) when it has one,
+                                                                          //   else the page thumbnail (margin and label included); width/height describe that picture, or the crop when it is the thumbnail. fullUrl: always the whole page crop
                scores: { final, signals: { "<name>": { sim, rank } } },   // `final` is relative: never show it as a percentage
                attributes: { } }
 ```
@@ -239,7 +335,7 @@ website's (the studio's) MongoDB connection uses; and `sentencepiece` is a runti
 **Website `.env`** (all optional; with none of them the feature is off and the shop keeps its colour demo):
 `CATALOGUE` (`on`|`off`, default `on`), `CATALOGUE_MODAL_SEARCH_URL`, `CATALOGUE_MODAL_INGEST_URL`, `CATALOGUE_MODAL_KEY`, `CATALOGUE_MODAL_PROXY_KEY`, `CATALOGUE_MODAL_PROXY_SECRET`,
 `CATALOGUE_MODAL_TIMEOUT_MS` (60000: a cold start takes tens of seconds), `CATALOGUE_GCS_BUCKET`, `CATALOGUE_GCS_PREFIX` (`catalogue/`), `CATALOGUE_GCS_KEY_JSON` (the text of a service-account JSON key, used **only to sign URLs**: single-quoted in `.env`, or base64; `CATALOGUE_GCS_KEY_FILE`, a path to such a file, is the alternative and loses if both are set; use a
-separate, least-privilege account: object read + create on the one bucket), `CATALOGUE_SEARCH_PROFILE` (`fast`).
+separate, least-privilege account: object read + create on the one bucket), `CATALOGUE_SEARCH_PROFILE` (`balanced`, since 2026-11-04; `fast` and `full` are the others, see section 5.1).
 **Python / Modal**: `MONGODB_URI` (+ `MONGODB_DB` when the URI has no database), `CATALOGUE_GCS_BUCKET`, `CATALOGUE_GCS_PREFIX`, `GCP_SERVICE_ACCOUNT_JSON` (or `GOOGLE_APPLICATION_CREDENTIALS`), `CATALOGUE_CACHE_DIR`,
 `CATALOGUE_SEARCH_PROFILE`, plus the operational overrides in `config.load_config`. Modal secrets: `terucon-catalogue-keys` (`API_KEYS`), `terucon-catalogue-gcp` (`GCP_SERVICE_ACCOUNT_JSON`, `CATALOGUE_GCS_BUCKET`, `CATALOGUE_GCS_PREFIX`),
 `terucon-catalogue-mongo` (`MONGODB_URI`, `MONGODB_DB`). The Modal service account needs read/write on the bucket and (as in the notebook) "Vertex AI User".
@@ -251,6 +347,7 @@ separate, least-privilege account: object read + create on the one bucket), `CAT
 | `util.py` `schema.py` `config.py` `state.py` `credentials.py` | **done** (verbatim from the notebook, parity-tested) | helpers, prompts + `MaterialProfile`, `PipelineConfig` + feature versions + `check_feature_versions`, `StateStore`, service-account loading. **Do not edit; report a needed change.** |
 | `extract.py` `photos.py` `features.py` `encoders.py` `vertex.py` `captions.py` `pipeline.py` | **PY-A compute** | cell 3, cell 4, cell 2 `VertexGenAIManager`, cell 5, and `run_compute` |
 | `search.py` `release_reader.py` `service.py` `http_app.py`, `../modal_app.py` | **PY-B search + Modal** | cell 6, the release reader, the service object, the FastAPI apps, the Modal definitions |
+| `accuracy.py`, `../tools/accuracy_eval.py` | **added 2026-11-04** | measuring only, never on the search path: the page-margin finder, synthetic queries, re-fusing a live answer's raw signals offline, the metric; section 5.1 |
 | `bucket_import.py` | **added 2026-11-01** | fetch a bundle from `imports/`, publish it, put the release on the volume (`fetch_bundle`, `run_bucket_import`, `seed_release_cache`, `seed_after_ingest`, `prime_volume`); logic only, `../modal_app.py` is the wiring; tested against fakes |
 | `objectstore.py` `mongo.py` `bundle.py` `publish.py` `release_writer.py` `cli.py` `__main__.py`, `../requirements*.txt`, `../pyproject.toml` | **PY-C stores + publish + CLI** | GCS and local object stores, the MongoDB layer, bundle reading/validation, the publisher, the CLI |
 

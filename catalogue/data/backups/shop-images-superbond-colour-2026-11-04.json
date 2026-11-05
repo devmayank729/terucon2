@@ -1,0 +1,322 @@
+{
+ "catalogue": "superbond-colour",
+ "writtenAt": "2026-11-04T05:59:31.998Z",
+ "note": "what each item had before tools/publish-shop-images.js: undo with --undo <this file>",
+ "items": [
+  {
+   "_id": "superbond-colour|2e10320006fe-p0002-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0002-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0003-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0003-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0004-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0004-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0005-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0005-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0006-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0006-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0007-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0007-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0008-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0008-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0009-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0009-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0010-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0010-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0011-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0011-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0012-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0012-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0013-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0013-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0014-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0014-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0015-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0015-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0016-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0016-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0017-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0017-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0018-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0018-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0019-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0019-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0020-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0020-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0021-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0021-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0022-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0022-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0023-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0023-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0024-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0024-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0025-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0025-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0026-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0026-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0027-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0027-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0028-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0028-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0029-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0029-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0030-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0030-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0031-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0031-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0032-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0032-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0033-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0033-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0034-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0034-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0035-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0035-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0036-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0036-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0037-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0037-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0038-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0038-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0039-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0039-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0040-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0040-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0041-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0041-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0042-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0042-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0043-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0043-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0044-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0044-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0045-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0045-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0046-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0046-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0047-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0047-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0048-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0048-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0049-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0049-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0050-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0050-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0051-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0051-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0052-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0052-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0053-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0053-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0054-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0054-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0055-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0055-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0056-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0056-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0057-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0057-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0058-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0058-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0059-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0059-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0060-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0060-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0062-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0062-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0063-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0063-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0068-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0068-i00.jpg"
+  },
+  {
+   "_id": "superbond-colour|2e10320006fe-p0069-i00",
+   "shopImage": null,
+   "key": "cards/superbond-colour/2e10320006fe-p0069-i00.jpg"
+  }
+ ]
+}

@@ -1,0 +1,313 @@
+{
+ "_comment": "The design codes printed under each swatch of 'Superbond colour image.pdf' (69 pages, sha256 below). The PDF has NO text layer, so these were read by eye from the printed label at 190 dpi (2026-11-04) and are not machine-read: spot-check them. Spellings are kept exactly as printed (CORTERN, CONFIER, NAXIAN, MARMORIS STEIN, VIRDIAN, ANILE, AMITRAGO ...). The two double spaces are as printed. The product id is the prefix + the printed code (TIPL-SB804); one code printed on two pages is ONE product with two photos (repeats below).",
+ "catalogue": "superbond-colour",
+ "pdf": {
+  "name": "Superbond colour image.pdf",
+  "sha256": "2e10320006fe59dffd5a4283c0ebaffc51123481935d44488fed9529cb4ab880",
+  "pages": 69
+ },
+ "prefix": "TIPL-",
+ "readBy": "Claude, from rendered label strips, 2026-11-04",
+ "repeats": {
+  "SB005": [
+   17,
+   64
+  ],
+  "SB804": [
+   32,
+   66
+  ],
+  "SB902": [
+   24,
+   65
+  ],
+  "SB915": [
+   29,
+   61
+  ],
+  "SB923": [
+   23,
+   67
+  ]
+ },
+ "pages": {
+  "1": {
+   "code": null,
+   "printedName": null,
+   "hide": true,
+   "note": "The cover page (\"Diamond Edition\" with the SuperBond logo). It has no design code and is not a material, so it gets no product id and is hidden from search."
+  },
+  "2": {
+   "code": "CMT6001",
+   "printedName": "METAFRAZO TEXTURE"
+  },
+  "3": {
+   "code": "CMT6002",
+   "printedName": "CORTERN BROWN"
+  },
+  "4": {
+   "code": "CMT6003",
+   "printedName": "ABSTRACT METAL"
+  },
+  "5": {
+   "code": "CMT6004",
+   "printedName": "LUSTROUS GREY"
+  },
+  "6": {
+   "code": "CMT6007",
+   "printedName": "ARCADIAN OCHRE"
+  },
+  "7": {
+   "code": "CMT6008",
+   "printedName": "SAPROPHYTE RUST"
+  },
+  "8": {
+   "code": "STC9050",
+   "printedName": "TWILIGHT BLACK"
+  },
+  "9": {
+   "code": "STC9067",
+   "printedName": "FERRARI RED"
+  },
+  "10": {
+   "code": "STC9092",
+   "printedName": "RUSSIAN STONE"
+  },
+  "11": {
+   "code": "SBA7001",
+   "printedName": "PLUTO"
+  },
+  "12": {
+   "code": "SBA7002",
+   "printedName": "VENUS"
+  },
+  "13": {
+   "code": "SBA7003",
+   "printedName": "EARTH"
+  },
+  "14": {
+   "code": "SBA7004",
+   "printedName": "SATURN"
+  },
+  "15": {
+   "code": "SBA7005",
+   "printedName": "MERCURY"
+  },
+  "16": {
+   "code": "SBA7006",
+   "printedName": "MARS"
+  },
+  "17": {
+   "code": "SB005",
+   "printedName": "NATURAL TEAK TX"
+  },
+  "18": {
+   "code": "SB008",
+   "printedName": "BURMESE TEAK"
+  },
+  "19": {
+   "code": "SB621",
+   "printedName": "AFRICAN EBONY TX"
+  },
+  "20": {
+   "code": "SB625",
+   "printedName": "MAHOGANY PREMIUM TX"
+  },
+  "21": {
+   "code": "SB921",
+   "printedName": "CONFIER TEAK"
+  },
+  "22": {
+   "code": "SB922",
+   "printedName": "CHESTER OAK"
+  },
+  "23": {
+   "code": "SB923",
+   "printedName": "MACASAR WOOD TX"
+  },
+  "24": {
+   "code": "SB902",
+   "printedName": "ROSE WOOD"
+  },
+  "25": {
+   "code": "SB905",
+   "printedName": "BRAZILIAN HULK"
+  },
+  "26": {
+   "code": "SB910",
+   "printedName": "AMERICAN WALNUT"
+  },
+  "27": {
+   "code": "SB912",
+   "printedName": "NATURAL WALNUT"
+  },
+  "28": {
+   "code": "SB913",
+   "printedName": "CREME WALNUT"
+  },
+  "29": {
+   "code": "SB915",
+   "printedName": "CANADIAN WALNUT"
+  },
+  "30": {
+   "code": "SB920",
+   "printedName": "TIMBER WOOD BURMA"
+  },
+  "31": {
+   "code": "SB801",
+   "printedName": "TRAVERTINE CREME"
+  },
+  "32": {
+   "code": "SB804",
+   "printedName": "EMPERADOR DARK"
+  },
+  "33": {
+   "code": "SB825",
+   "printedName": "WILLIAMS GREY"
+  },
+  "34": {
+   "code": "SB826",
+   "printedName": "NAXIAN WHITE"
+  },
+  "35": {
+   "code": "SB828",
+   "printedName": "BLACK MARQUINA"
+  },
+  "36": {
+   "code": "SB829",
+   "printedName": "MARINACE"
+  },
+  "37": {
+   "code": "SB8001",
+   "printedName": "MARMORIS STAIN"
+  },
+  "38": {
+   "code": "SB8002",
+   "printedName": "MARMORIS STEIN"
+  },
+  "39": {
+   "code": "SD5001",
+   "printedName": "GREY SAND STONE"
+  },
+  "40": {
+   "code": "SD5002",
+   "printedName": "WHITE BEACH SAND"
+  },
+  "41": {
+   "code": "SD5003",
+   "printedName": "ZURICH  BEIGE SAND"
+  },
+  "42": {
+   "code": "SD5004",
+   "printedName": "MAGENTA SAND STONE"
+  },
+  "43": {
+   "code": "SD5005",
+   "printedName": "VIRDIAN GREEN SAND"
+  },
+  "44": {
+   "code": "SK4001",
+   "printedName": "GREY SKIN FEELING"
+  },
+  "45": {
+   "code": "SK4002",
+   "printedName": "JAISALMER SUNDAY SKIN"
+  },
+  "46": {
+   "code": "SK4003",
+   "printedName": "MOON  SKIN FEELING"
+  },
+  "47": {
+   "code": "SK4004",
+   "printedName": "BEIGE SKIN"
+  },
+  "48": {
+   "code": "SB2001",
+   "printedName": "EROSIVE METAL"
+  },
+  "49": {
+   "code": "SB2002",
+   "printedName": "VINTAGE CORROSIVE METAL"
+  },
+  "50": {
+   "code": "SB2003",
+   "printedName": "ANILE GREEN"
+  },
+  "51": {
+   "code": "SB2004",
+   "printedName": "RUSTIC TIMBER"
+  },
+  "52": {
+   "code": "SB2005",
+   "printedName": "EXQUISITE TITANIUM"
+  },
+  "53": {
+   "code": "SB2006",
+   "printedName": "GUN METAL"
+  },
+  "54": {
+   "code": "SB3001",
+   "printedName": "FIERY COPPER"
+  },
+  "55": {
+   "code": "SB3002",
+   "printedName": "OBSOLETE COPPER"
+  },
+  "56": {
+   "code": "SB3003",
+   "printedName": "PROFUSE COPPER RUST"
+  },
+  "57": {
+   "code": "SB3004",
+   "printedName": "LUSTRE TITANIUM"
+  },
+  "58": {
+   "code": "SB101",
+   "printedName": "RICH WOOL CHECKS"
+  },
+  "59": {
+   "code": "SB103",
+   "printedName": "BLACK GREY LOUVERS"
+  },
+  "60": {
+   "code": "SB104",
+   "printedName": "BLACK BROWN LOUVERS"
+  },
+  "61": {
+   "code": "SB915",
+   "printedName": "CANADIAN WALNUT"
+  },
+  "62": {
+   "code": "SB940",
+   "printedName": "DARK WALNUT"
+  },
+  "63": {
+   "code": "SB950",
+   "printedName": "AMITRAGO WOOD"
+  },
+  "64": {
+   "code": "SB005",
+   "printedName": "NATURAL TEAK TX"
+  },
+  "65": {
+   "code": "SB902",
+   "printedName": "ROSE WOOD"
+  },
+  "66": {
+   "code": "SB804",
+   "printedName": "EMPERADOR DARK"
+  },
+  "67": {
+   "code": "SB923",
+   "printedName": "MACASAR WOOD TX"
+  },
+  "68": {
+   "code": "SB960",
+   "printedName": "CREME OAK"
+  },
+  "69": {
+   "code": "SB830",
+   "printedName": "WHITE MARBLE"
+  }
+ }
+}

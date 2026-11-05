@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en" data-tc-title="Start a project">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F150A">
+<meta name="description" content="Tell Terucon India about your space: what you are planning, where, how big and when. A project lead gets back to you within one working day.">
+<title>Start a project — Terucon India</title>
+<!-- the Terucon loader: the same one the built pages carry (site/brand/loader.html); loader.js is generated from it (node site/brand/build-loader.mjs) -->
+<link rel="stylesheet" href="/brand/loader.css">
+<script src="/brand/loader.js"></script>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<!-- Zodiak and Switzer, the site's fonts (served with the Design Studio); the page reads fine in Georgia / Helvetica without them -->
+<link rel="stylesheet" href="/css/fonts.css">
+<link rel="stylesheet" href="/brand/brand.css">
+<link rel="stylesheet" href="/brand/chrome.css">
+<script src="/brand/chrome.js"></script>
+<link rel="stylesheet" href="/brand/dock.css">
+<script src="/brand/dock.js" defer></script>
+<link rel="stylesheet" href="/brand/terubot.css">
+<script src="/brand/terubot.js" defer></script>
+<script src="/brand/transition.js" defer></script>
+<style>
+  :root { --bg:#E1D4C2; --card:#EFE6D8; --ink:#291C0E; --ink2:#6E473B; --sand:#A78D78; --line:rgba(41,28,14,.16); --line2:rgba(41,28,14,.34); --bad:#8C2F1B; --good:#3B5B2E; --night:#1F150A; --gx:clamp(20px, 5vw, 72px); }
+  * { box-sizing:border-box; }
+  html, body { margin:0; padding:0; }
+  html { -webkit-text-size-adjust:100%; -webkit-tap-highlight-color:transparent; background:var(--night); }
+  body { min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; background:var(--bg); color:var(--ink); font-family:Switzer, Helvetica, Arial, sans-serif; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; overflow-wrap:break-word; }
+  a { color:inherit; }
+  ::selection { background:#6E473B; color:#E1D4C2; }
+  :focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
+  [hidden] { display:none !important; }
+  svg { flex:none; }
+
+  main { flex:1; padding:clamp(32px, 7vh, 84px) max(var(--gx), env(safe-area-inset-right)) clamp(40px, 8vh, 96px) max(var(--gx), env(safe-area-inset-left)); }
+  .wrap { width:100%; max-width:1180px; margin:0 auto; display:grid; grid-template-columns:minmax(0, 5fr) minmax(0, 6fr); gap:clamp(32px, 6vw, 96px); align-items:start; }
+  @media (max-width:899px) { .wrap { grid-template-columns:minmax(0, 1fr); } }
+
+  .intro { display:flex; flex-direction:column; gap:22px; animation:rise .6s cubic-bezier(.2,.8,.2,1) both; }
+  .eyebrow { display:flex; align-items:center; gap:14px; margin:0; font:500 10.5px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.22em; text-transform:uppercase; color:var(--ink2); }
+  .eyebrow::before { content:""; width:32px; height:1px; background:currentColor; }
+  h1 { margin:0; font:300 clamp(40px, 6.4vw, 76px)/1 Zodiak, Georgia, serif; letter-spacing:-.025em; text-wrap:balance; }
+  h1 em { font-style:italic; color:var(--ink2); }
+  h2 { margin:0; font:300 clamp(26px, 3.4vw, 34px)/1.15 Zodiak, Georgia, serif; letter-spacing:-.01em; }
+  .lead { margin:0; max-width:44ch; font:400 clamp(16px, 2vw, 18px)/1.6 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+  .contact { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:20px 28px; margin:10px 0 0; padding:26px 0 0; border-top:1px solid var(--line2); }
+  .contact div { display:flex; flex-direction:column; gap:7px; }
+  .contact dt { font:500 10.5px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.22em; text-transform:uppercase; color:var(--ink2); }
+  .contact dd { margin:0; font:400 16px/1.4 Switzer, Helvetica, Arial, sans-serif; }
+  .contact a { display:inline-flex; align-items:center; min-height:44px; margin:-10px 0; text-underline-offset:4px; }
+  .aside { margin:0; font:400 14.5px/1.6 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); max-width:46ch; }
+  .aside a { text-underline-offset:3px; }
+
+  .card { position:relative; background:var(--card); border:1px solid var(--line); border-radius:28px; padding:clamp(22px, 4vw, 40px); display:flex; flex-direction:column; gap:26px; box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 24px 60px -34px rgba(41,28,14,.4); animation:rise .6s .08s cubic-bezier(.2,.8,.2,1) both; }
+  #form { display:flex; flex-direction:column; gap:28px; }
+  .progress { display:flex; flex-direction:column; gap:12px; }
+  .progress p { display:flex; justify-content:space-between; gap:12px; margin:0; font:500 11px/1.3 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.18em; text-transform:uppercase; color:var(--ink2); }
+  .bar { position:relative; height:3px; border-radius:3px; background:rgba(41,28,14,.12); overflow:hidden; }
+  .bar i { position:absolute; inset:0 auto 0 0; width:33.34%; border-radius:3px; background:var(--ink); transition:width .45s cubic-bezier(.2,.8,.2,1); }
+  .bar[data-step="2"] i { width:66.67%; }
+  .bar[data-step="3"] i { width:100%; }
+
+  fieldset { margin:0; padding:0; border:0; min-width:0; display:flex; flex-direction:column; gap:22px; }
+  fieldset.enter { animation:rise .4s cubic-bezier(.2,.8,.2,1) both; }
+  legend { padding:0; margin:0 0 4px; }
+  legend h2:focus { outline:none; }
+  .hint { margin:6px 0 0; font:400 14.5px/1.55 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+  .chips { display:flex; flex-wrap:wrap; gap:10px; }
+  .chip { position:relative; display:inline-flex; }
+  .chip input { position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:pointer; }
+  .chip span { display:inline-flex; align-items:center; min-height:48px; padding:0 20px; border-radius:999px; border:1px solid var(--line2); background:rgba(255,255,255,.4); font:500 14.5px/1.2 Switzer, Helvetica, Arial, sans-serif; transition:background .25s, color .25s, border-color .25s, transform .2s; }
+  .chip:hover span { border-color:var(--ink); }
+  .chip input:checked + span { background:var(--ink); border-color:var(--ink); color:var(--bg); }
+  .chip input:focus-visible + span { outline:2px solid var(--ink); outline-offset:3px; }
+  .chip:active span { transform:scale(.97); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap:20px 22px; }
+  .f { display:flex; flex-direction:column; gap:8px; min-width:0; }
+  .f > span { font:500 10.5px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--ink2); }
+  .f em { font-style:normal; letter-spacing:.04em; text-transform:none; color:var(--sand); }
+  input[type=text], input[type=email], input[type=tel], select, textarea { width:100%; min-height:52px; padding:14px 16px; border:1px solid var(--line2); border-radius:16px; background:#F9F4EA; color:var(--ink); font:400 16px/1.3 Switzer, Helvetica, Arial, sans-serif; transition:border-color .2s, box-shadow .2s; }
+  select { appearance:none; -webkit-appearance:none; padding-right:44px; background-image:linear-gradient(45deg, transparent 50%, var(--ink2) 50%), linear-gradient(135deg, var(--ink2) 50%, transparent 50%); background-position:calc(100% - 22px) 50%, calc(100% - 16px) 50%; background-size:6px 6px, 6px 6px; background-repeat:no-repeat; cursor:pointer; }
+  textarea { min-height:120px; resize:vertical; line-height:1.5; }
+  input::placeholder, textarea::placeholder { color:#8d7767; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--ink); box-shadow:0 0 0 4px rgba(41,28,14,.12); }
+  .f.is-bad input, .f.is-bad select, .f.is-bad textarea { border-color:var(--bad); }
+  .phone { display:flex; align-items:stretch; border:1px solid var(--line2); border-radius:16px; background:#F9F4EA; transition:border-color .2s, box-shadow .2s; }
+  .phone:focus-within { border-color:var(--ink); box-shadow:0 0 0 4px rgba(41,28,14,.12); }
+  .f.is-bad .phone { border-color:var(--bad); }
+  .phone b { display:inline-flex; align-items:center; padding:0 4px 0 16px; font:500 16px/1 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+  .phone input { border:0; background:transparent; box-shadow:none; padding-left:10px; }
+  .phone input:focus { box-shadow:none; }
+  .hp { position:absolute; left:-10000px; width:1px; height:1px; overflow:hidden; }
+
+  .notice { margin:0; padding:12px 16px; border-radius:14px; font:400 14.5px/1.5 Switzer, Helvetica, Arial, sans-serif; border:1px solid var(--line2); }
+  .notice.bad { border-color:var(--bad); color:var(--bad); background:rgba(140,47,27,.07); }
+  .notice.info { border-color:var(--line2); color:var(--ink2); background:rgba(41,28,14,.04); }
+
+  .actions { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px; margin-top:4px; }
+  .btn { position:relative; display:inline-flex; align-items:center; justify-content:center; gap:10px; height:54px; padding:0 28px; border-radius:999px; border:1px solid var(--ink); background:var(--ink); color:var(--bg); font:500 15px/1 Switzer, Helvetica, Arial, sans-serif; text-decoration:none; cursor:pointer; white-space:nowrap; transition:background .25s, border-color .25s, transform .15s; }
+  .btn:hover { background:var(--ink2); border-color:var(--ink2); }
+  .btn:active { transform:scale(.97); }
+  .btn:disabled { opacity:.6; cursor:default; }
+  .btn.ghost { background:transparent; color:var(--ink); border-color:var(--line2); }
+  .btn.ghost:hover { background:rgba(41,28,14,.07); border-color:var(--ink); }
+  .btn svg { transition:transform .25s cubic-bezier(.2,.8,.2,1); }
+  .btn:hover svg { transform:translateX(3px); }
+  .skip { display:inline-flex; align-items:center; min-height:44px; padding:0 4px; background:none; border:0; color:var(--ink2); font:500 14px/1 Switzer, Helvetica, Arial, sans-serif; text-decoration:underline; text-underline-offset:4px; cursor:pointer; }
+
+  .done { display:flex; flex-direction:column; align-items:flex-start; gap:18px; }
+  .done .eyebrow { margin-top:2px; }
+  .done .tick { display:inline-flex; align-items:center; justify-content:center; width:56px; height:56px; border-radius:50%; background:rgba(59,91,46,.14); color:var(--good); }
+  .done .ref { display:inline-flex; align-self:flex-start; align-items:center; gap:10px; padding:10px 16px; border-radius:999px; border:1px dashed var(--line2); font:500 14px/1 Switzer, Helvetica, Arial, sans-serif; }
+  .done .ref b { font:600 15px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing:.08em; }
+  .done p { margin:0; max-width:46ch; font:400 16px/1.6 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2); }
+  .done .actions { justify-content:flex-start; gap:12px 18px; }
+
+  @keyframes rise { from { opacity:0; transform:translateY(14px); } }
+  @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="wrap">
+    <section class="intro" aria-labelledby="h-title">
+      <p class="eyebrow">Start a project</p>
+      <h1 id="h-title">Tell us about <em>your space.</em></h1>
+      <p class="lead">A project lead — not a call centre — gets back to you within one working day. Site visits across Bengaluru are on us.</p>
+      <dl class="contact">
+        <div><dt>Call</dt><dd><a href="tel:+910000000000">+91 00000 00000</a></dd></div>
+        <div><dt>WhatsApp</dt><dd><a href="https://wa.me/910000000000">Message us</a></dd></div>
+        <div><dt>Email</dt><dd><a href="mailto:hello@teruconindia.com">hello@teruconindia.com</a></dd></div>
+        <div><dt>Visit</dt><dd>Peenya Industrial Area, Bengaluru 560058</dd></div>
+      </dl>
+      <p class="aside">Want to look around first? <a href="/design-studio">Try the Design Studio with your photo</a> or <a href="/materials">browse the materials</a>.</p>
+    </section>
+
+    <section class="card" id="card" aria-label="Project enquiry">
+      <form id="form" novalidate autocomplete="on">
+        <div class="progress">
+          <p><span id="step-count">Step 1 of 3</span><span id="step-name">The project</span></p>
+          <div class="bar" id="bar" data-step="1" role="presentation"><i></i></div>
+        </div>
+
+        <fieldset data-step="1">
+          <legend><h2 tabindex="-1">What are you planning?</h2><p class="hint">Pick the closest one. You can skip this if you are not sure.</p></legend>
+          <div class="chips" role="radiogroup" aria-label="Project type">
+            <label class="chip"><input type="radio" name="type" value="Façade / elevation"><span>Façade / elevation</span></label>
+            <label class="chip"><input type="radio" name="type" value="Office interior"><span>Office interior</span></label>
+            <label class="chip"><input type="radio" name="type" value="Materials supply"><span>Materials supply</span></label>
+            <label class="chip"><input type="radio" name="type" value="Turnkey build"><span>Turnkey build</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset data-step="2" hidden>
+          <legend><h2 tabindex="-1">About the space</h2><p class="hint">Rough answers are fine. All of this is optional.</p></legend>
+          <div class="grid">
+            <label class="f" id="f-city"><span>City</span><input type="text" name="city" autocomplete="address-level2" placeholder="Bengaluru" maxlength="120"></label>
+            <label class="f" id="f-area"><span>Approx. area</span>
+              <select name="area">
+                <option value="">Select</option>
+                <option>Under 2,000 sq ft</option>
+                <option>2,000 – 10,000 sq ft</option>
+                <option>10,000 – 50,000 sq ft</option>
+                <option>50,000+ sq ft</option>
+                <option>Façade only / not sure</option>
+              </select>
+            </label>
+          </div>
+          <div class="f"><span>When</span>
+            <div class="chips" role="radiogroup" aria-label="Timeline">
+              <label class="chip"><input type="radio" name="timeline" value="Within 3 months"><span>Within 3 months</span></label>
+              <label class="chip"><input type="radio" name="timeline" value="3–6 months"><span>3–6 months</span></label>
+              <label class="chip"><input type="radio" name="timeline" value="Later this year"><span>Later this year</span></label>
+              <label class="chip"><input type="radio" name="timeline" value="Just exploring"><span>Just exploring</span></label>
+            </div>
+          </div>
+          <label class="f" id="f-message"><span>About the site</span><textarea name="message" rows="4" maxlength="2000" placeholder="Where is it, what’s there now, and what would you like it to become?"></textarea></label>
+        </fieldset>
+
+        <fieldset data-step="3" hidden>
+          <legend><h2 tabindex="-1">How can we reach you?</h2><p class="hint">Your name, and a phone number or an e-mail address.</p></legend>
+          <div class="grid">
+            <label class="f" id="f-name"><span>Your name</span><input type="text" name="name" autocomplete="name" placeholder="Full name" maxlength="120" required></label>
+            <label class="f" id="f-company"><span>Company <em>(optional)</em></span><input type="text" name="company" autocomplete="organization" placeholder="Company" maxlength="160"></label>
+            <label class="f" id="f-phone"><span>Phone</span><span class="phone"><b aria-hidden="true">+91</b><input type="tel" name="phone" inputmode="tel" autocomplete="tel-national" placeholder="10-digit mobile number" maxlength="32" aria-label="Phone number"></span></label>
+            <label class="f" id="f-email"><span>Email</span><input type="email" name="email" inputmode="email" autocomplete="email" placeholder="you@company.com" maxlength="254"></label>
+          </div>
+          <div class="hp" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+        </fieldset>
+
+        <p class="notice info" id="prefill-note" hidden>We filled in some of this from your chat with TeruBot. Please check it before you send.</p>
+        <p class="notice bad" id="error" role="alert" hidden></p>
+
+        <div class="actions">
+          <button class="btn ghost" id="back" type="button" hidden>Back</button>
+          <button class="btn" id="next" type="submit">
+            <span id="next-label">Continue</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </form>
+
+      <div class="done" id="done" hidden>
+        <span class="tick" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+        <p class="eyebrow">Enquiry received</p>
+        <h2 id="done-title" tabindex="-1">Thank you.</h2>
+        <p>Your enquiry is with our projects team. A project lead will call you within one working day to arrange a site visit.</p>
+        <p class="ref">Your reference <b id="ref"></b></p>
+        <div class="actions">
+          <a class="btn" href="/design-studio">Try the Design Studio meanwhile</a>
+          <a class="btn ghost" href="/materials">Browse materials</a>
+          <button class="skip" id="again" type="button">Send another</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="tc-foot">
+  <img class="tc-footer-logo" src="/brand/logo-header-320.webp" srcset="/brand/logo-header-320.webp 320w, /brand/logo-header-480.webp 480w" sizes="257px" width="257" height="44" alt="" loading="lazy" decoding="async">
+  <span>© 2026 Terucon India Private Limited · CIN U45400KA2021PTC153053</span>
+</footer>
+
+<noscript><p class="notice bad">This form needs JavaScript. You can also call, message or e-mail us with the details above.</p></noscript>
+<script>
+(function () {
+  'use strict';
+  var form = document.getElementById('form');
+  var steps = Array.prototype.slice.call(form.querySelectorAll('fieldset[data-step]'));
+  var bar = document.getElementById('bar');
+  var count = document.getElementById('step-count');
+  var stepName = document.getElementById('step-name');
+  var back = document.getElementById('back');
+  var next = document.getElementById('next');
+  var nextLabel = document.getElementById('next-label');
+  var errorBox = document.getElementById('error');
+  var prefillNote = document.getElementById('prefill-note');
+  var done = document.getElementById('done');
+  var NAMES = ['The project', 'The space', 'Contact'];
+  var FIELD_STEP = { type: 1, area: 2, timeline: 2, city: 2, message: 2, name: 3, company: 3, phone: 3, email: 3 };
+  var current = 1;
+  var sending = false;
+
+  function el(name) { return form.elements[name]; }
+  function show(message) { errorBox.textContent = message; errorBox.hidden = !message; }
+  function clearBad() {
+    var bad = form.querySelectorAll('.is-bad');
+    for (var i = 0; i < bad.length; i += 1) bad[i].classList.remove('is-bad');
+    show('');
+  }
+  function mark(field) {
+    var wrap = document.getElementById('f-' + field);
+    if (wrap) wrap.classList.add('is-bad');
+  }
+
+  function go(n, focus) {
+    current = Math.max(1, Math.min(steps.length, n));
+    steps.forEach(function (s) {
+      var on = Number(s.getAttribute('data-step')) === current;
+      s.hidden = !on;
+      s.classList.toggle('enter', on);
+    });
+    bar.setAttribute('data-step', String(current));
+    count.textContent = 'Step ' + current + ' of ' + steps.length;
+    stepName.textContent = NAMES[current - 1];
+    back.hidden = current === 1;
+    nextLabel.textContent = current === steps.length ? 'Send enquiry' : 'Continue';
+    if (focus !== false) {
+      var h = steps[current - 1].querySelector('h2');
+      if (h) h.focus({ preventScroll: true });
+      var top = form.getBoundingClientRect().top;
+      if (top < 0) window.scrollBy({ top: top - 24, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    }
+  }
+
+  /** The phone as the server wants it: ten digits typed by themselves are an Indian mobile number, anything else is sent as typed. */
+  function phoneValue() {
+    var raw = String(el('phone').value || '').trim();
+    if (!raw) return '';
+    var digits = raw.replace(/\D/g, '');
+    if (/^\d{10}$/.test(raw.replace(/[\s-]/g, ''))) return '+91 ' + digits;
+    if (digits.length === 11 && digits.charAt(0) === '0') return '+91 ' + digits.slice(1);
+    return raw;
+  }
+
+  function checkStep3() {
+    var name = String(el('name').value || '').trim();
+    var phone = phoneValue();
+    var email = String(el('email').value || '').trim();
+    clearBad();
+    if (!name) { mark('name'); show('Please add your name.'); el('name').focus(); return false; }
+    if (!phone && !email) { mark('phone'); mark('email'); show('Please add a phone number or an e-mail address so we can reach you.'); el('phone').focus(); return false; }
+    var digits = phone.replace(/\D/g, '');
+    if (phone && (!/^[+\d(][\d\s().-]*$/.test(phone) || digits.length < 7 || digits.length > 15)) { mark('phone'); show('That phone number does not look right. Use digits, with the country code if it is not in India.'); el('phone').focus(); return false; }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@.]{2,}$/.test(email)) { mark('email'); show('That e-mail address does not look right.'); el('email').focus(); return false; }
+    return true;
+  }
+
+  function payload() {
+    var body = {};
+    ['type', 'timeline'].forEach(function (k) { var c = form.querySelector('input[name="' + k + '"]:checked'); body[k] = c ? c.value : ''; });
+    ['area', 'city', 'message', 'name', 'company', 'email', 'website'].forEach(function (k) { body[k] = String(el(k).value || ''); });
+    body.phone = phoneValue();
+    return body;
+  }
+
+  function finish(reference, name) {
+    form.hidden = true;
+    done.hidden = false;
+    document.getElementById('ref').textContent = reference;
+    var first = String(name || '').trim().split(/\s+/)[0];
+    document.getElementById('done-title').textContent = first ? 'Thank you, ' + first + '.' : 'Thank you.';
+    document.getElementById('done-title').focus({ preventScroll: true });
+    var top = document.getElementById('card').getBoundingClientRect().top;
+    if (top < 0) window.scrollBy({ top: top - 24 });
+  }
+
+  function send() {
+    if (sending) return;
+    sending = true;
+    next.disabled = true;
+    nextLabel.textContent = 'Sending…';
+    show('');
+    var body = payload();
+    fetch('/api/enquiry', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(body) })
+      .then(function (res) { return res.json().catch(function () { return null; }).then(function (data) { return { res: res, data: data }; }); })
+      .then(function (r) {
+        if (r.res.ok && r.data && r.data.reference) { finish(r.data.reference, body.name); return; }
+        var err = r.data && r.data.error ? r.data.error : {};
+        var message = err.message || 'Something went wrong. Please try again, or call us.';
+        if (err.field && FIELD_STEP[err.field]) { go(FIELD_STEP[err.field], false); mark(err.field); var input = el(err.field); if (input && input.focus && input.type !== 'radio') input.focus(); }
+        show(message);
+      })
+      .catch(function () { show('We could not reach the server. Check your connection and try again, or call us.'); })
+      .then(function () { sending = false; next.disabled = false; nextLabel.textContent = current === steps.length ? 'Send enquiry' : 'Continue'; });
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (sending) return;
+    if (current < steps.length) { clearBad(); go(current + 1); return; }
+    if (checkStep3()) send();
+  });
+  back.addEventListener('click', function () { clearBad(); go(current - 1); });
+  form.addEventListener('input', function (e) {
+    var wrap = e.target && e.target.closest ? e.target.closest('.f') : null;
+    if (wrap && wrap.classList.contains('is-bad')) wrap.classList.remove('is-bad');
+    if (!form.querySelector('.is-bad')) show('');
+  });
+  // a chosen chip can be un-chosen by pressing it again (radios cannot do that by themselves)
+  var armed = null;
+  form.addEventListener('pointerdown', function (e) { var r = e.target && e.target.closest ? e.target.closest('.chip') : null; var input = r && r.querySelector('input'); armed = input && input.checked ? input : null; });
+  form.addEventListener('click', function (e) { var r = e.target && e.target.closest ? e.target.closest('.chip') : null; var input = r && r.querySelector('input'); if (input && armed === input && e.detail > 0) input.checked = false; armed = null; });
+  document.getElementById('again').addEventListener('click', function () {
+    form.reset();
+    clearBad();
+    done.hidden = true;
+    form.hidden = false;
+    go(1, false);
+    window.scrollTo({ top: 0 });
+  });
+
+  // ---- prefill: the address (?type=), TeruBot's hand-over, and the account of somebody who is signed in ------------------------
+  var ALLOWED = {
+    type: ['Façade / elevation', 'Office interior', 'Materials supply', 'Turnkey build'],
+    timeline: ['Within 3 months', '3–6 months', 'Later this year', 'Just exploring'],
+    area: ['Under 2,000 sq ft', '2,000 – 10,000 sq ft', '10,000 – 50,000 sq ft', '50,000+ sq ft', 'Façade only / not sure']
+  };
+  function setValue(name, value) {
+    if (typeof value !== 'string' || !value) return false;
+    value = value.replace(/\s+/g, ' ').trim();
+    if (ALLOWED[name]) {
+      if (ALLOWED[name].indexOf(value) < 0) return false;
+      if (name === 'area') { el('area').value = value; return el('area').value === value; }
+      var radio = form.querySelector('input[name="' + name + '"][value="' + value.replace(/"/g, '\\"') + '"]');
+      if (!radio) return false;
+      radio.checked = true;
+      return true;
+    }
+    var field = el(name);
+    if (!field || field.value) return false;
+    field.value = value.slice(0, Number(field.maxLength) > 0 ? field.maxLength : 2000);
+    return true;
+  }
+  try {
+    var q = new URLSearchParams(location.search).get('type');
+    if (q) setValue('type', q);
+  } catch (e) { /* no query */ }
+  try {
+    var raw = sessionStorage.getItem('terucon.enquiry.prefill');
+    if (raw) {
+      sessionStorage.removeItem('terucon.enquiry.prefill');
+      var fields = JSON.parse(raw);
+      var any = false;
+      if (fields && typeof fields === 'object' && fields.fields && typeof fields.fields === 'object') fields = fields.fields;
+      if (fields && typeof fields === 'object') ['type', 'timeline', 'area', 'city', 'message', 'name', 'company', 'email'].forEach(function (k) { if (setValue(k, fields[k])) any = true; });
+      if (fields && typeof fields.phone === 'string' && fields.phone && !el('phone').value) { el('phone').value = fields.phone.replace(/^\s*\+?91[\s-]*/, '').slice(0, 32); any = true; }
+      if (any) prefillNote.hidden = false;
+    }
+  } catch (e) { /* storage blocked or not JSON: start with an empty form */ }
+  if (window.fetch) {
+    fetch('/api/auth/me', { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (me) {
+        if (!me || !me.authenticated || !me.user) return;
+        setValue('name', me.user.name);
+        setValue('company', me.user.firm);
+        setValue('email', me.user.email);
+        if (me.user.phone && !el('phone').value) el('phone').value = String(me.user.phone).replace(/^\s*\+?91[\s-]*/, '').slice(0, 32);
+      })
+      .catch(function () { /* the form works without it */ });
+  }
+  go(1, false);
+})();
+</script>
+</body>
+</html>

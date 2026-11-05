@@ -58,6 +58,7 @@ export function htmlHandler(root, table, buildHint, { gate, dist } = {}) {
         google: action.csp === 'strict+google',
         images: action.csp === 'strict+images' ? allCdnHosts() : isCatalogue ? [GCS_HOST] : [],
         connect: action.csp === 'strict+catalogue-admin' ? [GCS_HOST] : [],
+        blobImages: action.csp === 'strict+capture',
       });
       policies.set(file, { mtimeMs, value });
       return value;

@@ -32,7 +32,8 @@ const FAIL_TTL_MS = 3 * 1000;
 export const URL_LIFETIME_S = 3600;
 /** Addresses are signed at the start of a 15-minute window, so the same picture has the same address all window long and the browser can cache it. */
 export const URL_WINDOW_S = 900;
-const READABLE_PREFIXES = ['crops/', 'thumbs/'];
+// crops/ and thumbs/ are what the engine writes; cards/ holds the 800 px picture of a design with its page margin and label cut away (tools/publish-shop-images.js)
+const READABLE_PREFIXES = ['crops/', 'thumbs/', 'cards/'];
 const PREPROCESSING = ['perspective_rectified', 'center_crop', 'region', 'text'];
 const SIGNAL_NAME = /^[a-z][a-z0-9_]{0,40}$/;
 
@@ -54,6 +55,9 @@ export const ITEM_PROJECTION = Object.freeze({
   'images.crop.width': 1,
   'images.crop.height': 1,
   'images.thumb.key': 1,
+  'shopImage.key': 1,
+  'shopImage.width': 1,
+  'shopImage.height': 1,
   attributes: 1,
 });
 
@@ -303,6 +307,10 @@ export function createService({ settings, auth, db, modal, signer, log, now = Da
       }
     }
     const crop = doc.images?.crop;
+    // The engine's thumbnail is the whole catalogue page: a white margin all round and the printed label under the picture (a third of the
+    // image). When the design has its card picture (the swatch alone), that is the one a result shows; the full-size link stays the page.
+    const card = pictureUrl(doc.shopImage?.key);
+    const shown = card ? { url: card, width: intOrNull(doc.shopImage.width), height: intOrNull(doc.shopImage.height) } : null;
     const attributes = {};
     if (doc.attributes && typeof doc.attributes === 'object' && !Array.isArray(doc.attributes)) {
       for (const [name, v] of Object.entries(doc.attributes).slice(0, 20)) if (v === null || ['string', 'number', 'boolean'].includes(typeof v)) attributes[name] = v;
@@ -320,7 +328,7 @@ export function createService({ settings, auth, db, modal, signer, log, now = Da
       subtype: text(doc.subtype, 120),
       dominantHex: hexList(doc.dominantHex),
       source: { name: text(doc.source?.name, 200), page: intOrNull(doc.source?.page) },
-      image: { thumbUrl: pictureUrl(doc.images?.thumb?.key), fullUrl: pictureUrl(crop?.key), width: intOrNull(crop?.width), height: intOrNull(crop?.height) },
+      image: { thumbUrl: shown?.url ?? pictureUrl(doc.images?.thumb?.key), fullUrl: pictureUrl(crop?.key), width: shown?.width ?? intOrNull(crop?.width), height: shown?.height ?? intOrNull(crop?.height) },
       scores: { final: finiteOrNull(result.finalScore), signals },
       attributes,
     };
@@ -407,14 +415,16 @@ export function createService({ settings, auth, db, modal, signer, log, now = Da
     /**
      * Search by photo. The photo was judged already (validate.judgePhoto).
      * @param {{live: {id: string, release: string}, params: ReturnType<typeof import('./validate.js').parseSearchParams>, bytes: Buffer, type: string}} p
+     *   `params.patch`: the photo is a patch somebody already cut out, so it is searched whole (Modal is given the box 0,0,1,1) and not through the whole-photo path
      */
     async searchPhoto({ live, params, bytes, type }) {
       const started = Date.now();
       const cfg = config();
+      const box = params.box ?? (params.patch ? [0, 0, 1, 1] : undefined);
       const answer = await modal.search({
         bytes,
         contentType: type,
-        query: { catalogue: live.id, release: live.release, mode: params.mode, profile: cfg.profile, k: Math.min(FETCH_MAX, params.k + OVERFETCH), point: params.point, radius: params.radius, box: params.box, category: params.category, finish: params.finish },
+        query: { catalogue: live.id, release: live.release, mode: params.mode, profile: cfg.profile, k: Math.min(FETCH_MAX, params.k + OVERFETCH), point: params.point, radius: params.radius, box, category: params.category, finish: params.finish },
       });
       return finish(live, params.mode, params.k, answer, started, cfg.profile);
     },

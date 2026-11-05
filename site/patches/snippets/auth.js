@@ -28,9 +28,14 @@
 
   function relabel() {
     var links = document.querySelectorAll('a[data-terucon-account]');
-    if (!links.length || typeof nativefetch !== 'function') return;
-    nativefetch('/api/auth/me', { credentials: 'same-origin', headers: { Accept: 'application/json' } })
-      .then(function (r) { return r.ok ? r.json() : null; })
+    if (!links.length) return;
+    // the site chrome (/brand/chrome.js) already asks who is signed in, once for the whole page: use its answer instead of asking again
+    var chrome = window.TeruconChrome;
+    var asked = chrome && chrome.whenMe ? chrome.whenMe()
+      : typeof nativefetch === 'function' ? nativefetch('/api/auth/me', { credentials: 'same-origin', headers: { Accept: 'application/json' } }).then(function (r) { return r.ok ? r.json() : null; })
+      : null;
+    if (!asked) return;
+    asked
       .then(function (me) {
         if (!me || me.authenticated !== false) return;
         for (var i = 0; i < links.length; i += 1) {

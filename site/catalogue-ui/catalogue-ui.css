@@ -10,6 +10,8 @@
 .result-pic img { width:100%; height:100%; object-fit:cover; display:block; }
 .result-body { display:flex; flex-direction:column; gap:3px; padding:12px 14px 14px; }
 .result-title { font:500 14px/1.3 Switzer, Helvetica, Arial, sans-serif; overflow-wrap:anywhere; }
+.result-price { font:600 13.5px/1.3 Switzer, Helvetica, Arial, sans-serif; margin-top:4px; }
+.result-sample { font:400 11.5px/1.3 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2, #6E473B); }
 .result-meta { font:400 12.5px/1.3 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2, #6E473B); text-transform:capitalize; }
 .code { font:500 11px/1 Switzer, Helvetica, Arial, sans-serif; letter-spacing:.04em; color:var(--sand, #A78D78); }
 
@@ -29,6 +31,25 @@
 .viewfinder .reticle { position:absolute; border:2px solid #fff; border-radius:14px; box-shadow:0 0 0 2000px rgba(0,0,0,.28); touch-action:none; }
 .viewfinder .reticle::after { content:""; position:absolute; inset:-2px; border-radius:16px; border:1px dashed rgba(255,255,255,.6); }
 .viewfinder .hint { position:absolute; left:0; right:0; top:12px; text-align:center; font:500 12.5px/1 Switzer, Helvetica, Arial, sans-serif; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.6); pointer-events:none; }
+
+/* "Search the whole photo" (finder.js): the photo is outlined into its items. The canvas lies exactly over the photo (same box), faint tints and edges show the
+   items, a tap on one searches the catalogue for it. While the models work the photo is dimmed and a light band sweeps over it. */
+.viewfinder .outline { position:absolute; inset:0; width:100%; height:100%; touch-action:manipulation; cursor:default; }
+.viewfinder .outline.is-hit { cursor:pointer; }
+.viewfinder .outline-tip { position:absolute; z-index:2; padding:5px 10px; border-radius:999px; background:rgba(20,13,6,.88); color:#f1eadf; font:500 12.5px/1.2 Switzer, Helvetica, Arial, sans-serif; pointer-events:none; white-space:nowrap; }
+.viewfinder.is-outlining::before { content:""; position:absolute; inset:0; z-index:1; background:rgba(20,13,6,.45); pointer-events:none; }
+.viewfinder.is-outlining::after { content:""; position:absolute; top:0; bottom:0; left:0; width:38%; z-index:1; background:linear-gradient(90deg, transparent, rgba(255,255,255,.28), transparent); pointer-events:none; animation:outline-sweep 1.6s ease-in-out infinite; }
+@keyframes outline-sweep { from { transform:translateX(-100%); } to { transform:translateX(280%); } }
+.viewfinder .hint { z-index:2; }
+
+.outline-panel { display:flex; flex-direction:column; gap:12px; margin-top:14px; }
+#results-block { scroll-margin-top:100px; } /* the site's pill header is fixed to the top of the window: the results scroll in under it, not behind it */
+.outline-status { margin:0; font:400 14.5px/1.55 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2, #6E473B); }
+.chips { display:flex; flex-wrap:wrap; gap:8px; }
+.chip { display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:0 16px; border-radius:999px; border:1px solid var(--line2, rgba(41,28,14,.34)); background:transparent; color:var(--ink, #291C0E); font:500 13.5px/1 Switzer, Helvetica, Arial, sans-serif; cursor:pointer; transition:background .2s, color .2s; }
+.chip:hover { background:rgba(41,28,14,.07); }
+.chip[aria-pressed="true"] { background:var(--ink, #291C0E); border-color:var(--ink, #291C0E); color:var(--bg, #E1D4C2); }
+.chip-dot { width:10px; height:10px; border-radius:50%; flex:none; box-shadow:0 0 0 1px rgba(255,255,255,.7); }
 
 @media (max-width:620px) {
   .modes { display:flex; width:100%; }
@@ -60,4 +81,4 @@
 .tag.failed { background:rgba(140,47,27,.1); color:var(--bad, #8C2F1B); }
 .tag.running, .tag.queued { background:rgba(167,141,120,.2); color:var(--ink2, #6E473B); }
 
-@media (prefers-reduced-motion: reduce) { .spinner { animation:none; } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation:none; } .viewfinder.is-outlining::after { animation:none; display:none; } }

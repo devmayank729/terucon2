@@ -40,7 +40,9 @@
 //
 // Shell: site/brand/head.html goes inside <head> and site/brand/loader.html is the first thing in <body>; either is skipped when
 // absent (re-run the build to pick it up). The loader is told to leave by an inline script that watches for the runtime's mount
-// node (#dc-root) to receive its first child (React's first commit) and then waits two animation frames.
+// node (#dc-root) to receive its first child (React's first commit) and then waits two animation frames. The studio page is the
+// exception: its first commit is only the shell, so site/brand/studio-entry.js (inline, right after the loader) releases it instead
+// (see loaderFor); the landing page's loader dissolves instead of opening slats, because the hero opens its own louvres.
 //
 // Images: site/optimized/index.json (written by tools/optimize-images.mjs) maps the sha256 of a source image to resized WebP
 // variants. A hit swaps the file, adds srcset/sizes to plain <img> and uses the best variant up to 1280 px everywhere else
@@ -218,7 +220,29 @@ function readBrand(root) {
     // the leading explanatory comment of each snippet is for people reading the file, not for every visitor
     return b ? b.toString('utf8').replace(/^\s*(?:<!--[\s\S]*?-->\s*)+/, '').trim() : '';
   };
-  return { head: text('head.html'), loader: text('loader.html') };
+  // studio-entry.js is a script, not markup: its leading block comment is for people reading the file
+  const studio = readIfExists(path.join(root, 'site', 'brand', 'studio-entry.js'));
+  const studioEntry = studio ? studio.toString('utf8').replace(/^\s*\/\*[\s\S]*?\*\/\s*/, '').trim() : '';
+  return { head: text('head.html'), loader: text('loader.html'), studioEntry };
+}
+
+/**
+ * The loader's markup for one page. Which kind of exit and entry a page has is decided here, by page key (not by address):
+ *   studio  data-tc-mode="studio": the loader holds for the studio's first interactive screen and two cycles of its animation, and
+ *           site/brand/studio-entry.js (inline, right after the loader) says when; the generic "first React commit" script is not used
+ *   home    data-tc-exit="dissolve": the landing page opens its own curtain (the hero's louvres), so the loader fades instead of
+ *           opening a second set of slats and fires "tc-ld-exit" when the hero may begin
+ */
+const LOADER_MODES = { studio: { mode: 'studio' }, home: { exit: 'dissolve' } };
+function loaderFor(brand, key) {
+  const m = LOADER_MODES[key];
+  let html = brand.loader;
+  if (m) {
+    const attrs = Object.entries(m).map(([k, v]) => (k === 'mode' ? ` data-tc-mode="${v}"` : ` data-tc-exit="${v}"`)).join('');
+    html = html.replace('<div id="tc-loader"', `<div id="tc-loader"${attrs}`);
+  }
+  if (key === 'studio' && brand.studioEntry) html += `\n<script>\n${brand.studioEntry}\n</script>`;
+  return html;
 }
 
 // ---- optimized images --------------------------------------------------------------------------------------------------------
@@ -579,7 +603,8 @@ function buildPage({ key, page, bundle, ctx, log }) {
   tags.push(...pre);
   tags.push('<style>x-dc{display:none!important}</style>');
   tags.push(resourcesScript);
-  tags.push(READY_SCRIPT);
+  // the studio page is released by site/brand/studio-entry.js (inline after the loader), not by the first React commit
+  if (!(key === 'studio' && brand.loader && brand.studioEntry)) tags.push(READY_SCRIPT);
 
   // the template's own <meta charset> is replaced by ours (first in <head>)
   const headOpen = /<head\b[^>]*>/i.exec(template);
@@ -594,7 +619,7 @@ function buildPage({ key, page, bundle, ctx, log }) {
     const bodyOpen = /<body\b[^>]*>/i.exec(template);
     if (!bodyOpen) fail('the template has no <body>');
     const at = bodyOpen.index + bodyOpen[0].length;
-    template = template.slice(0, at) + '\n' + brand.loader + '\n' + template.slice(at);
+    template = template.slice(0, at) + '\n' + loaderFor(brand, key) + '\n' + template.slice(at);
   }
 
   if (/__bundler/.test(template)) fail('bundle markup is still present after the build');

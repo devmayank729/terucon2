@@ -62,6 +62,7 @@ function redact(message) {
  *   start: () => void,
  *   warm: () => string[],
  *   status: () => {database: boolean},
+ *   aiBodyLimit: () => string,
  *   analytics: () => {key: string, host: string},
  *   mongoose: () => import('mongoose').Mongoose,
  *   roomStore: () => import('./studioShield.js').RoomStore,
@@ -142,6 +143,9 @@ export function loadSwatchroom({ dir, log, requirePasscode = false }) {
     },
 
     status: () => ({ database: db.status().connected }),
+
+    /** The studio's own limit for the body of POST /api/ai/generate (its AI_BODY_LIMIT, default 40mb): the website reads a render request with the same limit (server/lib/studioReference.js). */
+    aiBodyLimit: () => config.limits.aiJson,
 
     /** The studio's own PostHog project key and host (its POSTHOG_KEY / POSTHOG_HOST); the key is public by PostHog's design. */
     analytics: () => ({ key: config.posthog.key, host: config.posthog.host }),

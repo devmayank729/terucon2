@@ -135,6 +135,12 @@ test('CLI check-links: exit 0 and a readable report on good pages, exit 1 with -
     const b = Bundle.load(file);
     b.template = b.template.split('/my-project').join('/nowhere') + '<a href="Design%20Studio.dc.html">old</a>';
     b.save(file);
+    // the site chrome draws My project on every page (the checker reads its list), so for this page to lose the connection the chrome's
+    // list in this throw-away copy must lose it too
+    const chromeFile = path.join(root, 'site', 'brand', 'chrome.js');
+    const chromeText = fs.readFileSync(chromeFile, 'utf8');
+    assert.match(chromeText, /\{"key": "project"[^\n]*\n/, 'the chrome lists My project');
+    fs.writeFileSync(chromeFile, chromeText.replace(/\{"key": "project"[^\n]*\n/, ''));
     const bad = runNode([tool('check-links.js'), '--root', root]);
     assert.equal(bad.status, 1);
     assert.match(bad.stdout, /FAIL {2}pages\/home\.html/);

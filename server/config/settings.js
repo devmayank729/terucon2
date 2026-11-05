@@ -8,6 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readAuthEnv } from '../auth/config.js';
 import { describeCatalogue, readCatalogueEnv } from '../catalogue/config.js';
+import { CAPTURE_DEFAULTS, describeCapture, readCaptureEnv } from '../capture/config.js';
 import { loadEnvFile } from './envfile.js';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -34,6 +35,20 @@ function int(value, fallback, lo, hi) {
 /** Requests per visitor per hour. The per-address limit is `perAddress` times these (a shared address: an office, a phone network). */
 export const LIMIT_DEFAULTS = { ai: 60, vision: 60, pipeline: 40, check: 10, rooms: 600, perAddress: 4 };
 
+/** TeruBot's starting values. Limits are per hour; see server/lib/terubot/limits.js. */
+export const TERUBOT_DEFAULTS = {
+  enabled: true,
+  model: '', // blank: the first model of the studio's text model chain (swatchroom/server/google/vertex.js), which falls back to the next when it is not available
+  voice: 'Aoede', // the speaker of the spoken answers (Google Chirp 3 HD, in Hindi and English); '' = off: the browser's own voice is used
+  maxOutputTokens: 1024,
+  historyLimit: 12, // messages of the conversation sent to the model (the widget sends at most 12)
+  toolRounds: 4, // rounds of tool calls in one answer, after which the model must answer in words
+  timeoutMs: 30000, // the whole answer, tool rounds included
+  limitAccount: 60, // chat messages per signed-in account per hour
+  limitAddress: 120, // per network address per hour, signed in or not (an office or a phone network shares one)
+  limitAnonymous: 20, // per network address per hour for visitors who are not signed in
+};
+
 /** Plain objects with the defaults; loadSettings fills them in. */
 function emptySettings(envPath) {
   return {
@@ -48,6 +63,7 @@ function emptySettings(envPath) {
     studio: {
       warmup: true, // wake the studio's GPU services as soon as the landing page opens
       requirePasscode: false, // ask for swatchroom's STUDIO_PASSCODE (it is switched off here by default)
+      previewOverlay: true, // serve the improved instant-preview files of site/overlays/studio/ ahead of the studio's own (server/middleware/studioOverlay.js)
       limits: { ...LIMIT_DEFAULTS }, // requests per visitor per hour, per route group (server/lib/studioShield.js)
     },
     // PostHog for every page. Blank key: the studio's own POSTHOG_KEY (swatchroom/.env) is used, so both land in one project.
@@ -60,6 +76,10 @@ function emptySettings(envPath) {
     // Catalogue search (server/catalogue/): the non-secret half of what .env says, filled in by loadSettings. The keys are in `catalogueSecrets`,
     // which is not enumerable.
     catalogue: {},
+    // TeruBot, the website's assistant (server/lib/terubot/): Gemini through the studio's Google key (swatchroom/server/google).
+    terubot: { ...TERUBOT_DEFAULTS },
+    // Capture from a phone (server/capture/): the non-secret half of what .env says; the WhatsApp token is in `captureSecrets`, which is not enumerable.
+    capture: { ...CAPTURE_DEFAULTS },
     warnings: [],
   };
 }
@@ -85,6 +105,7 @@ export function loadSettings(envPath, environ, root = ROOT) {
   // --- Design Studio
   s.studio.warmup = flag(get('STUDIO_WARMUP'), true);
   s.studio.requirePasscode = flag(get('STUDIO_REQUIRE_PASSCODE'), false);
+  s.studio.previewOverlay = flag(get('STUDIO_PREVIEW_OVERLAY'), true);
   for (const [name, key] of [['AI', 'ai'], ['VISION', 'vision'], ['PIPELINE', 'pipeline'], ['CHECK', 'check'], ['ROOMS', 'rooms'], ['ADDRESS_FACTOR', 'perAddress']]) {
     s.studio.limits[key] = int(get(`STUDIO_LIMIT_${name}`), LIMIT_DEFAULTS[key], 1, 1000000);
   }
@@ -121,6 +142,28 @@ export function loadSettings(envPath, environ, root = ROOT) {
   const catalogue = readCatalogueEnv(get, s.warnings, root);
   s.catalogue = catalogue.pub;
   Object.defineProperty(s, 'catalogueSecrets', { value: Object.freeze(catalogue.secrets), enumerable: false });
+
+  // --- TeruBot (the assistant on every page)
+  const bot = s.terubot;
+  bot.enabled = flag(get('TERUBOT'), TERUBOT_DEFAULTS.enabled);
+  const model = get('TERUBOT_MODEL');
+  if (model && !/^[A-Za-z0-9._-]{1,80}$/.test(model)) s.warnings.push('TERUBOT_MODEL is not a model id (letters, digits, . _ -): the default model is used.');
+  else bot.model = model;
+  const voice = get('TERUBOT_VOICE') || TERUBOT_DEFAULTS.voice;
+  if (/^(off|no|false|0)$/i.test(voice)) bot.voice = '';
+  else if (/^[A-Za-z]{3,24}$/.test(voice)) bot.voice = voice.charAt(0).toUpperCase() + voice.slice(1).toLowerCase();
+  else s.warnings.push('TERUBOT_VOICE is not a voice name (letters only, for example Aoede, or off): the default voice is used.');
+  bot.maxOutputTokens = int(get('TERUBOT_MAX_OUTPUT_TOKENS'), TERUBOT_DEFAULTS.maxOutputTokens, 128, 4096);
+  bot.historyLimit = int(get('TERUBOT_HISTORY_LIMIT'), TERUBOT_DEFAULTS.historyLimit, 2, 20);
+  bot.toolRounds = int(get('TERUBOT_TOOL_ROUNDS'), TERUBOT_DEFAULTS.toolRounds, 1, 6);
+  bot.timeoutMs = int(get('TERUBOT_TIMEOUT_SECONDS'), TERUBOT_DEFAULTS.timeoutMs / 1000, 1, 120) * 1000;
+  bot.limitAccount = int(get('TERUBOT_LIMIT_ACCOUNT'), TERUBOT_DEFAULTS.limitAccount, 1, 100000);
+  bot.limitAddress = int(get('TERUBOT_LIMIT_ADDRESS'), TERUBOT_DEFAULTS.limitAddress, 1, 100000);
+  bot.limitAnonymous = int(get('TERUBOT_LIMIT_ANONYMOUS'), TERUBOT_DEFAULTS.limitAnonymous, 1, 100000);
+  // --- capture from a phone (a QR code or WhatsApp link; photos come back to the requester)
+  const capture = readCaptureEnv(get, s.warnings);
+  s.capture = capture.pub;
+  Object.defineProperty(s, 'captureSecrets', { value: Object.freeze(capture.secrets), enumerable: false });
   s.nodeEnv = get('NODE_ENV');
   return s;
 }
@@ -135,6 +178,15 @@ export function describe(settings) {
       ? 'Studio passcode: ON (STUDIO_REQUIRE_PASSCODE=on, the passcode is STUDIO_PASSCODE in swatchroom/.env)'
       : 'Studio passcode: off - the studio is open; each browser only sees its own rooms and every visitor is rate limited (README, "Keeping the open studio safe")',
     ...describeCatalogue(settings),
+    ...describeCapture(settings),
+    settings.terubot.enabled
+      ? `TeruBot (the assistant): on - ${settings.terubot.limitAccount} messages an hour per account, ${settings.terubot.limitAnonymous} per address for visitors not signed in (TERUBOT=off switches it off)`
+      : 'TeruBot (the assistant): off (TERUBOT=off)',
+    ...(settings.terubot.enabled
+      ? [settings.terubot.voice
+        ? `TeruBot voice: Google Chirp 3 HD, speaker ${settings.terubot.voice} (needs the Cloud Text-to-Speech API enabled for the Google project; TERUBOT_VOICE=off uses the browser's own voice)`
+        : 'TeruBot voice: the browser\'s own (TERUBOT_VOICE=off)']
+      : []),
   ];
 }
 

@@ -9,25 +9,6 @@
       "expect": 21
     },
     {
-      "id": "header-project",
-      "op": "insertAfter",
-      "why": "header: My project link",
-      "anchor": "Saved<span style=\"font:400 12px/1 Switzer,sans-serif;opacity:.7\">{{ savedN }}</span></a>",
-      "insert": [
-        "\n      ",
-        "\n      ",
-        {
-          "component": "headerLink",
-          "entry": "project"
-        },
-        "\n      ",
-        {
-          "component": "accountLink",
-          "entry": "account"
-        }
-      ]
-    },
-    {
       "id": "menu-project",
       "op": "insertAfter",
       "why": "menu: My project card",
@@ -54,32 +35,6 @@
         {
           "component": "footerLink",
           "entry": "project"
-        }
-      ]
-    },
-    {
-      "id": "header-inspiration",
-      "op": "insertAfter",
-      "why": "header: Inspiration link",
-      "anchor": "Saved<span style=\"font:400 12px/1 Switzer,sans-serif;opacity:.7\">{{ savedN }}</span></a>",
-      "insert": [
-        "\n      ",
-        {
-          "component": "headerLink",
-          "entry": "inspiration"
-        }
-      ]
-    },
-    {
-      "id": "header-finder",
-      "op": "insertAfter",
-      "why": "header: Finder link",
-      "anchor": "Saved<span style=\"font:400 12px/1 Switzer,sans-serif;opacity:.7\">{{ savedN }}</span></a>",
-      "insert": [
-        "\n      ",
-        {
-          "component": "headerLink",
-          "entry": "finder"
         }
       ]
     },
@@ -192,18 +147,12 @@
       ]
     },
     {
-      "id": "logo-header",
-      "op": "replace",
-      "why": "header: the real logo (in a dark pill, so it reads on the cream header) instead of the typed TERUCON INDIA (the page's own <a href> stays, so the link style of the build is respected)",
-      "anchor": "style=\"display:flex;align-items:baseline;gap:10px;color:inherit;font:600 15px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.34em\" style-hover=\"color:inherit\">TERUCON<span style=\"font:500 9.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.3em\">INDIA</span></a>",
-      "with": [
-        {
-          "component": "logoLinkTail",
-          "entry": "logo",
-          "pill": true,
-          "w": 152,
-          "h": 26
-        }
+      "id": "studio-camera",
+      "op": "insertBefore",
+      "why": "the studio's \"Take a photo\" hands the screen to the phone's camera app, and a heavy page can be reloaded by the phone while it is away (the photo never arrives). This opens the camera inside the page instead, and gives the studio the picture as a chosen file; with no in-page camera it falls back to the camera app or the gallery (site/brand/studio-camera.js). swatchroom/ is not touched",
+      "anchor": "</helmet>",
+      "insert": [
+        "<script src=\"/brand/studio-camera.js\" defer></script>\n"
       ]
     },
     {
@@ -301,12 +250,12 @@
       "with": "<div data-menu-aside=\"\" style=\"display:flex;flex-direction:column;gap:18px\">"
     },
     {
-      "id": "phone-style",
+      "id": "chrome-fit",
       "op": "insertBefore",
-      "why": "page style for the phone: header fit, the menu overlay leading with the destinations, the studio frame above the bottom bar, room under the footer",
+      "why": "the site chrome (site/brand/chrome.js) is the one header and, on a laptop, the sidebar: the export's own header is not drawn once the chrome is on, and the studio sits below the pill and to the right of the sidebar; the menu overlay on a phone leads with the destinations; the studio frame above the bottom bar, room under the footer",
       "anchor": "</helmet>",
       "insert": [
-        "<style>\n/* header: one line per link; 820-899 px the bottom bar carries the destinations; 900-1199 px lose the least useful links */\n[data-nav] nav a { white-space: nowrap; }\n@media (min-width: 820px) and (max-width: 899px) { [data-nav] nav > a:not([href=\"/#enquire\"]) { display: none !important; } }\n@media (min-width: 900px) and (max-width: 1199px) {\n  [data-nav] nav { gap: 14px !important; }\n  [data-nav] nav a[data-terucon-account], [data-nav] nav > a[href=\"/design-studio\"] > span, [data-nav] nav > a[href=\"/materials#/saved\"] { display: none !important; }\n}\n@media (min-width: 820px) { [data-tc-logo] img { height: 30px !important; } }\n@media (max-width: 599px) { [data-nav] { padding-left: 14px !important; padding-right: 14px !important; } }\n/* menu overlay on a phone or small tablet: destinations lead */\n[data-menu-dest] { display: none; }\n@media (max-width: 819px) {\n  [data-menu-dest] { display: flex; }\n  [data-menu] > div { justify-content: flex-start !important; gap: 26px !important; padding: 12px 20px calc(28px + env(safe-area-inset-bottom, 0px)) !important; }\n  [data-menu-aside] > a { display: none !important; }\n  [data-menu] nav a { font-size: 22px !important; padding: 13px 0 !important; }\n}\n/* bottom bar: the studio frame stops above it (while the working view is not full screen) and the page gets room at its end */\n@media (max-width: 899px) {\n  body::after { display: none !important; }\n  .tc-dock-on:not(.swr-immersive) swatchroom-app .sr-studio { height: calc(100dvh - var(--swr-top, 0px) - var(--tc-dock-h, 0px)) !important; }\n  .tc-dock-on [data-studio] { padding-bottom: calc(var(--tc-dock-h, 0px) + env(safe-area-inset-bottom, 0px)); }\n}\n</style>\n"
+        "<style>\n/* the site chrome is the one header (site/brand/chrome.md); the export's own header stays in the page but is not drawn while the chrome is on. The studio measures the header above it (its --swr-top) and, with none drawn, the room the chrome's pill takes */\nhtml.tc-chrome-on [data-nav] { display: none !important; }\n/* menu overlay on a phone or small tablet: destinations lead */\n[data-menu-dest] { display: none; }\n@media (max-width: 819px) {\n  [data-menu-dest] { display: flex; }\n  [data-menu] > div { justify-content: flex-start !important; gap: 26px !important; padding: 12px 20px calc(28px + env(safe-area-inset-bottom, 0px)) !important; }\n  [data-menu-aside] > a { display: none !important; }\n  [data-menu] nav a { font-size: 22px !important; padding: 13px 0 !important; }\n}\n/* bottom bar: the studio frame stops above it (while the working view is not full screen) and the page gets room at its end */\n@media (max-width: 899px) {\n  body::after { display: none !important; }\n  .tc-dock-on:not(.swr-immersive) swatchroom-app .sr-studio { height: calc(100dvh - var(--swr-top, 0px) - var(--tc-dock-h, 0px)) !important; }\n  .tc-dock-on [data-studio] { padding-bottom: calc(var(--tc-dock-h, 0px) + env(safe-area-inset-bottom, 0px)); }\n}\n</style>\n"
       ]
     },
     {
@@ -316,6 +265,37 @@
       "anchor": "</helmet>",
       "insert": [
         "<link rel=\"stylesheet\" href=\"/brand/dock.css\">\n<script src=\"/brand/dock.js\" defer></script>\n"
+      ]
+    },
+    {
+      "id": "one-loader",
+      "op": "insertBefore",
+      "why": "one loader on the way into the studio (site/brand/studio-entry.js holds the page loader until the studio's own first screen exists): hide the runtime's grey placeholder for the <x-import> while the studio's script loads, and the studio's own \"Powered by Terucon India\" splash, which would otherwise paint over the page loader (same z-index, later in the page). The splash's own timer still removes it; swatchroom/ is not touched",
+      "anchor": "</helmet>",
+      "insert": [
+        "<style>\n.sc-placeholder[title=\"swatchroom-app\"] { visibility: hidden; }\nswatchroom-app .swr-splash { display: none !important; }\n</style>\n"
+      ]
+    },
+    {
+      "id": "start-project-links",
+      "op": "replaceAll",
+      "style": "route",
+      "why": "every \"Start a project\" link opens its own page, /start-project, instead of the landing page's form at the bottom (/#enquire)",
+      "anchor": "href=\"/#enquire\"",
+      "with": "href=\"/start-project\"",
+      "count": 4
+    },
+    {
+      "id": "catalogue-loader",
+      "op": "replace",
+      "target": "asset:swatchroomApp",
+      "why": "the studio's own loader only imports /js/swatchroom-app.js. This one first adds the catalogue's designs to the studio's finish list (site/catalogue-ui/studio-finishes.js: a group \"Terucon catalogue\" for wall, door and furniture, read from MongoDB), waits at most 4 s for it, and then starts the studio whatever happened. The studio builds its index of finishes only when it first looks one up, so they have to be in its list before it starts. swatchroom/ is not touched",
+      "anchor": "import(new URL(\"/js/swatchroom-app.js\", window.location.href).href);",
+      "with": [
+        {
+          "file": "snippets/studio-loader.js",
+          "chomp": true
+        }
       ]
     }
   ]

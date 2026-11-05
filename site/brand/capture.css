@@ -1,0 +1,182 @@
+/* "Photos from your phone": the requester's side of capture-from-a-phone. A launcher at the bottom left of the Design Studio, Inspiration and
+   Finder pages, a panel (a drawer on a laptop, a bottom sheet on a phone) with the QR code, the WhatsApp send and the photos that come in, and a
+   small pop-up that tells you when photos arrive, on any page. Built by /brand/capture.js (no markup to write); this file styles it.
+   Same look as TeruBot (terubot.css): dark brown, cream, amber. TeruBot is bottom right, this is bottom left, so they never meet.
+   Strict-CSP safe: no inline style, no external host, no fonts of its own.
+
+   Variables it READS (all optional): --tc-dock-h (the phone dock), --tc-hdr-h (the header), --tc-side-w (a left sidebar). */
+
+.cap-root {
+  --cap-bg: #1f150a;
+  --cap-bg-2: #291c0e;
+  --cap-card: #2a1d10;
+  --cap-ink: #e1d4c2;
+  --cap-ink-2: #beb5a9;
+  --cap-ink-3: #a78d78;
+  --cap-line: rgba(225, 212, 194, 0.16);
+  --cap-line-2: rgba(225, 212, 194, 0.32);
+  --cap-amber: #f5b357;
+  --cap-bad: #e39a80;
+  --cap-ok: #9fbf8f;
+  position: static;
+  font-family: Switzer, "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  color: var(--cap-ink);
+  text-align: left;
+  letter-spacing: normal;
+  text-transform: none;
+  line-height: 1.4;
+}
+.cap-root *,
+.cap-root *::before,
+.cap-root *::after { box-sizing: border-box; }
+.cap-root [hidden] { display: none !important; }
+:where(.cap-root) button, :where(.cap-root) input, :where(.cap-root) textarea { font: inherit; color: inherit; margin: 0; }
+:where(.cap-root) button { cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.cap-root :focus-visible { outline: 2px solid var(--cap-amber); outline-offset: 2px; }
+.cap-sr { position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+/* ---- the launcher ----------------------------------------------------------------------------------------------------
+   It stands directly above TeruBot's launcher, in the same column, and follows TeruBot's own placement variables (--tb-bottom, and
+   --tb-bottom-studio on the Design Studio, where TeruBot is lifted above the studio's Share button and zoom): wherever TeruBot has been
+   made to fit a page, this fits too, and the two never cover the page's own controls differently. */
+.cap-launch {
+  position: fixed; z-index: 46;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: calc(var(--tc-dock-h, 0px) + var(--tb-bottom, 20px) + 60px + env(safe-area-inset-bottom, 0px));
+  display: inline-flex; align-items: center; gap: 10px;
+  min-height: 48px; padding: 0 18px 0 12px;
+  border-radius: 999px; border: 1px solid rgba(225, 212, 194, 0.26);
+  background: var(--cap-bg-2); color: var(--cap-ink);
+  box-shadow: 0 12px 30px rgba(20, 12, 4, 0.34), 0 0 0 1px rgba(20, 12, 4, 0.2);
+  font-size: 14px; font-weight: 500; line-height: 1; white-space: nowrap;
+  transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1), background-color 0.2s, border-color 0.2s;
+}
+.cap-launch:hover { transform: translateY(-2px); background: #34230f; border-color: rgba(225, 212, 194, 0.5); }
+.cap-launch:active { transform: scale(0.97); }
+.cap-launch svg { color: var(--cap-amber); }
+.cap-badge { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--cap-amber); color: #1f150a; font-size: 12px; font-weight: 600; display: inline-grid; place-items: center; }
+.cap-root.is-open .cap-launch { opacity: 0; pointer-events: none; }
+
+
+/* ---- the panel ------------------------------------------------------------------------------------------------------- */
+.cap-scrim { display: none; }
+.cap-panel {
+  position: fixed; z-index: 86;
+  right: max(20px, env(safe-area-inset-right, 0px));
+  bottom: calc(var(--tc-dock-h, 0px) + var(--tb-bottom, 20px) + env(safe-area-inset-bottom, 0px));
+  width: min(440px, calc(100vw - var(--tc-side-w, 0px) - 32px));
+  height: min(720px, calc(100vh - var(--tc-hdr-h, 64px) - var(--tc-dock-h, 0px) - 52px));
+  max-height: calc(100vh - 32px);
+  display: flex; flex-direction: column; overflow: hidden;
+  border-radius: 20px; border: 1px solid var(--cap-line); background: var(--cap-bg); color: var(--cap-ink);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(20, 12, 4, 0.3);
+  outline: none; animation: cap-in 0.22s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@supports (height: 100dvh) {
+  .cap-panel { height: min(720px, calc(100dvh - var(--tc-hdr-h, 64px) - var(--tc-dock-h, 0px) - 52px)); max-height: calc(100dvh - 32px); }
+}
+.cap-head { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 12px 12px 20px; border-bottom: 1px solid var(--cap-line); }
+.cap-head h2 { margin: 0; font: 300 22px/1.2 Zodiak, Georgia, serif; letter-spacing: -0.01em; }
+.cap-x { width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--cap-ink-2); font-size: 26px; line-height: 1; display: grid; place-items: center; }
+.cap-x:hover { background: rgba(225, 212, 194, 0.1); color: var(--cap-ink); }
+.cap-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 18px 20px calc(24px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 22px; }
+.cap-sec { display: flex; flex-direction: column; gap: 12px; }
+.cap-sec > h3 { margin: 0; font: 500 10.5px/1 Switzer, "Helvetica Neue", Helvetica, Arial, sans-serif; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cap-ink-3); }
+.cap-p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--cap-ink-2); }
+.cap-p b { color: var(--cap-ink); font-weight: 500; }
+.cap-small { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--cap-ink-3); }
+.cap-note { margin: 0; padding: 11px 14px; border-radius: 14px; border: 1px solid var(--cap-line-2); font-size: 13.5px; line-height: 1.5; color: var(--cap-ink-2); background: rgba(225, 212, 194, 0.05); }
+.cap-note.bad { border-color: var(--cap-bad); color: var(--cap-bad); }
+.cap-note.good { border-color: var(--cap-ok); color: var(--cap-ok); }
+
+.cap-field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--cap-ink-2); }
+.cap-in { width: 100%; min-height: 48px; padding: 0 16px; border-radius: 14px; border: 1px solid var(--cap-line-2); background: rgba(225, 212, 194, 0.07); color: var(--cap-ink); font-size: 16px; }
+.cap-in::placeholder { color: var(--cap-ink-3); }
+.cap-in:focus { outline: none; border-color: var(--cap-amber); }
+textarea.cap-in { padding: 12px 16px; min-height: 76px; resize: vertical; line-height: 1.4; }
+.cap-row { display: flex; gap: 8px; align-items: stretch; }
+.cap-row > .cap-in { flex: 1; min-width: 0; }
+.cap-btn { min-height: 48px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--cap-line-2); background: transparent; color: var(--cap-ink); font-size: 14.5px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 9px; white-space: nowrap; text-decoration: none; transition: background-color 0.2s, transform 0.12s; }
+.cap-btn:hover { background: rgba(225, 212, 194, 0.1); }
+.cap-btn:active { transform: scale(0.97); }
+.cap-btn:disabled { opacity: 0.5; cursor: default; }
+.cap-btn.solid { background: var(--cap-ink); color: #1f150a; border-color: var(--cap-ink); }
+.cap-btn.solid:hover { background: #fff; }
+.cap-btn.small { min-height: 40px; padding: 0 14px; font-size: 13px; }
+.cap-btn.danger { color: var(--cap-bad); border-color: rgba(227, 154, 128, 0.5); }
+.cap-btn svg { color: var(--cap-amber); flex: none; }
+.cap-btn.solid svg { color: #6e473b; }
+
+/* the two ways to get photos */
+.cap-ways { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cap-way { min-height: 112px; padding: 16px; border-radius: 18px; border: 1px solid var(--cap-line-2); background: var(--cap-card); display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 10px; text-align: left; font-size: 15px; font-weight: 500; }
+.cap-way:hover { border-color: var(--cap-amber); }
+.cap-way small { font-weight: 400; font-size: 12.5px; color: var(--cap-ink-3); line-height: 1.35; }
+.cap-way svg { color: var(--cap-amber); }
+.cap-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(225, 212, 194, 0.07); }
+.cap-tab { min-height: 40px; border: 0; border-radius: 999px; background: transparent; color: var(--cap-ink-2); font-size: 14px; font-weight: 500; }
+.cap-tab[aria-pressed="true"] { background: var(--cap-ink); color: #1f150a; }
+
+.cap-qr { align-self: center; width: min(232px, 100%); aspect-ratio: 1; padding: 6px; border-radius: 16px; background: #fff; }
+.cap-qr svg { display: block; width: 100%; height: 100%; }
+.cap-link { font-size: 12.5px; }
+.cap-wait { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--cap-ink-2); }
+.cap-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--cap-amber); animation: cap-pulse 1.6s ease-in-out infinite; flex: none; }
+.cap-dot.off { background: var(--cap-ink-3); animation: none; }
+.cap-prefix { flex: none; width: 72px; padding: 0 8px; display: grid; place-items: center; }
+
+/* ---- photos that came in --------------------------------------------------------------------------------------------- */
+.cap-group { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 18px; border: 1px solid var(--cap-line); background: var(--cap-card); }
+.cap-who { display: flex; flex-direction: column; gap: 3px; }
+.cap-who b { font-size: 16px; font-weight: 500; }
+.cap-who span { font-size: 12.5px; color: var(--cap-ink-3); }
+.cap-who a { color: var(--cap-ink); text-underline-offset: 3px; }
+.cap-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.cap-photo { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.cap-photo.fresh .cap-pic { outline: 2px solid var(--cap-amber); }
+.cap-pic { position: relative; aspect-ratio: 4 / 3; border-radius: 12px; overflow: hidden; background: #1a1209; border: 0; padding: 0; display: block; width: 100%; }
+.cap-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cap-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.cap-tags span { padding: 3px 9px; border-radius: 999px; border: 1px solid var(--cap-line-2); font-size: 11.5px; color: var(--cap-ink-2); }
+.cap-photo p { margin: 0; font-size: 12.5px; color: var(--cap-ink-2); }
+.cap-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.cap-acts .cap-btn { min-height: 40px; padding: 0 12px; font-size: 12.5px; flex: 1 1 auto; }
+.cap-empty { text-align: center; padding: 20px 8px; }
+
+/* ---- the pop-up ------------------------------------------------------------------------------------------------------ */
+.cap-toast { position: fixed; z-index: 87; left: 50%; bottom: calc(var(--tc-dock-h, 0px) + 84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: min(420px, calc(100vw - 32px)); display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 16px; border-radius: 18px; background: var(--cap-bg); color: var(--cap-ink); border: 1px solid var(--cap-amber); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); animation: cap-toast 0.3s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.cap-toast b { display: block; font-weight: 500; font-size: 14.5px; }
+.cap-toast span { display: block; font-size: 12.5px; color: var(--cap-ink-3); }
+.cap-toast .grow { flex: 1; min-width: 0; }
+.cap-toast .cap-btn { min-height: 40px; padding: 0 14px; background: var(--cap-amber); color: #1f150a; border-color: var(--cap-amber); }
+.cap-toast .cap-x { width: 36px; height: 36px; font-size: 22px; }
+
+.cap-spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(225, 212, 194, 0.3); border-top-color: var(--cap-ink); animation: cap-rot 0.8s linear infinite; flex: none; }
+
+/* the Design Studio's working view takes the whole screen (it sets html.swr-immersive and gives its host z-index 90): lift the widget over it, as TeruBot does */
+html.swr-immersive .cap-launch { z-index: 95; }
+html.swr-immersive .cap-scrim { z-index: 95; }
+html.swr-immersive .cap-panel { z-index: 97; }
+html.swr-immersive .cap-toast { z-index: 98; }
+.cap-root.is-studio .cap-launch { bottom: calc(var(--tc-dock-h, 0px) + var(--tb-bottom-studio, 172px) + 60px + env(safe-area-inset-bottom, 0px)); }
+
+/* ---- phones: the panel is a sheet above the dock ------------------------------------------------------------------------ */
+@media (max-width: 719px) {
+  .cap-launch, .cap-root.is-studio .cap-launch { right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(var(--tc-dock-h, 0px) + var(--tb-bottom, 16px) + 62px + env(safe-area-inset-bottom, 0px)); }
+  .cap-launch { gap: 0; width: 46px; height: 46px; min-height: 46px; padding: 0; justify-content: center; }
+  .cap-launch .cap-label { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+  .cap-launch .cap-badge { position: absolute; top: -6px; right: -6px; }
+  .cap-scrim { display: block; position: fixed; inset: 0; z-index: 85; background: rgba(15, 9, 3, 0.55); }
+  .cap-panel { left: 0; right: 0; bottom: calc(var(--tc-dock-h, 0px)); width: auto; height: min(88dvh, 100% - var(--tc-hdr-h, 0px)); max-height: calc(100dvh - var(--tc-hdr-h, 0px) - var(--tc-dock-h, 0px) - 8px); border-radius: 22px 22px 0 0; border-bottom: 0; animation: cap-sheet 0.26s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  .cap-ways { grid-template-columns: 1fr; }
+  .cap-way { min-height: 84px; flex-direction: row; align-items: center; }
+  html.swr-immersive .cap-root .cap-launch { top: calc(env(safe-area-inset-top, 0px) + 114px); bottom: auto; left: auto; right: max(16px, env(safe-area-inset-right, 0px)); opacity: 0.94; width: 44px; height: 44px; min-height: 44px; }
+  html.swr-immersive .cap-scrim { z-index: 95; }
+}
+@keyframes cap-in { from { opacity: 0; transform: translateY(10px) scale(0.985); } to { opacity: 1; transform: none; } }
+@keyframes cap-sheet { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes cap-toast { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes cap-pulse { 50% { opacity: 0.35; } }
+@keyframes cap-rot { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .cap-root *, .cap-root *::before, .cap-root *::after { animation: none !important; transition: none !important; } }

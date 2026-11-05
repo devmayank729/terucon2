@@ -6,18 +6,11 @@
   'use strict';
   if (window.TeruconDock) return;
 
-  var ITEMS = [
-    { key: 'materials', href: '/materials', label: 'Materials', paths: ['/materials', '/materials.html', '/market_place_1.html'],
-      icon: '<path d="M12 3.2 20.3 8 12 12.8 3.7 8z"/><path d="m3.7 12 8.3 4.8 8.3-4.8"/><path d="m3.7 16 8.3 4.8 8.3-4.8"/>' },
-    { key: 'studio', href: '/design-studio', label: 'Design Studio', pre: 'Design ', paths: ['/design-studio', '/design-studio.html', '/studio', '/swatchroom'],
-      icon: '<path d="M12 3 20 7.5v9L12 21l-8-4.5v-9z"/><path d="M12 12 4.4 7.7M12 12l7.6-4.3M12 12v8.6"/>' },
-    { key: 'inspiration', href: '/inspiration', label: 'Inspiration', paths: ['/inspiration', '/inspiration.html', '/import'],
-      icon: '<path d="M12 3.5c.5 4.3 2.2 6 6.5 6.5-4.3.5-6 2.2-6.5 6.5-.5-4.3-2.2-6-6.5-6.5 4.3-.5 6-2.2 6.5-6.5z"/><path d="M18.5 16.5c.2 1.6.9 2.3 2.5 2.5-1.6.2-2.3.9-2.5 2.5-.2-1.6-.9-2.3-2.5-2.5 1.6-.2 2.3-.9 2.5-2.5z"/>' },
-    { key: 'finder', href: '/finder', label: 'Finder', paths: ['/finder', '/finder.html', '/point-to-find'],
-      icon: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.4 15.4 5.1 5.1"/><circle cx="10.5" cy="10.5" r="1.6"/>' },
-    { key: 'project', href: '/my-project', label: 'My project', paths: ['/my-project', '/my-project.html'],
-      icon: '<path d="M9 4h6a1 1 0 0 1 1 1v1.5H8V5a1 1 0 0 1 1-1z"/><path d="M8 5.2H6.5A1.5 1.5 0 0 0 5 6.7v12.8A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V6.7a1.5 1.5 0 0 0-1.5-1.5H16"/><path d="M8.5 11.5h7M8.5 15h7"/>' }
-  ];
+  // The destinations are not listed here: there is ONE list, in /brand/chrome.js (window.TeruconChrome.destinations); the tabs are the
+  // entries with dock: true. Without chrome.js on the page there is no dock.
+  var chrome = window.TeruconChrome;
+  if (!chrome || !chrome.destinations) return;
+  var ITEMS = chrome.destinations.filter(function (d) { return d.dock; });
 
   var root = document.documentElement;
   var dock = null;

@@ -42,6 +42,21 @@
       "id": "catalogue",
       "title": "Catalogue search",
       "blurb": "Find real catalogue materials by photo, colour or words (targets C3, C4, C5, C7), and the admin side of uploading a catalogue and choosing what is live (D1, server/catalogue/, catalogue/ARCHITECTURE.md). A gateway only: the website mints signed GCS URLs and forwards small requests to Modal; it never parses a PDF or touches a vector itself. With CATALOGUE=off or nothing configured, every route but status answers 503 catalogue-off and the rest of the site is untouched."
+    },
+    {
+      "id": "enquiry",
+      "title": "Start a project",
+      "blurb": "The enquiry form on /start-project and on the landing page (server/routes/enquiry.js, server/lib/enquiry.js). Open to everybody, so it is limited per address; an enquiry is kept in the account database and is NOT sent to a CRM yet."
+    },
+    {
+      "id": "terubot",
+      "title": "TeruBot (the assistant)",
+      "blurb": "The assistant on every page (server/routes/terubot.js, server/lib/terubot/). Public, so it is limited per account and per address. Gemini is called through the Design Studio's own Google key; without a usable key the answer is {aiOn:false}. Errors are flat {error}. It can look things up (the shop's 24 products, what each page does, the catalogue when it is on) and hand the browser a short list of allowed actions; it never changes anything itself."
+    },
+    {
+      "id": "capture",
+      "title": "Capture from a phone",
+      "blurb": "A person on a laptop asks for photos; someone with a phone opens a link (QR code or WhatsApp), takes or chooses photos, adds labels, who and where, and sends them (server/capture/, server/routes/capture.js). Foundation work: not a target of the quotation. The requester's routes need the same sign-in as the pages they are used on (or, with sign-in off, the browser's own owner id). The phone's routes need only the link's key, sent in the X-Capture-Token header (never in an address). Every answer is no-store. Errors are the site's {error:{code,status,message}} plus a short `reason`."
     }
   ],
   "routes": [
@@ -125,6 +140,25 @@
       "response": "200 text/html (404 for an address that is no page), Cache-Control: no-cache.",
       "errors": [],
       "curl": "curl -sI -H 'Accept: text/html' http://localhost:8080/careers | head -1"
+    },
+    {
+      "method": "GET",
+      "path": "/media/materials/:file",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host"
+      ],
+      "summary": "The picture of a catalogue design (tipl-sb804.jpg), read from Google Cloud Storage through the design's record in MongoDB when asked for. Not a file of this server. Registered before /media/*name, which answers every other name.",
+      "request": "No body. ?w=320 (any value up to 400) gives the 320 px thumbnail; without it the 800 px picture (the thumbnail while a design has none).",
+      "response": "200 image/jpeg with Cache-Control: public, max-age=3600, stale-while-revalidate=86400 and an ETag (304 on a repeat). When the catalogue is not set up, the database is down or the bucket did not give the picture: 200 with a quiet tile (image/svg+xml, X-Terucon-Picture: unavailable, no-store) so the shop shows a square instead of a broken image.",
+      "errors": [
+        {
+          "status": 404,
+          "when": "The catalogue lists designs and not this one; a name that is not tipl-<code>.jpg falls through to /media/*name"
+        }
+      ],
+      "curl": "curl -sI 'http://localhost:8080/media/materials/tipl-sb804.jpg?w=320' | head -6"
     },
     {
       "method": "GET",
@@ -785,6 +819,147 @@
       "curl": "curl -s -X POST -H 'Content-Type: application/json' -b 'terucon_session=...' -d '{\"challengeId\":\"...\",\"code\":\"123456\",\"confirm\":true}' http://localhost:8080/api/auth/delete/confirm"
     },
     {
+      "method": "POST",
+      "path": "/api/enquiry",
+      "owner": "JS",
+      "group": "enquiry",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "Send a \"Start a project\" enquiry. Open to everybody (somebody asking has no account); if the visitor is signed in it is tied to their account. A hidden field a person never fills in turns a bot's enquiry into a thank-you that keeps nothing.",
+      "request": "{type, name, company, phone, email, city, area, timeline, message, source?: 'landing', website?}. A name and a phone number or e-mail address are needed. `type`, `area` and `timeline` must be one of the values the form offers (or empty). Text is cut to length (name 120, company 160, phone 32, e-mail 254, city 120, message 2000).",
+      "response": "201 {ok: true, reference: 'TR-XXXXXX'}",
+      "errors": [
+        {
+          "status": 415,
+          "when": "Not application/json"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site"
+        },
+        {
+          "status": 400,
+          "when": "A field is missing or not valid: the error carries `field` (type, area, timeline, name, phone, email) so the page can point at it"
+        },
+        {
+          "status": 413,
+          "when": "Body over 16 KB"
+        },
+        {
+          "status": 429,
+          "when": "Five enquiries an hour, or twenty a day, from one address (retryAfter)"
+        },
+        {
+          "status": 503,
+          "when": "The account database is down: nothing was kept"
+        },
+        {
+          "status": 421,
+          "when": "Unexpected Host header"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -d '{\"name\":\"Asha Rao\",\"phone\":\"+91 98765 43210\",\"type\":\"Office interior\"}' http://localhost:8080/api/enquiry"
+    },
+    {
+      "method": "GET",
+      "path": "/api/terubot/status",
+      "owner": "JS",
+      "group": "terubot",
+      "guards": [
+        "Host"
+      ],
+      "summary": "Is the assistant's AI on, which model would answer, and is Google's voice on. Never calls Gemini or Google's voice.",
+      "request": "No body.",
+      "response": "{aiOn: boolean, model: string|null, signedIn: boolean, voice: boolean}",
+      "errors": [
+        {
+          "status": 421,
+          "when": "Unexpected Host header"
+        }
+      ],
+      "curl": "curl -s http://localhost:8080/api/terubot/status"
+    },
+    {
+      "method": "POST",
+      "path": "/api/terubot/chat",
+      "owner": "JS",
+      "group": "terubot",
+      "guards": [
+        "Host",
+        "JSON only",
+        "Same origin"
+      ],
+      "summary": "One turn of the chat. The server asks Gemini (up to four look-up rounds), checks everything the model proposes, and returns the reply, material cards and the actions the browser may carry out (navigate, open_studio, cart_add, saved_add, saved_remove, prefill_enquiry). Cards come only from the data tools; a visitor who is not signed in gets public data only.",
+      "request": "{messages: [{role: 'user'|'assistant', text}] (the last 12, 2000 characters each, the last one from the user), context: {path, title, cart: [{id, qty}], saved: [id], viewport}, speak?: true}. The context is untrusted and validated field by field. speak: true (a live conversation) asks for the reply to be made ready for Google's voice.",
+      "response": "200 {aiOn: true, reply (plain text, at most 1800 characters), cards: [{kind:'material', id, pid, vid, fid, name, variant, price, image, href}] (at most 6), actions: [...] (at most 8), model, speech?: {id, parts: [{text, lang: 'en'|'hi'}]} (only with speak: true and Google's voice on)} or 200 {aiOn: false, reply, cards: [], actions: []} when the AI is off.",
+      "errors": [
+        {
+          "status": 415,
+          "when": "Not application/json"
+        },
+        {
+          "status": 403,
+          "when": "A foreign Origin or Sec-Fetch-Site"
+        },
+        {
+          "status": 421,
+          "when": "Unexpected Host header"
+        },
+        {
+          "status": 400,
+          "when": "Not the shape above, or a message over 2000 characters, or a body over 64 KB"
+        },
+        {
+          "status": 429,
+          "when": "Too many messages: 60 an hour per account, 120 per address, 20 per address when not signed in, or 16 chats in flight (retryAfterSec)"
+        },
+        {
+          "status": 502,
+          "when": "Google answered with an error, or too slowly (timeout 30 s)"
+        }
+      ],
+      "curl": "curl -s -X POST -H 'Content-Type: application/json' -d '{\"messages\":[{\"role\":\"user\",\"text\":\"Which bronze sheets do you have?\"}],\"context\":{\"path\":\"/\"}}' http://localhost:8080/api/terubot/chat"
+    },
+    {
+      "method": "GET",
+      "path": "/api/terubot/speech",
+      "owner": "JS",
+      "group": "terubot",
+      "guards": [
+        "Host",
+        "Same origin"
+      ],
+      "summary": "The sound (MP3, Google Cloud Text-to-Speech, Chirp 3 HD) of piece n of a reply that a chat with speak: true has just staged, or of the greeting (id=hello). There is no way to have other text spoken. Kept 15 minutes; the same words in the same voice are made once.",
+      "request": "Query: id (from the chat reply's speech.id, or hello), n (the piece, 0 to 99).",
+      "response": "200 audio/mpeg",
+      "errors": [
+        {
+          "status": 403,
+          "when": "A foreign Sec-Fetch-Site"
+        },
+        {
+          "status": 404,
+          "when": "No such reply or piece (expired, or fetched too many times), or a malformed id or n"
+        },
+        {
+          "status": 429,
+          "when": "Too many sounds being made at once (Retry-After)"
+        },
+        {
+          "status": 502,
+          "when": "Google's voice failed or was too slow"
+        },
+        {
+          "status": 503,
+          "when": "The voice is off: TERUBOT_VOICE=off, no Google key, or Google refused (the Text-to-Speech API is not enabled for the project); the browser then uses its own voice"
+        }
+      ],
+      "curl": "curl -s -o hello.mp3 'http://localhost:8080/api/terubot/speech?id=hello&n=0'"
+    },
+    {
       "method": "GET",
       "path": "/api/auth/admin/settings",
       "owner": "JS",
@@ -885,6 +1060,38 @@
         }
       ],
       "curl": "curl -s -H 'Authorization: Bearer $AUTH_ADMIN_TOKEN' 'http://localhost:8080/api/auth/admin/events?limit=20'"
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/admin/enquiries",
+      "owner": "JS",
+      "group": "authAdmin",
+      "guards": [
+        "Host",
+        "Admin token"
+      ],
+      "summary": "The \"Start a project\" enquiries, newest first, as kept (reference as `_id`, createdAt, status, source, ownerId or null, and the fields of the form).",
+      "request": "?limit=50&before=<ms>  (limit at most 200)",
+      "response": "{enquiries:[{_id, createdAt, status, source, ownerId, type, name, company, phone, email, city, area, timeline, message}]}",
+      "errors": [
+        {
+          "status": 404,
+          "when": "No AUTH_ADMIN_TOKEN is set: the admin API is off"
+        },
+        {
+          "status": 401,
+          "when": "A valid admin token is needed (reason unauthorized)"
+        },
+        {
+          "status": 429,
+          "when": "Twenty wrong tokens an hour from this address"
+        },
+        {
+          "status": 503,
+          "when": "The account database is down (reason unavailable)"
+        }
+      ],
+      "curl": "curl -s -H 'Authorization: Bearer $AUTH_ADMIN_TOKEN' 'http://localhost:8080/api/auth/admin/enquiries?limit=20'"
     },
     {
       "method": "GET",
@@ -1297,6 +1504,27 @@
       "curl": "curl -s http://localhost:8080/api/catalogue/status"
     },
     {
+      "method": "GET",
+      "path": "/api/catalogue/studio-finishes",
+      "owner": "JS",
+      "group": "catalogue",
+      "guards": [
+        "Host",
+        "Same-site",
+        "Sign-in"
+      ],
+      "summary": "The catalogue's designs as finishes of the Design Studio: name, code, a sub-line and sentence from what Gemini saw in the picture, the brief for the render model (ending in a marker that makes the server attach the design's photograph to the render, server/lib/studioReference.js), the colour and the picture's address. The studio's loader adds them to its finish list as the group \"Terucon catalogue\" for wall, door and furniture.",
+      "request": "No body.",
+      "response": "{group, kinds: [\"wall\",\"door\",\"furniture\"], finishes: [{id, code, productId, name, sub, about, prompt, hex, image, described}], state: \"ok\"|\"off\"|\"unavailable\"}. With the catalogue off or its database away: 200 with finishes: [] and the state, never an error.",
+      "errors": [
+        {
+          "status": 401,
+          "when": "Not signed in"
+        }
+      ],
+      "curl": "curl -s http://localhost:8080/api/catalogue/studio-finishes   # needs a signed-in session"
+    },
+    {
       "method": "POST",
       "path": "/api/catalogue/warm",
       "owner": "JS",
@@ -1340,8 +1568,8 @@
         "Signed in (unless sign-in is off)"
       ],
       "summary": "Point-to-find or colour-match: find the catalogue materials closest to a photo (targets C3/C4/C7). The exempt route of the JSON rule (guards.js): the body is the photo itself.",
-      "request": "The raw photo bytes, Content-Type image/jpeg, image/png or image/webp, at most 6 MB. Query: catalogue?, release?, mode=look|colour, k=1..20 (default 8), point=x,y (0..1) with radius? (default 0.12) or box=x0,y0,x1,y1, category?, finish? (comma lists).",
-      "response": "{ok: true, catalogue, release, mode, items: [ResultItem], query: {preprocessing, dominantHex, profile, signals: [..], timingsMs: {total}}, warnings: [..]}. ResultItem: {rank, itemId, catalogue, title, titleSource, productId, productIdSource, category, finish, subtype, dominantHex, source: {name, page}, image: {thumbUrl, fullUrl, width, height} (signed GCS GET URLs, valid 1 hour), scores: {final, signals} (final is relative: never a percentage), attributes}.",
+      "request": "The raw photo bytes, Content-Type image/jpeg, image/png or image/webp, at most 6 MB. Query: catalogue?, release?, mode=look|colour, k=1..20 (default 8), point=x,y (0..1) with radius? (default 0.12) or box=x0,y0,x1,y1, patch=1? (the photo is an already cut-out patch of a bigger picture: searched as a whole, with no card search and no edge trim; not together with point or box), category?, finish? (comma lists).",
+      "response": "{ok: true, catalogue, release, mode, items: [ResultItem], query: {preprocessing, dominantHex, profile, signals: [..], timingsMs: {total}}, warnings: [..]}. ResultItem: {rank, itemId, catalogue, title, titleSource, productId, productIdSource, category, finish, subtype, dominantHex, source: {name, page}, image: {thumbUrl, fullUrl, width, height} (signed GCS GET URLs, valid 1 hour; thumbUrl is the design's picture alone when it has a card picture, else the page thumbnail, and width/height describe it; fullUrl is the page crop), scores: {final, signals} (final is relative: never a percentage), attributes}.",
       "errors": [
         {
           "status": 400,
@@ -1838,6 +2066,390 @@
         }
       ],
       "curl": "curl -sI http://localhost:8080/catalogue-ui/assets/client.js | head -5"
+    },
+    {
+      "method": "GET",
+      "path": "/capture-ui/assets/:name",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host"
+      ],
+      "summary": "The browser code of the phone page (site/capture/): a fixed list of names, nothing else in the folder.",
+      "request": "No body. The names are ASSETS in server/capture/routes.js.",
+      "response": "200 text/javascript or text/css, Cache-Control: no-cache, X-Content-Type-Options: nosniff. Public: it is code, with no secrets and no data.",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Any other name, a dot-segment, other capitals"
+        }
+      ],
+      "curl": "curl -sI http://localhost:8080/capture-ui/assets/capture-page.js | head -5"
+    },
+    {
+      "method": "GET",
+      "path": "/api/capture/config",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "What is switched on for the requester's panel: whether the server sends WhatsApp messages and alerts, the country code that is added to a number, whether a link a phone can open can be made, and the limits.",
+      "request": "No body.",
+      "response": "{enabled, signedIn, whatsapp: {serverSends, alerts, defaultCountryCode}, link: {ok, reachable}, limits: {sessionMinutes, maxPhotos, keepDays}}. link.reachable is false when the address would be this computer's own.",
+      "errors": [
+        {
+          "status": 401,
+          "when": "Not signed in"
+        },
+        {
+          "status": 403,
+          "when": "The sign-up form is not finished"
+        },
+        {
+          "status": 503,
+          "when": "Capture is off (reason capture-off)"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/capture/sessions",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "Make a link for one of the three pages (the QR code and the WhatsApp message carry it).",
+      "request": "JSON {service: 'studio' | 'inspiration' | 'finder', note?: up to 200 characters for the person taking the photos}.",
+      "response": "201 {session, reachable}. session: {id, service, note, createdAt, expiresAt, open, photoCount, maxPhotos, capturer, link: 'https://<address>/capture#<key>'}. The key is 192 random bits, after the # sign, which a browser never sends to a server.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "Not one of the three pages"
+        },
+        {
+          "status": 409,
+          "when": "Five links are already open (reason too-many-open)"
+        },
+        {
+          "status": 429,
+          "when": "More links than CAPTURE_LIMIT_SESSIONS an hour"
+        },
+        {
+          "status": 503,
+          "when": "No public address is set up and this is not this computer (reason no-public-url), or the database is down"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/capture/sessions/:id",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "One of the requester's links.",
+      "request": "No body.",
+      "response": "{session}. The link itself only while it still works.",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Not a link of this account"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/capture/sessions/:id/close",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "End a link now. The photos that came in stay.",
+      "request": "JSON {} (the body is not read; the content type is).",
+      "response": "{ok: true}",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Not a link of this account"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/capture/sessions/:id",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "Delete a link and every photo that came through it (the pictures are in the same database, so they go with it).",
+      "request": "No body (send Content-Type: application/json, which the site's guard asks for on every write).",
+      "response": "{ok: true, deleted: <photos>}",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Not a link of this account"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/capture/sessions/:id/alert",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "Tell me on WhatsApp when a photo arrives (needs the WhatsApp Business account: WHATSAPP_*).",
+      "request": "JSON {phone: a number with or without country code, or null to turn it off}.",
+      "response": "{alert: {to: '+91••••••3210', status: 'waiting'} | null}. The number is never sent back whole.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "Not a number"
+        },
+        {
+          "status": 404,
+          "when": "Not a link of this account"
+        },
+        {
+          "status": 503,
+          "when": "WhatsApp alerts are not set up on this server (reason whatsapp-off)"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/capture/sessions/:id/whatsapp",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "Send the link to a WhatsApp number. With the Business account and a link template the server sends it (limited per account, per number and per link); otherwise the answer is the wa.me address and the requester sends it from their own WhatsApp.",
+      "request": "JSON {phone}.",
+      "response": "{mode: 'sent' | 'link', to: masked number, waLink: 'https://wa.me/<number>?text=…'}. waLink is in the answer in both modes, as the fallback.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "Not a number"
+        },
+        {
+          "status": 404,
+          "when": "Not a link of this account"
+        },
+        {
+          "status": 410,
+          "when": "The link has ended"
+        },
+        {
+          "status": 429,
+          "when": "The hourly limit, two sends to one number a day, or three sends of one link"
+        },
+        {
+          "status": 502,
+          "when": "WhatsApp refused the message (reason whatsapp-failed); the wa.me address still works"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/capture/inbox",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "The requester's links (the 40 newest) and photos: the latest 60, or those at or after `after`.",
+      "request": "Query: after = the createdAt (ms, server clock) of the newest photo already shown, or none.",
+      "response": "{now, sessions: [session], photos: [{id, session, service, tags, note, type, width, height, bytes, createdAt}]}. now is the server's clock: the page works out its own offset from it. A photo made in the same millisecond as `after` comes again; the page keeps the ids it has shown.",
+      "errors": [
+        {
+          "status": 401,
+          "when": "Not signed in"
+        },
+        {
+          "status": 403,
+          "when": "The sign-up form is not finished"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/capture/photos/:id/file",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "The photo itself, to the requester only.",
+      "request": "Query: download=1 to save it instead of showing it.",
+      "response": "200 image/jpeg, image/png or image/webp, Cache-Control: private, max-age=300, X-Content-Type-Options: nosniff, Content-Security-Policy: default-src 'none'; sandbox, Content-Disposition inline or attachment.",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Not a photo of this account (the same answer for a photo that does not exist)"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/capture/photos/:id",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "Same origin (writes)",
+        "Signed in (unless sign-in is off)"
+      ],
+      "summary": "Delete one photo.",
+      "request": "No body (send Content-Type: application/json).",
+      "response": "{ok: true}",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Not a photo of this account"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/capture/s/info",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "The link's key (X-Capture-Token)"
+      ],
+      "summary": "What a link is for: the page, the requester's first name, the note, how long it works, how many photos it still takes, the biggest photo, how long photos are kept, and the server's clock.",
+      "request": "No body. Header X-Capture-Token: the link's key.",
+      "response": "{service, serviceLabel, requester, note, expiresAt, maxPhotos, remaining, maxPhotoBytes, detailsSaved, serverNow, keepDays}. Nobody's details are shown to a link holder.",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Unknown key (the same answer for a mistyped one; thirty wrong keys from one address in ten minutes give 429)"
+        },
+        {
+          "status": 410,
+          "when": "The link has expired or was closed"
+        },
+        {
+          "status": 429,
+          "when": "Too many requests or wrong keys"
+        }
+      ],
+      "curl": "curl -s -H 'X-Capture-Token: <key>' http://localhost:8080/api/capture/s/info"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/capture/s/details",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "The link's key (X-Capture-Token)"
+      ],
+      "summary": "The phone says who it is and where: name (needed), phone, address, which part, and a location.",
+      "request": "JSON {name, phone?, address?, place?, location?: {lat, lng, accuracy?, at}}. A location must be inside the real ranges and taken within the last day.",
+      "response": "{ok: true, capturer}. The details are shown to the requester with the photos.",
+      "errors": [
+        {
+          "status": 400,
+          "when": "Bad name (reason bad-name), phone (bad-phone) or location (bad-location, stale-location)"
+        },
+        {
+          "status": 404,
+          "when": "Unknown key"
+        },
+        {
+          "status": 410,
+          "when": "The link has ended"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/capture/s/photos",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "The link's key (X-Capture-Token)"
+      ],
+      "summary": "One photo from the phone. The one write route of the JSON rule's exemption besides /api/catalogue/search: the body is the photo, image/jpeg, image/png or image/webp, at most CAPTURE_MAX_PHOTO_MB. Hidden data (Exif, GPS, XMP, text blocks) is taken out before it is kept.",
+      "request": "The raw photo. Headers: X-Capture-Token, X-Photo-Id (32 hex characters the phone makes; the same one on a retry), X-Photo-Meta (base64url of JSON {tags: up to 8 short labels, note: up to 200 characters}).",
+      "response": "201 {photo, duplicate: false, remaining}; 200 with duplicate: true when the same X-Photo-Id was already stored (a retry changes nothing and uses no second place).",
+      "errors": [
+        {
+          "status": 400,
+          "when": "Not a readable photo, no id, bad labels"
+        },
+        {
+          "status": 409,
+          "when": "No name given yet (details-needed), the link is full (full), or the same photo is arriving at this moment (in-progress: send it again)"
+        },
+        {
+          "status": 413,
+          "when": "Too many bytes or pixels"
+        },
+        {
+          "status": 415,
+          "when": "Not a JPEG, PNG or WebP (decided from the bytes, not the header)"
+        },
+        {
+          "status": 410,
+          "when": "The link has ended"
+        },
+        {
+          "status": 429,
+          "when": "CAPTURE_LIMIT_UPLOADS photos an hour from this address"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/capture/s/done",
+      "owner": "JS",
+      "group": "capture",
+      "guards": [
+        "Host",
+        "The link's key (X-Capture-Token)"
+      ],
+      "summary": "The phone says it has sent everything; if the requester asked for a WhatsApp alert and there were several photos, one summary message goes (once).",
+      "request": "JSON {}.",
+      "response": "{ok: true, photoCount}",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Unknown key"
+        },
+        {
+          "status": 410,
+          "when": "The link has ended"
+        }
+      ]
     }
   ]
 }

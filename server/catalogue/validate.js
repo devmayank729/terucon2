@@ -82,7 +82,10 @@ function slugOf(raw) {
 
 /**
  * The query string of POST /api/catalogue/search. Unknown names are ignored (never forwarded).
- * @returns {{catalogue?: string, mode: 'look' | 'colour', k: number, point?: [number, number], radius?: number, box?: number[], category: string[], finish: string[]}}
+ * `patch=1` (or true) says the photo is already a patch somebody cut out of a bigger picture (the Finder and the shop do that for a tapped surface):
+ * it is then searched exactly as it is, the way a `box` of the whole picture is, instead of the whole-photo path that looks for a card and
+ * otherwise crops 20 % off every edge (catalogue/ARCHITECTURE.md section 5.1). `patch=0` is the same as leaving it out.
+ * @returns {{catalogue?: string, mode: 'look' | 'colour', k: number, point?: [number, number], radius?: number, box?: number[], patch?: boolean, category: string[], finish: string[]}}
  */
 export function parseSearchParams(query) {
   const out = { catalogue: slugOf(single(query, 'catalogue')), mode: 'look', k: kOf(single(query, 'k'), true), category: [], finish: [] };
@@ -112,6 +115,13 @@ export function parseSearchParams(query) {
     const [x0, y0, x1, y1] = parts.map(unit);
     if (parts.length !== 4 || [x0, y0, x1, y1].includes(null) || x1 - x0 < 0.01 || y1 - y0 < 0.01) throw bad('"box" must be x0,y0,x1,y1 between 0 and 1, with x1 > x0 and y1 > y0.');
     out.box = [x0, y0, x1, y1];
+  }
+  const patch = single(query, 'patch');
+  if (patch !== undefined) {
+    const v = patch.toLowerCase();
+    if (v !== '1' && v !== '0' && v !== 'true' && v !== 'false') throw bad('"patch" must be 1 or 0.');
+    out.patch = v === '1' || v === 'true';
+    if (out.patch && (point !== undefined || box !== undefined)) throw bad('"patch" goes with a photo that has no "point" or "box".');
   }
   out.category = wordList(single(query, 'category'), 'category');
   out.finish = wordList(single(query, 'finish'), 'finish');

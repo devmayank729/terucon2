@@ -19,6 +19,8 @@ function test(name, fn) {
   const rendererModule = await import("../public/js/lib/fastrender/renderer.js");
   const composerModule = await import("../public/js/lib/previewScene.js");
   const regions = await import("../public/js/lib/regions.js");
+  const reasonModule = await import("../public/js/lib/fastrender/previewReason.js");
+  const require_tiers = await import("../public/js/lib/fastrender/tiers.js");
   const fusion = require("../server/lib/fusion.js");
   const moge2 = require("../server/lib/remoteModels/moge2.js");
 
@@ -627,6 +629,51 @@ function test(name, fn) {
     assert.ok(lenient.fusionRegions[wall.id].plane, "0.425 is fine when the threshold is 0.3");
     assert.notEqual(strict, lenient, "a different threshold is a different composition");
     assert.equal(composer.compose(scan, fused, light, 0.3), lenient, "same inputs, same object");
+  });
+
+  // ---------------------------------------------------------------- why the preview is not drawn
+  test("previewReason: says nothing until a surface AND a finish are chosen, and nothing when the preview is drawn", function () {
+    const ok = { hasSurface: true, hasItem: true, selectedCount: 1, hasScene: true, itemHasTexture: true, fit: { confidence: 0.8 }, lowThreshold: 0.3 };
+    assert.equal(reasonModule.previewReason(null), null);
+    assert.equal(reasonModule.previewReason(Object.assign({}, ok, { hasItem: false })), null);
+    assert.equal(reasonModule.previewReason(Object.assign({}, ok, { hasSurface: false })), null);
+    assert.equal(reasonModule.previewReason(ok), null);
+    assert.equal(reasonModule.previewReason(Object.assign({}, ok, { fit: { confidence: 0.3 } })), null, "at the threshold it is still drawn");
+  });
+
+  test("previewReason: each silent no-draw case now has its own reason, in the order the studio meets them", function () {
+    const ok = { hasSurface: true, hasItem: true, selectedCount: 1, hasScene: true, itemHasTexture: true, fit: { confidence: 0.8 }, lowThreshold: 0.3 };
+    const code = (patch) => (reasonModule.previewReason(Object.assign({}, ok, patch)) || {}).code;
+    assert.equal(code({ engineOff: true, hasScene: false }), "engine-off");
+    assert.equal(code({ selectedCount: 3 }), "many-surfaces");
+    assert.equal(code({ selectedCount: 2, busy: true }), "many-surfaces");
+    assert.equal(code({ busy: true }), "busy");
+    assert.equal(code({ rendererFailed: true, hasScene: false }), "no-gpu");
+    assert.equal(code({ hasScene: false }), "not-ready");
+    assert.equal(code({ itemHasTexture: false }), "no-texture");
+    assert.equal(code({ fit: undefined }), "no-fit"); // a chair, bed, window: only wall, floor and ceiling are fitted
+    assert.equal(code({ fit: { confidence: 0.29 } }), "weak-fit");
+    assert.equal(code({ fit: { confidence: NaN } }), "weak-fit");
+    // every reason carries words a visitor can read
+    ["engine-off", "many-surfaces", "busy", "no-gpu", "not-ready", "no-texture", "no-fit", "weak-fit"].forEach(function (c) {
+      const patch = { "engine-off": { engineOff: true }, "many-surfaces": { selectedCount: 2 }, busy: { busy: true }, "no-gpu": { rendererFailed: true }, "not-ready": { hasScene: false }, "no-texture": { itemHasTexture: false }, "no-fit": { fit: undefined }, "weak-fit": { fit: { confidence: 0.1 } } }[c];
+      const reason = reasonModule.previewReason(Object.assign({}, ok, patch));
+      assert.ok(reason.text.length > 30 && !/gemini|moge|sam 3|marigold/i.test(reason.text), c + ": " + reason.text);
+    });
+  });
+
+  test("previewReason agrees with tiers.canUseFastRender for every combination the studio can produce", function () {
+    const tiers = require_tiers;
+    const items = [{ texture: { url: "/t.png" } }, { texture: null }];
+    const fits = [undefined, { confidence: 0.1 }, { confidence: 0.3 }, { confidence: 0.5 }, { confidence: 0.9 }];
+    items.forEach(function (item) {
+      fits.forEach(function (fit) {
+        const settings = { fusionLowThreshold: 0.3, fusionHighThreshold: 0.7 };
+        const drawn = tiers.canUseFastRender(true, fit ? fit.confidence : NaN, item, settings);
+        const reason = reasonModule.previewReason({ hasSurface: true, hasItem: true, selectedCount: 1, hasScene: true, itemHasTexture: tiers.canFastRenderItem(item), fit: fit, lowThreshold: 0.3 });
+        assert.equal(reason === null, drawn, JSON.stringify({ item: !!item.texture, fit: fit }));
+      });
+    });
   });
 
   for (const entry of pending) {

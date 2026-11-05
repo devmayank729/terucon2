@@ -17,8 +17,8 @@ test('the page has no inline script, no inline style attribute and no event-hand
   const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
   assert.ok(scripts.length >= 1);
   for (const [, attrs, body] of scripts) {
-    // the site's own modules, and the phone dock's one script (site/brand/dock.js: same-origin, no inline code)
-    assert.match(attrs, /\bsrc="(?:\/inspiration\/assets\/[a-z]+|\/brand\/dock)\.js"/, 'every script is one of the site\'s own modules');
+    // the site's own modules, and the brand scripts (site/brand/loader.js, chrome.js, dock.js, terubot.js, transition.js: same-origin, no inline code)
+    assert.match(attrs, /\bsrc="(?:\/inspiration\/assets\/[a-z]+|\/brand\/(?:dock|chrome|terubot|transition|loader))\.js"/, 'every script is one of the site\'s own modules');
     assert.equal(body.trim(), '', 'no inline script text');
   }
   assert.ok(!/\sstyle\s*=/i.test(html), 'an inline style="" attribute would be blocked');
@@ -82,7 +82,8 @@ test('every page that loads the import module marks its boxes the same way, and 
   const dir = path.join(ROOT, 'site', 'patches');
   const materials = JSON.parse(fs.readFileSync(path.join(dir, 'materials.json'), 'utf8'));
   const marks = materials.steps.filter((s) => /^import-/.test(s.id));
-  assert.deepEqual(marks.map((s) => s.id).sort(), ['import-assistant-box', 'import-script', 'import-search-box']);
+  // the shop assistant's own box (import-assistant-box) went with the assistant: TeruBot is the one assistant now
+  assert.deepEqual(marks.map((s) => s.id).sort(), ['import-script', 'import-search-box']);
   for (const step of marks.filter((s) => s.with)) assert.ok(step.with.includes('data-import-urls=""'));
   const studio = JSON.parse(fs.readFileSync(path.join(dir, 'studio.json'), 'utf8'));
   assert.ok(studio.steps.some((s) => s.id === 'import-feed' && s.insert.join('').includes('/inspiration/assets/feed.js')));

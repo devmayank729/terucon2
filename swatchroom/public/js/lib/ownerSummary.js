@@ -77,6 +77,24 @@ export function overallState(snapshot) {
   return best;
 }
 
+// "runs inside Room analysis (one request) · last analysis 4 min ago, warm, processing 3.2 s"
+function describeInside(host) {
+  const work = host.last;
+  let text = "runs inside " + host.label + " (one request, not on its own)";
+  if (!work) {
+    return text + " · no analysis since this server started";
+  }
+  text += " · last analysis ";
+  if (work.status === "error") {
+    return text + "failed: " + (work.error || "error") + " · " + ago(work.agoMs);
+  }
+  text += work.cold ? "cold start " + seconds(work.coldMs) : "warm";
+  if (work.processMs !== null && work.processMs !== undefined) {
+    text += ", processing " + seconds(work.processMs);
+  }
+  return text + " · " + ago(work.agoMs);
+}
+
 // One line per service: { state, name, text, fallback }.
 export function describeModel(model) {
   if (!model.configured) {
@@ -85,6 +103,16 @@ export function describeModel(model) {
       state: "unknown",
       name: model.label,
       text: "not set up" + (variable ? ": add " + variable + " to .env (see DEPLOY.md)" : ""),
+      fallback: false,
+    };
+  }
+  // SAM 3, MoGe-2 and Marigold-IID make no call of their own while the combined room analysis is in use: their work is
+  // inside that one request. Say so, with when it last ran, instead of "no calls yet" for ever.
+  if (model.runsInside && !model.last) {
+    return {
+      state: model.state,
+      name: model.label,
+      text: describeInside(model.runsInside),
       fallback: false,
     };
   }
@@ -122,6 +150,27 @@ export function describeModel(model) {
       parts.push(last.device);
     }
     parts.push(ago(last.agoMs));
+  }
+  // A warm-up ping is the latest call after every scan and page open and replaces the analysis in `last`: keep the
+  // last real piece of work in view beside it.
+  if (last && last.kind === "warmup") {
+    const work = model.lastWork;
+    const noun = model.key === "oneformer" ? "scan" : "analysis";
+    if (!work) {
+      parts.push("no " + noun + " yet");
+    } else if (work.status === "error") {
+      parts.push("last " + noun + " failed " + ago(work.agoMs));
+    } else {
+      parts.push(
+        "last " +
+          noun +
+          " " +
+          (work.cold ? "cold start " + seconds(work.coldMs) : "warm") +
+          (work.processMs !== null && work.processMs !== undefined ? ", processing " + seconds(work.processMs) : "") +
+          " " +
+          ago(work.agoMs),
+      );
+    }
   }
   // The latest cold start is worth keeping in view after warm calls have followed it.
   const cold = recentCold(model);

@@ -2,6 +2,7 @@
  * Catalogue search (targets C3, C4, C7, C5; the admin's upload is D1): find materials in a real catalogue by photo, colour or words.
  *
  *   GET  /api/catalogue/status         {enabled, ready, reasons, default, catalogues, limits, profile}   cheap, remembered 10 seconds
+ *   GET  /api/catalogue/studio-finishes  {group, kinds, finishes: [{id, code, name, sub, about, prompt, hex, image, texture}], state: ok|off|unavailable}   the designs as finishes of the Design Studio
  *   POST /api/catalogue/warm           202 {ok: true}   wake the search service; nobody waits for it
  *   POST /api/catalogue/search         the body is the photo itself (image/jpeg, image/png or image/webp, at most 6 MB)
  *                                      ?catalogue=&mode=look|colour&k=1..20&point=x,y&radius=&box=x0,y0,x1,y1&category=&finish=
@@ -20,8 +21,11 @@ import { readBody } from '../catalogue/body.js';
 import { MAX_PHOTO_BYTES } from '../catalogue/config.js';
 import { CatalogueError, drainRequest, sendCatalogueError } from '../catalogue/errors.js';
 import { mountAdminRoutes } from '../catalogue/adminRoutes.js';
+import { isStoreDown } from '../catalogue/db.js';
 import { createCatalogue } from '../catalogue/index.js';
+import { studioFinishes } from '../catalogue/studioFinishes.js';
 import { baseType, judgePhoto, parseSearchParams, parseTextBody, PHOTO_TYPES } from '../catalogue/validate.js';
+import { defaultShop, withShop } from '../lib/shopLink.js';
 
 /** A photo that has not arrived in this long is given up on (a phone upload of 400 KB takes a second or two). */
 const BODY_DEADLINE_MS = 20 * 1000;
@@ -33,10 +37,12 @@ const runMiddleware = (middleware, req, res) => new Promise((resolve, reject) =>
 export function mountCatalogue(app, ctx) {
   const { api, log } = ctx;
   // `catalogueOverrides` (createApp's `catalogue` option) is for tests: a fake Modal client, a catalogue database, a signer, a clock
-  const { modal, db, signer, now } = ctx.catalogueOverrides ?? {};
-  const catalogue = createCatalogue({ settings: ctx.settings, auth: ctx.auth, mongoose: ctx.swatchroom?.mongoose() ?? null, log, now, overrides: { modal, db, signer } });
+  const { modal, db, signer, now, designs, fetch } = ctx.catalogueOverrides ?? {};
+  const catalogue = createCatalogue({ settings: ctx.settings, auth: ctx.auth, mongoose: ctx.swatchroom?.mongoose() ?? null, log, now, overrides: { modal, db, signer, designs, fetch } });
   ctx.catalogue = catalogue;
   const svc = catalogue.service;
+  /** Each result also says what the shop lists for it (a design of the catalogue is a shop product under the same id, server/lib/shopLink.js). */
+  const shopOf = (answer) => withShop(answer, ctx.shopOverride ?? defaultShop());
 
   /** Who is asking, or a CatalogueError to send. The same rule as server/routes/inspiration.js. */
   async function who(req) {
@@ -74,6 +80,30 @@ export function mountCatalogue(app, ctx) {
 
   api.get('/api/catalogue/status', guarded(async (req, res) => res.json(await svc.status()), { write: false }));
 
+  // The catalogue's designs as finishes of the Design Studio (targets C1, A1): name, code, the picture's address, the render brief. Read from MongoDB;
+  // the pictures are read from Cloud Storage when the browser asks for them (server/routes/catalogueMedia.js). site/catalogue-ui/studio-finishes.js adds them to the studio.
+  api.get(
+    '/api/catalogue/studio-finishes',
+    guarded(
+      async (req, res) => {
+        // An optional feature of the studio: with the catalogue off or its database away the answer is an empty list (and the state), never an error,
+        // so the studio opens as it always did and logs nothing.
+        let designs = [];
+        let state = 'ok';
+        try {
+          svc.assertEnabled();
+          designs = await catalogue.designs.list();
+        } catch (error) {
+          if (error instanceof CatalogueError) state = 'off';
+          else if (isStoreDown(error)) state = 'unavailable';
+          else throw error;
+        }
+        res.json({ ...studioFinishes(designs), state });
+      },
+      { write: false },
+    ),
+  );
+
   api.post(
     '/api/catalogue/warm',
     guarded(
@@ -108,7 +138,7 @@ export function mountCatalogue(app, ctx) {
         svc.record('search', asker);
         const bytes = await readBody(req, { limit: MAX_PHOTO_BYTES, deadlineMs: BODY_DEADLINE_MS });
         const photo = judgePhoto(bytes, type);
-        res.json(await svc.searchPhoto({ live, params, bytes, type: photo.type }));
+        res.json(shopOf(await svc.searchPhoto({ live, params, bytes, type: photo.type })));
       } finally {
         release();
       }
@@ -127,7 +157,7 @@ export function mountCatalogue(app, ctx) {
         if (!release) throw new CatalogueError(503, 'busy', 'The search is busy right now. Please try again in a moment.', { retryAfter: 3 });
         try {
           svc.record('text', asker);
-          res.json(await svc.searchText({ live, body }));
+          res.json(shopOf(await svc.searchText({ live, body })));
         } finally {
           release();
         }

@@ -9,25 +9,6 @@
       "expect": 18
     },
     {
-      "id": "header-project",
-      "op": "insertAfter",
-      "why": "header: My project link",
-      "anchor": "Saved<span style=\"font:400 12px/1 Switzer,sans-serif;opacity:.7\">{{ savedN }}</span></a>",
-      "insert": [
-        "\n      ",
-        "\n      ",
-        {
-          "component": "headerLink",
-          "entry": "project"
-        },
-        "\n      ",
-        {
-          "component": "accountLink",
-          "entry": "account"
-        }
-      ]
-    },
-    {
       "id": "menu-project",
       "op": "insertAfter",
       "why": "menu: My project card",
@@ -54,32 +35,6 @@
         {
           "component": "footerLink",
           "entry": "project"
-        }
-      ]
-    },
-    {
-      "id": "header-inspiration",
-      "op": "insertAfter",
-      "why": "header: Inspiration link",
-      "anchor": "Saved<span style=\"font:400 12px/1 Switzer,sans-serif;opacity:.7\">{{ savedN }}</span></a>",
-      "insert": [
-        "\n      ",
-        {
-          "component": "headerLink",
-          "entry": "inspiration"
-        }
-      ]
-    },
-    {
-      "id": "header-finder",
-      "op": "insertAfter",
-      "why": "header: Finder link",
-      "anchor": "Saved<span style=\"font:400 12px/1 Switzer,sans-serif;opacity:.7\">{{ savedN }}</span></a>",
-      "insert": [
-        "\n      ",
-        {
-          "component": "headerLink",
-          "entry": "finder"
         }
       ]
     },
@@ -148,6 +103,59 @@
       "with": "<a href=\"#\""
     },
     {
+      "id": "assistant-fab-off",
+      "op": "replace",
+      "why": "Ask Terucon (the shop's on-device demo assistant) is retired: TeruBot (site/brand/terubot.js) is the one assistant of the site, so the page's own floating Ask button is never shown",
+      "anchor": "const show = (this.props.assistantEntry || 'Floating button') === 'Floating button' && ",
+      "with": "const show = false && "
+    },
+    {
+      "id": "assistant-open-terubot",
+      "op": "replace",
+      "why": "the mic buttons in the search bar and the search overlay (openVoice, srch.voice) used to open the Ask Terucon dialog; they open TeruBot now. The dialog's markup stays in the template but nothing can open it (va.open is never set), so it is never rendered",
+      "anchor": "  openVa = () => { const va = this.state.va; const msgs = va.msgs.length ? va.msgs : [{ id: 'hello', role: 'bot', text: 'Tell me what you’re building — the material, a colour, the wall size or a PIN code — and I’ll find it in the catalogue. You can talk or type.', products: [], actions: [], suggestions: ['Bronze ACP for a 40 × 12 ft façade', 'Exterior HPL in teak under ₹15,000 a sheet', 'Stone for a clinic reception floor', 'Does it deliver to 560058?'] }]; this.setState({ va: { ...va, open: true, msgs, err: '' }, srch: { ...this.state.srch, open: false }, menu: false }, () => setTimeout(() => { if (this.state.vw >= 820 && this.vaIn.current) this.vaIn.current.focus(); }, 80)); }",
+      "with": "  openVa = () => { try { if (window.TeruBot) window.TeruBot.open(); } catch (_) {} }"
+    },
+    {
+      "id": "terubot-bridge",
+      "op": "insertAfter",
+      "why": "TeruBot changes the cart and the saved list through this page: a \"terucon:shop\" event answered by tbApply* (state and persistence are the page's own), a queue in sessionStorage applied once the catalogue is loaded when the change was asked for on another page, and the room under TeruBot's button (--tb-bottom). Members of the page's component, kept in snippets/shop-terubot-members.txt (not a .js file: it only parses inside the class)",
+      "anchor": "  persistCart = cart => this.S.persist.set('cart', cart);",
+      "insert": [
+        {
+          "file": "snippets/shop-terubot-members.txt"
+        }
+      ]
+    },
+    {
+      "id": "terubot-bridge-mount",
+      "op": "replace",
+      "why": "listen for TeruBot's \"terucon:shop\" events from the first render",
+      "anchor": "this.waitStore(0);",
+      "with": "this.tbMount(); this.waitStore(0);"
+    },
+    {
+      "id": "terubot-bridge-ready",
+      "op": "replace",
+      "why": "once the saved cart is loaded, apply what TeruBot queued while another page was open (after the load, or the load would overwrite it)",
+      "anchor": "}, () => this.onHash(true));",
+      "with": "}, () => { this.onHash(true); this.tbReady(); });"
+    },
+    {
+      "id": "terubot-bridge-room",
+      "op": "replace",
+      "why": "keep TeruBot's button clear of the cart bar and the compare tray, with the same offsets the old Ask button used",
+      "anchor": "componentDidUpdate() {",
+      "with": "componentDidUpdate() {\n    this.tbSync();"
+    },
+    {
+      "id": "terubot-card-links",
+      "op": "replace",
+      "why": "a card from TeruBot links to /materials#<id> (a product, variant or finish id): open that product. Any other hash is routed as before",
+      "anchor": "return { name: M[parts[0]] || 'home', id: parts[1] || '', qp: new URLSearchParams(qs || '') };",
+      "with": "if (parts.length === 1 && !M[parts[0]] && this.S && this.tbFind) { const hit = this.tbFind(parts[0]); if (hit) return { name: 'product', id: hit.pid, qp: new URLSearchParams('v=' + encodeURIComponent(hit.id)) }; }\n    return { name: M[parts[0]] || 'home', id: parts[1] || '', qp: new URLSearchParams(qs || '') };"
+    },
+    {
       "id": "analytics",
       "op": "insertBefore",
       "why": "PostHog analytics: page views, clicks and forms, and (studio page) the studio's own events, which its browser code sends to window.posthog but its server never gives a key for. The script asks GET /api/analytics, so no key is in the page",
@@ -185,18 +193,20 @@
       ]
     },
     {
+      "id": "photo-camera",
+      "op": "insertBefore",
+      "why": "the shop's \"Find it from a photo\" sheet has the same kind of input as the studio's \"Take a photo\" (a file input with capture=environment): on a phone it hands the screen to the camera app, the phone can throw this heavy page away meanwhile, and the photo never arrives. site/brand/studio-camera.js (shared with the studio) opens the camera inside the page instead and gives the sheet the picture as a chosen file; with no in-page camera it falls back to the camera app or the gallery. The address carries ?v=20261104 because /brand/* is cached for a day (app.js) and a phone that has used the studio holds the older script, which only knows the studio's input: change the number when this script changes",
+      "anchor": "</helmet>",
+      "insert": [
+        "<script src=\"/brand/studio-camera.js?v=20261104\" defer></script>\n"
+      ]
+    },
+    {
       "id": "import-search-box",
       "op": "replace",
       "why": "the shop's search box takes a pasted photo address (data-import-urls, see import-script)",
       "anchor": "<input ref=\"{{ srch.ref }}\"",
       "with": "<input data-import-urls=\"\" ref=\"{{ srch.ref }}\""
-    },
-    {
-      "id": "import-assistant-box",
-      "op": "replace",
-      "why": "the shop assistant's box takes a pasted photo address (data-import-urls, see import-script)",
-      "anchor": "<input ref=\"{{ va.inRef }}\"",
-      "with": "<input data-import-urls=\"\" ref=\"{{ va.inRef }}\""
     },
     {
       "id": "photo-match-finder-banner",
@@ -205,21 +215,6 @@
       "anchor": "<div style=\"flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:22px 24px\">",
       "insert": [
         "\n    <div style=\"display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:14px 18px;margin-bottom:18px;border-radius:16px;border:1px solid var(--line2);background:rgba(167,141,120,.14)\"><span style=\"font:400 13.5px/1.5 Switzer,sans-serif;color:var(--ink2)\">This is a preview. For a real match against our catalogue, open the Finder.</span><a href=\"/finder\" style=\"flex:none;height:40px;padding:0 18px;border-radius:999px;border:1px solid var(--ink);background:var(--ink);color:#E1D4C2;font:500 13px/1 Switzer,sans-serif;text-decoration:none;display:inline-flex;align-items:center;white-space:nowrap\">Open the Finder</a></div>\n    "
-      ]
-    },
-    {
-      "id": "logo-header",
-      "op": "replace",
-      "why": "header: the real logo (in a dark pill, so it reads on the cream header too) instead of the typed TERUCON INDIA (the page's own <a href> stays, so the link style of the build is respected)",
-      "anchor": "style=\"display:flex;align-items:baseline;gap:10px;color:inherit;font:600 15px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.34em\" style-hover=\"color:inherit\">TERUCON<span style=\"font:500 9.5px/1 Switzer,Helvetica,Arial,sans-serif;letter-spacing:.3em\">INDIA</span></a>",
-      "with": [
-        {
-          "component": "logoLinkTail",
-          "entry": "logo",
-          "pill": true,
-          "w": 152,
-          "h": 26
-        }
       ]
     },
     {
@@ -333,12 +328,12 @@
       "with": "bottom:calc(var(--tc-dock-h,0px) + 12px + env(safe-area-inset-bottom));z-index:"
     },
     {
-      "id": "phone-style",
+      "id": "chrome-fit",
       "op": "insertBefore",
-      "why": "page style for the phone: header fit, the menu overlay leading with the destinations, room for the bottom bar",
+      "why": "the site chrome (site/brand/chrome.js) is the one header: the export's own header is not drawn once the chrome is on (the chrome's Saved and Cart buttons click its originals and mirror their counts); the menu overlay on a phone leads with the destinations; room for the bottom bar",
       "anchor": "</helmet>",
       "insert": [
-        "<style>\n/* header: one line per link; 820-899 px the bottom bar carries the destinations; 900-1199 px lose the least useful links */\n[data-nav] nav a { white-space: nowrap; }\n@media (min-width: 820px) and (max-width: 899px) { [data-nav] nav > a:not([href^=\"#/cart\"]) { display: none !important; } }\n@media (min-width: 900px) and (max-width: 1199px) {\n  [data-nav] nav { gap: 14px !important; }\n  [data-nav] nav a[data-terucon-account], [data-nav] nav > a[href=\"/design-studio\"] > span, [data-nav] nav > a[href^=\"#/saved\"] { display: none !important; }\n}\n@media (min-width: 820px) { [data-tc-logo] img { height: 30px !important; } }\n@media (max-width: 599px) { [data-nav] { padding-left: 14px !important; padding-right: 14px !important; } }\n/* menu overlay on a phone or small tablet: destinations lead */\n[data-menu-dest] { display: none; }\n@media (max-width: 819px) {\n  [data-menu-dest] { display: flex; }\n  [data-menu] > div { justify-content: flex-start !important; gap: 26px !important; padding: 12px 20px calc(28px + env(safe-area-inset-bottom, 0px)) !important; }\n  [data-menu-aside] > a { display: none !important; }\n  [data-menu] nav a { font-size: 22px !important; padding: 13px 0 !important; }\n}\n/* the footer already has 96 px of room at its end; dock.css's own spacer would sit mid-page here (the body is only a frame) */\n@media (max-width: 899px) {\n  body::after { display: none !important; }\n}\n</style>\n"
+        "<style>\n/* the site chrome is the one header (site/brand/chrome.md); the export's own header stays in the page (the chrome's Saved and Cart buttons click its links and mirror their counts) but is not drawn while the chrome is on */\nhtml.tc-chrome-on [data-nav] { display: none !important; }\n/* menu overlay on a phone or small tablet: destinations lead */\n[data-menu-dest] { display: none; }\n@media (max-width: 819px) {\n  [data-menu-dest] { display: flex; }\n  [data-menu] > div { justify-content: flex-start !important; gap: 26px !important; padding: 12px 20px calc(28px + env(safe-area-inset-bottom, 0px)) !important; }\n  [data-menu-aside] > a { display: none !important; }\n  [data-menu] nav a { font-size: 22px !important; padding: 13px 0 !important; }\n}\n/* the footer already has 96 px of room at its end; dock.css's own spacer would sit mid-page here (the body is only a frame) */\n@media (max-width: 899px) {\n  body::after { display: none !important; }\n}\n</style>\n"
       ]
     },
     {
@@ -349,6 +344,67 @@
       "insert": [
         "<link rel=\"stylesheet\" href=\"/brand/dock.css\">\n<script src=\"/brand/dock.js\" defer></script>\n"
       ]
+    },
+    {
+      "id": "start-project-links",
+      "op": "replaceAll",
+      "style": "route",
+      "why": "every \"Start a project\" link opens its own page, /start-project, instead of the landing page's form at the bottom (/#enquire)",
+      "anchor": "href=\"/#enquire\"",
+      "with": "href=\"/start-project\"",
+      "count": 5
+    },
+    {
+      "id": "quote-link",
+      "op": "replace",
+      "style": "route",
+      "why": "the shop's quote link (\"Get a quote\") goes to the Start a project page too, not to the landing page's form",
+      "anchor": "quote: HOME + '#enquire',",
+      "with": "quote: '/start-project',"
+    },
+    {
+      "id": "catalogue-products",
+      "op": "insertBefore",
+      "target": "asset:content=window.TeruconStore",
+      "why": "list the SuperBond colour catalogue's designs (TIPL- ids) as shop products, next to the shop's own 24 (target A1; sample size and price, see tools/build-shop-catalogue.js)",
+      "anchor": "  // ---------- build variants ----------",
+      "insert": [
+        {
+          "file": "snippets/shop-catalogue.js"
+        }
+      ]
+    },
+    {
+      "id": "catalogue-sku",
+      "op": "replace",
+      "target": "asset:content=window.TeruconStore",
+      "why": "a catalogue design's SKU is its product id (TIPL-SB804), not a generated TRC-... code",
+      "anchor": "sku: ['TRC', p.code,",
+      "with": "sku: p.skuOverride ? p.skuOverride : ['TRC', p.code,"
+    },
+    {
+      "id": "catalogue-photo-path",
+      "op": "replace",
+      "target": "asset:content=window.TeruconStore",
+      "why": "a catalogue design's photograph is a file under /media/materials/ (tipl-<code>.jpg), not one of the export's embedded resources: it is asked for with an absolute address, so it loads from any page address. Only those names: the export's own photographs keep the string the page resolves again later (an absolute address there would no longer be found in its resource table and would 404)",
+      "anchor": "if (typeof u === 'string' && u) { RMAP[u] = p; return u; } return p; };",
+      "with": "if (typeof u === 'string' && u) { RMAP[u] = p; return u; } return typeof p === 'string' && p.startsWith('media/materials/tipl-') ? '/' + p : p; };"
+    },
+    {
+      "id": "surfaces-assets",
+      "op": "insertBefore",
+      "why": "the shop's \"Find it from a photo\" is now a real search (targets C4, A1): the photo's surfaces are outlined by the models, a tap on one finds the closest catalogue designs with the shop's price. The dialog is a module and a stylesheet served from /catalogue-ui/assets/ (server/routes/catalogueUi.js), not inline text",
+      "anchor": "</helmet>",
+      "insert": [
+        "<link rel=\"stylesheet\" href=\"/catalogue-ui/assets/surfaces.css\">\n<script type=\"module\" src=\"/catalogue-ui/assets/surfaces.js\"></script>\n"
+      ]
+    },
+    {
+      "id": "surfaces-open",
+      "op": "replace",
+      "why": "every way into the photo search (the search bar's camera, the \"Take or upload a photo\" card) opens the new dialog when it is there; the shop's own colour preview stays as openPhotoPreview and is what opens when the catalogue search is not available",
+      "anchor": "openPhoto = () => { this.setState({ photo: { ...PH0(), open: true }, srch: { ...this.state.srch, open: false }, menu: false }); }",
+      "with": "openPhotoPreview = () => { this.setState({ photo: { ...PH0(), open: true }, srch: { ...this.state.srch, open: false }, menu: false }); }\n  openPhoto = () => { const S = window.TeruconSurfaces; if (S && S.open({ fallback: () => this.openPhotoPreview() })) { this.setState({ srch: { ...this.state.srch, open: false }, menu: false }); return; } this.openPhotoPreview(); }"
     }
   ]
 }

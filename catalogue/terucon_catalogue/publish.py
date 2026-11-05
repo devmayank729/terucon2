@@ -399,7 +399,7 @@ def publish_bundle(bundle_dir, *, catalogue: str, store, db, cfg, job_id: Option
                 _emit(progress, "release", total - 1, total, "Registered the release")
             if pointer_change:
                 stage = "activate"
-                counts = {"items": db.count_items(catalogue, "ok"), "hidden": db.count_items(catalogue, "hidden")}
+                counts = {"items": db.count_items(catalogue), "hidden": db.count_items(catalogue, "hidden")}      # items = all of them; the website shows items - hidden
                 db.set_active_release(catalogue, release_id, feature_versions=dict(built.feature_versions), counts=counts)
                 result.activated = True
             _emit(progress, "release", 1, 1, "Done")
@@ -613,5 +613,5 @@ def activate_release(catalogue: str, release_id: str, *, store, db) -> dict:
 
     if sha256_hex(raw) != record.get("manifestSha256"):
         raise ActivationError(f"Release {release_id}: the manifest in the store is not the one that was registered (sha256 differs). Not activating.")
-    counts = {"items": db.count_items(catalogue, "ok"), "hidden": db.count_items(catalogue, "hidden")}
+    counts = {"items": db.count_items(catalogue), "hidden": db.count_items(catalogue, "hidden")}      # items = all of them; the website shows items - hidden
     return db.set_active_release(catalogue, release_id, feature_versions=dict(record["featureVersions"]), counts=counts)

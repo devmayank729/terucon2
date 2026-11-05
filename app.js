@@ -23,6 +23,8 @@ import { compress } from './server/middleware/compress.js';
 import { guards } from './server/middleware/guards.js';
 import { securityHeaders } from './server/middleware/headers.js';
 import { longLived, TEXTURE_CACHE } from './server/middleware/studioCache.js';
+import { studioOverlay } from './server/middleware/studioOverlay.js';
+import { studioReference } from './server/lib/studioReference.js';
 import { studioShield } from './server/lib/studioShield.js';
 import { mountAnalytics } from './server/routes/analytics.js';
 import { createApiRegistry, mountApi } from './server/routes/api.js';
@@ -31,12 +33,15 @@ import { mountAuthRoutes } from './server/routes/auth.js';
 import { mountAuthAdmin } from './server/routes/authAdmin.js';
 import { mountBrand } from './server/routes/brand.js';
 import { mountCatalogue } from './server/routes/catalogue.js';
+import { mountCapture } from './server/routes/capture.js';
 import { mountCatalogueUi } from './server/routes/catalogueUi.js';
 import { mountDocs } from './server/routes/docs.js';
+import { mountEnquiry } from './server/routes/enquiry.js';
 import { mountInspiration } from './server/routes/inspiration.js';
 import { mountMedia } from './server/routes/media.js';
 import { comingSoon, mountPages } from './server/routes/pages.js';
 import { mountStudioRoutes } from './server/routes/studio.js';
+import { mountTerubot } from './server/routes/terubot.js';
 
 /*
  * DELIVERY POLICY: what is cached for how long, and what is compressed how. Each rule is set in the file named in the last column;
@@ -55,6 +60,7 @@ import { mountStudioRoutes } from './server/routes/studio.js';
  *  /inspiration/assets/*, /catalogue-ui/*      no-cache                                              weak ETag + Last-Modified       on the fly                     routes/inspiration.js, catalogueUi.js
  *  /api/*                                      no-store                                              none (by design)                on the fly, over 1 KB          routes/api.js, lib/errors.js
  *  studio /js /css /admin /favicon.svg         no-cache (the studio's own)                           weak ETag + Last-Modified       on the fly                     swatchroom/server (unchanged)
+ *   - 8 of the /js files (the instant preview)  no-cache (the same), + X-Terucon-Overlay: studio-preview weak ETag + Last-Modified       on the fly                     middleware/studioOverlay.js (site/overlays/studio)
  *  studio /fonts/*.woff2                       public, max-age=31536000, immutable (the studio's own) weak ETag + Last-Modified      none                           swatchroom/server (unchanged)
  *  studio /textures/*                          public, max-age=604800 (was no-cache)                 weak ETag + Last-Modified       none (png)                     middleware/studioCache.js
  *  5xx errors, 404s of /assets and /brand      no-store                                              none                            on the fly                     lib/errorPage.js, lib/errors.js
@@ -95,13 +101,16 @@ function resolveEnvFile(envPath, environ, root) {
  * @param {object} [options.auth] sign-in overrides for tests (server/auth/index.js: db, providers, google, firm, zoho, secret)
  * @param {object} [options.inspiration] inspiration-import overrides for tests (server/routes/inspiration.js: fetcher, gallery)
  * @param {object} [options.catalogue] catalogue-search overrides for tests (server/catalogue/index.js: modal, db, signer, now), all optional
+ * @param {object} [options.terubot] TeruBot overrides for tests (server/lib/terubot/index.js: gemini, shop, form, now; googleDir; rooms), all optional
+ * @param {object} [options.capture] capture-from-a-phone overrides for tests (server/routes/capture.js: db, now, fetch), all optional
  * @returns {import('express').Express} with `app.locals.terucon = {settings(), site, studio, studioDir, requirePasscode, auth, close()}`
  */
-export function createApp({ root = ROOT, envPath, environ, log = createLogger(), swatchroom = false, auth: authOverrides = {}, inspiration: inspirationOverrides = {}, catalogue: catalogueOverrides = {} } = {}) {
+export function createApp({ root = ROOT, envPath, environ, log = createLogger(), swatchroom = false, auth: authOverrides = {}, inspiration: inspirationOverrides = {}, catalogue: catalogueOverrides = {}, terubot: terubotOverrides = {}, capture: captureOverrides = {} } = {}) {
   root = path.resolve(root);
-  // The studio reads swatchroom/.env into process.env when it is loaded (that is how it is configured). Take this server's
-  // view of the environment first, so the studio's PORT, HOST, ... can never become this server's own.
-  if (swatchroom && !environ) environ = { ...process.env };
+  // The studio reads swatchroom/.env into process.env when it is loaded (that is how it is configured), and so does TeruBot, whose
+  // Google connection is the studio's (server/lib/terubot/gemini.js). Take this server's view of the environment first, so the
+  // studio's PORT, HOST, ... can never become this server's own.
+  if (!environ) environ = { ...process.env };
   const envFile = resolveEnvFile(envPath, environ, root);
   const manager = new SettingsManager(envFile, environ, root);
   const site = SiteMap.load(root);
@@ -122,6 +131,8 @@ export function createApp({ root = ROOT, envPath, environ, log = createLogger(),
     swatchroom: studio,
     inspirationOverrides,
     catalogueOverrides,
+    terubotOverrides,
+    captureOverrides,
   };
   // Sign-in: accounts live in the studio's MongoDB when the studio is mounted, else in memory (AUTH_STORE). The routes a person may be
   // sent to after signing in are exactly the pages of the site map.
@@ -156,10 +167,13 @@ export function createApp({ root = ROOT, envPath, environ, log = createLogger(),
   mountAnalytics(app, ctx);
   mountStudioRoutes(app, ctx);
   mountAuthRoutes(app, ctx);
+  mountEnquiry(app, ctx); // before the admin API, which lists what it keeps
   mountAuthAdmin(app, ctx);
   mountInspiration(app, ctx);
   mountCatalogue(app, ctx);
   mountCatalogueUi(app, ctx);
+  ctx.terubot = mountTerubot(app, ctx); // after the catalogue: it uses ctx.catalogue when the catalogue is on
+  mountCapture(app, ctx); // photos taken on a phone and sent to the person who asked (server/capture/)
   // The website's own /api answers its own misses (404 / 405 in its error shape); the studio's /api paths pass on to it.
   ctx.api.fallback();
   // The Design Studio: its /api/* (behind studioShield, or its own passcode when STUDIO_REQUIRE_PASSCODE=on), /js, /css, /fonts, /textures, /admin. After the pages and the
@@ -172,8 +186,13 @@ export function createApp({ root = ROOT, envPath, environ, log = createLogger(),
     shield = studioShield({ store: studio.roomStore(), limits: () => ctx.auth.studioLimits(), log, identify: (req) => req.terucon?.user?.ownerId ?? null });
     app.use(shield);
   }
+  // a render of a catalogue design gets the design's own photograph as one more image (after the shield has counted it, before the studio reads it)
+  if (studio) app.use(studioReference({ designs: () => ctx.catalogue?.designs ?? null, limit: studio.aiBodyLimit(), log }));
   // the studio's textures are not worth a round trip per visit (server/middleware/studioCache.js); its other files keep its own policy
   if (studio) app.use(longLived(['/textures'], TEXTURE_CACHE));
+  // the instant preview's improved files (site/overlays/studio/js/), ahead of the studio's own copies of the same addresses; STUDIO_PREVIEW_OVERLAY=off, or no folder, serves the studio's own
+  const overlay = studio ? studioOverlay({ root, enabled: () => ctx.settings().studio.previewOverlay }) : null;
+  if (overlay) app.use('/js', overlay);
   if (studio) app.use(studio.app);
   app.use(comingSoon(ctx));
   app.use(notFound);
@@ -184,15 +203,20 @@ export function createApp({ root = ROOT, envPath, environ, log = createLogger(),
     site,
     studio,
     studioDir,
+    studioOverlay: overlay,
     root,
     requirePasscode,
     dist,
     auth: ctx.auth,
     catalogue: ctx.catalogue,
+    terubot: ctx.terubot,
+    capture: ctx.capture,
     close: async () => {
       shield?.close();
       ctx.inspiration.close();
       ctx.catalogue.close();
+      ctx.terubot.close();
+      ctx.capture.close();
       ctx.auth.close();
       await studio?.close();
     },
@@ -272,12 +296,16 @@ function printBanner({ app, port }) {
   if (studio) {
     const studioEnv = path.join(studioDir, '.env');
     lines.push(`  Studio settings:   ${studioEnv}  (${fs.existsSync(studioEnv) ? 'found' : 'NOT FOUND - copy swatchroom/.env.example to swatchroom/.env'})`);
+    const overlay = app.locals.terucon.studioOverlay;
+    if (overlay?.present) lines.push(`  Instant preview:   ${s.studio.previewOverlay ? `improved (${overlay.files.length} files of the studio's, in site/overlays/studio/); STUDIO_PREVIEW_OVERLAY=off shows the studio's own` : "the studio's own (STUDIO_PREVIEW_OVERLAY=off in .env); on is the default"}`);
   }
   for (const line of describe(s)) lines.push('  ' + line);
   const auth = app.locals.terucon.auth.status();
   const ways = [auth.channels.email && 'e-mail codes', auth.channels.sms && 'text-message codes', auth.channels.google && 'Google'].filter(Boolean);
   lines.push(`  Sign-in:           ${auth.ready ? `ready (${ways.join(', ')})` : 'NOT READY - nobody can sign in'}; ${auth.gate ? 'every page but the landing page needs it' : 'GATE OFF (AUTH_REQUIRED=off): every page is open'}; accounts kept ${auth.store === 'mongo' ? 'in MongoDB' : 'in memory only (lost at restart)'}`);
   lines.push(`  CRM:               ${auth.crm.mode === 'off' ? 'off (AUTH_CRM=off)' : auth.crm.credentials ? 'Zoho connected' : 'Zoho credentials not in .env yet - new sign-ups wait in a queue and are sent once they are'}`);
+  const bot = app.locals.terucon.terubot.bot.state();
+  lines.push(`  TeruBot:           ${bot.on ? `ready (model ${bot.model}, through the studio's Google key)` : s.terubot.enabled ? 'NOT READY - ' + bot.problem : 'off (TERUBOT=off)'}`);
   for (const problem of auth.problems) lines.push('  ! ' + problem);
   if (auth.developmentCodes) lines.push('  ! One-time codes are printed in this window instead of being sent (development only: this computer, not production). To send real ones set AUTH_EMAIL_PROVIDER / AUTH_SMS_PROVIDER in .env.');
   if (auth.developmentSecret) lines.push('  ! AUTH_SECRET is not set: a temporary one is used (development only), so sign-ins end at every restart.');

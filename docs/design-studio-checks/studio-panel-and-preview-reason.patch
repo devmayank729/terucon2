@@ -1,0 +1,524 @@
+diff --git a/swatchroom/public/js/lib/ownerSummary.js b/swatchroom/public/js/lib/ownerSummary.js
+index 714c1b2..a9f72c9 100644
+--- a/swatchroom/public/js/lib/ownerSummary.js
++++ b/swatchroom/public/js/lib/ownerSummary.js
+@@ -77,6 +77,24 @@ export function overallState(snapshot) {
+   return best;
+ }
+ 
++// "runs inside Room analysis (one request) · last analysis 4 min ago, warm, processing 3.2 s"
++function describeInside(host) {
++  const work = host.last;
++  let text = "runs inside " + host.label + " (one request, not on its own)";
++  if (!work) {
++    return text + " · no analysis since this server started";
++  }
++  text += " · last analysis ";
++  if (work.status === "error") {
++    return text + "failed: " + (work.error || "error") + " · " + ago(work.agoMs);
++  }
++  text += work.cold ? "cold start " + seconds(work.coldMs) : "warm";
++  if (work.processMs !== null && work.processMs !== undefined) {
++    text += ", processing " + seconds(work.processMs);
++  }
++  return text + " · " + ago(work.agoMs);
++}
++
+ // One line per service: { state, name, text, fallback }.
+ export function describeModel(model) {
+   if (!model.configured) {
+@@ -88,6 +106,16 @@ export function describeModel(model) {
+       fallback: false,
+     };
+   }
++  // SAM 3, MoGe-2 and Marigold-IID make no call of their own while the combined room analysis is in use: their work is
++  // inside that one request. Say so, with when it last ran, instead of "no calls yet" for ever.
++  if (model.runsInside && !model.last) {
++    return {
++      state: model.state,
++      name: model.label,
++      text: describeInside(model.runsInside),
++      fallback: false,
++    };
++  }
+   const last = model.last;
+   const waiting = model.inflight && model.inflight.length ? model.inflight[0] : null;
+   const gpu = last && last.gpu ? shortGpu(last.gpu) : "";
+@@ -123,6 +151,27 @@ export function describeModel(model) {
+     }
+     parts.push(ago(last.agoMs));
+   }
++  // A warm-up ping is the latest call after every scan and page open and replaces the analysis in `last`: keep the
++  // last real piece of work in view beside it.
++  if (last && last.kind === "warmup") {
++    const work = model.lastWork;
++    const noun = model.key === "oneformer" ? "scan" : "analysis";
++    if (!work) {
++      parts.push("no " + noun + " yet");
++    } else if (work.status === "error") {
++      parts.push("last " + noun + " failed " + ago(work.agoMs));
++    } else {
++      parts.push(
++        "last " +
++          noun +
++          " " +
++          (work.cold ? "cold start " + seconds(work.coldMs) : "warm") +
++          (work.processMs !== null && work.processMs !== undefined ? ", processing " + seconds(work.processMs) : "") +
++          " " +
++          ago(work.agoMs),
++      );
++    }
++  }
+   // The latest cold start is worth keeping in view after warm calls have followed it.
+   const cold = recentCold(model);
+   if (cold && !(last && last.cold)) {
+diff --git a/swatchroom/public/js/views/dialogs.js b/swatchroom/public/js/views/dialogs.js
+index 9840754..1ab5170 100644
+--- a/swatchroom/public/js/views/dialogs.js
++++ b/swatchroom/public/js/views/dialogs.js
+@@ -398,6 +398,9 @@ export function settingsDialog(props, ui, setUi) {
+             ? "Instant preview backend in this browser: " + fastRendererKind.toUpperCase() + "."
+             : "No instant preview is active in this browser yet - either none has been needed so far, or it has neither WebGPU nor WebGL2, in which case finishes here always render with AI.",
+         ),
++        props.previewNote
++          ? h("p", { class: "sr-settings-text" }, "Instant preview for the selected surface: " + props.previewNote)
++          : null,
+         h(
+           "p",
+           { class: "sr-settings-text" },
+diff --git a/swatchroom/public/js/views/stage.js b/swatchroom/public/js/views/stage.js
+index 423d7fd..5f74856 100644
+--- a/swatchroom/public/js/views/stage.js
++++ b/swatchroom/public/js/views/stage.js
+@@ -93,6 +93,9 @@ export class Stage {
+     // regardless of whether any of this ever activates.
+     this.fastRenderer = null;
+     this.fastRendererPromise = null;
++    // true once creating the renderer has been tried and failed (neither WebGPU nor WebGL2, or an error): the studio then
++    // says so instead of showing no preview without a word (lib/fastrender/previewReason.js)
++    this.fastRendererFailed = false;
+     this.fastGeometryKey = null; // which geometry (fused or provisional) is uploaded to the renderer
+     this.fastScanToken = null; // which scan's label map is uploaded
+     this.fastMaterialKey = "";
+@@ -461,10 +464,18 @@ export class Stage {
+     this.fastRendererPromise = createFastRenderer(canvas)
+       .then(function (renderer) {
+         stage.fastRenderer = renderer;
++        if (!renderer) {
++          stage.fastRendererFailed = true;
++          console.warn("[swatchroom] instant preview: this browser has neither WebGPU nor WebGL2 available, so finishes render with AI only.");
++          stage.props && stage.props.onFastRendererFailed && stage.props.onFastRendererFailed();
++        }
+         return renderer;
+       })
+-      .catch(function () {
++      .catch(function (error) {
+         stage.fastRenderer = null;
++        stage.fastRendererFailed = true;
++        console.warn("[swatchroom] instant preview: the GPU renderer could not be created:", error);
++        stage.props && stage.props.onFastRendererFailed && stage.props.onFastRendererFailed();
+         return null;
+       });
+     return this.fastRendererPromise;
+diff --git a/swatchroom/public/js/views/studio.js b/swatchroom/public/js/views/studio.js
+index 61772fd..f7ec08f 100644
+--- a/swatchroom/public/js/views/studio.js
++++ b/swatchroom/public/js/views/studio.js
+@@ -48,7 +48,8 @@ import {
+ import { findItem, findItemKind } from "../data/catalog.js";
+ import { detectSurfaces } from "../lib/detect.js";
+ import { prepareRender, releasePrepared, renderOption } from "../lib/render.js";
+-import { canUseFastRender, engineForcesGeminiOnly } from "../lib/fastrender/tiers.js";
++import { canFastRenderItem, canUseFastRender, engineForcesGeminiOnly } from "../lib/fastrender/tiers.js";
++import { previewReason } from "../lib/fastrender/previewReason.js";
+ import { lumaFromRgba } from "../lib/fastrender/geometry.js";
+ import { buildProvisionalScene } from "../lib/fastrender/provisional.js";
+ import { createSceneComposer } from "../lib/previewScene.js";
+@@ -248,6 +249,10 @@ export class Studio {
+     this.fusionRun = 0;
+     this.fusionVersionId = "";
+     this.fastScenePayload = null;
++    // Why the instant preview is not drawn for the current selection (lib/fastrender/previewReason.js): the code is what
++    // changed last (so the console line is printed once per change, not on every frame), the text is shown in Settings.
++    this.previewReasonCode = "";
++    this.previewReasonText = "";
+     // What the start-up gate learned: true = Modal's vision engine was warm, false = cold / unreachable / no answer in
+     // 10 s, null = not asked. The scan races its engines differently for each (lib/segmentRace.js); it is updated
+     // from real results (a OneFormer answer inside the window makes it true, a failure false).
+@@ -1276,6 +1281,24 @@ export class Studio {
+       });
+   }
+ 
++  // Records the reason (or its absence) and prints one console line when it changes. A fit that is not ready yet ("not-ready")
++  // is a state, not a decision, so it is only logged once it persists as a different code.
++  notePreviewReason(reason, region) {
++    const code = reason ? reason.code : "";
++    if (code === this.previewReasonCode) {
++      return;
++    }
++    this.previewReasonCode = code;
++    this.previewReasonText = reason ? reason.text : "";
++    if (reason) {
++      logModel("instant preview not drawn", {
++        why: reason.code,
++        surface: region ? region.id : "",
++        kind: region ? region.kind : "",
++      });
++    }
++  }
++
+   pollFusionJob(roomId, versionId, jobId, run) {
+     const studio = this;
+     this.ui.fusion = { status: "running", progress: null, error: "" };
+@@ -2954,6 +2977,21 @@ export class Studio {
+         };
+       }
+     }
++    // Say WHY nothing is drawn when a surface and a finish are chosen and the preview is not: it used to be silent.
++    const reasonItem = state.itemId ? findItem(state.itemId) : null;
++    const reason = previewReason({
++      engineOff: !fastEnabled,
++      selectedCount: validIds.length,
++      hasSurface: !!selectedRegion,
++      hasItem: !!reasonItem,
++      busy: busy,
++      hasScene: !!fastScene,
++      itemHasTexture: canFastRenderItem(reasonItem),
++      fit: fastScene && selectedRegion ? fastScene.fusionRegions[selectedRegion.id] : undefined,
++      lowThreshold: settings.fusionLowThreshold,
++      rendererFailed: !!this.stage.fastRendererFailed,
++    });
++    this.notePreviewReason(reason, selectedRegion);
+     const fastPrefetch = fastScene && selectedRegion ? this.prefetchUrls(catalogKind) : null;
+ 
+     // ---------------------------------------------------------------- top bar
+@@ -3621,6 +3659,9 @@ export class Studio {
+         fastScene: fastScene,
+         fastMaterial: fastMaterial,
+         fastPrefetch: fastPrefetch,
++        onFastRendererFailed: function () {
++          studio.requestRender();
++        },
+         children: stageChildren,
+       });
+       stageNode = this.stage.element;
+@@ -3739,6 +3780,7 @@ export class Studio {
+           errorLog: state.errorLog,
+           fusionStatus: this.ui.fusion,
+           fastRendererKind: this.stage.fastRenderer ? this.stage.fastRenderer.kind : null,
++          previewNote: this.previewReasonText,
+           onChange: function (next) {
+             studio.app.setSettings(next);
+             studio.requestRender();
+diff --git a/swatchroom/server/lib/coldStart.js b/swatchroom/server/lib/coldStart.js
+index f4b88be..65acff9 100644
+--- a/swatchroom/server/lib/coldStart.js
++++ b/swatchroom/server/lib/coldStart.js
+@@ -148,6 +148,11 @@ function createRegistry(options) {
+   const isConfigured = (options && options.configured) || function () {
+     return true;
+   };
++  // true for a model whose work is done INSIDE another service's request (the combined room analysis runs SAM 3, MoGe-2 and
++  // Marigold in one call): such a model is never called on its own, so "no calls yet" would be misleading for it.
++  const runsInside = (options && options.runsInside) || function () {
++    return null;
++  };
+   const models = {};
+   const recent = [];
+   let counter = 0;
+@@ -157,6 +162,7 @@ function createRegistry(options) {
+       models[model] = {
+         inflight: new Map(),
+         last: null,
++        lastWork: null, // the last call that was not a warm-up ping (a warm-up replaces `last` and would hide the analysis)
+         lastCold: null,
+         lastOkAt: null, // when the last call that really reached the service ended (see isWarm())
+         warm: {}, // kind -> recent warm overheads (ms)
+@@ -172,6 +178,9 @@ function createRegistry(options) {
+ 
+   function record(held, sample) {
+     held.last = sample;
++    if (sample.kind !== "warmup") {
++      held.lastWork = sample;
++    }
+     if (sample.status === "ok") {
+       held.lastOkAt = sample.endedAt;
+     }
+@@ -358,6 +367,7 @@ function createRegistry(options) {
+         held.inflight.forEach(function (call) {
+           inflight.push({ kind: call.kind, elapsedMs: now - call.startedAt });
+         });
++        const host = runsInside(key);
+         return {
+           key: key,
+           label: LABELS[key],
+@@ -365,7 +375,13 @@ function createRegistry(options) {
+           state: stateOf(held, now),
+           inflight: inflight,
+           last: summarize(held.last, now),
++          lastWork: summarize(held.lastWork, now),
+           lastCold: summarize(held.lastCold, now),
++          // { key, label, last } of the service whose request carries this model's work; its own `last` stays null on purpose
++          // (this model made no call of its own), so nothing is invented for it
++          runsInside: host
++            ? { key: host, label: LABELS[host], last: summarize(entry(host).lastWork, now) }
++            : null,
+         };
+       }),
+       recent: recent.slice(0, 12).map(function (sample) {
+@@ -411,6 +427,11 @@ const registry = createRegistry({
+     }
+     return !!(config[key] && config[key].url);
+   },
++  // the same condition as pipelineRunner.useCombinedAnalysis(), read at call time
++  runsInside: function (key) {
++    const combined = !!(config.analyze && config.analyze.url) && config.pipeline.mock !== "on";
++    return combined && (key === "sam3" || key === "moge2" || key === "marigold") ? "analyze" : null;
++  },
+ });
+ 
+ module.exports = {
+diff --git a/swatchroom/server/lib/coldStart.test.js b/swatchroom/server/lib/coldStart.test.js
+index e80af83..c776900 100644
+--- a/swatchroom/server/lib/coldStart.test.js
++++ b/swatchroom/server/lib/coldStart.test.js
+@@ -251,4 +251,58 @@ test("snapshot: lists the newest calls first and caps the list", async function
+   assert.equal(snapshot.recent[0].model, "scene");
+ });
+ 
++test("a warm-up replaces `last` but not `lastWork`: the analysis stays visible", async function () {
++  const f = fixture();
++  await f.registry.track("analyze", "analyze", null, async function () {
++    f.time.now += 3000;
++    return { response: modalResponse({ gpuMs: 900, totalMs: 1000, served: 4, age: 500 }), value: 1 };
++  });
++  f.time.now += 60000;
++  await f.registry.track("analyze", "warmup", null, async function () {
++    f.time.now += 200;
++    return { response: modalResponse({ gpuMs: 1, totalMs: 2, served: 5, age: 560 }), value: 1 };
++  });
++  const row = f.registry.snapshot().models.find(function (model) {
++    return model.key === "analyze";
++  });
++  assert.equal(row.last.kind, "warmup");
++  assert.equal(row.lastWork.kind, "analyze");
++});
++
++test("snapshot: a model whose work runs inside the combined analysis says so, and invents no call of its own", async function () {
++  const time = { now: 1000000 };
++  let combined = true;
++  const registry = coldStart.createRegistry({
++    now: function () {
++      return time.now;
++    },
++    runsInside: function (key) {
++      return combined && (key === "sam3" || key === "moge2" || key === "marigold") ? "analyze" : null;
++    },
++  });
++  await registry.track("analyze", "analyze", null, async function () {
++    time.now += 2500;
++    return { response: modalResponse({ gpuMs: 800, totalMs: 900, served: 3, age: 400 }), value: 1 };
++  });
++  time.now += 30000;
++  let snapshot = registry.snapshot();
++  const find = function (key) {
++    return snapshot.models.find(function (model) {
++      return model.key === key;
++    });
++  };
++  ["sam3", "moge2", "marigold"].forEach(function (key) {
++    assert.equal(find(key).last, null, key + " made no call of its own");
++    assert.equal(find(key).runsInside.key, "analyze");
++    assert.equal(find(key).runsInside.label, "Room analysis");
++    assert.equal(find(key).runsInside.last.kind, "analyze");
++    assert.equal(find(key).runsInside.last.agoMs, 30000);
++  });
++  assert.equal(find("analyze").runsInside, null);
++  assert.equal(find("oneformer").runsInside, null);
++  combined = false; // separate pools: nothing is "inside" anything
++  snapshot = registry.snapshot();
++  assert.equal(find("sam3").runsInside, null);
++});
++
+ runAll();
+diff --git a/swatchroom/tests/fastrender.test.js b/swatchroom/tests/fastrender.test.js
+index 453941d..9f4f4ce 100644
+--- a/swatchroom/tests/fastrender.test.js
++++ b/swatchroom/tests/fastrender.test.js
+@@ -19,6 +19,8 @@ function test(name, fn) {
+   const rendererModule = await import("../public/js/lib/fastrender/renderer.js");
+   const composerModule = await import("../public/js/lib/previewScene.js");
+   const regions = await import("../public/js/lib/regions.js");
++  const reasonModule = await import("../public/js/lib/fastrender/previewReason.js");
++  const require_tiers = await import("../public/js/lib/fastrender/tiers.js");
+   const fusion = require("../server/lib/fusion.js");
+   const moge2 = require("../server/lib/remoteModels/moge2.js");
+ 
+@@ -629,6 +631,51 @@ function test(name, fn) {
+     assert.equal(composer.compose(scan, fused, light, 0.3), lenient, "same inputs, same object");
+   });
+ 
++  // ---------------------------------------------------------------- why the preview is not drawn
++  test("previewReason: says nothing until a surface AND a finish are chosen, and nothing when the preview is drawn", function () {
++    const ok = { hasSurface: true, hasItem: true, selectedCount: 1, hasScene: true, itemHasTexture: true, fit: { confidence: 0.8 }, lowThreshold: 0.3 };
++    assert.equal(reasonModule.previewReason(null), null);
++    assert.equal(reasonModule.previewReason(Object.assign({}, ok, { hasItem: false })), null);
++    assert.equal(reasonModule.previewReason(Object.assign({}, ok, { hasSurface: false })), null);
++    assert.equal(reasonModule.previewReason(ok), null);
++    assert.equal(reasonModule.previewReason(Object.assign({}, ok, { fit: { confidence: 0.3 } })), null, "at the threshold it is still drawn");
++  });
++
++  test("previewReason: each silent no-draw case now has its own reason, in the order the studio meets them", function () {
++    const ok = { hasSurface: true, hasItem: true, selectedCount: 1, hasScene: true, itemHasTexture: true, fit: { confidence: 0.8 }, lowThreshold: 0.3 };
++    const code = (patch) => (reasonModule.previewReason(Object.assign({}, ok, patch)) || {}).code;
++    assert.equal(code({ engineOff: true, hasScene: false }), "engine-off");
++    assert.equal(code({ selectedCount: 3 }), "many-surfaces");
++    assert.equal(code({ selectedCount: 2, busy: true }), "many-surfaces");
++    assert.equal(code({ busy: true }), "busy");
++    assert.equal(code({ rendererFailed: true, hasScene: false }), "no-gpu");
++    assert.equal(code({ hasScene: false }), "not-ready");
++    assert.equal(code({ itemHasTexture: false }), "no-texture");
++    assert.equal(code({ fit: undefined }), "no-fit"); // a chair, bed, window: only wall, floor and ceiling are fitted
++    assert.equal(code({ fit: { confidence: 0.29 } }), "weak-fit");
++    assert.equal(code({ fit: { confidence: NaN } }), "weak-fit");
++    // every reason carries words a visitor can read
++    ["engine-off", "many-surfaces", "busy", "no-gpu", "not-ready", "no-texture", "no-fit", "weak-fit"].forEach(function (c) {
++      const patch = { "engine-off": { engineOff: true }, "many-surfaces": { selectedCount: 2 }, busy: { busy: true }, "no-gpu": { rendererFailed: true }, "not-ready": { hasScene: false }, "no-texture": { itemHasTexture: false }, "no-fit": { fit: undefined }, "weak-fit": { fit: { confidence: 0.1 } } }[c];
++      const reason = reasonModule.previewReason(Object.assign({}, ok, patch));
++      assert.ok(reason.text.length > 30 && !/gemini|moge|sam 3|marigold/i.test(reason.text), c + ": " + reason.text);
++    });
++  });
++
++  test("previewReason agrees with tiers.canUseFastRender for every combination the studio can produce", function () {
++    const tiers = require_tiers;
++    const items = [{ texture: { url: "/t.png" } }, { texture: null }];
++    const fits = [undefined, { confidence: 0.1 }, { confidence: 0.3 }, { confidence: 0.5 }, { confidence: 0.9 }];
++    items.forEach(function (item) {
++      fits.forEach(function (fit) {
++        const settings = { fusionLowThreshold: 0.3, fusionHighThreshold: 0.7 };
++        const drawn = tiers.canUseFastRender(true, fit ? fit.confidence : NaN, item, settings);
++        const reason = reasonModule.previewReason({ hasSurface: true, hasItem: true, selectedCount: 1, hasScene: true, itemHasTexture: tiers.canFastRenderItem(item), fit: fit, lowThreshold: 0.3 });
++        assert.equal(reason === null, drawn, JSON.stringify({ item: !!item.texture, fit: fit }));
++      });
++    });
++  });
++
+   for (const entry of pending) {
+     try {
+       await entry.fn();
+diff --git a/swatchroom/tests/owner.test.js b/swatchroom/tests/owner.test.js
+index 3a85c1c..84b788f 100644
+--- a/swatchroom/tests/owner.test.js
++++ b/swatchroom/tests/owner.test.js
+@@ -168,6 +168,40 @@ function call(extra) {
+     assert.equal(s.overallState({ models: [off, model("scene", "Scene model", "warm")] }), "warm");
+   });
+ 
++  test("a model that runs inside the room analysis is not reported as 'no calls yet'", function () {
++    const inside = { key: "analyze", label: "Room analysis", last: null };
++    const none = s.describeModel(model("sam3", "SAM 3", "unknown", { runsInside: inside }));
++    assert.match(none.text, /^runs inside Room analysis \(one request, not on its own\)/);
++    assert.match(none.text, /no analysis since this server started/);
++    assert.doesNotMatch(none.text, /no calls yet/);
++    inside.last = call({ cold: false, processMs: 3200, agoMs: 4 * 60 * 1000 });
++    const ran = s.describeModel(model("moge2", "MoGe-2", "unknown", { runsInside: inside }));
++    assert.match(ran.text, /last analysis warm, processing 3\.2 s/);
++    assert.match(ran.text, /4 min ago/);
++    inside.last = call({ status: "error", error: "502", agoMs: 20000 });
++    assert.match(s.describeModel(model("marigold", "Marigold-IID", "unknown", { runsInside: inside })).text, /last analysis failed: 502/);
++    // a model that DID make its own call is described by that call as before
++    const own = s.describeModel(model("sam3", "SAM 3", "warm", { runsInside: inside, last: call() }));
++    assert.doesNotMatch(own.text, /runs inside/);
++  });
++
++  test("a warm-up that replaced the analysis does not hide it", function () {
++    const warmup = call({ kind: "warmup", cold: true, coldMs: 4700, processMs: null, agoMs: 48000, gpu: "NVIDIA L40S" });
++    const withWork = s.describeModel(
++      model("analyze", "Room analysis", "cold", {
++        last: warmup,
++        lastWork: call({ cold: false, processMs: 2100, agoMs: 16 * 60 * 1000 }),
++      }),
++    );
++    assert.match(withWork.text, /warm-up/);
++    assert.match(withWork.text, /last analysis warm, processing 2\.1 s 16 min ago/);
++    const noWork = s.describeModel(model("analyze", "Room analysis", "cold", { last: warmup, lastWork: null }));
++    assert.match(noWork.text, /no analysis yet/);
++    assert.match(s.describeModel(model("oneformer", "OneFormer", "cold", { last: warmup, lastWork: null })).text, /no scan yet/);
++    // when the latest call is real work nothing extra is added
++    assert.doesNotMatch(s.describeModel(model("analyze", "Room analysis", "warm", { last: call(), lastWork: call() })).text, /last analysis/);
++  });
++
+   for (const entry of pending) {
+     try {
+       await entry.fn();
+diff --git a/swatchroom/public/js/lib/fastrender/previewReason.js b/swatchroom/public/js/lib/fastrender/previewReason.js
+new file mode 100644
+index 0000000..7c47679
+--- /dev/null
++++ b/swatchroom/public/js/lib/fastrender/previewReason.js
+@@ -0,0 +1,65 @@
++// Why the instant preview is NOT drawn for what is selected right now, in words - or null when it is drawn, or when there
++// is nothing to preview yet (no surface selected, no finish picked). Pure: no DOM, no GPU, no imports, so it can be tested
++// and loaded on its own like tiers.js.
++//
++// Before this, every "no" below was silent: the studio simply showed nothing and the finish only appeared after the AI
++// render, which read as "the preview works sometimes". The decisions themselves are unchanged (they are tiers.js's and
++// studio.js's); this only says which one applied. The order is the order the studio would hit them.
++//
++// input: {
++//   engineOff        Settings > Render is "AI only"
++//   selectedCount    how many surfaces are selected
++//   hasSurface       a surface is selected (selectedRegion)
++//   hasItem          a finish is picked
++//   busy             an AI render is running
++//   hasScene         the scene to draw on exists (the photo's light is loaded)
++//   itemHasTexture   the picked finish has a tileable texture (tiers.canFastRenderItem)
++//   fit              the surface's entry in scene.fusionRegions ({confidence}) or undefined
++//   lowThreshold     settings.fusionLowThreshold
++//   rendererFailed   WebGPU and WebGL2 both unavailable in this browser (stage.js found out)
++// }
++// -> null | { code, text }
++export function previewReason(input) {
++  const i = input || {};
++  if (!i.hasSurface || !i.hasItem) {
++    return null; // nothing to preview yet: not a "no"
++  }
++  if (i.engineOff) {
++    return { code: "engine-off", text: "Instant preview is switched off in Settings > Render, so this finish renders with AI only." };
++  }
++  if (i.selectedCount !== 1) {
++    return { code: "many-surfaces", text: "Instant preview works on one surface at a time. Select a single surface." };
++  }
++  if (i.busy) {
++    return { code: "busy", text: "Instant preview is paused while an AI render is running." };
++  }
++  if (i.rendererFailed) {
++    return {
++      code: "no-gpu",
++      text: "This browser has neither WebGPU nor WebGL2 available, so there is no instant preview here; finishes render with AI.",
++    };
++  }
++  if (!i.hasScene) {
++    return { code: "not-ready", text: "Instant preview is not ready yet: the photo is still being prepared." };
++  }
++  if (!i.itemHasTexture) {
++    return {
++      code: "no-texture",
++      text: "This finish adds or restyles an object, so it has no instant preview. Use Render to see it.",
++    };
++  }
++  if (!i.fit) {
++    return {
++      code: "no-fit",
++      text: "Instant preview covers walls, floors and ceilings. This surface has no 3D fit, so use Render to see the finish.",
++    };
++  }
++  const low = typeof i.lowThreshold === "number" ? i.lowThreshold : 0.3;
++  if (typeof i.fit.confidence !== "number" || Number.isNaN(i.fit.confidence) || i.fit.confidence < low) {
++    return {
++      code: "weak-fit",
++      text: "The 3D fit for this surface is too uncertain for an instant preview. Use Render to see the finish.",
++    };
++  }
++  return null;
++}

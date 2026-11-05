@@ -12,6 +12,7 @@
  */
 import path from 'node:path';
 import { notFound } from '../middleware/errorHandler.js';
+import { catalogueImageHandler } from './catalogueMedia.js';
 
 const BAD_SEGMENT = /[\\/\0]/;
 
@@ -21,6 +22,9 @@ export const MEDIA_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 export function mountMedia(app, ctx) {
   const { route, dir, extensions } = ctx.site.media;
   const mediaRoot = path.join(ctx.root, dir);
+
+  // the pictures of the catalogue designs are not files: they are read from Cloud Storage through MongoDB (server/routes/catalogueMedia.js)
+  app.get(`${route}/materials/:file`, catalogueImageHandler(ctx));
 
   // Express 5 gives a wildcard as an array of decoded segments, so "%2F" arrives as a "/" inside one segment.
   app.get(`${route}/*name`, (req, res, next) => {

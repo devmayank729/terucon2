@@ -48,7 +48,8 @@ import {
 import { findItem, findItemKind } from "../data/catalog.js";
 import { detectSurfaces } from "../lib/detect.js";
 import { prepareRender, releasePrepared, renderOption } from "../lib/render.js";
-import { canUseFastRender, engineForcesGeminiOnly } from "../lib/fastrender/tiers.js";
+import { canFastRenderItem, canUseFastRender, engineForcesGeminiOnly } from "../lib/fastrender/tiers.js";
+import { previewReason } from "../lib/fastrender/previewReason.js";
 import { lumaFromRgba } from "../lib/fastrender/geometry.js";
 import { buildProvisionalScene } from "../lib/fastrender/provisional.js";
 import { createSceneComposer } from "../lib/previewScene.js";
@@ -248,6 +249,10 @@ export class Studio {
     this.fusionRun = 0;
     this.fusionVersionId = "";
     this.fastScenePayload = null;
+    // Why the instant preview is not drawn for the current selection (lib/fastrender/previewReason.js): the code is what
+    // changed last (so the console line is printed once per change, not on every frame), the text is shown in Settings.
+    this.previewReasonCode = "";
+    this.previewReasonText = "";
     // What the start-up gate learned: true = Modal's vision engine was warm, false = cold / unreachable / no answer in
     // 10 s, null = not asked. The scan races its engines differently for each (lib/segmentRace.js); it is updated
     // from real results (a OneFormer answer inside the window makes it true, a failure false).
@@ -1274,6 +1279,24 @@ export class Studio {
           studio.requestRender();
         }
       });
+  }
+
+  // Records the reason (or its absence) and prints one console line when it changes. A fit that is not ready yet ("not-ready")
+  // is a state, not a decision, so it is only logged once it persists as a different code.
+  notePreviewReason(reason, region) {
+    const code = reason ? reason.code : "";
+    if (code === this.previewReasonCode) {
+      return;
+    }
+    this.previewReasonCode = code;
+    this.previewReasonText = reason ? reason.text : "";
+    if (reason) {
+      logModel("instant preview not drawn", {
+        why: reason.code,
+        surface: region ? region.id : "",
+        kind: region ? region.kind : "",
+      });
+    }
   }
 
   pollFusionJob(roomId, versionId, jobId, run) {
@@ -2954,6 +2977,21 @@ export class Studio {
         };
       }
     }
+    // Say WHY nothing is drawn when a surface and a finish are chosen and the preview is not: it used to be silent.
+    const reasonItem = state.itemId ? findItem(state.itemId) : null;
+    const reason = previewReason({
+      engineOff: !fastEnabled,
+      selectedCount: validIds.length,
+      hasSurface: !!selectedRegion,
+      hasItem: !!reasonItem,
+      busy: busy,
+      hasScene: !!fastScene,
+      itemHasTexture: canFastRenderItem(reasonItem),
+      fit: fastScene && selectedRegion ? fastScene.fusionRegions[selectedRegion.id] : undefined,
+      lowThreshold: settings.fusionLowThreshold,
+      rendererFailed: !!this.stage.fastRendererFailed,
+    });
+    this.notePreviewReason(reason, selectedRegion);
     const fastPrefetch = fastScene && selectedRegion ? this.prefetchUrls(catalogKind) : null;
 
     // ---------------------------------------------------------------- top bar
@@ -3621,6 +3659,9 @@ export class Studio {
         fastScene: fastScene,
         fastMaterial: fastMaterial,
         fastPrefetch: fastPrefetch,
+        onFastRendererFailed: function () {
+          studio.requestRender();
+        },
         children: stageChildren,
       });
       stageNode = this.stage.element;
@@ -3739,6 +3780,7 @@ export class Studio {
           errorLog: state.errorLog,
           fusionStatus: this.ui.fusion,
           fastRendererKind: this.stage.fastRenderer ? this.stage.fastRenderer.kind : null,
+          previewNote: this.previewReasonText,
           onChange: function (next) {
             studio.app.setSettings(next);
             studio.requestRender();

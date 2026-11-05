@@ -51,21 +51,6 @@
       ]
     },
     {
-      "id": "logo-header",
-      "op": "replace",
-      "why": "top bar: the real logo (it links to the landing page, as on every other page; the project home is the first item of the menu)",
-      "anchor": "<a href=\"#/\" sc-camel-on-click=\"{{ goHome }}\" aria-label=\"Terucon India — go to home\" style=\"flex:none;display:flex;align-items:baseline;gap:8px;color:#F1E8DC;font:600 15px/1 Switzer,sans-serif;letter-spacing:.32em\" style-hover=\"color:#E7C58F\">TERUCON<sc-if value=\"{{ showIndia }}\" hint-placeholder-val=\"{{ true }}\"><span style=\"font:500 9.5px/1 Switzer,sans-serif;letter-spacing:.28em\">INDIA</span></sc-if></a>",
-      "with": [
-        {
-          "component": "logoLink",
-          "entry": "logo",
-          "pill": false,
-          "w": 140,
-          "h": 24
-        }
-      ]
-    },
-    {
       "id": "logo-drawer",
       "op": "replace",
       "why": "phone menu panel: the real logo",
@@ -129,15 +114,6 @@
       ]
     },
     {
-      "id": "logo-style",
-      "op": "insertBefore",
-      "why": "page style: logo size on a laptop",
-      "anchor": "</helmet>",
-      "insert": [
-        "<style>\n/* top bar: the logo is 30 px tall on a laptop, 24 px on a phone */\n@media (min-width: 820px) { [data-tc-logo] img { height: 30px !important; } }\n</style>\n"
-      ]
-    },
-    {
       "id": "logo-footer",
       "op": "replace",
       "why": "footer: the real logo (full lockup) instead of the typed TERUCON INDIA",
@@ -152,11 +128,155 @@
       ]
     },
     {
-      "id": "fab-lift",
+      "id": "saathi-open-terubot",
       "op": "replace",
-      "why": "the Saathi button (not on a phone) stays above the bottom bar, which this page shows only between 720 and 899 px",
-      "anchor": "position:fixed;right:clamp(16px,2.4vw,28px);bottom:clamp(16px,2.4vw,28px);z-index:70",
-      "with": "position:fixed;right:clamp(16px,2.4vw,28px);bottom:calc(var(--tc-dock-h,0px) + clamp(16px,2.4vw,28px));z-index:70"
+      "why": "Saathi (the dashboard's scripted voice helper) is retired: TeruBot (site/brand/terubot.js) is the one assistant of the site. Every button that opened Saathi's tray opens TeruBot instead; the tray's own state (tray, hint) can no longer become true",
+      "anchor": "  openAgent = () => { if (!this.state.tray) this.setState({ tray: true, hint: false, drawer: false }); };",
+      "with": "  openAgent = opts => { this.setState({ hint: false, drawer: false }); try { if (window.TeruBot) window.TeruBot.open(opts); } catch (e) {} };"
+    },
+    {
+      "id": "saathi-talk",
+      "op": "replace",
+      "why": "\"Tell Saathi about it / Just speak\": opens TeruBot with the microphone on",
+      "anchor": "  talk = () => { this.openAgent(); this.listen(); };",
+      "with": "  talk = () => this.openAgent({ mic: true });"
+    },
+    {
+      "id": "saathi-fab-tap",
+      "op": "replace",
+      "why": "the centre button of the phone bottom bar (below 720 px) opens TeruBot",
+      "anchor": "  fabTap = () => { this.setState({ hint: false }); this.talk(); };",
+      "with": "  fabTap = () => this.openAgent();"
+    },
+    {
+      "id": "saathi-talk-next",
+      "op": "replace",
+      "why": "\"What happens next?\": opens TeruBot with the question typed in (not sent: the person sends it)",
+      "anchor": "  talkNext = () => { this.openAgent(); this.handle('What should I do next?'); };",
+      "with": "  talkNext = () => this.openAgent({ draft: 'What should I do next?' });"
+    },
+    {
+      "id": "saathi-ask-change",
+      "op": "replace",
+      "why": "\"Ask for a change\": opens TeruBot with the start of a request typed in",
+      "anchor": "  askChange = () => { this.openAgent(); this.bot('Tell me what you would like to change. For example: “make the walls lighter” or “use more wood”. Tap the mic and speak.'); };",
+      "with": "  askChange = () => this.openAgent({ draft: 'I would like to change my design: ' });"
+    },
+    {
+      "id": "saathi-ask-price",
+      "op": "replace",
+      "why": "\"Ask about the price\": opens TeruBot with the question typed in. TeruBot is not grounded in this demo project, so the scripted price answer is gone (target C6 is unchanged)",
+      "anchor": "  askPrice = () => { this.openAgent(); const R = this.calc(); this.bot('Your price is about ' + lakh(R.total) + ' for all three rooms, with GST. You pay nothing now. What would you like to know?', [{ label: 'When do I pay?', act: 'say', arg: 'When do I pay?' }, { label: 'Is the price final?', act: 'say', arg: 'Is this price final?' }]); };",
+      "with": "  askPrice = () => this.openAgent({ draft: 'Can you explain the price of my project?' });"
+    },
+    {
+      "id": "saathi-ask-floor",
+      "op": "replace",
+      "why": "\"Ask to help\" under the floor choice: opens TeruBot with the question typed in. The choice buttons of the page itself are unchanged",
+      "anchor": "  askFloor = () => { this.openAgent(); this.bot(this.floorCompare(), [{ label: 'Choose Kota stone', act: 'confirmFloor', arg: 'kota' }, { label: 'Choose Jaisalmer stone', act: 'confirmFloor', arg: 'jais' }]); };",
+      "with": "  askFloor = () => this.openAgent({ draft: 'Which floor is better for my waiting area: Jaisalmer or Kota stone?' });"
+    },
+    {
+      "id": "saathi-no-restore",
+      "op": "replace",
+      "why": "the page used to reopen Saathi's tray (and reserve a margin for it on wide screens) when it had been open on the last visit",
+      "anchor": "if (y === '1' && !this.phone()) st.tray = true;",
+      "with": "/* Saathi's tray is gone: nothing to reopen */"
+    },
+    {
+      "id": "saathi-no-hint",
+      "op": "replace",
+      "why": "no \"I'm Saathi\" tip bubble after 1.6 seconds",
+      "anchor": "    this.startHint();\n",
+      "with": "    /* no tip bubble: TeruBot replaced Saathi */\n"
+    },
+    {
+      "id": "saathi-tray-off",
+      "op": "replace",
+      "why": "Saathi's tray: the markup stays in the template but sits inside an sc-if whose condition no data defines, so the runtime never renders it (a few anchored characters instead of deleting 8 KB of markup)",
+      "anchor": "<aside role=\"{{ tr.role }}\"",
+      "with": "<sc-if value=\"{{ saathiRetired }}\"><aside role=\"{{ tr.role }}\""
+    },
+    {
+      "id": "saathi-tray-off-end",
+      "op": "replace",
+      "why": "the closing half of saathi-tray-off",
+      "anchor": "</aside>",
+      "with": "</aside></sc-if>"
+    },
+    {
+      "id": "saathi-fab-off",
+      "op": "replace",
+      "why": "Saathi's round \"Ask Saathi\" button and its tip bubble (every width but a phone): the same never-rendered condition. This replaces the old fab-lift step that kept that button above the bottom bar",
+      "anchor": "<sc-if value=\"{{ notPhone }}\" hint-placeholder-val=\"{{ true }}\"><div style=\"position:fixed;right:clamp(16px,2.4vw,28px);",
+      "with": "<sc-if value=\"{{ saathiRetired }}\" hint-placeholder-val=\"{{ true }}\"><div style=\"position:fixed;right:clamp(16px,2.4vw,28px);"
+    },
+    {
+      "id": "saathi-bar-button",
+      "op": "replace",
+      "why": "phone bottom bar (below 720 px): the centre mic button keeps its place and now opens TeruBot",
+      "anchor": "aria-label=\"Ask Saathi — tap and speak\" style=\"position:relative;flex:none;width:62px",
+      "with": "aria-label=\"Ask TeruBot\" style=\"position:relative;flex:none;width:62px"
+    },
+    {
+      "id": "saathi-bar-label",
+      "op": "replace",
+      "why": "phone bottom bar: the label under the centre button",
+      "anchor": ">Saathi</span></div><sc-for list=\"{{ tabsR }}\"",
+      "with": ">TeruBot</span></div><sc-for list=\"{{ tabsR }}\""
+    },
+    {
+      "id": "saathi-words-tell",
+      "op": "replaceAll",
+      "why": "the \"How would you like to start?\" cards",
+      "anchor": ">Tell Saathi about it<",
+      "count": 2,
+      "with": ">Tell TeruBot about it<"
+    },
+    {
+      "id": "saathi-words-ask",
+      "op": "replaceAll",
+      "why": "the \"Ask Saathi\" card of the help page (the second place is the retired button, which is never rendered)",
+      "anchor": ">Ask Saathi<",
+      "count": 2,
+      "with": ">Ask TeruBot<"
+    },
+    {
+      "id": "saathi-words-floor",
+      "op": "replace",
+      "why": "the floor choice",
+      "anchor": ">Ask Saathi to help<",
+      "with": ">Ask TeruBot to help<"
+    },
+    {
+      "id": "saathi-words-price",
+      "op": "replace",
+      "why": "the price page",
+      "anchor": ">Ask Saathi about the price<",
+      "with": ">Ask TeruBot about the price<"
+    },
+    {
+      "id": "saathi-words-help",
+      "op": "replace",
+      "why": "the help page's lead line",
+      "anchor": "Talk to a real person, or ask Saathi. We’re",
+      "with": "Talk to a real person, or ask TeruBot. We’re"
+    },
+    {
+      "id": "saathi-words-faq",
+      "op": "replace",
+      "why": "the help page's answer to \"Can I change my design later?\"",
+      "anchor": "Tell Saathi or Rohan what you want to change.",
+      "with": "Tell Rohan what you want to change."
+    },
+    {
+      "id": "terubot-room",
+      "op": "insertBefore",
+      "why": "TeruBot below 720 px: this page has its own 74 px bottom bar whose centre button opens TeruBot, so TeruBot's floating button is not shown there; from 720 px it sits at the bottom right (above the shared bottom bar between 720 and 899 px)",
+      "anchor": "</helmet>",
+      "insert": [
+        "<style>\n@media (max-width: 719px) { .tb-launch { display: none !important; } }\n</style>\n"
+      ]
     },
     {
       "id": "dock-tablet",
@@ -171,9 +291,55 @@
     {
       "id": "rail-lift",
       "op": "replace",
-      "why": "the side rail ends above the bottom bar on a small tablet (the bar is 0 px high elsewhere, so nothing changes there)",
+      "why": "the side rail ends above the bottom bar on a small tablet (the bar is 0 px high elsewhere, so nothing changes there), and starts to the right of the chrome's sidebar (0 px on a phone, where the rail is a drawer)",
       "anchor": "style=\"position:fixed;left:0;top:{{ L.railTop }};bottom:0;z-index:{{ L.railZ }}",
-      "with": "style=\"position:fixed;left:0;top:{{ L.railTop }};bottom:var(--tc-dock-h,0px);z-index:{{ L.railZ }}"
+      "with": "style=\"position:fixed;left:var(--tc-side-w,0px);top:{{ L.railTop }};bottom:var(--tc-dock-h,0px);z-index:{{ L.railZ }}"
+    },
+    {
+      "id": "chrome-fit",
+      "op": "insertBefore",
+      "why": "the site chrome (site/brand/chrome.js) replaces the dark top bar: it is not drawn while the chrome is on (its dark-mode switch and its text-size button live in the side rail, see tools-in-rail)",
+      "anchor": "</helmet>",
+      "insert": [
+        "<style>\n/* the site chrome is the one header (site/brand/chrome.md) */\nhtml.tc-chrome-on header[data-screen-label=\"Top bar\"] { display: none !important; }\n</style>\n"
+      ]
+    },
+    {
+      "id": "rail-top",
+      "op": "replace",
+      "why": "the side rail starts below the chrome's pill, not below the 72 px top bar that is no longer drawn",
+      "anchor": "railTop: phone ? '0px' : '72px'",
+      "with": "railTop: phone ? '0px' : 'var(--tc-hdr-h,72px)'"
+    },
+    {
+      "id": "tools-in-rail",
+      "op": "insertBefore",
+      "why": "the dark top bar is gone (the site chrome replaces it), so its two controls that exist nowhere else move into the side rail, above the project card: the dark-mode switch (same state and handler) and a text-size button that opens the same menu as the old account button (text size, account). Dropped with the bar: the demo project crumb, \"Call us\" (the tel: placeholder; \"Call Rohan\" is in the Help view and the drawer), the demo avatar and name",
+      "anchor": "<button type=\"button\" sc-camel-on-click=\"{{ goHome }}\" title=\"{{ L.cardTip }}\"",
+      "insert": "<div style=\"display:flex;flex-wrap:wrap;gap:8px;padding:0 2px 12px\"><button type=\"button\" role=\"switch\" aria-checked=\"{{ th.checked }}\" aria-label=\"Dark mode\" title=\"{{ th.title }}\" sc-camel-on-click=\"{{ toggleTheme }}\" style=\"position:relative;flex:none;width:44px;height:44px;padding:0;border-radius:50%;border:1.5px solid var(--line2);background:none;color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer\" style-hover=\"border-color:var(--ink)\"><svg width=\"20\" height=\"20\" sc-camel-view-box=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" sc-camel-stroke-width=\"2\" sc-camel-stroke-linecap=\"round\" aria-hidden=\"true\" style=\"position:absolute;opacity:{{ th.sunOp }};transition:opacity .35s ease\"><path d=\"M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8 M12 2.75v2 M12 19.25v2 M5.46 5.46l1.41 1.41 M17.13 17.13l1.41 1.41 M2.75 12h2 M19.25 12h2 M5.46 18.54l1.41-1.41 M17.13 6.87l1.41-1.41\"></path></svg><svg width=\"20\" height=\"20\" sc-camel-view-box=\"0 0 24 24\" aria-hidden=\"true\" style=\"position:absolute;opacity:{{ th.moonOp }};transition:opacity .35s ease\"><path d=\"M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z\" fill=\"currentColor\"></path></svg></button><button type=\"button\" sc-camel-on-click=\"{{ toggleAcct }}\" aria-haspopup=\"menu\" aria-expanded=\"{{ acctStr }}\" aria-label=\"Text size and my account\" title=\"Text size and my account\" style=\"flex:none;width:44px;height:44px;padding:0;border-radius:50%;border:1.5px solid var(--line2);background:none;color:var(--ink);display:flex;align-items:center;justify-content:center;font:700 .9375rem/1 Switzer,sans-serif;cursor:pointer\" style-hover=\"border-color:var(--ink)\">Aa</button></div>\n"
+    },
+    {
+      "id": "vw-helper",
+      "op": "insertBefore",
+      "why": "the page lays itself out from the width of the window (breakpoints at 720, 1024 and 1280 px, the rail open by default from 1280). With the chrome's sidebar on the left the room it really has is the window minus the sidebar (--tc-side-w, 0 on a phone), so it asks this function instead",
+      "anchor": "</helmet>",
+      "insert": [
+        "<script>window.__tcvw = function () { var w = document.documentElement.clientWidth || window.innerWidth; var s = 0; try { s = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--tc-side-w')) || 0; } catch (e) {} return w - s; };</script>\n"
+      ]
+    },
+    {
+      "id": "vw-initial",
+      "op": "replace",
+      "why": "first width: the room beside the chrome's sidebar",
+      "anchor": "vw: (typeof window !== 'undefined' && (document.documentElement.clientWidth || window.innerWidth)) || 1280,",
+      "with": "vw: (typeof window !== 'undefined' && (window.__tcvw ? window.__tcvw() : (document.documentElement.clientWidth || window.innerWidth))) || 1280,"
+    },
+    {
+      "id": "vw-resize",
+      "op": "replace",
+      "why": "the same on every resize (the chrome sends one when its sidebar is collapsed or expanded)",
+      "anchor": "const rs = () => { const w = document.documentElement.clientWidth || window.innerWidth;",
+      "with": "const rs = () => { const w = window.__tcvw ? window.__tcvw() : (document.documentElement.clientWidth || window.innerWidth);"
     }
   ]
 }
