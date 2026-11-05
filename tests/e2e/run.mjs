@@ -2040,6 +2040,12 @@ const tbSend = async (page, text) => { await page.type('.tb-input', text); await
 const tbBotTexts = (page) => page.evaluate(() => [...document.querySelectorAll('.tb-msg--bot .tb-text')].map((n) => n.textContent));
 const tbNotes = (page) => page.evaluate(() => [...document.querySelectorAll('.tb-note .tb-note__text')].map((n) => n.textContent));
 const tbWaitBot = (page, n) => until(async () => (await page.evaluate(() => document.querySelectorAll('.tb-msg--bot:not([data-greeting])').length)) >= n && !(await page.$('.tb-typing')), `bot message ${n}`, 8000);
+/** On the Design Studio, Inspiration and Finder pages the launcher dock (site/brand/launcher-dock.js) holds TeruBot's launcher and the capture launcher back behind one toggle: open it first, as a person would (a page with only TeruBot has no toggle, and an open fan must not be closed again). */
+const tbReveal = async (page) => {
+  await until(() => page.$('.tcd-toggle'), 'the combined launcher toggle', 15000);
+  if ((await page.evaluate(() => document.querySelector('.tcd-toggle').getAttribute('aria-expanded'))) !== 'true') await page.click('.tcd-toggle');
+  await until(() => page.evaluate(() => getComputedStyle(document.querySelector('.tb-launch')).pointerEvents !== 'none'), "TeruBot's launcher to be reachable");
+};
 const TB_CART_KEY = 'terucon.store.v1.cart';
 
 await test('terubot: one "Ask TeruBot" launcher on every page, nothing built until it opens; it opens, closes with the button and with Escape, and gives the focus back', async () => {
@@ -2054,6 +2060,7 @@ await test('terubot: one "Ask TeruBot" launcher on every page, nothing built unt
   }
   assert(st.calls.length === 0, 'the page load alone talked to the chat endpoint');
   await tbGo(page, '/finder');
+  await tbReveal(page); // the Finder carries both launchers, so they sit behind the dock's one toggle
   await page.click('.tb-launch');
   await until(() => page.evaluate(() => { const p = document.getElementById('terubot-panel'); return p && !p.hidden; }), 'the panel to open');
   await until(() => page.evaluate(() => document.querySelector('.tb-log').getAttribute('aria-live') === 'polite'), 'the live region to settle');
@@ -2064,6 +2071,7 @@ await test('terubot: one "Ask TeruBot" launcher on every page, nothing built unt
   await page.keyboard.press('Escape');
   await until(() => page.evaluate(() => document.getElementById('terubot-panel').hidden), 'Escape to close the panel');
   assert(await page.evaluate(() => document.activeElement === document.querySelector('.tb-launch')), 'the focus did not return to the launcher');
+  await tbReveal(page); // closing the panel puts the dock back to one quiet icon
   await page.click('.tb-launch');
   await until(() => page.evaluate(() => !document.getElementById('terubot-panel').hidden), 'a second open');
   await page.click('[aria-label="Close TeruBot"]');
@@ -3827,6 +3835,10 @@ await test('capture: the launcher is on the Design Studio, Inspiration and the F
   await page.goto(base + '/finder', { waitUntil: 'domcontentloaded' });
   await until(() => page.$('.cap-launch'), 'the launcher', 15000);
   await until(() => page.evaluate(() => !document.documentElement.classList.contains('tc-ld-lock')), 'the loader', 15000);
+  // the mindful launcher dock holds both launchers back behind one toggle on this page: open it first (its own test below)
+  await until(() => page.$('.tcd-toggle'), 'the combined launcher toggle', 15000);
+  await page.click('.tcd-toggle');
+  await until(() => page.evaluate(() => getComputedStyle(document.querySelector('.cap-launch')).pointerEvents !== 'none'), 'the launcher to be reachable');
   await page.click('.cap-launch');
   await until(() => page.$('.cap-way'), 'the panel');
   await page.click('.cap-way');
@@ -3845,6 +3857,70 @@ await test('capture: the launcher is on the Design Studio, Inspiration and the F
   await until(() => page.$('.cap-toast'), 'the pop-up on the shop page', 20000);
   assert(await page.$eval('.cap-toast', (e) => /1 new photo from Meera/.test(e.textContent) && /Finder/.test(e.textContent)), 'it says who and for which page');
   await phone.close();
+  await page.close();
+});
+
+await test('launcher dock: on a page with both launchers, one small toggle shows by default and the two real buttons stay reachable (same position, same clicks) once it is tapped open; opening either panel, Escape and a tap outside all collapse it back; a page with only TeruBot never gets a toggle', async () => {
+  const page = await newPage({ width: 1280, height: 800 });
+  // a page with only TeruBot, no second launcher, so nothing to combine
+  await page.goto(base + '/account', { waitUntil: 'domcontentloaded' });
+  await until(() => page.evaluate(() => !!document.querySelector('.tb-launch')), 'TeruBot on /account', 15000);
+  await sleep(8500); // the dock's own full find-timeout, and more
+  assert(await page.evaluate(() => !document.querySelector('.tcd-toggle') && getComputedStyle(document.querySelector('.tb-launch')).opacity === '1'), 'TeruBot alone must never grow a toggle or be hidden by one');
+
+  await page.goto(base + '/finder', { waitUntil: 'domcontentloaded' });
+  await until(() => page.$('.cap-launch'), 'the capture launcher', 15000);
+  await until(() => page.$('.tcd-toggle'), 'the toggle', 15000);
+  // DOMRect's fields are getters, not own properties: page.evaluate's return is JSON-serialized, so they must be picked out by hand
+  const style = (sel) => page.evaluate((s) => { const e = document.querySelector(s); const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return { opacity: cs.opacity, pointerEvents: cs.pointerEvents, right: r.right }; }, sel);
+  const toggleExpanded = () => page.evaluate(() => document.querySelector('.tcd-toggle').getAttribute('aria-expanded'));
+
+  await until(async () => (await style('.tb-launch')).opacity === '0', 'collapsed: TeruBot\'s launcher hidden (the 0.18s fade to settle)');
+  let [tb, cap] = [await style('.tb-launch'), await style('.cap-launch')];
+  assert((await toggleExpanded()) === 'false' && tb.pointerEvents === 'none' && cap.opacity === '0' && cap.pointerEvents === 'none', 'collapsed: one icon, both real launchers hidden: ' + JSON.stringify({ tb, cap }));
+  const rightEdgeBefore = tb.right;
+
+  await page.click('.tcd-toggle');
+  await until(async () => (await style('.tb-launch')).opacity === '1', 'expanded: TeruBot\'s launcher shown');
+  [tb, cap] = [await style('.tb-launch'), await style('.cap-launch')];
+  assert((await toggleExpanded()) === 'true' && tb.pointerEvents !== 'none' && cap.opacity === '1' && cap.pointerEvents !== 'none', 'a tap reveals both, reachable: ' + JSON.stringify({ tb, cap }));
+  assert(Math.abs(tb.right - rightEdgeBefore) < 1, 'TeruBot\'s launcher is not moved by being tucked behind the toggle: ' + JSON.stringify([tb.right, rightEdgeBefore]));
+
+  // opening TeruBot from the revealed launcher collapses the dock, and closing the panel returns to one quiet icon
+  await page.click('.tb-launch');
+  await until(() => page.evaluate(() => { const p = document.getElementById('terubot-panel'); return !!p && !p.hidden; }), 'the panel to open');
+  await until(async () => (await style('.tcd-toggle')).opacity === '0', 'the toggle to hide while a panel is open');
+  await page.evaluate(() => window.TeruBot.close());
+  await until(async () => (await style('.tcd-toggle')).opacity === '1', 'the toggle to come back, collapsed');
+  assert((await toggleExpanded()) === 'false', 'closing the panel does not leave the fan open');
+
+  // Escape collapses an open fan with no panel open
+  await page.click('.tcd-toggle');
+  await until(async () => (await toggleExpanded()) === 'true', 'the fan to open again');
+  await page.keyboard.press('Escape');
+  await until(async () => (await toggleExpanded()) === 'false', 'Escape to collapse the fan');
+
+  // a tap outside both launchers collapses it too
+  await page.click('.tcd-toggle');
+  await until(async () => (await toggleExpanded()) === 'true', 'the fan to open a third time');
+  await page.click('body', { offset: { x: 20, y: 20 } });
+  await until(async () => (await toggleExpanded()) === 'false', 'an outside tap to collapse the fan');
+
+  // the same, for capture's own launcher: a tap on it after opening the fan still opens its panel (what the capture
+  // test above now does on /finder too)
+  await page.click('.tcd-toggle');
+  await until(async () => (await style('.cap-launch')).pointerEvents !== 'none', 'the capture launcher to be reachable');
+  await page.click('.cap-launch');
+  await until(() => page.$('.cap-way'), 'the capture panel to open from the revealed launcher');
+  await page.click('.cap-x');
+
+  // a pending reply (TeruBot) or new photos (capture) show as one dot on the toggle while it is collapsed
+  await page.evaluate(() => { document.querySelector('.tb-launch').classList.add('is-unread'); });
+  await until(() => page.evaluate(() => !document.querySelector('.tcd-dot').hidden), 'the combined badge to pick up TeruBot\'s unread mark', 2000);
+  await page.evaluate(() => { document.querySelector('.tb-launch').classList.remove('is-unread'); });
+  await until(() => page.evaluate(() => document.querySelector('.tcd-dot').hidden), 'the combined badge to clear', 2000);
+
+  assert(page.problems.length === 0, 'problems: ' + page.problems.join(' | '));
   await page.close();
 });
 // ==== capture from a phone (end) ====

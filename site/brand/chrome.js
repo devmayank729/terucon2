@@ -365,6 +365,8 @@
       watch = !!(note && note.watchUntil > Date.now());
     } catch (e) {}
     if (!(key === 'studio' || key === 'inspiration' || key === 'finder' || watch) || root.getAttribute('data-tc-capture') === 'off') return;
+    // the mindful launcher dock: only where capture.js builds a launcher (launcher-dock.js loads its own stylesheet)
+    var hasDock = key === 'studio' || key === 'inspiration' || key === 'finder';
     function inject() {
       if (window.TeruconCapture || document.querySelector('script[data-tc-capture-js]')) return;
       var go = function () {
@@ -374,6 +376,7 @@
         s.src = '/brand/capture.js';
         s.setAttribute('data-tc-capture-js', '');
         document.head.appendChild(s);
+        if (hasDock) { var d = document.createElement('script'); d.src = '/brand/launcher-dock.js'; document.head.appendChild(d); }
       };
       var css = document.createElement('link');
       css.rel = 'stylesheet';

@@ -40,6 +40,37 @@ Checked: as in steps 3-6 and in `TARGETS.md` under C4. One JavaScript run had 1 
 - On a 390 px phone the three buttons wrap into three rows and cover about 45 % of the photo's height, and the search box can sit under "Find it" until it is dragged up. That is the PR's design; I did not change it.
 - The two floating launchers (TeruBot, "Photos from phone") sit over the photo's right edge. The second branch is about that (part 2).
 - `.gitignore` lists `node_modules/`, which does not match a symlink: a link to `node_modules` shows up as untracked in a work copy (I staged files by name).
+- In a `git worktree` the overview builder (`tools/build-overview.js`) fails on the `.git` file ("file not described in the catalog: .git"); it only ignores a `.git` folder. I moved that one file out of the copy for the build and put it back; I did not change the tool.
+- `tests/js/server-startup.test.js` "SIGTERM stops it cleanly as well" failed in 2 of about 10 full JavaScript runs of the PR #2 copy (0 of 5 on clean `main`; 8 of 8 alone): `null !== 0`, the child process was killed by the signal after 187 ms, which looks like a start-up race in the test (the signal arrives before the app has installed its handler). My changes do not touch it; not investigated.
+
+### What exactly I did, in order (part 2: the second item)
+
+1. Merged PR #2 on GitHub (merge commit `26c1c77`), fast-forwarded your local `main` to it (nothing else in your working folder was touched; it had no uncommitted changes).
+2. New throw-away copy on `claude/icon-hiding-instant-render-lkhlba`, merged the new `main` into it: conflicts in `TARGETS.md`, the overview and `site/catalogue-ui/studio-finishes.js`.
+3. Read the branch before deciding. It has two halves: (A) the launcher dock, (B) an instant preview for catalogue designs (`server/lib/tileTexture.js`, `?tile=1`, `jpeg-js`). B sends `tileWidthM` / `tileHeightM`; `main` (your commit `deef041`, my work of the tenth session) sends `previewTile*` on purpose and has a test that forbids the other names. So I merged A only: took `main`'s version of every B file (`studio-finishes.js`, `studioFinishes.js`, `catalogueMedia.js`, the two JavaScript tests it changed, `package.json`, `package-lock.json`), deleted the two files only B added, removed B's browser test from `tests/e2e/run.mjs`. What is left against `main`: `site/brand/launcher-dock.js`, `launcher-dock.css`, three lines in `site/brand/chrome.js`, the dock's browser tests.
+4. Browser suite on that tree: 101 of 103. (a) "terubot: one 'Ask TeruBot' launcher on every page": it clicks `.tb-launch` on the Finder, which the dock now keeps behind the "+" (as the advisor I consulted had warned): I added a small helper `tbReveal` to the test that opens the "+" first, once before each click. (b) "the landing page starts the studio's cold start ...": passed 3 of 3 alone on the copy and 3 of 3 on `main`, so a timing flake of the full run.
+5. After it: browser suite 103 of 103; JavaScript 1207 tests, 0 failed, 10 skipped, twice; a screenshot of the Finder on a 390 x 844 phone looked at (one "+" at the bottom right, clear of the capture buttons and the tab bar).
+6. `TARGETS.md` (Last updated, the capture-from-a-phone entry under Foundation work, the change log), this entry, `node tools/build-overview.js` and the full `node tools/run-tests.js`, then committed the merge, pushed it to that branch, opened a pull request from it, and merged it.
+
+### Files changed (part 2)
+
+`site/brand/launcher-dock.js`, `site/brand/launcher-dock.css`, `site/brand/chrome.js`, `tests/e2e/run.mjs`, `TARGETS.md`, `WORK_LOG.md`, `docs/PROJECT_OVERVIEW.html` (regenerated).
+
+### Checked / not checked (part 2)
+
+Checked: as in steps 4-5 and in `TARGETS.md`'s change log. Not checked: a real phone, Safari, the live site; the branch's note that 4 existing browser tests time out in its container did not reproduce (none did).
+
+### Decisions for you
+
+- **The dock makes TeruBot one tap further** on the Design Studio, Inspiration and Finder pages (behind a "+"). That is what the branch's author built on purpose to stop two floating buttons covering the photo area; if you would rather have TeruBot always one tap, say so and I take the three lines out of `chrome.js`.
+- **Half of the branch was not merged** (the catalogue-design instant preview, B) because `main` already has it done another way. Nothing was deleted: the branch is still on GitHub with that commit in its history, although the merged files do not contain B.
+- **`claude/youthful-davinci-yiiomk` was not merged** (see part 1): a stale performance note. It is still on GitHub.
+- **The three buttons on a 390 px phone** wrap into three rows and cover about 45 % of the photo (PR #2's design). A smaller, one-row layout is possible if you want it.
+- No branch was deleted and nothing was deployed by me; if Render deploys from `main`, the two merges will have started a deploy.
+
+### What I did (summary)
+
+GitHub had one open pull request, #2, not two. I merged it into `main` after resolving its conflicts with the Finder rebuilt the same day, and fixed one bug the merge would have shipped (on a phone the capture buttons sat under the site's tab bar, so a tap on them opened another page). For the second item you described ("something related to the capture button for the photo") I took the launcher dock from the branch `claude/icon-hiding-instant-render-lkhlba`, one small "+" instead of two floating launcher buttons on the three photo pages, opened a pull request for it and merged it, but left out that branch's other half (an instant preview for catalogue designs) because `main` already has it and the branch's version would have undone the 5 November fix. One existing browser test needed the dock's extra tap. Checked in headless Chrome on one Mac: JavaScript tests 0 failed, browser tests 103 of 103; never on a real phone or on the live site.
 
 ## 2026-11-05 (tenth session): the catalogue designs could not be drawn instantly with WebGL; fixed, with the Gemini render kept
 
