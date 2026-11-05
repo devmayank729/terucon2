@@ -6,6 +6,86 @@ This file is not `TARGETS.md` (that tracks the quotation's targets and their sta
 
 ---
 
+## 2026-11-05 (fourteenth session): how to check the live site's health (503 on /api/capture/config)
+
+**Asked:** how to check health; the live Design Studio shows "Something went wrong on our side" and a 503 on `api/capture/config`.
+
+**What I did, in order**
+1. Read `TARGETS.md`; the task serves no target.
+2. Grepped for the health route (`/api/health`, `render.yaml` `healthCheckPath`) and read `server/capture/routes.js` around `/api/capture/config`.
+3. Ran three GET requests with `curl` against the live site: `/api/health` (200), `/api/capture/config` (401 without login), `/design-studio` (302).
+4. Updated `TARGETS.md` (header and change log) and this entry; ran `node tools/build-overview.js`.
+
+**Checked:** `/api/health` body: `studio.running:true`, `studio.database:false`, `auth.ready:false`, `auth.reasons:["no-database"]`. Code: `routes.js:90` maps an unavailable store to the 503 `auth-unavailable`.
+
+**Not checked:** why MongoDB is unreachable now (earlier today it was an unreachable Atlas primary; I did not re-probe per node); the browser session that showed the 503.
+
+**What I did (summary):** the site is up but its database is not connected, which is what makes the studio and capture routes fail with 503. Health is `/api/health`; `database:false` is the sign to check Atlas.
+
+---
+
+## 2026-11-05 (thirteenth session): architecture-review write-up (Design Studio, Finder, Inspiration, GPUs and containers)
+
+**Asked** (your message, shortened): for an architecture review, write the exact technical flow and requirements of the AI design studio, the finder and inspiration; the difference between inspiration and finder; which exact GPU is used, how many containers are called for what, which container holds how many models and which model uses which GPU; and a few technical terms to convey it.
+
+**What I did, in order**
+1. Read `TARGETS.md` (header, "Where we stand", the table of targets) as the project rules require. The task serves no target.
+2. Listed the files; grepped for Modal definitions (`gpu=`, `@app.cls`, `@app.function`, `modal.App`).
+3. Read the GPU lists, concurrency and memory settings in `swatchroom/modalBlueprint.py` (lines 20-225, 1780-2000) and `catalogue/modal_app.py` (60-262), and the GPU lists and labels in the root `visionstack.py` (186-210, 6524-6646).
+4. Read `swatchroom/ARCHITECTURE.md`, `catalogue/ARCHITECTURE.md`, `render.yaml`, `server/routes/inspiration.js`, `server/lib/pinterestImport.js`, the header of `site/catalogue-ui/finder.js`, `server/lib/terubot/gemini.js`, `swatchroom/python/{scene,pick}.py`.
+5. Ran `modal app list` (read-only; started nothing) and listed the `.env` variable names and the host labels of the Modal addresses (no value printed).
+6. Tried to open the deployed classes with the system Python (`modal` is not installed there; it lives under miniconda): nothing came of it, nothing was changed.
+7. Wrote the answer in the chat; updated `TARGETS.md` (header and change log) and this entry; ran `node tools/build-overview.js`.
+
+**Checked:** every GPU, label, memory and concurrency figure in the answer was read from the code at the line named above; the two deployed app names, creation dates and 0 running tasks came from `modal app list`.
+
+**Not checked:** which GPU really answers a call (the deployed tier variables are not readable; the `x-gpu` response header would show it, and reading it wakes a GPU); whether the deployed `vision-stack` is the same code as either repo file (it was deployed on 2026-10-24, the repo file has changed since); any speed, cost or accuracy figure; nothing in the answer ran.
+
+**Noticed, left alone:** `ONEFORMER_URL` and `ANALYZE_URL` point at two different Modal pools, so one photo can wake two GPU containers.
+
+### What I did (summary)
+
+I answered an architecture question from the code and one read-only `modal app list`, and wrote down which parts are plan (the GPU lists) and which are observed (the two deployed apps, scaled to zero). No code, no status, no count changed.
+
+---
+
+## 2026-11-05 (twelfth session): the Finder's three capture buttons in one row on a phone
+
+**Asked** (your message, shortened): after I had said the three floating buttons stack and cover about 45 % of the photo on a 390 px phone and that a one-row layout was possible: "proceed with this".
+
+**Serves:** C4 (the Finder); no status and no count changed.
+
+### What exactly I did, in order
+
+1. Read `TARGETS.md` (C4) and your rule that button names stay plain: the three names are unchanged.
+2. `pages/finder.html`: first try, a one-row rule for screens up to 600 px with 30 px of side room so the buttons would stay clear of the launcher "+". Measured in headless Chrome at four phone sizes with a throw-away test: `Retake` still wrapped to a second row everywhere (the middle button's 110 px minimum was 1 px too wide at 390 px, and the frame is only 233 px wide at 375 x 667 with a 9:16 photo).
+3. Second try, which is the one that stayed: no side room (10 px), buttons 46 px high with 13 px type and 10 px side padding, the middle button flexible with an 84 px minimum (it may use two lines); and, instead of side room, the frame's resting place after a photo opens now also clears the "+" (`scroll-margin` adds `--tb-bottom` and 52 px to the tab bar's height), so the frame's bottom edge sits just above it. Measured again: one row at 390, 360 and 320 px (the buttons cover 16 %, 18 %, 20 % of the frame); at 375 x 667 with the 9:16 photo (233 px wide frame) `Retake` still wraps, 28 %.
+4. Looked at the screenshots at 390 x 844 and 375 x 667.
+5. `tests/e2e/run.mjs`: the existing test "on a phone, an uploaded tall photo gives the Finder a tall frame ..." now also checks one row (tops within 4 px), buttons at least 44 px high, under 25 % of the frame, the frame's bottom edge above the "+", the three names unchanged. Proved it fails on the old layout: a scratch `git worktree` of `main` before the change (`03e0122`) with the new test failed with "tops differ by 124 px", band 50 %, frame 56 px under the "+"; on the new layout it passed 3 runs of 3.
+6. Full browser suite: 103 of 103. JavaScript suite: 1207 tests, 1202 passed, 0 failed, 5 skipped, twice.
+7. `TARGETS.md` (C4, "Last updated", change log), this entry, `node tools/build-overview.js`, the full `node tools/run-tests.js`.
+
+### An incident (mine to own)
+
+I did the measuring in **your working folder** (a copy of the browser tests as `tests/e2e/debug-run.mjs`, plus the CSS edits). At 14:35 you committed and pushed the whole folder as `f2196ca` "PR 2,3 merged", so that commit holds the finished CSS (without its test and notes) **and my temporary 3,953-line test copy**. I had already planned to delete it; I deleted it from the working folder when I found it tracked (`git status` showed it as deleted). It is still on GitHub's `main` until you commit the deletion. I did not check whether `node tools/build-overview.js --check` fails on `f2196ca` (the overview does not list that file). From now on I do experiments like this in a separate `git worktree`, as I did for the merges, never in your folder. Nothing else of mine was left in the folder (checked with `git status`).
+
+### Files changed
+
+`pages/finder.html` (already in `f2196ca`), `tests/e2e/run.mjs`, `TARGETS.md`, `WORK_LOG.md`, `docs/PROJECT_OVERVIEW.html` (regenerated), `tests/e2e/debug-run.mjs` (deleted).
+
+### Checked / not checked
+
+Checked: as in steps 3-6. Not checked: a real phone, Safari, larger text sizes set in a phone, a phone held sideways; the fonts of a real phone (widths were measured with the fonts this Mac loads). I did not commit or push anything.
+
+### Decisions for you
+
+- Commit the deletion of `tests/e2e/debug-run.mjs` together with the test and notes (the uncommitted changes are listed by `git status`); tell me if you want me to do it.
+- The 233 px wide frame (a 9:16 photo on a short phone) still wraps `Retake` to a second row: shorter text for the middle button ("Whole photo") would fit it in one row, but you asked for plain names, so I left it.
+
+### What I did (summary)
+
+On a phone the Finder's three capture buttons now sit in one row at the bottom of the photo (they cover about 16 % of a 390 px phone's frame, not about half), the names are unchanged, and the frame comes to rest just above the "+" launcher button. A new check in the existing phone test fails on the old layout. All browser tests (103) and JavaScript tests pass. Not tried on a real phone. While I worked in your folder you committed it, and that commit picked up a temporary test file of mine, which I deleted; it still needs a commit to disappear from GitHub.
+
 ## 2026-11-05 (eleventh session): merge the open pull requests
 
 **Asked** (your messages, shortened): "see 2 PR are there i want you to merge them"; then, when I told you GitHub had only one open PR (#2) and two branches with no PR: "one PR is there as well one more thing is there either another branch or anything else please merge them both, the other one is something related to capture button for the photo".

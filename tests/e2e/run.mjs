@@ -1169,6 +1169,21 @@ await test('on a phone, an uploaded tall photo gives the Finder a tall frame wit
     assert(Math.abs(m.ratio - 0.75) < 0.03, 'the frame does not take the photo\'s tall shape (width / height = ' + m.ratio.toFixed(2) + ', expected 0.75)');
     assert(m.inside && m.reticle >= 44, 'the reticle is not inside the frame or is too small to touch: ' + JSON.stringify(m));
     assert(m.wide <= 0 && m.goHeight >= 44, 'sideways scroll, or the "Find it" button is too short: ' + JSON.stringify(m));
+    // the three capture buttons float over the frame's bottom edge as ONE row (stacked they covered about 45 % of the photo), each tall enough for a
+    // finger, and the frame comes to rest just above the launcher "+" (site/brand/launcher-dock.js), so nothing sits under that button
+    await until(() => page.$('.tcd-toggle'), 'the launcher "+"', 15000);
+    const row = await page.evaluate(() => {
+      const box = (el) => el.getBoundingClientRect();
+      const frame = box(document.getElementById('viewfinder'));
+      const buttons = ['go-photo', 'whole-photo', 'retake'].map((id) => box(document.getElementById(id)));
+      const tops = buttons.map((b) => b.top);
+      return { spread: Math.max(...tops) - Math.min(...tops), shortest: Math.min(...buttons.map((b) => b.height)), band: box(document.getElementById('photo-actions')).height / frame.height, gapToPlus: box(document.querySelector('.tcd-toggle')).top - frame.bottom, labels: ['go-photo', 'whole-photo', 'retake'].map((id) => document.getElementById(id).textContent.trim()) };
+    });
+    assert(row.spread <= 4, 'the three capture buttons are not on one row (their tops differ by ' + row.spread + ' px): ' + JSON.stringify(row));
+    assert(row.shortest >= 44, 'a capture button is too short for a finger: ' + JSON.stringify(row));
+    assert(row.band < 0.25, 'the capture buttons cover too much of the photo (' + Math.round(row.band * 100) + ' %, the stacked layout covered about 45 %): ' + JSON.stringify(row));
+    assert(row.gapToPlus >= -1, 'the frame\'s bottom edge, with the buttons, rests under the launcher "+": ' + JSON.stringify(row));
+    assert(JSON.stringify(row.labels) === JSON.stringify(['Find it', 'Search the whole photo', 'Retake']), 'the button names changed: ' + JSON.stringify(row.labels));
     noProblems(page, 'the Finder with a tall photo');
   } finally {
     fs.rmSync(file, { force: true });
