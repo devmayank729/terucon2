@@ -4,7 +4,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import test, { describe } from 'node:test';
-import { briefOf, finishOf, MARKER_RE, referenceRules, STUDIO_KINDS, stripMarker, withReference } from '../../server/catalogue/studioFinishes.js';
+import { briefOf, finishOf, LARGE_FEATURE_TONE_RADIUS, MARKER_RE, PREVIEW_TILE_HEIGHT_M, PREVIEW_TILE_WIDTH_M, referenceRules, STUDIO_KINDS, stripMarker, textureOf, withReference } from '../../server/catalogue/studioFinishes.js';
 import { CLAIMS, promptFor, refusal } from '../../tools/describe-designs.js';
 import { request } from '../helpers/http.js';
 import { makeProjectRoot, setStudioEnv } from '../helpers/studio.js';
@@ -53,10 +53,48 @@ describe('the finish and its brief', () => {
 
   test('the finish carries what the studio\'s list needs and nothing secret; the kinds are wall, door and furniture', () => {
     const f = finishOf(design());
-    assert.deepEqual(Object.keys(f).sort(), ['about', 'code', 'described', 'hex', 'id', 'image', 'name', 'productId', 'prompt', 'sub']);
+    assert.deepEqual(Object.keys(f).sort(), ['about', 'code', 'described', 'hex', 'id', 'image', 'name', 'productId', 'prompt', 'sub', 'texture']);
     assert.equal(f.sub, 'SB804 · marble-like veining, gloss');
     assert.equal(f.image, '/media/materials/tipl-sb804.jpg?w=320');
     assert.deepEqual([...STUDIO_KINDS], ['wall', 'door', 'furniture']);
+  });
+});
+
+describe('the instant preview\'s texture of a design (target C1: WebGL2 / WebGPU in the browser, beside the AI render)', () => {
+  test('a design\'s texture is its own photograph, with the preview\'s tile size and the sheen Gemini read: and never a tileWidthM / tileHeightM', () => {
+    const medium = design({ studio: { ...STUDIO, scale: 'medium' } }); // (the fixture's own scale is 'large', which asks for the wider tone radius: below)
+    const texture = textureOf(medium);
+    assert.deepEqual(texture, { url: '/media/materials/tipl-sb804.jpg', previewTileWidthM: 1.22, previewTileHeightM: 0.854, sheen: 'gloss' });
+    // the studio QUOTES tileWidthM / tileHeightM to the render model as a measured repeat ("Tile repeat scale must match ..."): this size is a guess
+    // (the catalogue records no size), so it must be under other names, or the AI brief would state an invented measurement
+    assert.ok(!('tileWidthM' in texture) && !('tileHeightM' in texture));
+    assert.equal(PREVIEW_TILE_WIDTH_M, 1.22);
+    assert.equal(PREVIEW_TILE_HEIGHT_M, 0.854);
+    assert.ok(Math.abs(PREVIEW_TILE_HEIGHT_M / PREVIEW_TILE_WIDTH_M - 0.7) < 0.001, 'the proportions of every texture of the preview, 10:7');
+    // a design Gemini has not described has a texture too (the photograph is the texture), with no sheen to state
+    assert.deepEqual(textureOf(design({ studio: null })), { url: '/media/materials/tipl-sb804.jpg', previewTileWidthM: 1.22, previewTileHeightM: 0.854 });
+    // it is the 800 px picture (no ?w=320 thumbnail), at the address the server answers from Cloud Storage
+    assert.ok(!/\?/.test(texture.url));
+    // a design with BOLD features asks the browser for a wider lighting-drift removal (?tone=): 40 smudged them (SB830, SB8001). The other 55 of 63 keep the default.
+    assert.equal(LARGE_FEATURE_TONE_RADIUS, 100);
+    assert.equal(textureOf(design({ studio: { ...STUDIO, scale: 'large' } })).url, '/media/materials/tipl-sb804.jpg?tone=100');
+    for (const scale of ['fine', 'medium']) assert.equal(textureOf(design({ studio: { ...STUDIO, scale } })).url, '/media/materials/tipl-sb804.jpg', scale);
+  });
+
+  test('the finish carries it, one per design, and the same texture for every kind of surface (the studio gives each kind its own item id)', () => {
+    assert.deepEqual(finishOf(design()).texture, textureOf(design()));
+    assert.deepEqual(finishOf(design({ id: 'tipl-cmt6001', productId: 'TIPL-CMT6001', code: 'CMT6001', studio: { ...STUDIO, scale: 'fine' } })).texture.url, '/media/materials/tipl-cmt6001.jpg');
+  });
+
+  test('rule 13 tells the render model that a preview in the guide image is a stand-in: take its convergence and light, not its repeat size or tile joins', () => {
+    const rules = referenceRules(design(), 4);
+    assert.match(rules, /13\. Scale the pattern from the room/);
+    assert.match(rules, /If Image 3 carries a perspective preview of this design inside the outline, it is a stand-in: take only its line convergence and the room's light from it, never its repeat size or the joins of its tiles\./);
+    assert.match(rules, /14\. Keep the sample's sheen/, 'rule 14 follows, the numbering is unchanged');
+    // the lite model sends no guide image: Image 3 is then the reference photograph itself, and the sentence about a preview in Image 3 must not be there
+    const lite = referenceRules(design(), 3);
+    assert.ok(!/stand-in/.test(lite) && !/preview/.test(lite), 'no sentence about a preview when there is no guide image');
+    assert.match(lite, /13\. Scale the pattern from the room.*unless the brief asks for joints\.\n14\./s, 'rule 13 otherwise as before');
   });
 });
 
@@ -76,6 +114,7 @@ describe('withReference: the photograph as one more image', () => {
     assert.ok(out.systemPrompt.startsWith('THE STUDIO RULES\n'));
     for (const rule of ['11. Reproduce what Image 4 shows', '12. Image 4 is a sample photograph, not a picture to paste', '13. Scale the pattern from the room', '14. Keep the sample\'s sheen and relief']) assert.ok(out.systemPrompt.includes(rule), rule);
     assert.match(out.systemPrompt, /lit by the light of Image 1/, 'the room\'s light, not the sample\'s');
+    assert.match(out.systemPrompt, /If Image 3 carries a perspective preview of this design/, 'with a guide image (the reference is Image 4) the stand-in sentence is there');
   });
 
   test('the lite model sends no guide image: the photograph is Image 3, and the rules say so', () => {
@@ -83,6 +122,7 @@ describe('withReference: the photograph as one more image', () => {
     assert.equal(out.imageNumber, 3);
     assert.match(out.systemPrompt, /11\. Reproduce what Image 3 shows/);
     assert.ok(!/Image 4/.test(out.systemPrompt + out.brief));
+    assert.ok(!/stand-in/.test(out.systemPrompt), 'Image 3 is the reference here: nothing may call it a preview');
   });
 
   test('only the marker (and the space before it) is taken out of a text', () => {

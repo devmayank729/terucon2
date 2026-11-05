@@ -22,7 +22,7 @@ const R = (f) => import(`${modulesBase}${f}`);
 const log = (m) => { document.getElementById("log").textContent += m + "\n"; };
 
 async function main() {
-  const defs = await (await fetch("/h/scenes.json")).json();
+  const defs = await (await fetch("/h/" + (q.get("scenes") || "scenes.json"))).json();
   const def = defs[sceneName];
   const { createFastRenderer } = await R("renderer.js");
   const { createWebGL2Backend } = await R("webgl2.js");
@@ -131,7 +131,11 @@ async function main() {
   const region = regions.find((r) => r.id === surface);
   renderer.setAlphaFromMask(region.mask);
   const size2 = SIZES[tex] || [1.4, 1.0];
-  const item = { id: tex, name: NAMES[tex] || tex, texture: { url: "/textures/" + tex + ".png", tileWidthM: size2[0], tileHeightM: size2[1] } };
+  // texurl=<address>: a catalogue design's photograph, stated the way the website states it (previewTileWidthM / previewTileHeightM and sheen,
+  // NOT tileWidthM / tileHeightM: see design-check.mjs); without it the studio's own texture <tex> with its own tile size
+  const item = q.get("texurl")
+    ? { id: tex, name: tex, texture: { url: q.get("texurl"), previewTileWidthM: Number(q.get("tilew") || 1.22), previewTileHeightM: Number(q.get("tileh") || 0.854), ...(q.get("sheen") ? { sheen: q.get("sheen") } : {}) } }
+    : { id: tex, name: NAMES[tex] || tex, texture: { url: "/textures/" + tex + ".png", tileWidthM: size2[0], tileHeightM: size2[1] } };
   const ok = await renderer.setMaterial(region.id, item, Number(q.get("rot") || 0));
   const t0 = performance.now();
   renderer.render();

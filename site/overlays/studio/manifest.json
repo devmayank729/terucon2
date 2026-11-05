@@ -17,13 +17,14 @@
     "js/lib/previewScene.js": "4a9a475463c4f9f9ccc3d5a44c8915f57e58021c62b6aa8dd98149962a05a104"
   },
   "overlay": {
-    "js/lib/fastrender/geometry.js": "924f0e8735e6c1bf3380742848a58b0c9fbb114d394bed5838f14a9d85f73946",
-    "js/lib/fastrender/provisional.js": "dc03062fc22be63880590d2d879acd85fa54bcbf8c6e50450c5bf907f3906fec",
-    "js/lib/fastrender/renderer.js": "0ed98a07423028f9c6080e27d564925eb29b187ab849d59bbca4497a493460b5",
+    "js/lib/fastrender/geometry.js": "aba6b8b79be6222f06b5174a98593647c9cbfbfec143a86a4a64c3e42e7ad58b",
+    "js/lib/fastrender/previewReason.js": "10df9bb9b72f99ca41bac4a17aa9d9514fc41f2b433f97a978a5c32e334b66df",
+    "js/lib/fastrender/provisional.js": "03f238444567fe5c9dd012a694f2eea4f67e4bab35d21338c5caff36251cdc8c",
+    "js/lib/fastrender/renderer.js": "cef0dabc3f057ed9e72467dba954f60ab9049706e17f0fe92fbfd78b9c81da26",
     "js/lib/fastrender/shaders/swap.glsl.js": "7a0474aea47969ec012d04169434cacda2515386675774e67bf3baca946e8379",
     "js/lib/fastrender/shaders/swap.wgsl.js": "9aa2a924c37426a4fc0b0121a7dbe54873843fdf704beb3d7dbd9bd14360b65a",
     "js/lib/fastrender/webgl2.js": "49e286cbc074b916cc4c3068746088d8ef3ea0af6345ca345630810a4206f556",
     "js/lib/fastrender/webgpu.js": "5dc84b54bd0d1c6f37b3cb4e27f87e0d529674a8d91b40e4d9c19422211ba8e2",
-    "js/lib/previewScene.js": "b7465dd3c76bc783d86683f7dd5d4e84fffa2e3c11c7c245b5c5858e43c5bd4b"
+    "js/lib/previewScene.js": "97672b08eb0d0cb2f2a6db8004bef2666831cfb454d80a21e864817d7e4a6920"
   }
 }

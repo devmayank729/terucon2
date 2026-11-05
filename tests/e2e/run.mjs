@@ -2494,8 +2494,8 @@ await test('terubot: keys typed in the panel never reach the page; Tab stays ins
 
 await test('studio: the catalogue designs are added to the finish list before the studio starts (a group "Terucon catalogue" for wall, door and furniture, one item per surface kind), a card gets the design\'s photo, and the studio opens as it always did when the catalogue is off, down or slow', async () => {
   const finishes = [
-    { id: 'tipl-sb804', code: 'SB804', productId: 'TIPL-SB804', name: 'Emperador Dark', sub: 'SB804 · marble-like veining, gloss', about: 'Emperador Dark, Terucon catalogue design TIPL-SB804. A dark brown surface.', prompt: 'Apply the design. [[terucon-design:TIPL-SB804]]', hex: '#271c1c', image: '/media/materials/tipl-sb804.jpg?w=320', described: true },
-    { id: 'tipl-sb008', code: 'SB008', productId: 'TIPL-SB008', name: 'Burmese Teak', sub: 'SB008', about: 'Burmese Teak, Terucon catalogue design TIPL-SB008.', prompt: 'Apply the design. [[terucon-design:TIPL-SB008]]', hex: '#7b4312', image: '/media/materials/tipl-sb008.jpg?w=320', described: false },
+    { id: 'tipl-sb804', code: 'SB804', productId: 'TIPL-SB804', name: 'Emperador Dark', sub: 'SB804 · marble-like veining, gloss', about: 'Emperador Dark, Terucon catalogue design TIPL-SB804. A dark brown surface.', prompt: 'Apply the design. [[terucon-design:TIPL-SB804]]', hex: '#271c1c', image: '/media/materials/tipl-sb804.jpg?w=320', texture: { url: '/media/materials/tipl-sb804.jpg', previewTileWidthM: 1.22, previewTileHeightM: 0.854, sheen: 'gloss' }, described: true },
+    { id: 'tipl-sb008', code: 'SB008', productId: 'TIPL-SB008', name: 'Burmese Teak', sub: 'SB008', about: 'Burmese Teak, Terucon catalogue design TIPL-SB008.', prompt: 'Apply the design. [[terucon-design:TIPL-SB008]]', hex: '#7b4312', image: '/media/materials/tipl-sb008.jpg?w=320', texture: { url: 'https://elsewhere.example/tipl-sb008.jpg', previewTileWidthM: 1.22, previewTileHeightM: 0.854 }, described: false },
   ];
   const open = async (answer) => {
     const page = await newPage({ width: 1440, height: 900 });
@@ -2517,7 +2517,9 @@ await test('studio: the catalogue designs are added to the finish list before th
     return { wall: group('wall'), door: group('door'), furniture: group('furniture'), floor: group('floor'), ceiling: group('ceiling'), window: group('window'), paint: CATALOG.wall.some((g) => g.group === 'Paint'),
       wallItems: CATALOG.wall[0].items.map((i) => i.id), doorItems: (CATALOG.door[0].items || []).map((i) => i.id),
       kinds: { wall: findItemKind('tipl-sb804'), door: findItemKind('tipl-sb804-door'), furniture: findItemKind('tipl-sb008-furniture') },
-      found: (() => { const i = findItem('tipl-sb804-door'); return i && { name: i.name, mode: i.mode, hasTexture: !!i.texture, marker: /\[\[terucon-design:TIPL-SB804\]\]$/.test(i.prompt), swatch: i.swatch }; })() };
+      found: (() => { const i = findItem('tipl-sb804-door'); return i && { name: i.name, mode: i.mode, texture: i.texture ? JSON.parse(JSON.stringify(i.texture)) : null, marker: /\[\[terucon-design:TIPL-SB804\]\]$/.test(i.prompt), swatch: i.swatch }; })(),
+      // the instant preview's texture: on every kind's item, each its own object; a texture that is not one of the site's design pictures is dropped
+      textures: { wall: !!findItem('tipl-sb804')?.texture, furniture: !!findItem('tipl-sb804-furniture')?.texture, separate: !!findItem('tipl-sb804')?.texture && findItem('tipl-sb804').texture !== findItem('tipl-sb804-door')?.texture, foreign: !!findItem('tipl-sb008')?.texture } };
   });
 
   // 1. the catalogue answers
@@ -2530,7 +2532,12 @@ await test('studio: the catalogue designs are added to the finish list before th
     assert(c.paint, 'the studio\'s own finishes are still there');
     assert(JSON.stringify(c.wallItems) === '["tipl-sb804","tipl-sb008"]' && JSON.stringify(c.doorItems) === '["tipl-sb804-door","tipl-sb008-door"]', 'ids: ' + JSON.stringify([c.wallItems, c.doorItems]));
     assert(c.kinds.wall === 'wall' && c.kinds.door === 'door' && c.kinds.furniture === 'furniture', 'the studio forgets a finish whose kind is not the surface\'s (itemFitsKind): ' + JSON.stringify(c.kinds));
-    assert(c.found && c.found.name === 'Emperador Dark' && c.found.mode === 'surface' && c.found.marker && !c.found.hasTexture && c.found.swatch.hex === '#271c1c', 'the studio finds the item as one of its own: ' + JSON.stringify(c.found));
+    assert(c.found && c.found.name === 'Emperador Dark' && c.found.mode === 'surface' && c.found.marker && c.found.swatch.hex === '#271c1c', 'the studio finds the item as one of its own: ' + JSON.stringify(c.found));
+    // the design's photograph is its texture for the instant preview (WebGL2 / WebGPU), on the wall, door and furniture items alike. The guessed tile size is named
+    // previewTile*, never tileWidthM / tileHeightM: the studio quotes those two to the render model as a measured repeat (swatchroom/public/js/lib/prompts.js)
+    assert(JSON.stringify(c.found.texture) === JSON.stringify({ url: '/media/materials/tipl-sb804.jpg', previewTileWidthM: 1.22, previewTileHeightM: 0.854, sheen: 'gloss' }), 'the texture: ' + JSON.stringify(c.found.texture));
+    assert(c.textures.wall && c.textures.furniture && c.textures.separate, 'a texture on every kind\'s item, one object each: ' + JSON.stringify(c.textures));
+    assert(!c.textures.foreign, 'a texture that is not one of the site\'s design pictures is dropped (the design then renders with the AI only): ' + JSON.stringify(c.textures));
     // the studio draws its cards in code; the design's photograph is put on the card by the loader's observer
     await page.evaluate(() => {
       const tile = document.createElement('button');

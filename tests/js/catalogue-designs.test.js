@@ -165,6 +165,11 @@ describe('through the real server', () => {
       const thumb = await c.app.get('/media/materials/tipl-sb804.jpg?w=320');
       assert.ok(thumb.buffer.equals(THUMB), '?w=320 is the thumbnail');
       assert.equal((await c.app.get('/media/materials/tipl-sb804.jpg?w=5000')).buffer.length, CARD.length, 'a large ?w= is the card');
+      // the instant preview asks for its tile preparation in the address (?tone=100, textureOf in server/catalogue/studioFinishes.js): the route must give the same card
+      const toned = await c.app.get('/media/materials/tipl-sb804.jpg?tone=100');
+      assert.equal(toned.status, 200);
+      assert.ok(toned.buffer.equals(CARD), '?tone= changes nothing about the picture');
+      assert.equal(toned.headers['content-type'], 'image/jpeg');
       assert.equal(bucket.asked.filter((k) => k.startsWith('cards/')).length, 1, 'the card was read from the bucket once and then from memory');
       // no sign-in is needed: these were public files
       assert.equal((await c.app.get('/media/materials/tipl-sb805.jpg')).status, 200);
@@ -224,6 +229,9 @@ describe('through the real server', () => {
       assert.equal(sb804.id, 'tipl-sb804');
       assert.equal(sb804.image, '/media/materials/tipl-sb804.jpg?w=320');
       assert.equal(sb804.described, true);
+      // the instant preview's texture: the design's own picture (not the 320 px thumbnail), the preview's tile size, the sheen Gemini read
+      assert.deepEqual(sb804.texture, { url: '/media/materials/tipl-sb804.jpg', previewTileWidthM: 1.22, previewTileHeightM: 0.854, sheen: 'gloss' });
+      assert.deepEqual(body.finishes[1].texture, { url: '/media/materials/tipl-sb805.jpg', previewTileWidthM: 1.22, previewTileHeightM: 0.854 }, 'an undescribed design has a texture too, and states no sheen');
       assert.match(sb804.sub, /^SB804 · marble-like veining, gloss$/);
       assert.match(sb804.about, /Terucon catalogue design TIPL-SB804\. A dark brown surface/);
       assert.match(sb804.prompt, /\[\[terucon-design:TIPL-SB804\]\]$/);

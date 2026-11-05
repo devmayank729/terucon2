@@ -1,6 +1,6 @@
 # Render-preview check: the studio's instant preview, before and after the overlay
 
-The website serves improved copies of 8 of the Design Studio's instant-preview files (`site/overlays/studio/`, see
+The website serves improved copies of 9 of the Design Studio's instant-preview files (`site/overlays/studio/`, see
 `docs/DESIGN_STUDIO_ARCHITECTURE.md`, section 12). This folder is how to see, in a real browser, what they change, and to check that
 the website really serves and draws them. It reads the studio's files, the overlay, `media/` and the studio's textures and writes
 nothing into the project (pictures and the Chrome profile go to a new folder under the system's temp directory). It calls no live
@@ -94,3 +94,25 @@ One picture, to try a texture, a camera pitch (`pitch=10`), a pixel ratio (`dpr=
 * Any GPU other than the one it was run on, a phone, or WebGPU on anything but that Apple M5. The WebGL2 and WebGPU pictures were identical to within one level there.
 * The studio's own interface around the preview. `tests/e2e/run.mjs` proves the studio still starts with the overlay, not that a preview is drawn
   in it (no browser test draws one: the scan needs the live models).
+
+## Catalogue designs on a wall, a door, a cabinet front and a sofa: `design-check.mjs` (2026-11-05)
+
+```
+node docs/design-studio-checks/render-preview/design-check.mjs [--designs DIR] [--out DIR] [--grids DIR]     (about a minute)
+    DESIGN_IDS=tipl-sb830,tipl-sb940    draw other designs (default: tipl-sb804, tipl-sb008, tipl-cmt6001, tipl-sb801)
+```
+
+Draws a **catalogue design** (the 800 x 1220 photograph of a sheet, with the `texture` the website's server states for it: `server/catalogue/studioFinishes.js`
+`textureOf()`, called by the script itself) with the overlay's modules in real Chrome, on the four surfaces of `harness/design-scenes.json`: the clinic photo's right-hand
+wall, the left glass panel as a door, the reception desk's front as a cabinet front, and the sofa (not a plane: the limit of the estimate). The outlines are drawn by hand,
+they are not a real scan. For every design and surface it asserts that the renderer gave the surface a slot, applied the finish and painted pixels that are not one flat colour,
+and that the page logged nothing; it draws WebGPU too on the wall and the door where this computer has it; and it prints what the **studio's own** preview code does with the same
+finish (the "before": no slot for a door, a cabinet or a sofa). It writes `GRID-design-<id>.jpg` (four pictures each). The designs' photographs are no longer files of the project
+(they are read from your Cloud Storage bucket): by default the script takes them out of the git history (the parent of `ad91318`), or pass `--designs DIR`.
+
+What it cannot tell is whether the picture looks right. Look at the grids; three are in [`images/`](images/) (`GRID-design-tipl-sb804.jpg` a dark gloss marble,
+`GRID-design-tipl-sb008.jpg` a teak, `GRID-design-tipl-sb830.jpg` a white marble with bold veins). Measured on 2026-11-05 on one Apple M5 with Chrome 156: 8 designs x 4 surfaces, all
+checks passed, WebGL2 and WebGPU both. What the pictures show, honestly: the pattern and colour of the design on the surface, in the room's light and shadows and the warm tint
+the preview adds; the same photograph repeats every 1.22 m (an assumption: the catalogue records no size), so a knot or a bold vein repeats; the sofa gets a flat-on texture on its
+outline, which is the limit of an estimate; two other ways of preparing the tile were tried and rejected (see `docs/DESIGN_STUDIO_ARCHITECTURE.md` section 12.9).
+

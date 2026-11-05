@@ -1,36 +1,45 @@
-Instant-preview quality: lighting, soft edges and sharper floors, a level-camera guess for floors / ceilings / head-on walls, fewer tile seams.
+Instant-preview quality: lighting, soft edges and sharper floors, a level-camera guess for floors / ceilings / head-on walls, fewer tile seams; and (2026-11-05) the catalogue designs and doors, furniture and "other" objects in the instant preview.
 
 FOR YOUR OWN SWATCHROOM PROJECT. The Terucon website does not edit its copy of swatchroom/ for this: it serves
 the files this patch produces from site/overlays/studio/ instead, ahead of the studio's own (docs/DESIGN_STUDIO_ARCHITECTURE.md, section 12). This
-patch is the same code, as a change to the 8 studio files it replaces, so you can take it into your project if you like the result. The 8 files are
-byte-identical in your original folder and in the website's copy (checked with diff -rq on 2026-11-05), so it applies to yours as it does to the copy.
+patch is the same code, as a change to the 9 studio files it replaces, so you can take it into your project if you like the result. The 9 files are
+the website's copy of your project's files made on 2026-10-28 (the sha256 of all of them are in site/overlays/studio/manifest.json); whether they are still
+byte-identical to your original folder was last checked with diff -rq on 2026-11-05 for the first 8 of them (previewReason.js was not compared then).
 
-  Changes (against the studio files as they are in the website's copy of swatchroom/, which was made on 2026-10-28 from your project; the sha256 of
-  all the files it was made against are in site/overlays/studio/manifest.json):
-    public/js/lib/fastrender/geometry.js                  shading clamp 0.35..1.65 -> 0.2..2.5; exposure exponent 0.35 -> 0.6, bounds 0.7..1.25 -> 0.45..1.5; the photo's light colour
-    public/js/lib/fastrender/provisional.js               the light read inside each surface (a guided filter on the surface's own mask); the level-camera guess for floors, ceilings and head-on walls
-    public/js/lib/fastrender/renderer.js                  passes the light colour on (30% of it); repairs the seams of the catalogue's tile images on load
+  Changes (against the studio files as they are in the website's copy of swatchroom/):
+    public/js/lib/fastrender/geometry.js                  shading clamp 0.35..1.65 -> 0.2..2.5; exposure exponent 0.35 -> 0.6, bounds 0.7..1.25 -> 0.45..1.5; the photo's light colour;
+                                                          NEW 2026-11-05: tileSizeOf() (a finish may state previewTileWidthM / previewTileHeightM, which only the preview reads), textureCrop(),
+                                                          isPhotographUrl() + flattenTone() (a photograph of a sheet, under /media/), a finish's own sheen in specularFor()
+    public/js/lib/fastrender/provisional.js               the light read inside each surface (a guided filter on the surface's own mask); the level-camera guess for floors, ceilings and head-on walls;
+                                                          NEW: the estimate also covers door, furniture and other (ESTIMATED_KINDS), with a plane standing on the floor at the object's foot
+    public/js/lib/fastrender/renderer.js                  passes the light colour on (30% of it); repairs the seams of the catalogue's tile images on load;
+                                                          NEW: crops a picture to the tile's proportions instead of stretching it, refuses the website's "picture not available" tile, flattens a photograph's light drift,
+                                                          reads the tile size with tileSizeOf(), gives walls / floors / ceilings the GPU slots first
+    public/js/lib/fastrender/previewReason.js             NEW: only the wording of "no-fit" (it now covers doors and furniture too)
     public/js/lib/fastrender/shaders/swap.glsl.js         soft edge on both sides of a boundary; light colour; highlight roll-off; the new clamp
     public/js/lib/fastrender/shaders/swap.wgsl.js         the same, for WebGPU
     public/js/lib/fastrender/webgl2.js                    the light colour uniform; 8x anisotropic filtering
     public/js/lib/fastrender/webgpu.js                    the light colour in the globals block; 8x anisotropic sampler
-    public/js/lib/previewScene.js                         passes the light colour through for a fitted scene
+    public/js/lib/previewScene.js                         passes the light colour through for a fitted scene; NEW: borrows the estimate for every kind in ESTIMATED_KINDS
 
   Apply from the folder that CONTAINS your swatchroom/ folder (the paths start with swatchroom/):
       git apply --check docs/design-studio-checks/instant-preview-quality.patch      (nothing changes; says whether it fits)
       git apply docs/design-studio-checks/instant-preview-quality.patch
   (or: patch -p1 < the file). It applies only to the files as they were on that date: if your copy has moved on, merge by hand.
 
-  Three of the studio's own tests assert the old numbers on purpose and fail afterwards: tests/fastrender.test.js, "the shading multiplier ... [0.35, 1.65]",
-  "exposureFor()" (0.7 / 1.25) and "buildProvisionalScene() ..." ("shading is smooth where the photo flickers" < 0.02, and a wall is 2.6 m tall: the second
-  assertion is hidden behind the first). The new expectations are in the website's tests/js/studio-overlay-behaviour.test.js, marked CHANGED.
-  The comments in the code that start with "DRAFT:" mark the changes; rename or drop them when you adopt it.
+  Three of the studio's own tests assert the old behaviour on purpose and fail afterwards: tests/fastrender.test.js, "the shading multiplier ... [0.35, 1.65]",
+  "exposureFor()" (0.7 / 1.25) and "buildProvisionalScene() ..." (which asserts "no sofa" and that "shading is smooth where the photo flickers" < 0.02 across the sofa's boundary, and
+  that a wall is 2.6 m tall: the later assertions are hidden behind the first one that fails). The new expectations are in the website's tests/js/studio-overlay-behaviour.test.js,
+  marked CHANGED. (The studio's own preview-reason test is not affected: it asserts the reason codes, not the wording.)
+  The catalogue designs themselves are NOT in this patch: they are added to the studio's finish list by the website (site/catalogue-ui/studio-finishes.js), and the AI render
+  gets their photograph through server/lib/studioReference.js. A finish that states previewTileWidthM / previewTileHeightM and a texture.url draws in the preview with this patch; without it, it does not.
+  The comments in the code that start with "DRAFT:" mark the earlier changes; rename or drop them when you adopt it.
 
-  Measured, not guaranteed: tests and a real-browser check of WebGL2 and WebGPU on one computer (an Apple M5): docs/design-studio-checks/render-preview/.
+  Measured, not guaranteed: tests and a real-browser check of WebGL2 and WebGPU on one computer (an Apple M5): docs/design-studio-checks/render-preview/ (run-all.mjs, design-check.mjs).
   Not verified: a real fused fit from the live room analysis (the level-camera guess was only tried on the estimate path), other GPUs, phones.
 
 diff --git a/swatchroom/public/js/lib/fastrender/geometry.js b/swatchroom/public/js/lib/fastrender/geometry.js
-index 35ef70d..1c7945b 100644
+index 35ef70d..977c2a6 100644
 --- a/swatchroom/public/js/lib/fastrender/geometry.js
 +++ b/swatchroom/public/js/lib/fastrender/geometry.js
 @@ -74,8 +74,8 @@ export function maskedMedian(values, mask, limit) {
@@ -87,11 +96,174 @@ index 35ef70d..1c7945b 100644
  }
  
  // How shiny a finish should look. The catalogue has no gloss field, only words, so the finish's own description decides:
+@@ -120,10 +137,24 @@ export function lumaFromRgba(rgba, width, height) {
+ export const SPECULAR_GLOSSY = 0.4;
+ export const SPECULAR_DEFAULT = 0.12;
+ export const SPECULAR_MATTE = 0.03;
++// A finish that states its own sheen (the catalogue designs: Gemini's reading of the design's photograph, as one of these five
++// words) is not guessed from its description. The description of a catalogue design always mentions the surface's relief too
++// ("The surface is flat and smooth"), and "flat" is one of the matte words below: a glossy design with a flat relief read as matte.
++const SPECULAR_BY_SHEEN = {
++  matte: SPECULAR_MATTE,
++  satin: SPECULAR_DEFAULT,
++  "semi-gloss": (SPECULAR_DEFAULT + SPECULAR_GLOSSY) / 2,
++  gloss: SPECULAR_GLOSSY,
++  metallic: SPECULAR_GLOSSY,
++};
+ export function specularFor(item) {
+   if (!item) {
+     return SPECULAR_DEFAULT;
+   }
++  const sheen = item.texture && typeof item.texture.sheen === "string" ? item.texture.sheen : "";
++  if (Object.prototype.hasOwnProperty.call(SPECULAR_BY_SHEEN, sheen)) {
++    return SPECULAR_BY_SHEEN[sheen];
++  }
+   const text = [item.name, item.sub, item.about, item.prompt].filter(Boolean).join(" ").toLowerCase();
+   if (/\b(matte|chalk|limewash|flat|honed|brushed|unglazed|suede)\b/.test(text)) {
+     return SPECULAR_MATTE;
+@@ -133,3 +164,104 @@ export function specularFor(item) {
+   }
+   return SPECULAR_DEFAULT;
+ }
++
++// ---------------------------------------------------------------- a texture's size on the wall
++// The real-world size of one tile, in metres, as the preview must repeat it. The studio's own textures state it as
++// texture.tileWidthM / tileHeightM, and the studio's AI brief QUOTES those two numbers to the render model ("Tile repeat scale
++// must match 1.2 m x 0.84 m", swatchroom/public/js/lib/prompts.js). A finish whose size nobody measured (the catalogue designs:
++// a photograph of a sheet, no size on record) therefore states its guess as previewTileWidthM / previewTileHeightM instead, which
++// only the preview reads, so the guess never reaches the render model as a fact.
++// -> { width, height } or null when the finish states no usable size
++export function tileSizeOf(item) {
++  const texture = item && item.texture;
++  if (!texture) {
++    return null;
++  }
++  const width = Number(texture.tileWidthM) || Number(texture.previewTileWidthM);
++  const height = Number(texture.tileHeightM) || Number(texture.previewTileHeightM);
++  return width > 0 && height > 0 && Number.isFinite(width) && Number.isFinite(height) ? { width: width, height: height } : null;
++}
++
++// The part of a picture that fills a tile of the shared size (dstW x dstH) with no distortion: the largest window of the tile's
++// proportions, in the picture's centre ("cover"). The studio's own textures are the tile's proportions already (10:7), so for
++// them this is the whole picture and nothing changes; a photograph of a sheet is portrait (the catalogue's are 800 x 1220), and
++// stretching that into a landscape tile squashed every vein and every grain line to a little over half its height.
++// -> { sx, sy, sw, sh } in the picture's pixels
++export function textureCrop(srcW, srcH, dstW, dstH) {
++  const want = dstW / dstH;
++  const have = srcW / srcH;
++  if (!(srcW > 0 && srcH > 0 && dstW > 0 && dstH > 0) || Math.abs(have - want) < 1e-3) {
++    return { sx: 0, sy: 0, sw: srcW, sh: srcH };
++  }
++  if (have > want) {
++    const sw = Math.round(srcH * want);
++    return { sx: Math.round((srcW - sw) / 2), sy: 0, sw: sw, sh: srcH };
++  }
++  const sh = Math.round(srcW / want);
++  return { sx: 0, sy: Math.round((srcH - sh) / 2), sw: srcW, sh: sh };
++}
++
++// ---------------------------------------------------------------- preparing a photograph of a sheet as a repeating tile
++// The studio's own textures are illustrated swatches made to repeat. A catalogue design's texture is a PHOTOGRAPH of a sheet (the website's
++// pictures live under /media/), and a photograph is not made to repeat: its tone drifts across the sheet (lighting, vignetting), so every tile
++// border is a step in brightness, and the seam repair (renderer.js makeSeamless) turned that step into a dark, blurred grid over the whole wall
++// (seen on the teak and the marble, 2026-11-05). Mirroring the tile hides the step but makes a kaleidoscope of a veined marble, so it is not used.
++export function isPhotographUrl(url) {
++  const path = String(url || "").split(/[?#]/)[0];
++  return /(^|\/)media\//.test(path);
++}
++
++// Removes the slow brightness drift: each colour channel minus its own very blurred version plus its mean, so the average colour of the design is
++// kept and everything finer than about RADIUS x 2.5 pixels (veins, grain, knots, mottling) is left as it was. Three box passes (a close
++// approximation of a Gaussian) whose edges are MIRRORED: a wrap-around blur would see the far end of a brightness ramp next to its start and
++// leave the ramp's two ends exactly as far apart as they were, which is the step that has to go. In place on RGBA bytes; alpha is not touched.
++export const FLATTEN_RADIUS = 40;
++const mirrored = (i, n) => (i < 0 ? -i - 1 : i >= n ? 2 * n - i - 1 : i);
++function boxBlurMirrored(source, width, height, radius) {
++  const temp = new Float32Array(source.length);
++  const out = new Float32Array(source.length);
++  const span = 2 * radius + 1;
++  for (let y = 0; y < height; y += 1) {
++    const row = y * width;
++    let sum = 0;
++    for (let k = -radius; k <= radius; k += 1) {
++      sum += source[row + mirrored(k, width)];
++    }
++    for (let x = 0; x < width; x += 1) {
++      temp[row + x] = sum / span;
++      sum += source[row + mirrored(x + radius + 1, width)] - source[row + mirrored(x - radius, width)];
++    }
++  }
++  for (let x = 0; x < width; x += 1) {
++    let sum = 0;
++    for (let k = -radius; k <= radius; k += 1) {
++      sum += temp[mirrored(k, height) * width + x];
++    }
++    for (let y = 0; y < height; y += 1) {
++      out[y * width + x] = sum / span;
++      sum += temp[mirrored(y + radius + 1, height) * width + x] - temp[mirrored(y - radius, height) * width + x];
++    }
++  }
++  return out;
++}
++export function flattenTone(rgba, width, height, radius) {
++  const r = Math.max(1, Math.min(Math.round(radius || FLATTEN_RADIUS), (Math.min(width, height) >> 1) - 1));
++  const count = width * height;
++  for (let channel = 0; channel < 3; channel += 1) {
++    const plane = new Float32Array(count);
++    let mean = 0;
++    for (let i = 0; i < count; i += 1) {
++      plane[i] = rgba[i * 4 + channel];
++      mean += plane[i];
++    }
++    mean /= count;
++    let blurred = plane;
++    for (let pass = 0; pass < 3; pass += 1) {
++      blurred = boxBlurMirrored(blurred, width, height, r);
++    }
++    for (let i = 0; i < count; i += 1) {
++      rgba[i * 4 + channel] = Math.max(0, Math.min(255, Math.round(plane[i] - (blurred[i] - mean))));
++    }
++  }
++  return rgba;
++}
+diff --git a/swatchroom/public/js/lib/fastrender/previewReason.js b/swatchroom/public/js/lib/fastrender/previewReason.js
+index 7c47679..39fedc5 100644
+--- a/swatchroom/public/js/lib/fastrender/previewReason.js
++++ b/swatchroom/public/js/lib/fastrender/previewReason.js
+@@ -2,6 +2,9 @@
+ // is nothing to preview yet (no surface selected, no finish picked). Pure: no DOM, no GPU, no imports, so it can be tested
+ // and loaded on its own like tiers.js.
+ //
++// OVERLAY COPY (site/overlays/studio/): only the "no-fit" wording differs from the studio's own file, because the outline estimate now also
++// covers doors, furniture and other objects (provisional.js ESTIMATED_KINDS).
++//
+ // Before this, every "no" below was silent: the studio simply showed nothing and the finish only appeared after the AI
+ // render, which read as "the preview works sometimes". The decisions themselves are unchanged (they are tiers.js's and
+ // studio.js's); this only says which one applied. The order is the order the studio would hit them.
+@@ -51,7 +54,7 @@ export function previewReason(input) {
+   if (!i.fit) {
+     return {
+       code: "no-fit",
+-      text: "Instant preview covers walls, floors and ceilings. This surface has no 3D fit, so use Render to see the finish.",
++      text: "Instant preview covers walls, floors, ceilings, doors and furniture. This surface (a window, or one too small to outline) has no fit, so use Render to see the finish.",
+     };
+   }
+   const low = typeof i.lowThreshold === "number" ? i.lowThreshold : 0.3;
 diff --git a/swatchroom/public/js/lib/fastrender/provisional.js b/swatchroom/public/js/lib/fastrender/provisional.js
-index 9583f8f..cd2573c 100644
+index 9583f8f..ed5c8e8 100644
 --- a/swatchroom/public/js/lib/fastrender/provisional.js
 +++ b/swatchroom/public/js/lib/fastrender/provisional.js
-@@ -13,7 +13,7 @@
+@@ -3,7 +3,8 @@
+ // MoGe-2 + Marigold take a while on a cold GPU, and the designer should not stare at a blank photo when they tap a
+ // surface and pick a finish right after the scan. So until the pipeline's result is in (or if it fails), the preview runs
+ // on an ESTIMATE made from the scan alone:
+-//   - each wall / floor / ceiling gets the four corners of its outline (the convex hull's extreme points)
++//   - each wall / floor / ceiling (and, since the catalogue designs are offered on them, each door, piece of furniture and "other"
++//     object: see ESTIMATED_KINDS) gets the four corners of its outline (the convex hull's extreme points)
+ //   - the corners are a perspective view of a rectangle, and with a typical phone camera's field of view the rectangle's
+ //     proportions follow from them (Zhang & He, "Whiteboard scanning and image enhancement", 2007)
+ //   - a standard size is assumed for the real rectangle (a wall is 2.6 m high, a floor or ceiling 4 m across), which fixes
+@@ -13,14 +14,30 @@
  // region instead of a fitted plane, so the same shaders draw both. When the pipeline finishes, the studio swaps the real
  // scene in and the preview sharpens in place. It is marked "flagged" (confidence 0.6) so the studio keeps nudging toward
  // the AI render for the final image, and its sizes are guesses, which is why it is called provisional.
@@ -100,10 +272,34 @@ index 9583f8f..cd2573c 100644
  
  export const ASSUMED_FOV_DEG = 62; // horizontal field of view of a phone's main camera across the photo's long side
  export const WALL_HEIGHT_M = 2.6;
-@@ -213,8 +213,106 @@ function clamp(value, low, high) {
++export const DOOR_HEIGHT_M = 2.1;
++export const FURNITURE_HEIGHT_M = 0.9;
++export const OTHER_HEIGHT_M = 1;
+ export const FLOOR_WIDTH_M = 4;
+ export const PROVISIONAL_CONFIDENCE = 0.6;
+ const MIN_QUAD_AREA_SHARE = 0.25; // of the bounding box, below this the outline is not a four-cornered shape
+ 
++// The kinds of surface the estimate covers. The room's real fit (MoGe-2's plane fit, on the server: swatchroom/server/lib/
++// pipelineRunner.js) covers only the first three, so before this a door, a cabinet or a sofa never had an instant preview, whatever
++// finish was picked. The others are treated as UPRIGHT surfaces: a plane standing on the floor, facing the camera, at the distance
++// of the object's foot. That is exact for a door or a cabinet front and a fair stand-in for a sofa, a bed or a table (the pattern
++// is not foreshortened along a seat or a table top); the estimate is flagged (PROVISIONAL_CONFIDENCE), so the studio keeps pointing
++// to the AI render for the finished picture. A window is not in the list: its finishes add curtains and blinds in front of it.
++export const ESTIMATED_KINDS = ["wall", "floor", "ceiling", "door", "furniture", "other"];
++export function isEstimatedKind(kind) {
++  return ESTIMATED_KINDS.indexOf(kind) !== -1;
++}
++// The assumed real height of an upright surface, used when there is no level-camera prior for it (the four-corner estimate)
++const UPRIGHT_HEIGHT_M = { wall: WALL_HEIGHT_M, door: DOOR_HEIGHT_M, furniture: FURNITURE_HEIGHT_M, other: OTHER_HEIGHT_M };
++
+ export function assumedIntrinsics(width, height) {
+   const longest = Math.max(width, height);
+   const f = longest / (2 * Math.tan((ASSUMED_FOV_DEG * Math.PI) / 360));
+@@ -213,8 +230,110 @@ function clamp(value, low, high) {
    return Math.min(high, Math.max(low, value));
  }
  
+-// -> { homography: [9] (scan px -> metres), widthM, heightM, quad } for one wall / floor / ceiling region
 +// DRAFT: a level-camera prior for floors, ceilings and head-on walls, used instead of the four-corner estimate below.
 +// Why: the four corners are the hull's extreme points. A floor that runs out of the frame on the left and the right (almost
 +// every floor) has a hull that is a plain rectangle, so the estimate was a flat, perspective-free poster 4 m wide (measured:
@@ -161,8 +357,12 @@ index 9583f8f..cd2573c 100644
 +      return null;
 +    }
 +    plane = levelPlane(region.kind, p, intrinsics);
-+  } else if (region.kind === "wall") {
-+    // only a wall that faces the camera: with a level camera, verticals stay vertical for every wall, but the horizontal edges
++  } else if (region.kind === "furniture" || region.kind === "other") {
++    // not a rectangle, so no head-on test: a plane standing on the floor at the row where the object meets it (null when that row
++    // is at or above the horizon: a wall cabinet, a hanging lamp, a camera looking up)
++    plane = wallPlaneFromBase(region.bbox.y1, p, intrinsics);
++  } else if (region.kind === "wall" || region.kind === "door") {
++    // only a wall (or a door in it) that faces the camera: with a level camera, verticals stay vertical for every wall, but the horizontal edges
 +    // of a head-on wall are horizontal in the picture (those of an oblique wall slope toward the horizon). Use the top edge of
 +    // the outline; if that is the picture's own border, the bottom edge; if both are cut off, there is nothing to go on.
 +    const bbox = region.bbox;
@@ -198,7 +398,7 @@ index 9583f8f..cd2573c 100644
 +  return { homography: homography, widthM: Math.abs(corners[1][0] - corners[0][0]), heightM: Math.abs(corners[1][1] - corners[0][1]) };
 +}
 +
- // -> { homography: [9] (scan px -> metres), widthM, heightM, quad } for one wall / floor / ceiling region
++// -> { homography: [9] (scan px -> metres), widthM, heightM, quad } for one region of an estimated kind (ESTIMATED_KINDS)
  export function provisionalRegion(region, scan, intrinsics) {
 +  const prior = priorRegion(region, scan, intrinsics, pitchFor(scan, intrinsics));
 +  if (prior) {
@@ -207,7 +407,18 @@ index 9583f8f..cd2573c 100644
    const bbox = region.bbox;
    let quad = quadFromMask(region.mask, scan.width, scan.height, bbox);
    let aspect;
-@@ -285,6 +383,84 @@ export function boxBlur(source, width, height, radius) {
+@@ -232,8 +351,8 @@ export function provisionalRegion(region, scan, intrinsics) {
+   }
+   let widthM;
+   let heightM;
+-  if (region.kind === "wall") {
+-    heightM = WALL_HEIGHT_M;
++  if (UPRIGHT_HEIGHT_M[region.kind]) {
++    heightM = UPRIGHT_HEIGHT_M[region.kind];
+     widthM = clamp(aspect * heightM, 0.5, 12);
+   } else {
+     widthM = FLOOR_WIDTH_M;
+@@ -285,6 +404,84 @@ export function boxBlur(source, width, height, radius) {
    return out;
  }
  
@@ -282,7 +493,7 @@ index 9583f8f..cd2573c 100644
 +  // outside every surface that will be painted, the old whole-photo blur (those pixels are never drawn)
 +  const out = boxBlur(linear, scan.width, scan.height, Math.max(scan.width, scan.height) * 0.03);
 +  scan.regions.forEach(function (region) {
-+    if ((region.kind === "wall" || region.kind === "floor" || region.kind === "ceiling") && region.areaShare >= 0.004 && region.mask) {
++    if (isEstimatedKind(region.kind) && region.areaShare >= 0.004 && region.mask) {
 +      maskedGuided(linear, region, scan.width, scan.height, out);
 +    }
 +  });
@@ -292,7 +503,16 @@ index 9583f8f..cd2573c 100644
  // ---------------------------------------------------------------- the scene
  // scan: the studio's scan (width, height, labelMap, regions with mask / bbox / kind / id). photo: { luma, linear } from
  // geometry.lumaFromRgba() at the scan's size. -> a scene for renderer.uploadScene(), kind "provisional".
-@@ -313,10 +489,11 @@ export function buildProvisionalScene(scan, photo) {
+@@ -292,7 +489,7 @@ export function buildProvisionalScene(scan, photo) {
+   const intrinsics = assumedIntrinsics(scan.width, scan.height);
+   const fusionRegions = {};
+   scan.regions.forEach(function (region) {
+-    if (region.kind !== "wall" && region.kind !== "floor" && region.kind !== "ceiling") {
++    if (!isEstimatedKind(region.kind)) {
+       return;
+     }
+     if (region.areaShare < 0.004) {
+@@ -313,10 +510,11 @@ export function buildProvisionalScene(scan, photo) {
      fusionRegions: fusionRegions,
      depth: null,
      // the lighting alone: the photo's linear luminance with the surface's own texture blurred out
@@ -306,21 +526,31 @@ index 9583f8f..cd2573c 100644
    };
  }
 diff --git a/swatchroom/public/js/lib/fastrender/renderer.js b/swatchroom/public/js/lib/fastrender/renderer.js
-index 2031777..d96fb2b 100644
+index 2031777..f2aa628 100644
 --- a/swatchroom/public/js/lib/fastrender/renderer.js
 +++ b/swatchroom/public/js/lib/fastrender/renderer.js
-@@ -26,6 +26,7 @@ import { exposureFor, maskedMedian, planeHomography, specularFor } from "./geome
+@@ -21,13 +21,15 @@ import { createRenderDevice } from "./device.js";
+ import { createWebGL2Backend } from "./webgl2.js";
+ import { createWebGPUBackend } from "./webgpu.js";
+ import { createTextureStore } from "./textureStore.js";
+-import { exposureFor, maskedMedian, planeHomography, specularFor } from "./geometry.js";
++import { exposureFor, flattenTone, isPhotographUrl, maskedMedian, planeHomography, specularFor, textureCrop, tileSizeOf } from "./geometry.js";
+ 
  // Every layer of the material texture array must share one size. Half the native 1280x896 textures
  // scripts/build-textures.js writes (same 10:7 aspect, so UV = (U/tileWidthM, V/tileHeightM) samples them with no
  // distortion) - plenty for a tiled, usually-partial-screen surface, at a sixth of the GPU memory.
 +const TINT_STRENGTH = 0.3; // 0.6 overshot (peach floors) on both test photos
  const MATERIAL_TILE_WIDTH = 640;
  const MATERIAL_TILE_HEIGHT = 448;
++const SLOT_FIRST = new Set(["wall", "floor", "ceiling"]);
  // decoded textures kept in memory (1.1 MB each): fewer on a phone
-@@ -43,6 +44,31 @@ async function createBackend(canvas) {
+ const TEXTURE_CACHE_DESKTOP = 48;
+ const TEXTURE_CACHE_PHONE = 24;
+@@ -43,18 +45,66 @@ async function createBackend(canvas) {
    return null;
  }
  
+-// Fetches, decodes and resizes a catalog item's texture to the shared material-array tile size.
 +// DRAFT (experiment): the catalogue's texture PNGs are not seamless (oak planks, teak, herringbone, slate, kota, terrazzo and
 +// checker show a hard seam at every tile border, see out/tile-seams.png). A cheap repair on load: within SEAM_BAND of each border
 +// the tile is cross-faded into a copy of itself shifted by half a tile (which is continuous across those borders). It hides
@@ -346,18 +576,81 @@ index 2031777..d96fb2b 100644
 +  context.putImageData(out, 0, 0);
 +}
 +
- // Fetches, decodes and resizes a catalog item's texture to the shared material-array tile size.
++// A texture's answer that is not a picture of the finish. The website answers a catalogue design's picture it could not read (no
++// database, no signing key, Cloud Storage away) with HTTP 200 and a small SVG tile that prints the design's code, and says so in
++// this header (server/routes/catalogueMedia.js). Tiled over a wall that would be a wall of the words "picture not available".
++function checkTextureResponse(response, url) {
++  const type = String(response.headers.get("Content-Type") || "")
++    .split(";")[0]
++    .trim()
++    .toLowerCase();
++  if (response.headers.get("X-Terucon-Picture") === "unavailable" || (type && !/^image\/(png|jpe?g|webp|avif|gif)$/.test(type))) {
++    throw new Error("The texture at " + url + " is not available right now.");
++  }
++}
++
++// Fetches, decodes and resizes a catalog item's texture to the shared material-array tile size. A picture that is not of the
++// tile's proportions (a photograph of a sheet is portrait) is cropped to them, not stretched (geometry.js textureCrop).
  async function loadMaterialBitmap(url) {
    const response = await fetch(url);
-@@ -55,6 +81,7 @@ async function loadMaterialBitmap(url) {
+   if (!response.ok) {
+     throw new Error("Could not load the texture at " + url + " (" + response.status + ").");
+   }
++  checkTextureResponse(response, url);
+   const blob = await response.blob();
+   const raw = await createImageBitmap(blob);
+   const canvas = new OffscreenCanvas(MATERIAL_TILE_WIDTH, MATERIAL_TILE_HEIGHT);
    const context = canvas.getContext("2d");
-   context.drawImage(raw, 0, 0, MATERIAL_TILE_WIDTH, MATERIAL_TILE_HEIGHT);
+-  context.drawImage(raw, 0, 0, MATERIAL_TILE_WIDTH, MATERIAL_TILE_HEIGHT);
++  const crop = textureCrop(raw.width, raw.height, MATERIAL_TILE_WIDTH, MATERIAL_TILE_HEIGHT);
++  context.drawImage(raw, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, MATERIAL_TILE_WIDTH, MATERIAL_TILE_HEIGHT);
    raw.close();
++  if (isPhotographUrl(url)) {
++    // a photograph of a sheet: take the drift of its light out first, or the seam repair below turns the brightness step at each border into a grid
++    const picture = context.getImageData(0, 0, MATERIAL_TILE_WIDTH, MATERIAL_TILE_HEIGHT);
++    flattenTone(picture.data, MATERIAL_TILE_WIDTH, MATERIAL_TILE_HEIGHT);
++    context.putImageData(picture, 0, 0);
++  }
 +  makeSeamless(context, MATERIAL_TILE_WIDTH, MATERIAL_TILE_HEIGHT);
    return createImageBitmap(canvas);
  }
  
-@@ -185,7 +212,10 @@ export async function createFastRenderer(canvas, options) {
+@@ -97,10 +147,11 @@ export async function createFastRenderer(canvas, options) {
+       const facts = info.get(regionId);
+       const assignment = assignments.get(regionId);
+       const rotation = assignment ? assignment.rotation || 0 : 0;
++      const size = assignment ? tileSizeOf(assignment.item) : null; // setMaterial() only assigns a finish that has one
+       list[slot] = {
+         h: facts.homography,
+-        invTileWidthM: assignment ? 1 / assignment.item.texture.tileWidthM : 0,
+-        invTileHeightM: assignment ? 1 / assignment.item.texture.tileHeightM : 0,
++        invTileWidthM: size ? 1 / size.width : 0,
++        invTileHeightM: size ? 1 / size.height : 0,
+         cosRot: Math.cos(rotation),
+         sinRot: Math.sin(rotation),
+         materialLayer: slot,
+@@ -162,7 +213,19 @@ export async function createFastRenderer(canvas, options) {
+ 
+     const shading = next.shading || new Float32Array(total).fill(1);
+     let nextSlot = 0;
+-    scan.regions.forEach(function (region) {
++    // The shader holds a fixed number of surfaces. A wall, floor or ceiling is the surface people paint, so those take their slots
++    // first: a room with many doors and pieces of furniture must not push a wall out of the preview (stable within each group).
++    const bySlotRank = scan.regions
++      .map(function (region, position) {
++        return { region: region, rank: SLOT_FIRST.has(region.kind) ? 0 : 1, position: position };
++      })
++      .sort(function (a, b) {
++        return a.rank - b.rank || a.position - b.position;
++      })
++      .map(function (entry) {
++        return entry.region;
++      });
++    bySlotRank.forEach(function (region) {
+       const fused = next.fusionRegions[region.id];
+       if (!fused || nextSlot >= backend.maxRegions) {
+         return; // not a surface the geometry covers, or more than the shader holds at once - rare, graceful
+@@ -185,7 +248,10 @@ export async function createFastRenderer(canvas, options) {
        });
      });
  
@@ -368,6 +661,15 @@ index 2031777..d96fb2b 100644
        width: scan.width,
        height: scan.height,
        labelMap: remapLabels(scan),
+@@ -245,7 +311,7 @@ export async function createFastRenderer(canvas, options) {
+   // (motif/rug - always Gemini, see tiers.js). When the texture is already in memory everything happens before this
+   // returns, so the caller can render() in the same frame; otherwise it is fetched first.
+   function setMaterial(regionId, item, rotation) {
+-    if (!slotOf.has(regionId) || !item || !item.texture || !item.texture.url) {
++    if (!slotOf.has(regionId) || !item || !item.texture || !item.texture.url || !tileSizeOf(item)) {
+       return Promise.resolve(false);
+     }
+     const generation = scene;
 diff --git a/swatchroom/public/js/lib/fastrender/shaders/swap.glsl.js b/swatchroom/public/js/lib/fastrender/shaders/swap.glsl.js
 index 79da463..17ab869 100644
 --- a/swatchroom/public/js/lib/fastrender/shaders/swap.glsl.js
@@ -601,10 +903,37 @@ index 8157110..6160165 100644
      labelTexture = createDataTexture(device, "r16uint", width, height);
      depthTexture = createDataTexture(device, "r32float", width, height);
 diff --git a/swatchroom/public/js/lib/previewScene.js b/swatchroom/public/js/lib/previewScene.js
-index b9db834..e99e6c7 100644
+index b9db834..26cff6a 100644
 --- a/swatchroom/public/js/lib/previewScene.js
 +++ b/swatchroom/public/js/lib/previewScene.js
-@@ -73,6 +73,7 @@ export function createSceneComposer(buildProvisional) {
+@@ -8,12 +8,14 @@
+ //   const composer = createSceneComposer(buildProvisionalScene);
+ //   composer.compose(scan, fusedPayloadOrNull, photoLightOrNull, weakBelow)  ->  scene | null
+ //
+-// weakBelow (settings.fusionLowThreshold): a wall / floor / ceiling whose fitted plane scores below it is NOT left without a
++// weakBelow (settings.fusionLowThreshold): a surface (wall / floor / ceiling, door, furniture, other) whose fitted plane scores below it is NOT left without a
+ // preview (the studio used to switch the preview off for it, silently): it gets the outline-based estimate instead, which is
+ // flagged as approximate. Measured with real MoGe-2 depth: a wall with a TV niche scored 0.43 and had no preview at all.
+ //
+ // fused: { kind: "fused", geometryKey, scan, fusionRegions, depth, shading, residual, luma, photoLinear, intrinsics }
+ // photoLight: { luma, linear } at the scan's size, from fastrender/geometry.js lumaFromRgba()
++import { isEstimatedKind } from "./fastrender/provisional.js";
++
+ export function createSceneComposer(buildProvisional) {
+   let provisional = null; // { scan, light, scene }
+   let composed = null; // { fused, scan, light, weakBelow, scene }
+@@ -42,7 +44,9 @@ export function createSceneComposer(buildProvisional) {
+     }
+     // surfaces of THIS scan the fit knows nothing about (outlined or split after the fit): borrow the estimate for them
+     const missing = scan.regions.filter(function (region) {
+-      if (!(region.kind === "wall" || region.kind === "floor" || region.kind === "ceiling") || region.areaShare < 0.004) {
++      // every kind the estimate covers (provisional.js ESTIMATED_KINDS): the real fit knows only wall, floor and ceiling, so a door, a
++      // cabinet or a sofa is always "missing" here and is previewed on the outline estimate
++      if (!isEstimatedKind(region.kind) || region.areaShare < 0.004) {
+         return false;
+       }
+       const fit = fused.fusionRegions[region.id];
+@@ -73,6 +77,7 @@ export function createSceneComposer(buildProvisional) {
        geometryKey: geometryKey,
        luma: fused.luma || (light && light.luma) || null,
        photoLinear: fused.photoLinear || (light && light.linear) || null,

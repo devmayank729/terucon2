@@ -1,0 +1,232 @@
+{
+ "clinic-designs": {
+  "photo": "/media/p04-clinic.jpg",
+  "w": 1536,
+  "h": 1024,
+  "cameraHeightM": 1.4,
+  "note": "The clinic photo with the four kinds of surface a catalogue design is offered on, outlined BY HAND (not by the studio's scan): the right-hand wall, the left glass door, the reception desk's front (a cabinet front) and the sofa (not a plane). The floor is there because the estimate takes the horizon from it. Same caveats as lobby: nothing here is a real scan or a real fit.",
+  "regions": [
+   {
+    "id": "floor",
+    "kind": "floor",
+    "polys": [
+     [
+      [
+       200,
+       1024
+      ],
+      [
+       150,
+       888
+      ],
+      [
+       300,
+       700
+      ],
+      [
+       345,
+       684
+      ],
+      [
+       560,
+       686
+      ],
+      [
+       562,
+       725
+      ],
+      [
+       640,
+       790
+      ],
+      [
+       700,
+       806
+      ],
+      [
+       1000,
+       806
+      ],
+      [
+       1365,
+       772
+      ],
+      [
+       1390,
+       742
+      ],
+      [
+       1480,
+       722
+      ],
+      [
+       1480,
+       650
+      ],
+      [
+       1536,
+       640
+      ],
+      [
+       1536,
+       1024
+      ]
+     ]
+    ],
+    "holes": []
+   },
+   {
+    "id": "wall",
+    "kind": "wall",
+    "polys": [
+     [
+      [
+       1036,
+       128
+      ],
+      [
+       1382,
+       2
+      ],
+      [
+       1382,
+       470
+      ],
+      [
+       1036,
+       470
+      ]
+     ]
+    ],
+    "holes": [
+     [
+      [
+       1228,
+       322
+      ],
+      [
+       1400,
+       322
+      ],
+      [
+       1400,
+       470
+      ],
+      [
+       1228,
+       470
+      ]
+     ]
+    ],
+    "frontalFromFloorY": 725
+   },
+   {
+    "id": "door",
+    "kind": "door",
+    "polys": [
+     [
+      [
+       346,
+       86
+      ],
+      [
+       624,
+       100
+      ],
+      [
+       624,
+       676
+      ],
+      [
+       346,
+       676
+      ]
+     ]
+    ],
+    "holes": []
+   },
+   {
+    "id": "furniture",
+    "kind": "furniture",
+    "polys": [
+     [
+      [
+       563,
+       482
+      ],
+      [
+       1376,
+       470
+      ],
+      [
+       1384,
+       742
+      ],
+      [
+       1365,
+       772
+      ],
+      [
+       1000,
+       806
+      ],
+      [
+       700,
+       806
+      ],
+      [
+       640,
+       790
+      ],
+      [
+       562,
+       725
+      ]
+     ]
+    ],
+    "holes": []
+   },
+   {
+    "id": "sofa",
+    "kind": "furniture",
+    "polys": [
+     [
+      [
+       0,
+       590
+      ],
+      [
+       100,
+       556
+      ],
+      [
+       172,
+       560
+      ],
+      [
+       290,
+       625
+      ],
+      [
+       290,
+       690
+      ],
+      [
+       160,
+       790
+      ],
+      [
+       125,
+       880
+      ],
+      [
+       0,
+       730
+      ]
+     ]
+    ],
+    "holes": []
+   }
+  ]
+ }
+}

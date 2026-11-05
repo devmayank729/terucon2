@@ -180,7 +180,7 @@ t("provisional: quadFromMask() finds the four corners of a trapezoid floor", fun
   assert.ok(quad.bl[0] < 5 && quad.br[0] > 195);
 });
 
-t("CHANGED: provisional: buildProvisionalScene() covers wall / floor / ceiling, marks them flagged, keeps only the lighting (a smoothness bound of 0.03, and a head-on wall is sized by the level-camera guess)", function () {
+t("CHANGED: provisional: buildProvisionalScene() covers wall / floor / ceiling (and, new, door / furniture / other), marks them flagged, keeps only the lighting (a smoothness bound of 0.03, and a head-on wall is sized by the level-camera guess)", function () {
   const W = 160;
   const H = 100;
   const labelMap = new Uint16Array(W * H);
@@ -214,7 +214,8 @@ t("CHANGED: provisional: buildProvisionalScene() covers wall / floor / ceiling, 
   const scene = provisional.buildProvisionalScene(scan, light);
   assert.equal(scene.kind, "provisional");
   const kinds = Object.keys(scene.fusionRegions).map((id) => scan.regions.find((r) => r.id === id).kind).sort();
-  assert.deepEqual(kinds, ["ceiling", "floor", "wall"], "no sofa");
+  // CHANGED (was: ["ceiling", "floor", "wall"], "no sofa"): a sofa is previewed on the outline estimate too (ESTIMATED_KINDS)
+  assert.deepEqual(kinds, ["ceiling", "floor", "furniture", "wall"]);
   Object.values(scene.fusionRegions).forEach(function (r) {
     assert.equal(r.confidence, provisional.PROVISIONAL_CONFIDENCE);
     assert.equal(r.tier, "flagged");
@@ -226,7 +227,9 @@ t("CHANGED: provisional: buildProvisionalScene() covers wall / floor / ceiling, 
   const row = 40 * W;
   let wiggle = 0;
   let flicker = 0;
-  for (let x = 20; x < 140; x += 1) {
+  // CHANGED (was x < 140): the sofa (x from 100) is a surface of its own now and has its own light, so the step where the wall's light
+  // meets the sofa's is not a wiggle of one surface; the wall's own columns (up to 90) are what this checks
+  for (let x = 20; x < 90; x += 1) {
     wiggle = Math.max(wiggle, Math.abs(scene.shading[row + x] - scene.shading[row + x + 1]));
     flicker = Math.max(flicker, Math.abs(light.linear[row + x] - light.linear[row + x + 1]));
   }
@@ -1159,7 +1162,7 @@ t("webgpu: the sampler asks for 8x anisotropy (all three filters linear, which t
 t("textures: the tile is cross-faded into a half-tile-shifted copy of itself near its borders, so a repeating tile has no hard seam, and its middle is untouched", async function () {
   const TW = 640;
   const TH = 448;
-  const source = { pixels: new Uint8ClampedArray(TW * TH * 4), close() {} };
+  const source = { width: TW, height: TH, pixels: new Uint8ClampedArray(TW * TH * 4), close() {} };
   for (let y = 0; y < TH; y += 1) {
     for (let x = 0; x < TW; x += 1) {
       // a smooth picture whose borders do not match: red climbs 0..255 left to right, green 0..255 top to bottom (a hard seam on all four sides when tiled)
@@ -1183,7 +1186,7 @@ t("textures: the tile is cross-faded into a half-tile-shifted copy of itself nea
       };
     }
   };
-  globalThis.fetch = async () => ({ ok: true, status: 200, blob: async () => ({ isBlob: true }) });
+  globalThis.fetch = async () => ({ ok: true, status: 200, headers: new Headers({ "Content-Type": "image/png" }), blob: async () => ({ isBlob: true }) });
   globalThis.createImageBitmap = async (what) => (what && what.isBlob ? source : { pixels: new Uint8ClampedArray(what.pixels), close() {} });
   try {
     const backend = fakeBackend();
@@ -1237,4 +1240,405 @@ t("the studio's own test list is still the one ported here (a new test upstream 
     if (renamed.has(name)) assert.ok(mine.includes('t("' + renamed.get(name)), "ported as CHANGED: " + name);
     else assert.ok(mine.includes("t(" + needle), "not ported: " + name);
   }
+});
+
+// ---------------------------------------------------------------- 8. catalogue designs, and every kind of surface they are offered for (2026-11-05)
+// Before this a catalogue design (a photograph of a sheet, 800 x 1220) had no `texture`, so it could only be rendered by the AI, and a door or a piece
+// of furniture had no fit, so nothing but a wall (floor, ceiling) ever got the instant preview. The studio's own gate for the instant preview is
+// canUseFastRender(true, fit.confidence, item, settings) (swatchroom/public/js/views/studio.js, "instant preview"): both halves are checked below with the
+// studio's own tiers.js and the overlay's previewReason.js, on the scene the website's composer builds.
+const DESIGN_ITEM = (extra) => ({
+  id: "tipl-sb804",
+  name: "Emperador Dark",
+  texture: Object.assign({ url: "/media/materials/tipl-sb804.jpg", previewTileWidthM: 1.22, previewTileHeightM: 0.854, sheen: "gloss" }, extra || {}),
+  prompt: "Apply the design. The surface is flat and smooth to the eye. Its surface is glossy.",
+});
+
+t("textureCrop(): the part of a picture that fills a tile without distortion: the centre window of the tile's proportions", function () {
+  // a catalogue photograph is 800 x 1220 (portrait): the 10:7 window is 800 x 560 in the middle
+  assert.deepEqual(geometry.textureCrop(800, 1220, 640, 448), { sx: 0, sy: 330, sw: 800, sh: 560 });
+  // the studio's own textures are 1280 x 896 = 10:7: the whole picture, nothing changes for them
+  assert.deepEqual(geometry.textureCrop(1280, 896, 640, 448), { sx: 0, sy: 0, sw: 1280, sh: 896 });
+  assert.deepEqual(geometry.textureCrop(640, 448, 640, 448), { sx: 0, sy: 0, sw: 640, sh: 448 });
+  // wider than the tile: a window as tall as the picture, in the middle
+  assert.deepEqual(geometry.textureCrop(2000, 500, 640, 448), { sx: 643, sy: 0, sw: 714, sh: 500 });
+  // the window is never distorted: its proportions are the tile's
+  for (const [w, h] of [[800, 1220], [1000, 1000], [3000, 700], [641, 448]]) {
+    const c = geometry.textureCrop(w, h, 640, 448);
+    assert.ok(Math.abs(c.sw / c.sh - 640 / 448) < 0.01, w + "x" + h + " -> " + JSON.stringify(c));
+    assert.ok(c.sx >= 0 && c.sy >= 0 && c.sx + c.sw <= w && c.sy + c.sh <= h, "inside the picture");
+  }
+  // a picture of no size draws as it is, without a NaN
+  assert.deepEqual(geometry.textureCrop(0, 0, 640, 448), { sx: 0, sy: 0, sw: 0, sh: 0 });
+});
+
+t("tileSizeOf(): the studio's tileWidthM / tileHeightM, else the catalogue's previewTile* guess, else none", function () {
+  assert.deepEqual(geometry.tileSizeOf({ texture: { tileWidthM: 1.6, tileHeightM: 1.12 } }), { width: 1.6, height: 1.12 });
+  assert.deepEqual(geometry.tileSizeOf(DESIGN_ITEM()), { width: 1.22, height: 0.854 });
+  assert.deepEqual(geometry.tileSizeOf({ texture: { tileWidthM: 2, tileHeightM: 1, previewTileWidthM: 9, previewTileHeightM: 9 } }), { width: 2, height: 1 }, "a measured size wins");
+  for (const bad of [null, {}, { texture: {} }, { texture: { url: "/x.png" } }, { texture: { previewTileWidthM: 1.2 } }, { texture: { previewTileWidthM: 0, previewTileHeightM: 1 } }, { texture: { previewTileWidthM: "wide", previewTileHeightM: 1 } }, { texture: { previewTileWidthM: -1, previewTileHeightM: 1 } }]) {
+    assert.equal(geometry.tileSizeOf(bad), null, JSON.stringify(bad));
+  }
+});
+
+t("specularFor(): a design that states its sheen is not guessed from its words (a glossy design with a 'flat' relief read as matte)", function () {
+  // the old guess: "flat" is a matte word and is tested first
+  assert.equal(geometry.specularFor({ name: "x", prompt: "The surface is flat and smooth to the eye. Its surface is glossy." }), geometry.SPECULAR_MATTE);
+  assert.equal(geometry.specularFor(DESIGN_ITEM()), geometry.SPECULAR_GLOSSY, "stated: gloss");
+  assert.equal(geometry.specularFor(DESIGN_ITEM({ sheen: "matte" })), geometry.SPECULAR_MATTE);
+  assert.equal(geometry.specularFor(DESIGN_ITEM({ sheen: "satin" })), geometry.SPECULAR_DEFAULT);
+  assert.equal(geometry.specularFor(DESIGN_ITEM({ sheen: "metallic" })), geometry.SPECULAR_GLOSSY);
+  const semi = geometry.specularFor(DESIGN_ITEM({ sheen: "semi-gloss" }));
+  assert.ok(semi > geometry.SPECULAR_DEFAULT && semi < geometry.SPECULAR_GLOSSY, "semi-gloss sits between satin and gloss: " + semi);
+  // an unknown word, or no sheen at all, falls back to the words as before; the studio's own finishes are untouched
+  assert.equal(geometry.specularFor(DESIGN_ITEM({ sheen: "wet" })), geometry.SPECULAR_MATTE);
+  assert.equal(geometry.specularFor({ name: "Polished marble", texture: { url: "/textures/statuario.png", tileWidthM: 1.6, tileHeightM: 1.12 } }), geometry.SPECULAR_GLOSSY);
+  assert.equal(geometry.specularFor({ name: "Plain" }), geometry.SPECULAR_DEFAULT);
+  assert.equal(geometry.specularFor(null), geometry.SPECULAR_DEFAULT);
+});
+
+t("isPhotographUrl(): the website's pictures (under /media/) are photographs; the studio's own textures (/textures/) are not", function () {
+  for (const url of ["/media/materials/tipl-sb804.jpg", "/media/materials/tipl-sb804.jpg?w=320", "https://example.test/media/materials/x.jpg"]) assert.equal(geometry.isPhotographUrl(url), true, url);
+  for (const url of ["/textures/oak-planks.png", "/textures/media.png", "/js/media.js", "", null, undefined]) assert.equal(geometry.isPhotographUrl(url), false, String(url));
+});
+
+t("toneRadiusOf(): the browser's default radius, or the one the website asks for in the picture's address (0 = none)", function () {
+  assert.equal(geometry.FLATTEN_RADIUS, 40);
+  assert.equal(geometry.toneRadiusOf("/media/materials/tipl-sb804.jpg"), 40);
+  assert.equal(geometry.toneRadiusOf("/media/materials/tipl-sb830.jpg?tone=100"), 100);
+  assert.equal(geometry.toneRadiusOf("/media/materials/x.jpg?w=320&tone=60"), 60);
+  assert.equal(geometry.toneRadiusOf("/media/materials/x.jpg?tone=0"), 0);
+  assert.equal(geometry.toneRadiusOf("/media/materials/x.jpg?tone=9999"), 40, "four digits are not a radius: the default");
+  assert.equal(geometry.toneRadiusOf("/media/materials/x.jpg?tone=900"), 200, "capped");
+  assert.equal(geometry.toneRadiusOf("/media/materials/x.jpg?tonex=5"), 40);
+  assert.equal(geometry.toneRadiusOf(""), 40);
+  assert.equal(geometry.toneRadiusOf(null), 40);
+});
+
+t("flattenTone(): takes the slow brightness drift out of a photograph, keeps its average colour, its fine detail and its alpha", function () {
+  const w = 160;
+  const h = 112;
+  const rgba = new Uint8ClampedArray(w * h * 4);
+  for (let y = 0; y < h; y += 1) {
+    for (let x = 0; x < w; x += 1) {
+      const drift = 60 + (x / (w - 1)) * 100; // 60 -> 160 across the tile: the border step that made the grid
+      const detail = x % 4 < 2 ? 20 : -20; // fine grain, 4 px period
+      const o = (y * w + x) * 4;
+      rgba[o] = drift + detail;
+      rgba[o + 1] = drift * 0.6 + detail;
+      rgba[o + 2] = 40 + detail;
+      rgba[o + 3] = 200;
+    }
+  }
+  // the average of the 4 columns starting at x (one whole period of the grain), so the grain does not enter the comparison
+  const column = (data, x, c) => {
+    let s = 0;
+    for (let y = 0; y < h; y += 1) for (let k = 0; k < 4; k += 1) s += data[(y * w + x + k) * 4 + c];
+    return s / (h * 4);
+  };
+  const mean = (data, c) => {
+    let s = 0;
+    for (let i = 0; i < w * h; i += 1) s += data[i * 4 + c];
+    return s / (w * h);
+  };
+  const before = Uint8ClampedArray.from(rgba);
+  const stepBefore = Math.abs(column(before, 0, 0) - column(before, w - 4, 0));
+  const same = geometry.flattenTone(rgba, w, h, 20);
+  assert.equal(same, rgba, "in place");
+  const stepAfter = Math.abs(column(rgba, 0, 0) - column(rgba, w - 4, 0));
+  assert.ok(stepBefore > 80, "the drift made a step of " + stepBefore.toFixed(0) + " levels where the tile repeats");
+  assert.ok(stepAfter < stepBefore / 3, "after: " + stepAfter.toFixed(0));
+  for (let c = 0; c < 3; c += 1) assert.ok(Math.abs(mean(rgba, c) - mean(before, c)) < 2, "the average of channel " + c + " is kept: " + mean(rgba, c).toFixed(1) + " vs " + mean(before, c).toFixed(1));
+  // the 4 px grain is still there at about its full strength: neighbouring pixels still differ by ~40 levels
+  let contrast = 0;
+  for (let x = 40; x < 120; x += 4) contrast += Math.abs(rgba[(50 * w + x) * 4] - rgba[(50 * w + x + 2) * 4]);
+  assert.ok(contrast / 20 > 30, "the detail survives: " + (contrast / 20).toFixed(1));
+  for (let i = 3; i < rgba.length; i += 4) assert.equal(rgba[i], 200, "alpha untouched");
+  // a flat picture stays flat; a tiny one does not break the radius
+  const flat = new Uint8ClampedArray(8 * 8 * 4).fill(90);
+  geometry.flattenTone(flat, 8, 8, 40);
+  assert.ok(flat.every((v) => v === 90));
+});
+
+// the browser's fetch / createImageBitmap / OffscreenCanvas, faked, to run the REAL texture loader (renderer.js loadMaterialBitmap) on a picture of a given size
+async function withFakeBrowser(picture, run) {
+  const saved = { fetch: globalThis.fetch, createImageBitmap: globalThis.createImageBitmap, OffscreenCanvas: globalThis.OffscreenCanvas };
+  const log = { draws: [], fetched: [], flattened: 0 };
+  globalThis.OffscreenCanvas = class {
+    constructor(w, h) {
+      this.width = w;
+      this.height = h;
+      this.pixels = new Uint8ClampedArray(w * h * 4).fill(128);
+    }
+    getContext() {
+      const canvas = this;
+      return {
+        drawImage: (...args) => log.draws.push(args.slice(1)),
+        getImageData: (x, y, w, h) => ({ width: w, height: h, data: new Uint8ClampedArray(canvas.pixels) }),
+        createImageData: (w, h) => ({ width: w, height: h, data: new Uint8ClampedArray(w * h * 4) }),
+        putImageData: (image) => {
+          canvas.pixels.set(image.data);
+          log.flattened += 1;
+        },
+      };
+    }
+  };
+  globalThis.fetch = async (url) => {
+    log.fetched.push(url);
+    const headers = new Headers(picture.headers || { "Content-Type": "image/jpeg" });
+    return { ok: picture.status ? picture.status < 400 : true, status: picture.status || 200, headers: headers, blob: async () => ({ isBlob: true }) };
+  };
+  globalThis.createImageBitmap = async (what) => (what && what.isBlob ? { width: picture.width, height: picture.height, close() {} } : { width: 640, height: 448, close() {}, canvas: what });
+  try {
+    return await run(log);
+  } finally {
+    for (const [name, value] of Object.entries(saved)) {
+      if (value === undefined) delete globalThis[name];
+      else globalThis[name] = value;
+    }
+  }
+}
+async function loaderRenderer() {
+  const backend = fakeBackend();
+  backend.setMaterialLayer = (index, bitmap, w, h) => (backend.state.layers[index] = { w: w, h: h });
+  const renderer = await rendererModule.createFastRenderer({}, { backend: backend }); // the REAL texture loader
+  return { renderer: renderer, backend: backend };
+}
+
+t("the texture loader crops a portrait photograph to the tile (no stretching), takes the light drift out of a photograph, and leaves the studio's own textures alone", async function () {
+  await withFakeBrowser({ width: 800, height: 1220 }, async (log) => {
+    const { renderer, backend } = await loaderRenderer();
+    const scan = twoSurfaceScan();
+    renderer.uploadScene(sceneFor(scan));
+    const wall = scan.regions.find((r) => r.kind === "wall");
+    assert.equal(await renderer.setMaterial(wall.id, DESIGN_ITEM(), 0), true);
+    assert.deepEqual(log.draws[0], [0, 330, 800, 560, 0, 0, 640, 448], "the middle 800 x 560 of the 800 x 1220 photograph fills the 640 x 448 tile");
+    assert.ok(log.flattened >= 2, "a photograph is flattened and then seam-repaired (two puts)");
+    assert.deepEqual(backend.state.layers[0], { w: 640, h: 448 });
+    const packed = backend.state.regions[0];
+    near(packed.invTileWidthM, 1 / 1.22, "the preview's tile width is the catalogue's guess");
+    near(packed.invTileHeightM, 1 / 0.854, "and its height");
+    assert.equal(packed.specStrength, geometry.SPECULAR_GLOSSY, "the sheen the design states");
+  });
+  await withFakeBrowser({ width: 1280, height: 896 }, async (log) => {
+    const { renderer } = await loaderRenderer();
+    const scan = twoSurfaceScan();
+    renderer.uploadScene(sceneFor(scan));
+    const floor = scan.regions.find((r) => r.kind === "floor");
+    assert.equal(await renderer.setMaterial(floor.id, ITEM("oak"), 0), true);
+    assert.deepEqual(log.draws[0], [0, 0, 1280, 896, 0, 0, 640, 448], "a studio texture (10:7) is drawn whole, as before");
+    assert.equal(log.flattened, 1, "and only seam-repaired (one put), not flattened: it is an illustration made to repeat");
+  });
+  // ?tone=0 asks for no flattening of a photograph; ?tone=100 for a wider one (the pixels are the fake's, so what is counted is whether the step ran)
+  for (const [url, puts] of [["/media/materials/tipl-sb804.jpg?tone=0", 1], ["/media/materials/tipl-sb830.jpg?tone=100", 2]]) {
+    await withFakeBrowser({ width: 800, height: 1220 }, async (log) => {
+      const { renderer } = await loaderRenderer();
+      const scan = twoSurfaceScan();
+      renderer.uploadScene(sceneFor(scan));
+      const wall = scan.regions.find((r) => r.kind === "wall");
+      assert.equal(await renderer.setMaterial(wall.id, DESIGN_ITEM({ url: url }), 0), true);
+      assert.equal(log.flattened, puts, url);
+      assert.equal(log.fetched[0], url, "the address is asked for as it is, tone and all");
+    });
+  }
+});
+
+t("the texture loader refuses a 'picture not available' tile and anything that is not a picture: the finish is not applied and no layer is uploaded", async function () {
+  for (const headers of [{ "Content-Type": "image/svg+xml; charset=utf-8", "X-Terucon-Picture": "unavailable" }, { "Content-Type": "image/svg+xml" }, { "Content-Type": "text/html" }, { "Content-Type": "image/jpeg", "X-Terucon-Picture": "unavailable" }]) {
+    await withFakeBrowser({ width: 320, height: 480, headers: headers }, async () => {
+      const { renderer, backend } = await loaderRenderer();
+      const scan = twoSurfaceScan();
+      renderer.uploadScene(sceneFor(scan));
+      const wall = scan.regions.find((r) => r.kind === "wall");
+      await assert.rejects(renderer.setMaterial(wall.id, DESIGN_ITEM(), 0), /not available right now/, JSON.stringify(headers));
+      assert.equal(backend.state.layers.length, 0, "nothing was uploaded");
+      assert.equal(backend.state.regions.some((r) => r.active), false, "and no finish is active");
+    });
+  }
+  // an HTTP error is refused as before
+  await withFakeBrowser({ width: 1, height: 1, status: 404 }, async () => {
+    const { renderer } = await loaderRenderer();
+    const scan = twoSurfaceScan();
+    renderer.uploadScene(sceneFor(scan));
+    await assert.rejects(renderer.setMaterial(scan.regions[0].id, DESIGN_ITEM(), 0), /404/);
+  });
+});
+
+t("renderer: a finish that states no usable tile size is not applied (no division by zero on the GPU); one with a measured size or a previewTile* size is", async function () {
+  const { renderer, backend } = await makeRenderer();
+  const scan = twoSurfaceScan();
+  renderer.uploadScene(sceneFor(scan));
+  const wall = scan.regions.find((r) => r.kind === "wall");
+  assert.equal(await renderer.setMaterial(wall.id, { id: "x", texture: { url: "/media/materials/x.jpg" } }, 0), false);
+  assert.equal(backend.state.regions.some((r) => r.active), false);
+  assert.equal(await renderer.setMaterial(wall.id, DESIGN_ITEM(), 0), true);
+  const packed = backend.state.regions.find((r) => r.active);
+  assert.ok(Number.isFinite(packed.invTileWidthM) && packed.invTileWidthM > 0);
+  assert.equal(await renderer.setMaterial(wall.id, ITEM("oak"), 0), true, "the studio's own finishes as before");
+});
+
+t("renderer: walls, floors and ceilings take the GPU slots first, so many doors and pieces of furniture cannot push a wall out of the preview", async function () {
+  const backend = fakeBackend();
+  backend.maxRegions = 2;
+  const renderer = await rendererModule.createFastRenderer({}, { backend: backend, loadTexture: async (url) => ({ url: url, close() {} }) });
+  const labelMap = new Uint16Array(W * H);
+  for (let i = 0; i < labelMap.length; i += 1) labelMap[i] = 1 + (i % W < 20 ? 0 : i % W < 40 ? 1 : 2);
+  const scan = regions.scanFromLabelMap(
+    labelMap,
+    [
+      { index: 1, label: "Sofa", kind: "furniture", source: "scene" },
+      { index: 2, label: "Door", kind: "door", source: "scene" },
+      { index: 3, label: "Wall", kind: "wall", source: "scene" },
+    ],
+    W,
+    H,
+  );
+  const scene = { kind: "provisional", scan: scan, fusionRegions: {}, depth: null, shading: null, residual: null, luma: null, intrinsics: { fx: 50, fy: 50, cx: 30, cy: 20 } };
+  scan.regions.forEach((r) => (scene.fusionRegions[r.id] = { homography: [1, 0, 0, 0, 1, 0, 0, 0, 1], confidence: 0.6 }));
+  renderer.uploadScene(scene);
+  const wall = scan.regions.find((r) => r.kind === "wall");
+  assert.equal(renderer.hasRegion(wall.id), true, "the wall has its slot although the sofa and the door come first in the scan");
+  assert.equal(scan.regions.filter((r) => renderer.hasRegion(r.id)).length, 2, "the shader holds two here: the wall and the first of the others");
+  assert.equal(renderer.hasRegion(scan.regions.find((r) => r.kind === "furniture").id), true);
+  assert.equal(renderer.hasRegion(scan.regions.find((r) => r.kind === "door").id), false);
+});
+
+// scans with the kinds a design is offered on, outlined as rectangles: a floor, a head-on wall, a door standing on the floor, a cabinet, a window
+function roomScan() {
+  const intr = provisional.assumedIntrinsics(PRIOR_W, PRIOR_H);
+  const floor = shapeRegion("floor", 0, 70, PRIOR_W, PRIOR_H);
+  const wall = shapeRegion("wall", 10, 15, 110, 70);
+  const door = shapeRegion("door", 20, 20, 50, 70);
+  const cabinet = shapeRegion("furniture", 60, 45, 105, 70);
+  const other = shapeRegion("other", 115, 50, 135, 70);
+  const window = shapeRegion("window", 70, 20, 100, 40);
+  const scan = { width: PRIOR_W, height: PRIOR_H, labelMap: new Uint16Array(PRIOR_W * PRIOR_H), regions: [floor, wall, door, cabinet, other, window] };
+  return { intr: intr, scan: scan, floor: floor, wall: wall, door: door, cabinet: cabinet, other: other, window: window };
+}
+const flatLight = () => ({ luma: new Float32Array(PRIOR_W * PRIOR_H).fill(0.5), linear: new Float32Array(PRIOR_W * PRIOR_H).fill(0.3) });
+
+t("provisional: a door, a piece of furniture and an 'other' object get an upright plane standing on the floor where they meet it; a window gets none", function () {
+  const { intr, scan, door, cabinet, other, window } = roomScan();
+  assert.deepEqual(provisional.ESTIMATED_KINDS, ["wall", "floor", "ceiling", "door", "furniture", "other"]);
+  for (const kind of provisional.ESTIMATED_KINDS) assert.equal(provisional.isEstimatedKind(kind), true, kind);
+  for (const kind of ["window", "", undefined, "wardrobe"]) assert.equal(provisional.isEstimatedKind(kind), false, String(kind));
+  const distance = (provisional.CAMERA_HEIGHT_M * intr.fy) / (70 - intr.cy); // the row where the object's foot is
+  for (const region of [door, cabinet, other]) {
+    const fit = provisional.provisionalRegion(region, scan, intr);
+    assert.equal(fit.quad, undefined, region.kind + ": the level-camera guess, not the four-corner estimate");
+    [[region.bbox.x0 + 2, region.bbox.y0 + 3], [Math.floor((region.bbox.x0 + region.bbox.x1) / 2), 60], [region.bbox.x1 - 2, 69]].forEach(function ([x, y]) {
+      const [u, v] = geometry.applyHomography(fit.homography, x, y);
+      const [wu, wv] = onHeadOnWall(x, y, intr, 0, distance);
+      near(u, wu, region.kind + " u at " + x + "," + y);
+      near(v, wv, region.kind + " v at " + x + "," + y);
+    });
+    assert.ok(fit.widthM > 0 && fit.heightM > 0, region.kind + " has a size");
+  }
+  // the scene: every kind but the window, flagged, finite
+  const scene = provisional.buildProvisionalScene(scan, flatLight());
+  assert.deepEqual(Object.keys(scene.fusionRegions).sort(), ["cabinetless"].slice(1).concat(["door", "floor", "furniture", "other", "wall"]).sort());
+  assert.equal(scene.fusionRegions.window, undefined, "a window's finishes add curtains and blinds in front of it: no texture swap");
+  Object.values(scene.fusionRegions).forEach((r) => {
+    assert.equal(r.tier, "flagged");
+    assert.equal(r.confidence, provisional.PROVISIONAL_CONFIDENCE);
+    assert.ok(r.homography.every(Number.isFinite));
+  });
+  void window;
+});
+
+t("provisional: an upright object with no floor under it (a wall cabinet, or a slanted door) falls back to the four-corner estimate and an assumed height", function () {
+  const { intr, scan, floor } = roomScan();
+  const hanging = shapeRegion("furniture", 60, 5, 105, 30); // its foot is above the horizon (row 50): there is no floor under it
+  scan.regions = [floor, hanging];
+  const fitHanging = provisional.provisionalRegion(hanging, scan, intr);
+  assert.ok(fitHanging.quad, "no level-camera guess");
+  assert.equal(fitHanging.heightM, provisional.FURNITURE_HEIGHT_M);
+  assert.ok(fitHanging.widthM >= 0.5 && fitHanging.widthM <= 12);
+  const slanted = shapeRegion("door", 20, 20, 90, 70, (x) => 20 + ((x - 20) / 70) * 25); // seen at an angle: its top edge slopes
+  scan.regions = [floor, slanted];
+  const fitSlanted = provisional.provisionalRegion(slanted, scan, intr);
+  assert.ok(fitSlanted.quad, "the four-corner estimate of a rectangle seen at an angle");
+  assert.equal(fitSlanted.heightM, provisional.DOOR_HEIGHT_M, "a door is 2.1 m, not the 2.6 m of a wall");
+  assert.equal(provisional.DOOR_HEIGHT_M, 2.1);
+  assert.equal(provisional.FURNITURE_HEIGHT_M, 0.9);
+  assert.equal(provisional.OTHER_HEIGHT_M, 1);
+});
+
+t("regionShading(): every kind the estimate covers gets its own light read inside it (a door or a cabinet next to a bright window)", function () {
+  const w = 120;
+  const h = 80;
+  const linear = new Float32Array(w * h);
+  for (let y = 0; y < h; y += 1) for (let x = 0; x < w; x += 1) linear[y * w + x] = x < 60 ? 0.2 : 6.0;
+  for (const kind of ["door", "furniture", "other"]) {
+    const mask = new Uint8Array(w * h);
+    for (let y = 0; y < h; y += 1) for (let x = 0; x < 60; x += 1) mask[y * w + x] = 1;
+    const scan = singleRegionScan(w, h, kind, mask);
+    const shading = provisional.regionShading(scan, linear);
+    let leak = 0;
+    for (let y = 0; y < h; y += 1) for (let x = 0; x < 60; x += 1) leak = Math.max(leak, Math.abs(shading[y * w + x] - 0.2));
+    assert.ok(leak < 1e-4, kind + ": the light inside is its own, not the window's: " + leak);
+  }
+});
+
+t("the website's composer: the room's real fit knows only wall / floor / ceiling, so a door, a cabinet and an 'other' object borrow the estimate (and a window does not)", function () {
+  const { scan, floor, wall } = roomScan();
+  const light = flatLight();
+  const composer = composerModule.createSceneComposer(provisional.buildProvisionalScene);
+  const fitFor = (r) => ({ confidence: 0.9, plane: { origin: [0, 0, 5], normal: [0, 0, -1], u: [1, 0, 0], v: [0, 1, 0] } });
+  const fused = { kind: "fused", geometryKey: "fused-1", scan: scan, fusionRegions: { floor: fitFor(floor), wall: fitFor(wall) }, depth: null, shading: new Float32Array(PRIOR_W * PRIOR_H).fill(0.5), residual: null, luma: light.luma, photoLinear: light.linear, intrinsics: provisional.assumedIntrinsics(PRIOR_W, PRIOR_H) };
+  const scene = composer.compose(scan, fused, light, 0.3);
+  assert.equal(scene.kind, "fused");
+  assert.deepEqual(Object.keys(scene.fusionRegions).sort(), ["door", "floor", "furniture", "other", "wall"]);
+  assert.equal(scene.fusionRegions.floor, fused.fusionRegions.floor, "the real fits are kept as they are");
+  assert.equal(scene.fusionRegions.wall, fused.fusionRegions.wall);
+  assert.equal(scene.fusionRegions.door.provisional, true, "the estimates are marked");
+  assert.equal(scene.fusionRegions.furniture.confidence, provisional.PROVISIONAL_CONFIDENCE);
+  assert.match(scene.geometryKey, /^fused-1\+door,furniture,other$/);
+  assert.equal(composer.compose(scan, fused, light, 0.3), scene, "the same inputs give the same object (the stage uploads once)");
+});
+
+t("the studio's gate for the instant preview accepts a catalogue design on a door, a cabinet and a wall, with no reason given, and still refuses what cannot be a texture swap", function () {
+  const { scan } = roomScan();
+  const light = flatLight();
+  const composer = composerModule.createSceneComposer(provisional.buildProvisionalScene);
+  const scene = composer.compose(scan, null, light, 0.3); // the first seconds, before the room is analysed: the estimate for everything
+  const settings = { fusionLowThreshold: 0.3, fusionHighThreshold: 0.7, renderEngine: "auto" };
+  const item = DESIGN_ITEM();
+  const reasonFor = (region, it, fit) =>
+    reasonModule.previewReason({ engineOff: false, selectedCount: 1, hasSurface: true, hasItem: true, busy: false, hasScene: true, itemHasTexture: require_tiers.canFastRenderItem(it), fit: fit === undefined ? scene.fusionRegions[region.id] : fit, lowThreshold: settings.fusionLowThreshold, rendererFailed: false });
+  for (const kind of ["wall", "door", "furniture", "other"]) {
+    const region = scan.regions.find((r) => r.kind === kind);
+    const fit = scene.fusionRegions[region.id];
+    assert.ok(fit, kind + " has a fit");
+    assert.equal(require_tiers.canUseFastRender(true, fit.confidence, item, settings), true, kind + ": canUseFastRender");
+    assert.equal(reasonFor(region, item), null, kind + ": the studio gives no reason, because it draws");
+    assert.equal(require_tiers.shouldNudgeForPolish(true, fit.confidence, item, settings), true, kind + ": the estimate is flagged, so the studio keeps pointing to Render");
+  }
+  // a window has no fit: the studio says so, in words that are true now
+  const win = scan.regions.find((r) => r.kind === "window");
+  assert.equal(scene.fusionRegions[win.id], undefined);
+  const noFit = reasonFor(win, item, undefined);
+  assert.equal(noFit.code, "no-fit");
+  assert.match(noFit.text, /walls, floors, ceilings, doors and furniture/);
+  assert.doesNotMatch(noFit.text, /3D fit/);
+  // an item that adds or removes an object (a rug, a door style, Remove) has no texture: Render only, with the studio's own sentence
+  const wall = scan.regions.find((r) => r.kind === "wall");
+  const motif = { id: "door-shaker", name: "Shaker door" };
+  assert.equal(require_tiers.canUseFastRender(true, 0.6, motif, settings), false);
+  assert.equal(reasonFor(wall, motif).code, "no-texture");
+  // a design whose picture could not be given a texture by the server (no `texture` field) is as before: Render only
+  const bare = { id: "tipl-x", name: "X" };
+  assert.equal(require_tiers.canUseFastRender(true, 0.6, bare, settings), false);
+});
+
+t("the AI render of a catalogue design is NOT told the preview's guessed tile size: the studio quotes tileWidthM / tileHeightM to the model, and a design states previewTile* only", async function () {
+  const prompts = await load("lib/prompts.js");
+  const geometryFacts = { widthM: 3, heightM: 2.5, orientation: "tall", normal: [0, 0, -1], distanceM: 4, fovDeg: 62, focalPxImage: 900, previewShown: true };
+  const lines = prompts.geometryLines({ geometry: geometryFacts, item: DESIGN_ITEM() }).join("\n");
+  assert.doesNotMatch(lines, /Tile repeat scale must match/, "no invented repeat size in the brief");
+  assert.doesNotMatch(lines, /1\.22/);
+  assert.match(lines, /Size the pattern, joints and details from these real dimensions/);
+  // the studio's own finishes are quoted as before
+  const own = prompts.geometryLines({ geometry: geometryFacts, item: ITEM("oak") }).join("\n");
+  assert.match(own, /Tile repeat scale must match 0\.6 m x 0\.4 m/);
 });

@@ -8,12 +8,14 @@
 //   const composer = createSceneComposer(buildProvisionalScene);
 //   composer.compose(scan, fusedPayloadOrNull, photoLightOrNull, weakBelow)  ->  scene | null
 //
-// weakBelow (settings.fusionLowThreshold): a wall / floor / ceiling whose fitted plane scores below it is NOT left without a
+// weakBelow (settings.fusionLowThreshold): a surface (wall / floor / ceiling, door, furniture, other) whose fitted plane scores below it is NOT left without a
 // preview (the studio used to switch the preview off for it, silently): it gets the outline-based estimate instead, which is
 // flagged as approximate. Measured with real MoGe-2 depth: a wall with a TV niche scored 0.43 and had no preview at all.
 //
 // fused: { kind: "fused", geometryKey, scan, fusionRegions, depth, shading, residual, luma, photoLinear, intrinsics }
 // photoLight: { luma, linear } at the scan's size, from fastrender/geometry.js lumaFromRgba()
+import { isEstimatedKind } from "./fastrender/provisional.js";
+
 export function createSceneComposer(buildProvisional) {
   let provisional = null; // { scan, light, scene }
   let composed = null; // { fused, scan, light, weakBelow, scene }
@@ -42,7 +44,9 @@ export function createSceneComposer(buildProvisional) {
     }
     // surfaces of THIS scan the fit knows nothing about (outlined or split after the fit): borrow the estimate for them
     const missing = scan.regions.filter(function (region) {
-      if (!(region.kind === "wall" || region.kind === "floor" || region.kind === "ceiling") || region.areaShare < 0.004) {
+      // every kind the estimate covers (provisional.js ESTIMATED_KINDS): the real fit knows only wall, floor and ceiling, so a door, a
+      // cabinet or a sofa is always "missing" here and is previewed on the outline estimate
+      if (!isEstimatedKind(region.kind) || region.areaShare < 0.004) {
         return false;
       }
       const fit = fused.fusionRegions[region.id];

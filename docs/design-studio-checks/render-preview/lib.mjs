@@ -33,8 +33,9 @@ export function chromePath() {
  * serves it (the overlay's file when there is one, else the studio's), /textures and /media are the studio's textures and the site's
  * photos, /h/ is the harness page. `port` 0 lets the system choose.
  */
-export function startHarnessServer({ port = 0 } = {}) {
+export function startHarnessServer({ port = 0, extraMaps = [] } = {}) {
   const maps = [
+    ...extraMaps, // e.g. ['/media/materials/', [folder]]: the catalogue designs' photographs at the address the website serves them (design-check.mjs)
     ['/real/', [STUDIO_MODULES]],
     ['/overlay/', [OVERLAY_MODULES, STUDIO_MODULES]],
     ['/textures/', [path.join(REPO, 'swatchroom', 'public', 'textures')]],

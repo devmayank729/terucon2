@@ -2,7 +2,7 @@
  * Catalogue search (targets C3, C4, C7, C5; the admin's upload is D1): find materials in a real catalogue by photo, colour or words.
  *
  *   GET  /api/catalogue/status         {enabled, ready, reasons, default, catalogues, limits, profile}   cheap, remembered 10 seconds
- *   GET  /api/catalogue/studio-finishes  {group, kinds, finishes: [{id, code, name, sub, about, prompt, hex, image}], state: ok|off|unavailable}   the designs as finishes of the Design Studio
+ *   GET  /api/catalogue/studio-finishes  {group, kinds, finishes: [{id, code, name, sub, about, prompt, hex, image, texture}], state: ok|off|unavailable}   the designs as finishes of the Design Studio
  *   POST /api/catalogue/warm           202 {ok: true}   wake the search service; nobody waits for it
  *   POST /api/catalogue/search         the body is the photo itself (image/jpeg, image/png or image/webp, at most 6 MB)
  *                                      ?catalogue=&mode=look|colour&k=1..20&point=x,y&radius=&box=x0,y0,x1,y1&category=&finish=

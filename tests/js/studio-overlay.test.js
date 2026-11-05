@@ -13,7 +13,7 @@ import { OVERLAY_HEADER, OVERLAY_NAME, listFiles, studioOverlay } from '../../se
 import { COMMAND, currentHashes, problems, readManifest } from '../../tools/studio-overlay-manifest.js';
 
 // The instant preview's quality overlay (site/overlays/studio/, docs/DESIGN_STUDIO_ARCHITECTURE.md section 12): improved copies of
-// 8 of the studio's browser files, served ahead of the studio's own so that swatchroom/ (the copy of the user's project) is not edited.
+// 9 of the studio's browser files, served ahead of the studio's own so that swatchroom/ (the copy of the user's project) is not edited.
 // This file is the guard. (a) the studio still is what the overlay was merged with, (b) the right bytes go out with the right headers,
 // switch included, (c) is tests/js/studio-overlay-behaviour.test.js. To remove the overlay for good: delete site/overlays/studio/
 // (these tests then skip themselves), the lines in app.js that mention the overlay, and this file with its sibling.
@@ -34,9 +34,9 @@ test('the manifest covers EVERY file of fastrender/ and previewScene.js, and eve
   const manifest = readManifest(PROJECT_ROOT);
   const onDisk = listFiles(path.join(STUDIO_PUBLIC, 'js', 'lib', 'fastrender')).map((f) => `js/lib/fastrender/${f}`).concat('js/lib/previewScene.js').sort();
   assert.deepEqual(Object.keys(manifest.upstream).sort(), onDisk, 'the manifest lists exactly the files that are there');
-  assert.ok(onDisk.length >= 14, `the unchanged ones too (sizing, tiers, lru, device, textureStore, previewReason): ${onDisk.length} files`);
+  assert.ok(onDisk.length >= 14, `the unchanged ones too (sizing, tiers, lru, device, textureStore): ${onDisk.length} files`);
   for (const file of Object.keys(manifest.overlay)) assert.ok(file in manifest.upstream, `${file}: an overlaid file must replace a studio file of the same address`);
-  assert.equal(Object.keys(manifest.overlay).length, 8);
+  assert.equal(Object.keys(manifest.overlay).length, 9);
   for (const hash of [...Object.values(manifest.upstream), ...Object.values(manifest.overlay)]) assert.match(hash, /^[0-9a-f]{64}$/);
 });
 
@@ -122,7 +122,7 @@ test('hidden files (.DS_Store, which Finder drops into any folder it opens) are 
     assert.deepEqual(problems(tree.root), [], 'a stray .DS_Store breaks nothing');
     assert.ok(!Object.keys(currentHashes(tree.root).overlay).some((f) => f.includes('.DS_Store')));
     const overlay = studioOverlay({ root: tree.root });
-    assert.ok(overlay.files.length === 8 && !overlay.files.some((f) => f.includes('.DS_Store')), 'and none is an overlaid address: ' + overlay.files.join(' '));
+    assert.ok(overlay.files.length === 9 && !overlay.files.some((f) => f.includes('.DS_Store')), 'and none is an overlaid address: ' + overlay.files.join(' '));
   } finally {
     tree.remove();
   }
@@ -204,7 +204,7 @@ const manifest = present ? readManifest(PROJECT_ROOT) : null;
 const OVERLAID = present ? Object.keys(manifest.overlay) : [];
 
 test('the overlaid addresses answer with the overlay\'s bytes, the studio\'s policy and their own marker; compressed they decode to the same bytes', { skip }, async () => {
-  assert.equal(OVERLAID.length, 8);
+  assert.equal(OVERLAID.length, 9);
   assert.deepEqual(served.app.locals.terucon.studioOverlay.files, OVERLAID.map((f) => `/${f}`).sort());
   const reference = await get('/js/lib/fastrender/sizing.js');
   for (const file of OVERLAID) {
@@ -233,7 +233,7 @@ test('the overlaid addresses answer with the overlay\'s bytes, the studio\'s pol
 
 test('every other studio file still comes from swatchroom/, byte for byte, with the same kind of headers and no marker', { skip }, async () => {
   const sample = await get(`/${OVERLAID[0]}`);
-  const files = ['js/lib/fastrender/sizing.js', 'js/lib/fastrender/tiers.js', 'js/lib/fastrender/lru.js', 'js/lib/fastrender/textureStore.js', 'js/lib/fastrender/previewReason.js', 'js/lib/fastrender/device.js',
+  const files = ['js/lib/fastrender/sizing.js', 'js/lib/fastrender/tiers.js', 'js/lib/fastrender/lru.js', 'js/lib/fastrender/textureStore.js', 'js/lib/fastrender/device.js',
     'js/views/stage.js', 'js/views/studio.js', 'js/lib/regions.js', 'js/lib/geometryFacts.js', 'js/swatchroom-app.js'];
   for (const file of files) {
     assert.ok(!OVERLAID.includes(file), file);

@@ -63,7 +63,7 @@ try {
         else check(false, `/${file}: status ${r.status}, marker ${marker}, cache-control ${r.headers.get('cache-control')}, sha ${sha(bytes).slice(0, 12)} (wanted ${expected.slice(0, 12)})`);
       }
       check(overlaid + studios === files.length, `${files.length} module addresses answered: ${overlaid} from the overlay (with the marker), ${studios} the studio's own (no marker), all with Cache-Control: no-cache`);
-      check(mode === 'on' ? overlaid === Object.keys(manifest.overlay).length : overlaid === 0, mode === 'on' ? 'all 8 overlaid files came from the overlay' : 'none came from the overlay');
+      check(mode === 'on' ? overlaid === Object.keys(manifest.overlay).length : overlaid === 0, mode === 'on' ? `all ${Object.keys(manifest.overlay).length} overlaid files came from the overlay` : 'none came from the overlay');
 
       // 2. the studio boots
       const page = await browser.newPage();

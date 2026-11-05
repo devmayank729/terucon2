@@ -3,7 +3,8 @@
 // MoGe-2 + Marigold take a while on a cold GPU, and the designer should not stare at a blank photo when they tap a
 // surface and pick a finish right after the scan. So until the pipeline's result is in (or if it fails), the preview runs
 // on an ESTIMATE made from the scan alone:
-//   - each wall / floor / ceiling gets the four corners of its outline (the convex hull's extreme points)
+//   - each wall / floor / ceiling (and, since the catalogue designs are offered on them, each door, piece of furniture and "other"
+//     object: see ESTIMATED_KINDS) gets the four corners of its outline (the convex hull's extreme points)
 //   - the corners are a perspective view of a rectangle, and with a typical phone camera's field of view the rectangle's
 //     proportions follow from them (Zhang & He, "Whiteboard scanning and image enhancement", 2007)
 //   - a standard size is assumed for the real rectangle (a wall is 2.6 m high, a floor or ceiling 4 m across), which fixes
@@ -17,9 +18,25 @@ import { applyHomography, planeHomography } from "./geometry.js";
 
 export const ASSUMED_FOV_DEG = 62; // horizontal field of view of a phone's main camera across the photo's long side
 export const WALL_HEIGHT_M = 2.6;
+export const DOOR_HEIGHT_M = 2.1;
+export const FURNITURE_HEIGHT_M = 0.9;
+export const OTHER_HEIGHT_M = 1;
 export const FLOOR_WIDTH_M = 4;
 export const PROVISIONAL_CONFIDENCE = 0.6;
 const MIN_QUAD_AREA_SHARE = 0.25; // of the bounding box, below this the outline is not a four-cornered shape
+
+// The kinds of surface the estimate covers. The room's real fit (MoGe-2's plane fit, on the server: swatchroom/server/lib/
+// pipelineRunner.js) covers only the first three, so before this a door, a cabinet or a sofa never had an instant preview, whatever
+// finish was picked. The others are treated as UPRIGHT surfaces: a plane standing on the floor, facing the camera, at the distance
+// of the object's foot. That is exact for a door or a cabinet front and a fair stand-in for a sofa, a bed or a table (the pattern
+// is not foreshortened along a seat or a table top); the estimate is flagged (PROVISIONAL_CONFIDENCE), so the studio keeps pointing
+// to the AI render for the finished picture. A window is not in the list: its finishes add curtains and blinds in front of it.
+export const ESTIMATED_KINDS = ["wall", "floor", "ceiling", "door", "furniture", "other"];
+export function isEstimatedKind(kind) {
+  return ESTIMATED_KINDS.indexOf(kind) !== -1;
+}
+// The assumed real height of an upright surface, used when there is no level-camera prior for it (the four-corner estimate)
+const UPRIGHT_HEIGHT_M = { wall: WALL_HEIGHT_M, door: DOOR_HEIGHT_M, furniture: FURNITURE_HEIGHT_M, other: OTHER_HEIGHT_M };
 
 export function assumedIntrinsics(width, height) {
   const longest = Math.max(width, height);
@@ -270,8 +287,12 @@ function priorRegion(region, scan, intrinsics, p) {
       return null;
     }
     plane = levelPlane(region.kind, p, intrinsics);
-  } else if (region.kind === "wall") {
-    // only a wall that faces the camera: with a level camera, verticals stay vertical for every wall, but the horizontal edges
+  } else if (region.kind === "furniture" || region.kind === "other") {
+    // not a rectangle, so no head-on test: a plane standing on the floor at the row where the object meets it (null when that row
+    // is at or above the horizon: a wall cabinet, a hanging lamp, a camera looking up)
+    plane = wallPlaneFromBase(region.bbox.y1, p, intrinsics);
+  } else if (region.kind === "wall" || region.kind === "door") {
+    // only a wall (or a door in it) that faces the camera: with a level camera, verticals stay vertical for every wall, but the horizontal edges
     // of a head-on wall are horizontal in the picture (those of an oblique wall slope toward the horizon). Use the top edge of
     // the outline; if that is the picture's own border, the bottom edge; if both are cut off, there is nothing to go on.
     const bbox = region.bbox;
@@ -307,7 +328,7 @@ function priorRegion(region, scan, intrinsics, p) {
   return { homography: homography, widthM: Math.abs(corners[1][0] - corners[0][0]), heightM: Math.abs(corners[1][1] - corners[0][1]) };
 }
 
-// -> { homography: [9] (scan px -> metres), widthM, heightM, quad } for one wall / floor / ceiling region
+// -> { homography: [9] (scan px -> metres), widthM, heightM, quad } for one region of an estimated kind (ESTIMATED_KINDS)
 export function provisionalRegion(region, scan, intrinsics) {
   const prior = priorRegion(region, scan, intrinsics, pitchFor(scan, intrinsics));
   if (prior) {
@@ -330,8 +351,8 @@ export function provisionalRegion(region, scan, intrinsics) {
   }
   let widthM;
   let heightM;
-  if (region.kind === "wall") {
-    heightM = WALL_HEIGHT_M;
+  if (UPRIGHT_HEIGHT_M[region.kind]) {
+    heightM = UPRIGHT_HEIGHT_M[region.kind];
     widthM = clamp(aspect * heightM, 0.5, 12);
   } else {
     widthM = FLOOR_WIDTH_M;
@@ -454,7 +475,7 @@ export function regionShading(scan, linear) {
   // outside every surface that will be painted, the old whole-photo blur (those pixels are never drawn)
   const out = boxBlur(linear, scan.width, scan.height, Math.max(scan.width, scan.height) * 0.03);
   scan.regions.forEach(function (region) {
-    if ((region.kind === "wall" || region.kind === "floor" || region.kind === "ceiling") && region.areaShare >= 0.004 && region.mask) {
+    if (isEstimatedKind(region.kind) && region.areaShare >= 0.004 && region.mask) {
       maskedGuided(linear, region, scan.width, scan.height, out);
     }
   });
@@ -468,7 +489,7 @@ export function buildProvisionalScene(scan, photo) {
   const intrinsics = assumedIntrinsics(scan.width, scan.height);
   const fusionRegions = {};
   scan.regions.forEach(function (region) {
-    if (region.kind !== "wall" && region.kind !== "floor" && region.kind !== "ceiling") {
+    if (!isEstimatedKind(region.kind)) {
       return;
     }
     if (region.areaShare < 0.004) {

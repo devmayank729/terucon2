@@ -21,7 +21,7 @@ import { createRenderDevice } from "./device.js";
 import { createWebGL2Backend } from "./webgl2.js";
 import { createWebGPUBackend } from "./webgpu.js";
 import { createTextureStore } from "./textureStore.js";
-import { exposureFor, maskedMedian, planeHomography, specularFor } from "./geometry.js";
+import { exposureFor, flattenTone, isPhotographUrl, maskedMedian, planeHomography, specularFor, textureCrop, tileSizeOf, toneRadiusOf } from "./geometry.js";
 
 // Every layer of the material texture array must share one size. Half the native 1280x896 textures
 // scripts/build-textures.js writes (same 10:7 aspect, so UV = (U/tileWidthM, V/tileHeightM) samples them with no
@@ -29,6 +29,7 @@ import { exposureFor, maskedMedian, planeHomography, specularFor } from "./geome
 const TINT_STRENGTH = 0.3; // 0.6 overshot (peach floors) on both test photos
 const MATERIAL_TILE_WIDTH = 640;
 const MATERIAL_TILE_HEIGHT = 448;
+const SLOT_FIRST = new Set(["wall", "floor", "ceiling"]);
 // decoded textures kept in memory (1.1 MB each): fewer on a phone
 const TEXTURE_CACHE_DESKTOP = 48;
 const TEXTURE_CACHE_PHONE = 24;
@@ -69,18 +70,41 @@ function makeSeamless(context, w, h) {
   context.putImageData(out, 0, 0);
 }
 
-// Fetches, decodes and resizes a catalog item's texture to the shared material-array tile size.
+// A texture's answer that is not a picture of the finish. The website answers a catalogue design's picture it could not read (no
+// database, no signing key, Cloud Storage away) with HTTP 200 and a small SVG tile that prints the design's code, and says so in
+// this header (server/routes/catalogueMedia.js). Tiled over a wall that would be a wall of the words "picture not available".
+function checkTextureResponse(response, url) {
+  const type = String(response.headers.get("Content-Type") || "")
+    .split(";")[0]
+    .trim()
+    .toLowerCase();
+  if (response.headers.get("X-Terucon-Picture") === "unavailable" || (type && !/^image\/(png|jpe?g|webp|avif|gif)$/.test(type))) {
+    throw new Error("The texture at " + url + " is not available right now.");
+  }
+}
+
+// Fetches, decodes and resizes a catalog item's texture to the shared material-array tile size. A picture that is not of the
+// tile's proportions (a photograph of a sheet is portrait) is cropped to them, not stretched (geometry.js textureCrop).
 async function loadMaterialBitmap(url) {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error("Could not load the texture at " + url + " (" + response.status + ").");
   }
+  checkTextureResponse(response, url);
   const blob = await response.blob();
   const raw = await createImageBitmap(blob);
   const canvas = new OffscreenCanvas(MATERIAL_TILE_WIDTH, MATERIAL_TILE_HEIGHT);
   const context = canvas.getContext("2d");
-  context.drawImage(raw, 0, 0, MATERIAL_TILE_WIDTH, MATERIAL_TILE_HEIGHT);
+  const crop = textureCrop(raw.width, raw.height, MATERIAL_TILE_WIDTH, MATERIAL_TILE_HEIGHT);
+  context.drawImage(raw, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, MATERIAL_TILE_WIDTH, MATERIAL_TILE_HEIGHT);
   raw.close();
+  const toneRadius = isPhotographUrl(url) ? toneRadiusOf(url) : 0;
+  if (toneRadius > 0) {
+    // a photograph of a sheet: take the drift of its light out first, or the seam repair below turns the brightness step at each border into a grid
+    const picture = context.getImageData(0, 0, MATERIAL_TILE_WIDTH, MATERIAL_TILE_HEIGHT);
+    flattenTone(picture.data, MATERIAL_TILE_WIDTH, MATERIAL_TILE_HEIGHT, toneRadius);
+    context.putImageData(picture, 0, 0);
+  }
   makeSeamless(context, MATERIAL_TILE_WIDTH, MATERIAL_TILE_HEIGHT);
   return createImageBitmap(canvas);
 }
@@ -124,10 +148,11 @@ export async function createFastRenderer(canvas, options) {
       const facts = info.get(regionId);
       const assignment = assignments.get(regionId);
       const rotation = assignment ? assignment.rotation || 0 : 0;
+      const size = assignment ? tileSizeOf(assignment.item) : null; // setMaterial() only assigns a finish that has one
       list[slot] = {
         h: facts.homography,
-        invTileWidthM: assignment ? 1 / assignment.item.texture.tileWidthM : 0,
-        invTileHeightM: assignment ? 1 / assignment.item.texture.tileHeightM : 0,
+        invTileWidthM: size ? 1 / size.width : 0,
+        invTileHeightM: size ? 1 / size.height : 0,
         cosRot: Math.cos(rotation),
         sinRot: Math.sin(rotation),
         materialLayer: slot,
@@ -189,7 +214,19 @@ export async function createFastRenderer(canvas, options) {
 
     const shading = next.shading || new Float32Array(total).fill(1);
     let nextSlot = 0;
-    scan.regions.forEach(function (region) {
+    // The shader holds a fixed number of surfaces. A wall, floor or ceiling is the surface people paint, so those take their slots
+    // first: a room with many doors and pieces of furniture must not push a wall out of the preview (stable within each group).
+    const bySlotRank = scan.regions
+      .map(function (region, position) {
+        return { region: region, rank: SLOT_FIRST.has(region.kind) ? 0 : 1, position: position };
+      })
+      .sort(function (a, b) {
+        return a.rank - b.rank || a.position - b.position;
+      })
+      .map(function (entry) {
+        return entry.region;
+      });
+    bySlotRank.forEach(function (region) {
       const fused = next.fusionRegions[region.id];
       if (!fused || nextSlot >= backend.maxRegions) {
         return; // not a surface the geometry covers, or more than the shader holds at once - rare, graceful
@@ -275,7 +312,7 @@ export async function createFastRenderer(canvas, options) {
   // (motif/rug - always Gemini, see tiers.js). When the texture is already in memory everything happens before this
   // returns, so the caller can render() in the same frame; otherwise it is fetched first.
   function setMaterial(regionId, item, rotation) {
-    if (!slotOf.has(regionId) || !item || !item.texture || !item.texture.url) {
+    if (!slotOf.has(regionId) || !item || !item.texture || !item.texture.url || !tileSizeOf(item)) {
       return Promise.resolve(false);
     }
     const generation = scene;

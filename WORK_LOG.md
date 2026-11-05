@@ -6,6 +6,160 @@ This file is not `TARGETS.md` (that tracks the quotation's targets and their sta
 
 ---
 
+## 2026-11-05 (tenth session): the catalogue designs could not be drawn instantly with WebGL; fixed, with the Gemini render kept
+
+**Asked** (your message, shortened): "the newer items are not able to get rendered instantly using webGL, why? please fix them properly and make sure all the items support both the instant rendering and the gemini image generation both, think and make it proper".
+
+**Serves:** C1 (AI render and hover editing, its instant preview). No status or count changed (C1 stays Partly done).
+
+### What I found
+
+- **"The newer items" are the 63 catalogue designs** added to the studio's finish list on 2026-11-04 (group "Terucon catalogue", for wall, door and furniture). Their texture was missing on purpose: `site/catalogue-ui/studio-finishes.js` said a photograph of a sheet is not a tileable texture. The studio's gate for the instant preview needs `item.texture.url` (`swatchroom/public/js/lib/fastrender/tiers.js` `canFastRenderItem`), so the preview refused them, and the studio's reason text ("adds or restyles an object") was wrong for a material.
+- **A second, independent cause:** the preview also needs a 3D fit for the clicked surface, and both sources of one cover only wall, floor and ceiling (the server's plane fit, `swatchroom/server/lib/pipelineRunner.js`, and the browser's outline estimate, `provisional.js`). The designs are offered on wall, **door and furniture**, so on two of three kinds they could never have been previewed even with a texture. Reproduced: the studio's own preview code, in Chrome, gives a door, a cabinet front and a sofa no slot and paints nothing.
+- **A trap:** `swatchroom/public/js/lib/prompts.js:61-71` quotes `texture.tileWidthM / tileHeightM` to Gemini as a measured repeat ("Tile repeat scale must match ..."). The catalogue has no recorded size, so my guess must not go under those names.
+- **The picture route's failure mode:** `/media/materials/<id>.jpg` answers a picture it cannot read with HTTP 200 and an SVG tile that prints the code (`X-Terucon-Picture: unavailable`); tiled onto a wall that would be a wall of words.
+- **What cannot have a texture swap:** counted by running the studio's catalog: 36 of its 103 finishes have no texture (wall 8, floor 4, ceiling 10, window 7, door 5, furniture 1, other 1: object additions, door styles, blinds, rugs, lights, "Remove") plus 4 curtains with a texture that sit on windows; none of the 63 designs.
+
+### What exactly I did, in order
+
+1. Read `TARGETS.md` (C1), the memory notes, `docs/CATALOGUE_STUDIO.md`, the overlay files (`renderer.js`, `provisional.js`, `previewScene.js`, `geometry.js`), `studio.js` and `stage.js` where the preview is gated, `prompts.js`, `server/routes/catalogueMedia.js`. Ran the studio's catalog to count items per kind with and without a texture.
+2. Asked the advisor tool before writing code; it confirmed the two causes and told me to check the picture route's placeholder, the aspect ratio (800 x 1220 against a 640 x 448 tile), the 16-slot cap, and that `texture` is read by `prompts.js`.
+3. Recovered the 63 design photographs from git history into the scratchpad (`git archive ad91318^ media/materials`; the folder is empty in the working tree) to look at them.
+4. Server: `server/catalogue/studioFinishes.js` `textureOf()` (the photograph, the tile guess named `previewTile*`, the sheen, `?tone=100` for Gemini scale "large"); `finishOf` carries it; rule 13 gets one sentence (see below); route comment in `server/routes/catalogue.js`.
+5. Browser script `site/catalogue-ui/studio-finishes.js`: `textureOf()` that copies and validates the texture onto the wall, door and furniture items (own object each).
+6. Overlay (`site/overlays/studio/js/lib/`): `geometry.js` (`tileSizeOf`, `textureCrop`, `isPhotographUrl`, `flattenTone`, `toneRadiusOf`, the stated sheen in `specularFor`), `renderer.js` (loader: refuses the unavailable tile, crops, flattens a photograph, then the old seam repair; tile size via `tileSizeOf`; walls, floors and ceilings take GPU slots first), `provisional.js` (`ESTIMATED_KINDS`: door, furniture, other; heights 2.1 / 0.9 / 1 m for the fallback), `previewScene.js` (borrows the estimate for those kinds), and a new overlay copy of `previewReason.js` (only the "no-fit" wording). Regenerated `manifest.json` (9 overlay files).
+7. Extended the render-preview harness (`harness/run.js` `scenes=` and `texurl=`, `lib.mjs` `extraMaps`, new `harness/design-scenes.json`) and wrote `docs/design-studio-checks/render-preview/design-check.mjs`; ran it five times in real Chrome and **looked at every grid**. The first pictures showed a dark plaid grid over the teak and the marble (the seam repair acting on the photograph's brightness drift). I compared five ways of preparing the tile on the same designs in a scratch page (cross-fade only; flatten + cross-fade at radii 40, 100, 150; mirrored 2 x 2; border ramps) and chose flattening first. A unit test then found my first flattening (a wrap-around blur) leaves a brightness ramp at the very border: I switched it to mirrored edges. Looking at large-scale designs showed radius 40 wiped their bold features (SB8001, SB830), so a design with Gemini scale "large" (8 of 63) now asks for radius 100 through `?tone=100`.
+8. Tests: new (16 in `tests/js/studio-overlay-behaviour.test.js`, now 60; 3 in `studio-reference.test.js`, now 17; the new file `tests/js/studio-finishes-client.test.js`, 3; assertions in `catalogue-designs.test.js`); 8 existing tests or assertions that pinned the old behaviour changed on purpose (four "8 overlay files" pins, the provisional-scene test, the seam test's fake, the finish-keys test, one e2e assertion). Extended the e2e catalogue-group test.
+9. The advisor reviewed the finished change and caught a bug in my rule-13 sentence: it said "If Image 3 carries a preview" also on the lite model, where Image 3 is the reference photograph itself. It is now added only when the reference is Image 4 or later (`n >= 4`), with a test each way.
+10. Regenerated the patch for your own Swatchroom project (`docs/design-studio-checks/instant-preview-quality.patch`, 9 files) and checked on a throw-away copy that `git apply --check` passes and the result equals the overlay.
+11. Docs: `docs/CATALOGUE_STUDIO.md` (new section), `docs/DESIGN_STUDIO_ARCHITECTURE.md` 12.9, the render-preview README, `TARGETS.md` (C1, Remaining, the counts paragraph, the deploy note, the change log), this entry; saved a memory note.
+12. Ran the checks below.
+
+### Files changed
+
+`server/catalogue/studioFinishes.js`, `server/routes/catalogue.js` (a comment), `site/catalogue-ui/studio-finishes.js`, `site/overlays/studio/js/lib/fastrender/{geometry,renderer,provisional,previewReason}.js` and `site/overlays/studio/js/lib/previewScene.js` (`previewReason.js` is new there), `site/overlays/studio/manifest.json`, `tests/js/{studio-overlay,studio-overlay-behaviour,studio-reference,catalogue-designs}.test.js`, new `tests/js/studio-finishes-client.test.js`, `tests/e2e/run.mjs`, `docs/design-studio-checks/render-preview/{README.md,lib.mjs,site-check.mjs,design-check.mjs}`, `.../harness/{run.js,design-scenes.json}`, `.../images/GRID-design-*.jpg` (3), `docs/design-studio-checks/instant-preview-quality.patch`, `docs/CATALOGUE_STUDIO.md`, `docs/DESIGN_STUDIO_ARCHITECTURE.md`, `TARGETS.md`, this file. **`swatchroom/` has no change** (`git status swatchroom` is empty). Nothing is committed.
+
+### Checked / not checked
+
+- **Checked:** `npm test` (the site build check, the links, the overview, the images and the JavaScript tests) all passed on 2026-11-05 after the last code change: JavaScript tests 1207, 1202 passed, 0 failed, 5 skipped (none skipped by my files); the studio browser tests, `E2E_ONLY=studio` 26 of 26 and `E2E_ONLY="Design Studio"` 5 of 5 (run before the rule-13 fix, which is server-only); `site-check.mjs` all checks passed (the website serves the 9 overlay files and its pictures equal the check's own); `design-check.mjs` over 8 designs x wall, door, cabinet front, sofa on a real WebGL2 backend, WebGPU on wall and door, all assertions passed (Apple M5, Chrome 156); the pictures looked at by me; the patch applies to a throw-away copy.
+- **Not checked:** the studio's real page with a real photo and a real scan (the dev stack has no scan; a Node test checks the studio's gate on the estimate scene, but tap-a-surface then pick-a-card was not driven); the other 55 designs; a phone, Safari, the live site; the loader against the real picture route (the check serves files from disk); the new rule-13 sentence and the preview-in-guide path against live Gemini (no live call and no paid call was made).
+- **Measured:** flattening one tile takes 11 to 12 ms in Node on this Mac.
+
+### Noticed, left alone
+
+- **A side effect of the Terucon group being first in the list:** the studio's prefetch stops at 14 pictures (`studio.js` `prefetchUrls`), so on the "All" tab it now prefetches design photographs and not the studio's own wall textures; the first pick of one of those waits for a fetch, a small step back from "instant" for finishes that worked before. The fix belongs in `studio.js` (upstream), which I did not touch. The 14 photographs are also prepared together on the first surface tap, on the main thread: unmeasured on a phone.
+- The studio's 36 object finishes and the 4 curtains stay Render-only, by nature.
+- Sofas, beds and tables get a flat-on texture over their outline; the same photograph repeats every 1.22 m.
+
+### Decisions for you
+
+1. **The tile size:** 1.22 m wide is my guess (a 4 ft sheet); the catalogue records no size. One constant: `PREVIEW_TILE_WIDTH_M` in `server/catalogue/studioFinishes.js`.
+2. **The flattening values** (40; 100 for bold designs) were chosen by eye on about six designs: look at yours.
+3. **Whether to take the regenerated patch into your own Swatchroom project** (the website's preview now differs from the standalone studio's in 9 files).
+
+### What I did (summary)
+
+Your newer items were the 63 catalogue designs, and they could not be drawn instantly for two reasons: they had no texture, and a door or a piece of furniture never had a 3D fit. I gave each design its own photograph as a texture, taught the browser to turn a photograph into a repeating tile (crop, take out the light drift, repair the seam), added a fit estimate for doors, furniture and other objects, and kept the Gemini render exactly as it was (with its reference photograph), so every material finish now supports both. Items that add or remove an object (door styles, blinds, rugs, lights, false ceilings, "Remove") cannot be a texture swap and stay AI-only. I checked it in real Chrome on 8 designs and 4 kinds of surface and looked at the pictures, and in the tests; I did not drive the studio's real page with a real scan, a phone or the live site, and I made no paid call. Three decisions are yours: the tile size, the flattening values, and the patch.
+
+---
+
+## 2026-11-05 (ninth session): Render cannot reach MongoDB although Atlas allows 0.0.0.0/0
+
+**Asked** (your message, shortened): the first error was `SSL alert number 80` / `tlsv1 alert internal error` on Cluster0; Atlas Network Access lists `0.0.0.0/0` (active) and `123.63.87.133/32`; Render's log says `Server selection timed out after 8000 ms` and `connect ECONNREFUSED 34.93.230.157:27017`; why, and which configuration or environment variable is misaligned?
+
+**Serves:** I3 (Render hosting) and, by effect, C1 (the studio). No status or count changed; no code changed.
+
+### What I found
+
+- **Render is pointed at the right cluster.** `34.93.230.157` (from your log) is one of the three nodes the local `MONGODB_URI` resolves to; `.env` and `swatchroom/.env` give the same three. I have not seen Render's own `MONGODB_URI`, only its effect.
+- **The access list is not what blocks this Mac.** Two of the three nodes accept a TCP connection and finish a trusted TLS 1.3 handshake from here.
+- **The cluster is not paused.** An unauthenticated `hello` to the two reachable nodes says each is a `secondary`, and both name **`shard-00-01` as the primary**. Its public address gets no reply at all (not a refusal, not a TLS alert): the TCP attempt goes unanswered. Same in every run, about 21:10 to 21:20 UTC. (My first runs numbered the nodes in the order DNS listed them, which is shuffled between runs; the last two runs, 21:20:06 and 21:20:12, use the stable `shard-00-NN` names, and the silent primary is the same machine that went unanswered in the first probe. The live `/api/health` at 21:19 UTC still said `"database":false`.)
+- **That explains the 8 s timeout.** The driver's default read preference and every write need the primary; sign-in checks, rooms and photos all write. A "read from secondaries" setting would not rescue them, so I did not suggest one.
+- **`ECONNREFUSED` in your log** means nothing was listening on that port at that moment. The address in it belongs to `shard-00-02`, which answers now (as a secondary), so it fits a node that was restarting between 20:56 and 21:02 and is back. Consistent with a rolling restart or maintenance; not seen in Atlas.
+- **No environment variable looks misaligned.** Every failure comes before any login, so the user, the password and the `authSource`/`replicaSet` options (which come from the cluster's DNS record) are not involved. The 8 s limit is hard-coded (`swatchroom/server/db.js:22`); it is where the studio gives up, not the cause.
+- **The first error, `SSL alert number 80`:** MongoDB community threads tie it most often to a client address missing from the access list (some to the OpenSSL version). I found no MongoDB documentation page that says this. It fits your first run: the handshake completes now. Likely, not proven.
+
+### Correction to my own earlier entry
+
+The eighth session (below) said the refusals pointed at "the cluster not listening (for example paused)" and told you to click Resume. With two nodes answering as secondaries that is wrong; I have marked both places.
+
+### What exactly I did, in order
+
+1. Read `TARGETS.md` (I3 and the thirty-sixth update), the eighth-session entry below, `render.yaml`, `swatchroom/server/db.js` and where `MONGODB_URI` is read.
+2. Wrote four scratch scripts in the session's scratchpad (not in the project), each printing verdicts only, never the host, user or password: (a) DNS (SRV and TXT, the three nodes' addresses), then TCP and TLS per node, and whether your logged IP is among them; (b) a read-only `{ping:1}` through the project's `mongodb` driver (7.7.0); (c) a 50 s watch of the driver's per-node state and heartbeat failures, run three times; (d) a per-node TCP check plus an unauthenticated `hello`, with no credentials in the connection string. Nothing was written to MongoDB.
+3. Searched the web once for what "SSL alert 80" means with Atlas (forum threads only; a domain on my filter list was refused, I retried without it).
+4. Asked the advisor tool to review the conclusion; it asked for the primary/secondary check (d) before I stated the cause, and told me not to offer `readPreference=secondaryPreferred`.
+5. Updated `TARGETS.md` (header, I3, change log) and this file; rebuilt the overview.
+
+### What to do (all in Atlas; nothing on Render)
+
+1. **Database, Cluster0**: the cluster card and the **Metrics** tab for node roles and any restart, maintenance or "degraded" banner.
+2. **Project Activity Feed**: restarts, maintenance, resume or access-list changes in the last hours.
+3. **Network Access**: the `0.0.0.0/0` row must say **Active**, not Pending.
+4. **status.mongodb.com**: an incident on Google Cloud.
+5. If it is a free M0 cluster and there is still no primary after a reasonable wait, open a support chat.
+6. Do not redeploy Render: the studio retries every 15 s. When a primary exists, `https://terucon-vp0y.onrender.com/api/health` must say `"database":true` and sign-in opens again.
+
+### Checked / not checked
+
+Checked: the DNS, TCP, TLS and `hello` answers above, from this Mac only. **Not checked:** your Atlas and Render dashboards, Render's actual `MONGODB_URI`, why the third node does not answer (a node or network fault on Atlas's side, a firewall rule that has not reached that node, or a stale address are all possible), whether Render sees exactly this state (its log fits it), anything on a phone. Nothing on Render or Atlas was changed.
+
+### Noticed, left alone
+
+- `render.yaml` puts the service in Oregon while the nodes have Google Cloud addresses. Not the cause (8 s is plenty); I have not confirmed the cluster's region in Atlas.
+- The generic 5xx page for a signed-in browser while the database is down (eighth session) is still unfixed.
+
+### What I did (summary)
+
+I probed your Atlas cluster from this Mac without credentials. Render points at the right cluster and the access list is not blocking it: two nodes answer as secondaries. Both say the third node is the primary, and that node's public address does not answer at all, so everything that needs the primary times out after 8 s. No Render variable explains it; it has to be looked at in Atlas (activity feed, metrics, status page, support). I corrected my earlier "paused" guess. Nothing was changed anywhere.
+
+---
+
+## 2026-11-05 (eighth session): the live Design Studio says "Something went wrong on our side"
+
+**Asked:** "I just opened the AI studio and it is showing 'Something went wrong on our side' at https://terucon-vp0y.onrender.com/design-studio; I haven't changed anything on Render; what do I change on Render?"
+
+**Serves:** I3 (Render hosting) and, by effect, C1 (the studio). No status or count changed.
+
+### What I found
+
+- Your push of 2026-11-05 02:06 (`b55f072`) made Render redeploy. Its files (the overlay, the Finder, docs) contain no database code, so I do not think it caused this; I cannot see Render's logs to prove it.
+- `GET /api/health` (live): `{ok:true, studio:{running:true, database:false}, auth:{ready:false, gate:true, reasons:["no-database"]}}`. `GET /api/auth/config`: 503 "Sign-in is not available right now". `GET /design-studio` without a session: 302 to `/login`. So the site runs but **its MongoDB is not connected**.
+- "Something went wrong on our side" is the site's own 5xx page (`server/lib/errorPage.js`): a signed-in browser carries a session cookie, the server asks MongoDB whether it is valid, the call fails, the generic page is shown.
+- Both `.env` and `swatchroom/.env` point at the same Atlas cluster (same host fingerprint, `mongodb+srv`, an `.mongodb.net` host); its DNS resolves (3 nodes, public addresses). A ping from this Mac failed twice: "connect ECONNREFUSED", then "Server selection timed out after 12000 ms". Earlier sessions connected to it from this Mac.
+
+- **Update, your pasted Render log (20:56-21:02):** `studio  MongoDB is not reachable (Server selection timed out after 8000 ms). Retrying in 15 seconds` every 23 s, and twice `connect ECONNREFUSED 34.93.230.157:27017`. No "bad auth" or "whitelist" line in what you pasted. The same refusal and timeout came from this Mac, so two different networks fail the same way: it points at the cluster not listening (for example **paused**) more than at the password or a Render address; not proven, an access-list block is not excluded. The studio retries every 15 s by itself, so no redeploy is needed once Atlas answers. **(Corrected in the ninth session above: not "paused"; two nodes answer and the third, the primary, does not.)**
+
+### What exactly I did, in order
+
+1. Read `git log` (the 02:06 push and its file list) and `git status`.
+2. Probed the live site with GET requests only: `/api/health`, `/design-studio`, `/api/studio/status` (404), `/api/auth/config`, `/api/catalogue/status` (401), `/login` (200).
+3. Read `server/auth/index.js` (where `no-database` comes from) and `server/lib/errorPage.js`.
+4. Wrote two scratch scripts in the session's scratchpad (not in the project): a DNS check of the cluster's SRV records and a `{ping:1}` through the `mongodb` driver with the `.env` string read in memory. They print a verdict only: no address, host, user or password. The ping is read-only and writes nothing.
+5. Updated `TARGETS.md` (header, change log) and this file; rebuilt the overview.
+
+### What to do (Atlas first; Render needs no change for this)
+
+1. cloud.mongodb.com, your project, **Database**: if the cluster says **Paused**, click **Resume**. **(Corrected in the ninth session above: the cluster is not paused, two of its three nodes answer; skip this step and follow the ninth session's list.)**
+2. **Security, Network Access**: Render's free web service has no fixed outgoing address and a redeploy can change it. Add **0.0.0.0/0** (Allow access from anywhere); if you already have a row for it that says it expires, replace it with a permanent one. The password and `MONGODB_URI` are your protection then.
+3. **Security, Database Access**: the database user must still exist, with the password in `MONGODB_URI` on Render (only if you changed either).
+4. On Render: **Logs**: look for the line `studio  MongoDB connected: false` and the error near it. "Could not connect ... IP that isn't whitelisted" means step 2; "bad auth" means step 3; "ECONNREFUSED" or "timed out" with nothing else means step 1 or 2.
+5. After the fix the site reconnects by itself (about a minute); if not, Render: **Manual Deploy, Restart**. Check `https://terucon-vp0y.onrender.com/api/health`: it must say `"database":true` and `"auth":{"ready":true`. Then reload `/design-studio`.
+
+### Checked / not checked
+
+Checked: the live health answers above, the DNS, two pings from this Mac. **Not checked:** your Atlas and Render dashboards and logs, which of the three causes it is, anything on a phone. Nothing on Render or Atlas was changed; nothing was written anywhere.
+
+### Noticed, left alone
+
+With the database down, a signed-in browser gets the generic 5xx page rather than the sign-in page with a message. That is worth a small fix; I did not make it.
+
+### What I did (summary)
+
+I probed the live site from outside and found it is up but its account database (MongoDB Atlas) is not connected, which makes the studio's sign-in check fail and show the generic error page. Your Atlas cluster does not accept my connection either, so the problem is on Atlas's side (a paused cluster or the network access list are the likely causes), not in the new code. I listed what to check on Atlas and what to look for in the Render logs; nothing was changed.
+
+---
+
 ## 2026-11-05 (seventh session): the Finder's "Search the whole photo", the accuracy of the closest-item search, the instant 3D preview's quality
 
 **Asked** (your message, shortened): (1) tapping "Search the whole photo" only showed the caption "Searching the whole photo ..." and did nothing; it should separate the things in the photo and, when the visitor taps one, fetch similar products from the catalogue; (2) the accuracy of fetching the closest item is very bad (two screenshots: grey concrete and white marble for a tan wooden floor); (3) the WebGL/WebGPU 3D rendering is low quality (lighting, texture, fitting); fix them, note down every action, update the earlier `.md` files that hold the architecture, and use multiple agents.
