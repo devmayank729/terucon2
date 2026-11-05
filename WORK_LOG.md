@@ -6,6 +6,41 @@ This file is not `TARGETS.md` (that tracks the quotation's targets and their sta
 
 ---
 
+## 2026-11-05 (eleventh session): merge the open pull requests
+
+**Asked** (your messages, shortened): "see 2 PR are there i want you to merge them"; then, when I told you GitHub had only one open PR (#2) and two branches with no PR: "one PR is there as well one more thing is there either another branch or anything else please merge them both, the other one is something related to capture button for the photo".
+
+**Serves:** C4 (the Finder), no target of its own; no status and no count changed.
+
+### What I found
+
+- `gh pr list --state all`: PR #1 (merged 2026-11-01) and PR #2 (open): "Finder: float the capture button over the camera output; diagnose the material-render-doesn't-happen issue", branch `claude/relaxed-planck-v5qyed`, one commit `400902e` (2026-11-02), 5 files, 10 commits behind `main`. Two more remote branches had no PR: `claude/icon-hiding-instant-render-lkhlba` (2026-11-04, 15 files) and `claude/youthful-davinci-yiiomk` (2026-11-02, a `TARGETS.md` note only). A dry-run merge (`git merge-tree`) of each into `main` conflicted in all three (`TARGETS.md`, `docs/PROJECT_OVERVIEW.html`, and for #2 `pages/finder.html` and `finder.js`).
+- Which was "the second one" was a guess from your words: I read its commit message and `launcher-dock.js` (it folds the "Photos from phone" capture launcher and TeruBot's launcher behind one toggle) and took it as the one about the capture button. I did not take `youthful-davinci` (docs only, written before 11 later commits).
+
+### What exactly I did, in order (part 1: PR #2)
+
+1. Worked in a throw-away copy (`git worktree`, in the scratchpad), never in your working folder; merged `origin/main` into the PR branch there.
+2. `pages/finder.html`: kept `main`'s outline panel under the photo and the PR's button row inside the photo; deleted the second copy of the row that `main` had under the panel. `site/catalogue-ui/finder.js`: took `main`'s `photoMode` handler and added the PR's guard (`els.photoActions.contains(event.target)`). Removed the `is-below-panel` class and its rule: nothing uses it now. `TARGETS.md` and `docs/PROJECT_OVERVIEW.html`: took `main`'s whole files, then wrote my own notes (the PR's note about "a tap renders nothing" is superseded by the thirty-eighth update).
+3. Ran the checks. The browser suite crashed at first (`puppeteer-core` lives in `tests/e2e/node_modules`, git-ignored, so the copy lacked it) and the JavaScript suite ran 19 tests fewer than on `main` (no `dist/`): I linked the two folders in and built `dist/` (no `.env` was copied in).
+4. The browser suite then showed 101 of 102: "Finder page: on a phone, a tap on an item searches it". Alone, on the merged tree it failed 3 times of 3; on clean `main` it passed 3 of 3. With a debug copy of the test (deleted afterwards) I printed the geometry: the "Search the whole photo" button was at y 775-827 and the fixed tab bar starts at 785, so the tap landed on its Inspiration link.
+5. First fix attempt (scroll in `openViewfinder`) did nothing: the frame's shape is set only after the photo has loaded (`fitViewfinder`), and the frame was still small at that moment. Second attempt works: a flag set by `openViewfinder` is consumed in `fitViewfinder`, which scrolls the frame into view once (`block: 'nearest'`, at once), with `scroll-margin` on `.viewfinder` that leaves room for the tab bar (`--tc-dock-h`). A smooth scroll was tried first and raced with a fast tap, so it is instant.
+6. After it: the 17 browser tests with "Finder" in the name passed 3 runs of 3; the whole browser suite 102 of 102; a short phone (375 x 667, 9:16 photo): the three buttons end at y 583, the tab bar starts at 608, the middle of each button hits that button; a screenshot at 390 x 844 looked at.
+7. `TARGETS.md` (C4 paragraph, "Last updated", change log), this entry, `node tools/build-overview.js`, then the full `node tools/run-tests.js`.
+
+### Files changed (part 1)
+
+`pages/finder.html`, `site/catalogue-ui/finder.js`, `site/catalogue-ui/catalogue-ui.css` (the PR's own change plus my two edits), `TARGETS.md`, `WORK_LOG.md`, `docs/PROJECT_OVERVIEW.html` (regenerated).
+
+### Checked / not checked
+
+Checked: as in steps 3-6 and in `TARGETS.md` under C4. One JavaScript run had 1 failure that did not come back in the next run and that I did not capture. Not checked: a real phone, Safari, a real camera or a real photo; the live site.
+
+### Noticed, left alone
+
+- On a 390 px phone the three buttons wrap into three rows and cover about 45 % of the photo's height, and the search box can sit under "Find it" until it is dragged up. That is the PR's design; I did not change it.
+- The two floating launchers (TeruBot, "Photos from phone") sit over the photo's right edge. The second branch is about that (part 2).
+- `.gitignore` lists `node_modules/`, which does not match a symlink: a link to `node_modules` shows up as untracked in a work copy (I staged files by name).
+
 ## 2026-11-05 (tenth session): the catalogue designs could not be drawn instantly with WebGL; fixed, with the Gemini render kept
 
 **Asked** (your message, shortened): "the newer items are not able to get rendered instantly using webGL, why? please fix them properly and make sure all the items support both the instant rendering and the gemini image generation both, think and make it proper".
