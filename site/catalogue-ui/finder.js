@@ -196,9 +196,9 @@ els.reticle.addEventListener('keydown', (event) => {
   updateHint();
 });
 
-// clicking the viewfinder itself (not the reticle) after the outlining failed brings the reticle back, at that spot (in the 'regions' mode a tap picks an item instead)
+// clicking the viewfinder itself (not the reticle, and not the capture buttons that float over its bottom edge) after the outlining failed brings the reticle back, at that spot (in the 'regions' mode a tap picks an item instead)
 els.viewfinder.addEventListener('pointerdown', (event) => {
-  if (photoMode !== 'fallback' || event.target === els.reticle) return;
+  if (photoMode !== 'fallback' || event.target === els.reticle || els.photoActions.contains(event.target)) return;
   setPhotoMode('spot');
   const vf = els.viewfinder.getBoundingClientRect();
   layoutReticle(event.clientX - vf.left, event.clientY - vf.top);
@@ -212,11 +212,21 @@ window.addEventListener('resize', () => {
 
 // ---------------------------------------------------------------------------------------------------------- camera / upload
 
+let scrollToFit = false; // set when a photo or the camera has just opened: the next fitViewfinder() brings the frame into view
+
 /** Give the viewfinder box the shape of the picture it shows, so the reticle's place in the box is its place in the picture (a phone's camera is tall, not 4:3). */
 function fitViewfinder() {
   const source = !els.video.hidden && els.video.videoWidth ? { w: els.video.videoWidth, h: els.video.videoHeight } : { w: els.still.naturalWidth, h: els.still.naturalHeight };
   if (!source.w || !source.h) return;
   els.viewfinder.style.setProperty('--vf-ar', String(source.w / source.h));
+  if (scrollToFit && !els.viewfinder.hidden) {
+    // The capture buttons float over the frame's bottom edge. On a phone the site's tab bar is fixed over the bottom of the window and would
+    // cover them (a tap on the covered part opens another page). So, once, bring the frame up just far enough that its bottom edge clears the
+    // bar (the clearance is `scroll-margin` on .viewfinder in pages/finder.html); nothing moves when it is already in view. At once, not
+    // smoothly: the frame has just taken the upload box's place and the buttons must already be where they will stay for the next tap.
+    scrollToFit = false;
+    els.viewfinder.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+  }
   if (els.viewfinder.hidden || els.reticle.hidden) return;
   const rect = els.viewfinder.getBoundingClientRect();
   layoutReticle(reticleCenter.xFrac * rect.width, reticleCenter.yFrac * rect.height);
@@ -239,6 +249,7 @@ function openViewfinder() {
   els.photoActions.hidden = false;
   resetOutline();
   resetReticleCenter();
+  scrollToFit = true; // fitViewfinder() scrolls once the frame has its real shape
 }
 
 els.startCamera.addEventListener('click', async () => {
@@ -335,7 +346,6 @@ function setPhotoMode(next) {
   els.outline.hidden = next !== 'regions';
   els.outlineTip.hidden = true;
   els.outlinePanel.hidden = next === 'spot';
-  els.photoActions.classList.toggle('is-below-panel', next !== 'spot');
   els.outlineChips.hidden = next !== 'regions';
   if (next === 'spot') {
     showOutlineButtons();
@@ -552,7 +562,7 @@ async function searchRegion(region) {
   try {
     const { blob, clean } = await cutPatch(await patchSource(), r.ids, r.w, r.h, region);
     if (stale()) return;
-    const res = await client.searchPhoto({ photo: blob, mode: currentMode === 'colour' ? 'colour' : 'look', k: 8 });
+    const res = await client.searchPhoto({ photo: blob, mode: currentMode === 'colour' ? 'colour' : 'look', k: 8, patch: true });
     if (stale()) return;
     renderResults(res, { forWhat: `the ${what}`, scroll: true });
     setOutlineStatus(`Showing materials like the ${what}${clean ? '' : ' (this item is small or broken up, so the match is rougher)'}. Tap another item to search again.`);

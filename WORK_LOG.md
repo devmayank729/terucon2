@@ -6,6 +6,289 @@ This file is not `TARGETS.md` (that tracks the quotation's targets and their sta
 
 ---
 
+## 2026-11-05 (eleventh session): merge the open pull requests
+
+**Asked** (your messages, shortened): "see 2 PR are there i want you to merge them"; then, when I told you GitHub had only one open PR (#2) and two branches with no PR: "one PR is there as well one more thing is there either another branch or anything else please merge them both, the other one is something related to capture button for the photo".
+
+**Serves:** C4 (the Finder), no target of its own; no status and no count changed.
+
+### What I found
+
+- `gh pr list --state all`: PR #1 (merged 2026-11-01) and PR #2 (open): "Finder: float the capture button over the camera output; diagnose the material-render-doesn't-happen issue", branch `claude/relaxed-planck-v5qyed`, one commit `400902e` (2026-11-02), 5 files, 10 commits behind `main`. Two more remote branches had no PR: `claude/icon-hiding-instant-render-lkhlba` (2026-11-04, 15 files) and `claude/youthful-davinci-yiiomk` (2026-11-02, a `TARGETS.md` note only). A dry-run merge (`git merge-tree`) of each into `main` conflicted in all three (`TARGETS.md`, `docs/PROJECT_OVERVIEW.html`, and for #2 `pages/finder.html` and `finder.js`).
+- Which was "the second one" was a guess from your words: I read its commit message and `launcher-dock.js` (it folds the "Photos from phone" capture launcher and TeruBot's launcher behind one toggle) and took it as the one about the capture button. I did not take `youthful-davinci` (docs only, written before 11 later commits).
+
+### What exactly I did, in order (part 1: PR #2)
+
+1. Worked in a throw-away copy (`git worktree`, in the scratchpad), never in your working folder; merged `origin/main` into the PR branch there.
+2. `pages/finder.html`: kept `main`'s outline panel under the photo and the PR's button row inside the photo; deleted the second copy of the row that `main` had under the panel. `site/catalogue-ui/finder.js`: took `main`'s `photoMode` handler and added the PR's guard (`els.photoActions.contains(event.target)`). Removed the `is-below-panel` class and its rule: nothing uses it now. `TARGETS.md` and `docs/PROJECT_OVERVIEW.html`: took `main`'s whole files, then wrote my own notes (the PR's note about "a tap renders nothing" is superseded by the thirty-eighth update).
+3. Ran the checks. The browser suite crashed at first (`puppeteer-core` lives in `tests/e2e/node_modules`, git-ignored, so the copy lacked it) and the JavaScript suite ran 19 tests fewer than on `main` (no `dist/`): I linked the two folders in and built `dist/` (no `.env` was copied in).
+4. The browser suite then showed 101 of 102: "Finder page: on a phone, a tap on an item searches it". Alone, on the merged tree it failed 3 times of 3; on clean `main` it passed 3 of 3. With a debug copy of the test (deleted afterwards) I printed the geometry: the "Search the whole photo" button was at y 775-827 and the fixed tab bar starts at 785, so the tap landed on its Inspiration link.
+5. First fix attempt (scroll in `openViewfinder`) did nothing: the frame's shape is set only after the photo has loaded (`fitViewfinder`), and the frame was still small at that moment. Second attempt works: a flag set by `openViewfinder` is consumed in `fitViewfinder`, which scrolls the frame into view once (`block: 'nearest'`, at once), with `scroll-margin` on `.viewfinder` that leaves room for the tab bar (`--tc-dock-h`). A smooth scroll was tried first and raced with a fast tap, so it is instant.
+6. After it: the 17 browser tests with "Finder" in the name passed 3 runs of 3; the whole browser suite 102 of 102; a short phone (375 x 667, 9:16 photo): the three buttons end at y 583, the tab bar starts at 608, the middle of each button hits that button; a screenshot at 390 x 844 looked at.
+7. `TARGETS.md` (C4 paragraph, "Last updated", change log), this entry, `node tools/build-overview.js`, then the full `node tools/run-tests.js`.
+
+### Files changed (part 1)
+
+`pages/finder.html`, `site/catalogue-ui/finder.js`, `site/catalogue-ui/catalogue-ui.css` (the PR's own change plus my two edits), `TARGETS.md`, `WORK_LOG.md`, `docs/PROJECT_OVERVIEW.html` (regenerated).
+
+### Checked / not checked
+
+Checked: as in steps 3-6 and in `TARGETS.md` under C4. One JavaScript run had 1 failure that did not come back in the next run and that I did not capture. Not checked: a real phone, Safari, a real camera or a real photo; the live site.
+
+### Noticed, left alone
+
+- On a 390 px phone the three buttons wrap into three rows and cover about 45 % of the photo's height, and the search box can sit under "Find it" until it is dragged up. That is the PR's design; I did not change it.
+- The two floating launchers (TeruBot, "Photos from phone") sit over the photo's right edge. The second branch is about that (part 2).
+- `.gitignore` lists `node_modules/`, which does not match a symlink: a link to `node_modules` shows up as untracked in a work copy (I staged files by name).
+- In a `git worktree` the overview builder (`tools/build-overview.js`) fails on the `.git` file ("file not described in the catalog: .git"); it only ignores a `.git` folder. I moved that one file out of the copy for the build and put it back; I did not change the tool.
+- `tests/js/server-startup.test.js` "SIGTERM stops it cleanly as well" failed in 2 of about 10 full JavaScript runs of the PR #2 copy (0 of 5 on clean `main`; 8 of 8 alone): `null !== 0`, the child process was killed by the signal after 187 ms, which looks like a start-up race in the test (the signal arrives before the app has installed its handler). My changes do not touch it; not investigated.
+
+### What exactly I did, in order (part 2: the second item)
+
+1. Merged PR #2 on GitHub (merge commit `26c1c77`), fast-forwarded your local `main` to it (nothing else in your working folder was touched; it had no uncommitted changes).
+2. New throw-away copy on `claude/icon-hiding-instant-render-lkhlba`, merged the new `main` into it: conflicts in `TARGETS.md`, the overview and `site/catalogue-ui/studio-finishes.js`.
+3. Read the branch before deciding. It has two halves: (A) the launcher dock, (B) an instant preview for catalogue designs (`server/lib/tileTexture.js`, `?tile=1`, `jpeg-js`). B sends `tileWidthM` / `tileHeightM`; `main` (your commit `deef041`, my work of the tenth session) sends `previewTile*` on purpose and has a test that forbids the other names. So I merged A only: took `main`'s version of every B file (`studio-finishes.js`, `studioFinishes.js`, `catalogueMedia.js`, the two JavaScript tests it changed, `package.json`, `package-lock.json`), deleted the two files only B added, removed B's browser test from `tests/e2e/run.mjs`. What is left against `main`: `site/brand/launcher-dock.js`, `launcher-dock.css`, three lines in `site/brand/chrome.js`, the dock's browser tests.
+4. Browser suite on that tree: 101 of 103. (a) "terubot: one 'Ask TeruBot' launcher on every page": it clicks `.tb-launch` on the Finder, which the dock now keeps behind the "+" (as the advisor I consulted had warned): I added a small helper `tbReveal` to the test that opens the "+" first, once before each click. (b) "the landing page starts the studio's cold start ...": passed 3 of 3 alone on the copy and 3 of 3 on `main`, so a timing flake of the full run.
+5. After it: browser suite 103 of 103; JavaScript 1207 tests, 0 failed, 10 skipped, twice; a screenshot of the Finder on a 390 x 844 phone looked at (one "+" at the bottom right, clear of the capture buttons and the tab bar).
+6. `TARGETS.md` (Last updated, the capture-from-a-phone entry under Foundation work, the change log), this entry, `node tools/build-overview.js` and the full `node tools/run-tests.js`, then committed the merge, pushed it to that branch, opened a pull request from it, and merged it.
+
+### Files changed (part 2)
+
+`site/brand/launcher-dock.js`, `site/brand/launcher-dock.css`, `site/brand/chrome.js`, `tests/e2e/run.mjs`, `TARGETS.md`, `WORK_LOG.md`, `docs/PROJECT_OVERVIEW.html` (regenerated).
+
+### Checked / not checked (part 2)
+
+Checked: as in steps 4-5 and in `TARGETS.md`'s change log. Not checked: a real phone, Safari, the live site; the branch's note that 4 existing browser tests time out in its container did not reproduce (none did).
+
+### Decisions for you
+
+- **The dock makes TeruBot one tap further** on the Design Studio, Inspiration and Finder pages (behind a "+"). That is what the branch's author built on purpose to stop two floating buttons covering the photo area; if you would rather have TeruBot always one tap, say so and I take the three lines out of `chrome.js`.
+- **Half of the branch was not merged** (the catalogue-design instant preview, B) because `main` already has it done another way. Nothing was deleted: the branch is still on GitHub with that commit in its history, although the merged files do not contain B.
+- **`claude/youthful-davinci-yiiomk` was not merged** (see part 1): a stale performance note. It is still on GitHub.
+- **The three buttons on a 390 px phone** wrap into three rows and cover about 45 % of the photo (PR #2's design). A smaller, one-row layout is possible if you want it.
+- No branch was deleted and nothing was deployed by me; if Render deploys from `main`, the two merges will have started a deploy.
+
+### What I did (summary)
+
+GitHub had one open pull request, #2, not two. I merged it into `main` after resolving its conflicts with the Finder rebuilt the same day, and fixed one bug the merge would have shipped (on a phone the capture buttons sat under the site's tab bar, so a tap on them opened another page). For the second item you described ("something related to the capture button for the photo") I took the launcher dock from the branch `claude/icon-hiding-instant-render-lkhlba`, one small "+" instead of two floating launcher buttons on the three photo pages, opened a pull request for it and merged it, but left out that branch's other half (an instant preview for catalogue designs) because `main` already has it and the branch's version would have undone the 5 November fix. One existing browser test needed the dock's extra tap. Checked in headless Chrome on one Mac: JavaScript tests 0 failed, browser tests 103 of 103; never on a real phone or on the live site.
+
+## 2026-11-05 (tenth session): the catalogue designs could not be drawn instantly with WebGL; fixed, with the Gemini render kept
+
+**Asked** (your message, shortened): "the newer items are not able to get rendered instantly using webGL, why? please fix them properly and make sure all the items support both the instant rendering and the gemini image generation both, think and make it proper".
+
+**Serves:** C1 (AI render and hover editing, its instant preview). No status or count changed (C1 stays Partly done).
+
+### What I found
+
+- **"The newer items" are the 63 catalogue designs** added to the studio's finish list on 2026-11-04 (group "Terucon catalogue", for wall, door and furniture). Their texture was missing on purpose: `site/catalogue-ui/studio-finishes.js` said a photograph of a sheet is not a tileable texture. The studio's gate for the instant preview needs `item.texture.url` (`swatchroom/public/js/lib/fastrender/tiers.js` `canFastRenderItem`), so the preview refused them, and the studio's reason text ("adds or restyles an object") was wrong for a material.
+- **A second, independent cause:** the preview also needs a 3D fit for the clicked surface, and both sources of one cover only wall, floor and ceiling (the server's plane fit, `swatchroom/server/lib/pipelineRunner.js`, and the browser's outline estimate, `provisional.js`). The designs are offered on wall, **door and furniture**, so on two of three kinds they could never have been previewed even with a texture. Reproduced: the studio's own preview code, in Chrome, gives a door, a cabinet front and a sofa no slot and paints nothing.
+- **A trap:** `swatchroom/public/js/lib/prompts.js:61-71` quotes `texture.tileWidthM / tileHeightM` to Gemini as a measured repeat ("Tile repeat scale must match ..."). The catalogue has no recorded size, so my guess must not go under those names.
+- **The picture route's failure mode:** `/media/materials/<id>.jpg` answers a picture it cannot read with HTTP 200 and an SVG tile that prints the code (`X-Terucon-Picture: unavailable`); tiled onto a wall that would be a wall of words.
+- **What cannot have a texture swap:** counted by running the studio's catalog: 36 of its 103 finishes have no texture (wall 8, floor 4, ceiling 10, window 7, door 5, furniture 1, other 1: object additions, door styles, blinds, rugs, lights, "Remove") plus 4 curtains with a texture that sit on windows; none of the 63 designs.
+
+### What exactly I did, in order
+
+1. Read `TARGETS.md` (C1), the memory notes, `docs/CATALOGUE_STUDIO.md`, the overlay files (`renderer.js`, `provisional.js`, `previewScene.js`, `geometry.js`), `studio.js` and `stage.js` where the preview is gated, `prompts.js`, `server/routes/catalogueMedia.js`. Ran the studio's catalog to count items per kind with and without a texture.
+2. Asked the advisor tool before writing code; it confirmed the two causes and told me to check the picture route's placeholder, the aspect ratio (800 x 1220 against a 640 x 448 tile), the 16-slot cap, and that `texture` is read by `prompts.js`.
+3. Recovered the 63 design photographs from git history into the scratchpad (`git archive ad91318^ media/materials`; the folder is empty in the working tree) to look at them.
+4. Server: `server/catalogue/studioFinishes.js` `textureOf()` (the photograph, the tile guess named `previewTile*`, the sheen, `?tone=100` for Gemini scale "large"); `finishOf` carries it; rule 13 gets one sentence (see below); route comment in `server/routes/catalogue.js`.
+5. Browser script `site/catalogue-ui/studio-finishes.js`: `textureOf()` that copies and validates the texture onto the wall, door and furniture items (own object each).
+6. Overlay (`site/overlays/studio/js/lib/`): `geometry.js` (`tileSizeOf`, `textureCrop`, `isPhotographUrl`, `flattenTone`, `toneRadiusOf`, the stated sheen in `specularFor`), `renderer.js` (loader: refuses the unavailable tile, crops, flattens a photograph, then the old seam repair; tile size via `tileSizeOf`; walls, floors and ceilings take GPU slots first), `provisional.js` (`ESTIMATED_KINDS`: door, furniture, other; heights 2.1 / 0.9 / 1 m for the fallback), `previewScene.js` (borrows the estimate for those kinds), and a new overlay copy of `previewReason.js` (only the "no-fit" wording). Regenerated `manifest.json` (9 overlay files).
+7. Extended the render-preview harness (`harness/run.js` `scenes=` and `texurl=`, `lib.mjs` `extraMaps`, new `harness/design-scenes.json`) and wrote `docs/design-studio-checks/render-preview/design-check.mjs`; ran it five times in real Chrome and **looked at every grid**. The first pictures showed a dark plaid grid over the teak and the marble (the seam repair acting on the photograph's brightness drift). I compared five ways of preparing the tile on the same designs in a scratch page (cross-fade only; flatten + cross-fade at radii 40, 100, 150; mirrored 2 x 2; border ramps) and chose flattening first. A unit test then found my first flattening (a wrap-around blur) leaves a brightness ramp at the very border: I switched it to mirrored edges. Looking at large-scale designs showed radius 40 wiped their bold features (SB8001, SB830), so a design with Gemini scale "large" (8 of 63) now asks for radius 100 through `?tone=100`.
+8. Tests: new (16 in `tests/js/studio-overlay-behaviour.test.js`, now 60; 3 in `studio-reference.test.js`, now 17; the new file `tests/js/studio-finishes-client.test.js`, 3; assertions in `catalogue-designs.test.js`); 8 existing tests or assertions that pinned the old behaviour changed on purpose (four "8 overlay files" pins, the provisional-scene test, the seam test's fake, the finish-keys test, one e2e assertion). Extended the e2e catalogue-group test.
+9. The advisor reviewed the finished change and caught a bug in my rule-13 sentence: it said "If Image 3 carries a preview" also on the lite model, where Image 3 is the reference photograph itself. It is now added only when the reference is Image 4 or later (`n >= 4`), with a test each way.
+10. Regenerated the patch for your own Swatchroom project (`docs/design-studio-checks/instant-preview-quality.patch`, 9 files) and checked on a throw-away copy that `git apply --check` passes and the result equals the overlay.
+11. Docs: `docs/CATALOGUE_STUDIO.md` (new section), `docs/DESIGN_STUDIO_ARCHITECTURE.md` 12.9, the render-preview README, `TARGETS.md` (C1, Remaining, the counts paragraph, the deploy note, the change log), this entry; saved a memory note.
+12. Ran the checks below.
+
+### Files changed
+
+`server/catalogue/studioFinishes.js`, `server/routes/catalogue.js` (a comment), `site/catalogue-ui/studio-finishes.js`, `site/overlays/studio/js/lib/fastrender/{geometry,renderer,provisional,previewReason}.js` and `site/overlays/studio/js/lib/previewScene.js` (`previewReason.js` is new there), `site/overlays/studio/manifest.json`, `tests/js/{studio-overlay,studio-overlay-behaviour,studio-reference,catalogue-designs}.test.js`, new `tests/js/studio-finishes-client.test.js`, `tests/e2e/run.mjs`, `docs/design-studio-checks/render-preview/{README.md,lib.mjs,site-check.mjs,design-check.mjs}`, `.../harness/{run.js,design-scenes.json}`, `.../images/GRID-design-*.jpg` (3), `docs/design-studio-checks/instant-preview-quality.patch`, `docs/CATALOGUE_STUDIO.md`, `docs/DESIGN_STUDIO_ARCHITECTURE.md`, `TARGETS.md`, this file. **`swatchroom/` has no change** (`git status swatchroom` is empty). Nothing is committed.
+
+### Checked / not checked
+
+- **Checked:** `npm test` (the site build check, the links, the overview, the images and the JavaScript tests) all passed on 2026-11-05 after the last code change: JavaScript tests 1207, 1202 passed, 0 failed, 5 skipped (none skipped by my files); the studio browser tests, `E2E_ONLY=studio` 26 of 26 and `E2E_ONLY="Design Studio"` 5 of 5 (run before the rule-13 fix, which is server-only); `site-check.mjs` all checks passed (the website serves the 9 overlay files and its pictures equal the check's own); `design-check.mjs` over 8 designs x wall, door, cabinet front, sofa on a real WebGL2 backend, WebGPU on wall and door, all assertions passed (Apple M5, Chrome 156); the pictures looked at by me; the patch applies to a throw-away copy.
+- **Not checked:** the studio's real page with a real photo and a real scan (the dev stack has no scan; a Node test checks the studio's gate on the estimate scene, but tap-a-surface then pick-a-card was not driven); the other 55 designs; a phone, Safari, the live site; the loader against the real picture route (the check serves files from disk); the new rule-13 sentence and the preview-in-guide path against live Gemini (no live call and no paid call was made).
+- **Measured:** flattening one tile takes 11 to 12 ms in Node on this Mac.
+
+### Noticed, left alone
+
+- **A side effect of the Terucon group being first in the list:** the studio's prefetch stops at 14 pictures (`studio.js` `prefetchUrls`), so on the "All" tab it now prefetches design photographs and not the studio's own wall textures; the first pick of one of those waits for a fetch, a small step back from "instant" for finishes that worked before. The fix belongs in `studio.js` (upstream), which I did not touch. The 14 photographs are also prepared together on the first surface tap, on the main thread: unmeasured on a phone.
+- The studio's 36 object finishes and the 4 curtains stay Render-only, by nature.
+- Sofas, beds and tables get a flat-on texture over their outline; the same photograph repeats every 1.22 m.
+
+### Decisions for you
+
+1. **The tile size:** 1.22 m wide is my guess (a 4 ft sheet); the catalogue records no size. One constant: `PREVIEW_TILE_WIDTH_M` in `server/catalogue/studioFinishes.js`.
+2. **The flattening values** (40; 100 for bold designs) were chosen by eye on about six designs: look at yours.
+3. **Whether to take the regenerated patch into your own Swatchroom project** (the website's preview now differs from the standalone studio's in 9 files).
+
+### What I did (summary)
+
+Your newer items were the 63 catalogue designs, and they could not be drawn instantly for two reasons: they had no texture, and a door or a piece of furniture never had a 3D fit. I gave each design its own photograph as a texture, taught the browser to turn a photograph into a repeating tile (crop, take out the light drift, repair the seam), added a fit estimate for doors, furniture and other objects, and kept the Gemini render exactly as it was (with its reference photograph), so every material finish now supports both. Items that add or remove an object (door styles, blinds, rugs, lights, false ceilings, "Remove") cannot be a texture swap and stay AI-only. I checked it in real Chrome on 8 designs and 4 kinds of surface and looked at the pictures, and in the tests; I did not drive the studio's real page with a real scan, a phone or the live site, and I made no paid call. Three decisions are yours: the tile size, the flattening values, and the patch.
+
+---
+
+## 2026-11-05 (ninth session): Render cannot reach MongoDB although Atlas allows 0.0.0.0/0
+
+**Asked** (your message, shortened): the first error was `SSL alert number 80` / `tlsv1 alert internal error` on Cluster0; Atlas Network Access lists `0.0.0.0/0` (active) and `123.63.87.133/32`; Render's log says `Server selection timed out after 8000 ms` and `connect ECONNREFUSED 34.93.230.157:27017`; why, and which configuration or environment variable is misaligned?
+
+**Serves:** I3 (Render hosting) and, by effect, C1 (the studio). No status or count changed; no code changed.
+
+### What I found
+
+- **Render is pointed at the right cluster.** `34.93.230.157` (from your log) is one of the three nodes the local `MONGODB_URI` resolves to; `.env` and `swatchroom/.env` give the same three. I have not seen Render's own `MONGODB_URI`, only its effect.
+- **The access list is not what blocks this Mac.** Two of the three nodes accept a TCP connection and finish a trusted TLS 1.3 handshake from here.
+- **The cluster is not paused.** An unauthenticated `hello` to the two reachable nodes says each is a `secondary`, and both name **`shard-00-01` as the primary**. Its public address gets no reply at all (not a refusal, not a TLS alert): the TCP attempt goes unanswered. Same in every run, about 21:10 to 21:20 UTC. (My first runs numbered the nodes in the order DNS listed them, which is shuffled between runs; the last two runs, 21:20:06 and 21:20:12, use the stable `shard-00-NN` names, and the silent primary is the same machine that went unanswered in the first probe. The live `/api/health` at 21:19 UTC still said `"database":false`.)
+- **That explains the 8 s timeout.** The driver's default read preference and every write need the primary; sign-in checks, rooms and photos all write. A "read from secondaries" setting would not rescue them, so I did not suggest one.
+- **`ECONNREFUSED` in your log** means nothing was listening on that port at that moment. The address in it belongs to `shard-00-02`, which answers now (as a secondary), so it fits a node that was restarting between 20:56 and 21:02 and is back. Consistent with a rolling restart or maintenance; not seen in Atlas.
+- **No environment variable looks misaligned.** Every failure comes before any login, so the user, the password and the `authSource`/`replicaSet` options (which come from the cluster's DNS record) are not involved. The 8 s limit is hard-coded (`swatchroom/server/db.js:22`); it is where the studio gives up, not the cause.
+- **The first error, `SSL alert number 80`:** MongoDB community threads tie it most often to a client address missing from the access list (some to the OpenSSL version). I found no MongoDB documentation page that says this. It fits your first run: the handshake completes now. Likely, not proven.
+
+### Correction to my own earlier entry
+
+The eighth session (below) said the refusals pointed at "the cluster not listening (for example paused)" and told you to click Resume. With two nodes answering as secondaries that is wrong; I have marked both places.
+
+### What exactly I did, in order
+
+1. Read `TARGETS.md` (I3 and the thirty-sixth update), the eighth-session entry below, `render.yaml`, `swatchroom/server/db.js` and where `MONGODB_URI` is read.
+2. Wrote four scratch scripts in the session's scratchpad (not in the project), each printing verdicts only, never the host, user or password: (a) DNS (SRV and TXT, the three nodes' addresses), then TCP and TLS per node, and whether your logged IP is among them; (b) a read-only `{ping:1}` through the project's `mongodb` driver (7.7.0); (c) a 50 s watch of the driver's per-node state and heartbeat failures, run three times; (d) a per-node TCP check plus an unauthenticated `hello`, with no credentials in the connection string. Nothing was written to MongoDB.
+3. Searched the web once for what "SSL alert 80" means with Atlas (forum threads only; a domain on my filter list was refused, I retried without it).
+4. Asked the advisor tool to review the conclusion; it asked for the primary/secondary check (d) before I stated the cause, and told me not to offer `readPreference=secondaryPreferred`.
+5. Updated `TARGETS.md` (header, I3, change log) and this file; rebuilt the overview.
+
+### What to do (all in Atlas; nothing on Render)
+
+1. **Database, Cluster0**: the cluster card and the **Metrics** tab for node roles and any restart, maintenance or "degraded" banner.
+2. **Project Activity Feed**: restarts, maintenance, resume or access-list changes in the last hours.
+3. **Network Access**: the `0.0.0.0/0` row must say **Active**, not Pending.
+4. **status.mongodb.com**: an incident on Google Cloud.
+5. If it is a free M0 cluster and there is still no primary after a reasonable wait, open a support chat.
+6. Do not redeploy Render: the studio retries every 15 s. When a primary exists, `https://terucon-vp0y.onrender.com/api/health` must say `"database":true` and sign-in opens again.
+
+### Checked / not checked
+
+Checked: the DNS, TCP, TLS and `hello` answers above, from this Mac only. **Not checked:** your Atlas and Render dashboards, Render's actual `MONGODB_URI`, why the third node does not answer (a node or network fault on Atlas's side, a firewall rule that has not reached that node, or a stale address are all possible), whether Render sees exactly this state (its log fits it), anything on a phone. Nothing on Render or Atlas was changed.
+
+### Noticed, left alone
+
+- `render.yaml` puts the service in Oregon while the nodes have Google Cloud addresses. Not the cause (8 s is plenty); I have not confirmed the cluster's region in Atlas.
+- The generic 5xx page for a signed-in browser while the database is down (eighth session) is still unfixed.
+
+### What I did (summary)
+
+I probed your Atlas cluster from this Mac without credentials. Render points at the right cluster and the access list is not blocking it: two nodes answer as secondaries. Both say the third node is the primary, and that node's public address does not answer at all, so everything that needs the primary times out after 8 s. No Render variable explains it; it has to be looked at in Atlas (activity feed, metrics, status page, support). I corrected my earlier "paused" guess. Nothing was changed anywhere.
+
+---
+
+## 2026-11-05 (eighth session): the live Design Studio says "Something went wrong on our side"
+
+**Asked:** "I just opened the AI studio and it is showing 'Something went wrong on our side' at https://terucon-vp0y.onrender.com/design-studio; I haven't changed anything on Render; what do I change on Render?"
+
+**Serves:** I3 (Render hosting) and, by effect, C1 (the studio). No status or count changed.
+
+### What I found
+
+- Your push of 2026-11-05 02:06 (`b55f072`) made Render redeploy. Its files (the overlay, the Finder, docs) contain no database code, so I do not think it caused this; I cannot see Render's logs to prove it.
+- `GET /api/health` (live): `{ok:true, studio:{running:true, database:false}, auth:{ready:false, gate:true, reasons:["no-database"]}}`. `GET /api/auth/config`: 503 "Sign-in is not available right now". `GET /design-studio` without a session: 302 to `/login`. So the site runs but **its MongoDB is not connected**.
+- "Something went wrong on our side" is the site's own 5xx page (`server/lib/errorPage.js`): a signed-in browser carries a session cookie, the server asks MongoDB whether it is valid, the call fails, the generic page is shown.
+- Both `.env` and `swatchroom/.env` point at the same Atlas cluster (same host fingerprint, `mongodb+srv`, an `.mongodb.net` host); its DNS resolves (3 nodes, public addresses). A ping from this Mac failed twice: "connect ECONNREFUSED", then "Server selection timed out after 12000 ms". Earlier sessions connected to it from this Mac.
+
+- **Update, your pasted Render log (20:56-21:02):** `studio  MongoDB is not reachable (Server selection timed out after 8000 ms). Retrying in 15 seconds` every 23 s, and twice `connect ECONNREFUSED 34.93.230.157:27017`. No "bad auth" or "whitelist" line in what you pasted. The same refusal and timeout came from this Mac, so two different networks fail the same way: it points at the cluster not listening (for example **paused**) more than at the password or a Render address; not proven, an access-list block is not excluded. The studio retries every 15 s by itself, so no redeploy is needed once Atlas answers. **(Corrected in the ninth session above: not "paused"; two nodes answer and the third, the primary, does not.)**
+
+### What exactly I did, in order
+
+1. Read `git log` (the 02:06 push and its file list) and `git status`.
+2. Probed the live site with GET requests only: `/api/health`, `/design-studio`, `/api/studio/status` (404), `/api/auth/config`, `/api/catalogue/status` (401), `/login` (200).
+3. Read `server/auth/index.js` (where `no-database` comes from) and `server/lib/errorPage.js`.
+4. Wrote two scratch scripts in the session's scratchpad (not in the project): a DNS check of the cluster's SRV records and a `{ping:1}` through the `mongodb` driver with the `.env` string read in memory. They print a verdict only: no address, host, user or password. The ping is read-only and writes nothing.
+5. Updated `TARGETS.md` (header, change log) and this file; rebuilt the overview.
+
+### What to do (Atlas first; Render needs no change for this)
+
+1. cloud.mongodb.com, your project, **Database**: if the cluster says **Paused**, click **Resume**. **(Corrected in the ninth session above: the cluster is not paused, two of its three nodes answer; skip this step and follow the ninth session's list.)**
+2. **Security, Network Access**: Render's free web service has no fixed outgoing address and a redeploy can change it. Add **0.0.0.0/0** (Allow access from anywhere); if you already have a row for it that says it expires, replace it with a permanent one. The password and `MONGODB_URI` are your protection then.
+3. **Security, Database Access**: the database user must still exist, with the password in `MONGODB_URI` on Render (only if you changed either).
+4. On Render: **Logs**: look for the line `studio  MongoDB connected: false` and the error near it. "Could not connect ... IP that isn't whitelisted" means step 2; "bad auth" means step 3; "ECONNREFUSED" or "timed out" with nothing else means step 1 or 2.
+5. After the fix the site reconnects by itself (about a minute); if not, Render: **Manual Deploy, Restart**. Check `https://terucon-vp0y.onrender.com/api/health`: it must say `"database":true` and `"auth":{"ready":true`. Then reload `/design-studio`.
+
+### Checked / not checked
+
+Checked: the live health answers above, the DNS, two pings from this Mac. **Not checked:** your Atlas and Render dashboards and logs, which of the three causes it is, anything on a phone. Nothing on Render or Atlas was changed; nothing was written anywhere.
+
+### Noticed, left alone
+
+With the database down, a signed-in browser gets the generic 5xx page rather than the sign-in page with a message. That is worth a small fix; I did not make it.
+
+### What I did (summary)
+
+I probed the live site from outside and found it is up but its account database (MongoDB Atlas) is not connected, which makes the studio's sign-in check fail and show the generic error page. Your Atlas cluster does not accept my connection either, so the problem is on Atlas's side (a paused cluster or the network access list are the likely causes), not in the new code. I listed what to check on Atlas and what to look for in the Render logs; nothing was changed.
+
+---
+
+## 2026-11-05 (seventh session): the Finder's "Search the whole photo", the accuracy of the closest-item search, the instant 3D preview's quality
+
+**Asked** (your message, shortened): (1) tapping "Search the whole photo" only showed the caption "Searching the whole photo ..." and did nothing; it should separate the things in the photo and, when the visitor taps one, fetch similar products from the catalogue; (2) the accuracy of fetching the closest item is very bad (two screenshots: grey concrete and white marble for a tan wooden floor); (3) the WebGL/WebGPU 3D rendering is low quality (lighting, texture, fitting); fix them, note down every action, update the earlier `.md` files that hold the architecture, and use multiple agents.
+
+**Serves:** C4 (point-and-identify: bugs 1 and 2, also D1 for the catalogue engine's notes) and C1 (bug 3). Statuses and counts did not change (C4 and C1 stay Partly done).
+
+### How the work was split
+
+I read `TARGETS.md`, the memory notes and the code, then asked the advisor tool to review my plan before spawning anything. Its guardrails, which I followed: do not use git worktrees (the tree had dozens of uncommitted changes); only I edit `TARGETS.md`, `WORK_LOG.md`, the overview files and `docs/overview/**`; bug 3 lives inside `swatchroom/` so its agent is read-only and I ask you first; for bug 1 reuse `surfaces.js`; for bug 2 measure before changing weights, and do not redeploy Modal or re-ingest without asking. Four agents ran, in the same checkout, on files that do not overlap: **Finder** (bug 1), **Accuracy** (bug 2), **Render** (bug 3, read-only), and, after you chose, **Overlay** (built the 3D change). The Overlay agent was cut off once by the 5-hour usage limit before it had written anything; I resumed it after the reset and checked that nothing half-written was left.
+
+### What I found
+
+- **Bug 1.** The old button only set a flag (`wholePhoto = true`) and wrote the caption; "Find it" then searched the whole photo with no spot. The shop's "Find it from a photo" (`surfaces.js`) already had the whole flow (outline with OneFormer, name the regions, cut a patch, search).
+- **Bug 2.** Cause found by 39 live searches (read-only): the website's default profile `fast` (DINOv2 + SigLIP + colour) has no signal that tells wood from stone; the profile `balanced` adds a Vertex AI image embedding and puts Chester Oak first for your floor patch. Also: a pre-cut patch sent with no region took the whole-photo path (card search, 80 % centre crop); the index holds whole catalogue pages (71 % picture, the rest white margin and label), so result thumbnails showed white margins; weights and fusion are not the problem; colour alone cannot tell pale tan wood from pale marble. I only partly reproduced your list (from a 134 px crop of a screenshot).
+- **Bug 3.** Reproduced with the studio's real renderer modules in headless Chrome: the estimate path draws a floor as a flat skewed poster, the estimate's light is one unmasked box blur, no anisotropic filtering, hard tile seams, a one-pixel edge staircase; WebGL2 and WebGPU give the same pixels. Possible live root cause, not checked: the studio's pipeline answers a MOCK geometry when its model addresses are unset (see `TARGETS.md` C1).
+
+### What exactly I did, in order
+
+1. Read `TARGETS.md` (header, C1, C4, C5, D1), `CLAUDE.md`, the memory notes; located the Finder, the catalogue search, `fastrender/`; asked the advisor (above).
+2. Started the Finder, Accuracy and Render agents in the background with written briefs (file ownership, no commits, no secrets printed, no live deploys, targeted tests only).
+3. **Finder agent's work (verified by me):** new `site/catalogue-ui/regions.js` (shared outlining, regions, patch, overlay painting, moved out of `surfaces.js`), `finder.js` (four photo states: spot / outlining / regions / fallback; busy state, Cancel, plain failure messages, "Search the whole photo anyway"), `pages/finder.html`, `catalogue-ui.css`, `server/routes/catalogueUi.js` (the route serves only a list of names: `regions.js` added), 8 + 10 + 2 tests. I re-ran `tests/js/catalogue-regions.test.js` (8/8) and looked at its phone screenshot (the lobby outlined, a button per item).
+4. **Render agent's report:** read it, and looked at two of its before/after pictures myself (lobby floor, clinic floor: the old floor is a flat skewed poster, the new one follows the sun and shadows). Because the fix changes files that come from your separate project, I asked you (the question tool); you chose "Overlay, all 4 fixes". Started the Overlay agent with the drafts' location and the guard-test requirements.
+5. **Accuracy agent's report:** read it; then wired `patch=1` into the client (`site/catalogue-ui/client.js`: `searchPhoto({patch})`), the Finder's tap and the shop's tap; updated the four browser assertions that pinned `?mode=look&k=8`; ran "Finder page" (10/10) and "Find it from a photo" (2/2) and the catalogue JS tests (50/50).
+6. **My own live experiment (24 searches):** the live lobby run had sent a thin 640 x 123 strip, and the encoders squash (SigLIP resizes any input to a square), so I suspected thin patches hurt. I cut 6 designs' own pictures into 4 shapes (strip 5:1, 2:1, 1.5:1, square), searched each with profile `balanced`, `patch=1`, through `tools/catalogue-probe.mjs`: 5 of 6 designs ranked first in every shape. No change made; recorded in `TARGETS.md`.
+7. Changed the local `.env`'s one line `CATALOGUE_SEARCH_PROFILE=fast` to `balanced` with a single `sed` (counted matches; nothing else read or printed; the file is git-ignored). **Render's value is yours to change.**
+8. Updated `docs/overview/catalog/env.json` (new default text; the new `STUDIO_PREVIEW_OVERLAY`), `api.json` (`patch=1`, the picture in `thumbUrl`), `files.json` (the overlay files, tools, the checks folder, `regions.js`, the `site/overlays/` directory line).
+9. Verified the Overlay agent's work: `git status` shows nothing under `swatchroom/`, `node tools/studio-overlay-manifest.js --check` passes, the 57 overlay tests pass (13 + 44).
+10. Wrote the `TARGETS.md` entries (C1, C4, D1, header, "Where we stand", the deploy notes, the change log) and this entry; rebuilt the overview; ran the full suites.
+11. Architecture notes updated (by the agents, read by me): `catalogue/ARCHITECTURE.md` (new section 5.1 and edits to 5, 7, 8, 9), `docs/CATALOGUE_SETUP.md` (a "Checking how well the search finds things" section), `docs/DESIGN_STUDIO_ARCHITECTURE.md` (new section 12, pointers in 3.5, 7.1, 0 and 10), `README.md` (the Finder, the settings, the layout), `.env.example`.
+
+### Files changed
+
+Finder: `site/catalogue-ui/{regions.js (new), finder.js, surfaces.js, client.js, catalogue-ui.css}`, `pages/finder.html`, `server/routes/catalogueUi.js`, `tests/js/catalogue-regions.test.js` (new), `tests/e2e/run.mjs`.
+Accuracy: `server/catalogue/{config,validate,service}.js`, `tests/js/{catalogue-search,catalogue-settings,catalogue-probe}.test.js`, `catalogue/terucon_catalogue/accuracy.py`, `catalogue/tools/accuracy_eval.py`, `tools/catalogue-probe.mjs`, `catalogue/tests/test_accuracy*.py`, `catalogue/data/accuracy-eval/*` (the named set, saved live answers, three crops of your screenshots), `catalogue/ARCHITECTURE.md`, `docs/CATALOGUE_SETUP.md`.
+3D: `site/overlays/studio/js/**` (8 files), `site/overlays/studio/manifest.json`, `server/middleware/studioOverlay.js`, `tools/studio-overlay-manifest.js`, `app.js`, `server/config/settings.js`, `tests/js/studio-overlay*.test.js`, `tests/js/server-studio-parity.test.js`, `docs/design-studio-checks/{instant-preview-quality.patch, render-preview/}`, `docs/DESIGN_STUDIO_ARCHITECTURE.md`.
+Shared: `.env.example`, `README.md`, `docs/overview/catalog/{env,api,files}.json`, `TARGETS.md`, this file, the files `node tools/build-overview.js` regenerates, the local `.env` (one line).
+
+### Checked
+
+- Finder: 8 JavaScript + 10 browser tests (stubbed models and catalogue), 7 of the 10 fail on the old `finder.js`; one live local run, 3 real OneFormer calls on the lobby photo (warm GPU: 7.0 / 3.0 / 2.7 s) and 3 catalogue searches, no CSP violation.
+- Accuracy: 39 + 1 live searches by the agent, 24 by me; Python tests 835 pass; the named set re-runs offline (`python -I catalogue/tools/accuracy_eval.py table`).
+- 3D: 57 overlay tests (re-run by me), real Chrome renders on one Apple M5 (16 pictures equal to the drafter's reference), the real website serving the 14 module addresses, `E2E_ONLY=studio` 26/26 and `"Design Studio"` 5/5 (the agent's runs).
+- Full suites: `node tools/run-tests.js --e2e` (run by me after all the edits): site build check ok, links ok, optimized images ok, **JavaScript tests 1185 run, 1180 passed, 0 failed, 5 skipped** (the skips need a real MongoDB or a path from another computer), **browser tests 102 of 102 passed** (518 s); the "project overview is current" step failed at that moment, as expected (it was stale until I rebuilt it; re-checked below). The Python catalogue tests: **835 passed** (re-run by me with the agent's scratch environment, `catalogue/`, `pytest`).
+
+### Not checked
+
+A real phone, Safari, a cold GPU, sign-in switched on; any accuracy figure (none exists: no photo of a real sample with an agreed answer); a real fused fit or real scan masks for the 3D preview; whether the 3D preview looks better to you on your own photos; any GPU but one Apple M5; the live site (nothing deployed, nothing committed by me; you committed the earlier work yourself at 23:28 on 2026-11-04).
+
+### Noticed, left alone
+
+- The accuracy fix is not live until `CATALOGUE_SEARCH_PROFILE` is `balanced` or removed on Render, then a redeploy.
+- The hidden cover page is still in Modal's pool (rank 2 for the gym photo); the items' category and finish are old AI labels; `TIPL-STC9092` is near many queries (hub). All three need a re-publish; none changed.
+- `/api/vision/*` shares one 60-an-hour limit with the studio's scans.
+- `swatchroom/` was already not byte-identical to your original folder (the 2026-11-04 approved edits); the overlay added nothing there. The studio's own `tests/fastrender.test.js` still asserts the old constants (3 tests) because it was not touched; the site's version of those checks is `tests/js/studio-overlay-behaviour.test.js`.
+- A pre-existing race in `tests/js/server-startup.test.js` ("SIGTERM stops it cleanly") failed in a few runs under load and passes alone; not reproduced, not changed.
+- The textures are flat illustrated swatches, not photographs: no shader change fixes that.
+
+### What I did (summary)
+
+I fixed the Finder so "Search the whole photo" outlines the photo with the real model and a tap on an item searches the catalogue for it, with a plain message and a fallback when anything fails. For the bad matches I measured instead of guessing: the default search profile could not tell wood from stone, so the website default is now the better one, a tapped patch is searched whole, and results show the design's own picture; I could not produce an accuracy figure, and the change only takes effect on the live site once you change one setting on Render. For the 3D preview I had the problems reproduced and drafted, asked you before touching your project, and, on your choice, shipped the four improvements as an overlay the site serves ahead of the studio's own files (one switch turns it off, a guard test catches a re-copy). Nothing was committed or deployed.
+
+---
+
 ## 2026-11-04 (sixth session): capture from a phone (QR code and WhatsApp link, photos back to the requester)
 
 **Asked** (from your message, shortened): when a person lands on the Design Studio, Inspiration or the Finder, offer two ways to capture photos with a phone: (1) a QR code that opens a page with a single upload option (one or several photos) where the capturer adds tags (room, cabin...), location details, name, address and phone number, which go to the requester, with the photos saved in the cloud and readable only by the requester; (2) the link sent on WhatsApp to a number typed in. A location button that captures the phone's real coordinates; do not send the person to the camera app (uploads fail that way); the same theme and the same lazy loader; when photos are uploaded the requester gets a WhatsApp message and a pop-up on the site, sees them on the service they asked from, and can move a photo to Inspiration or the Design Studio; mobile, handy, robust, "without preassuming or hallucination", complete system secured.

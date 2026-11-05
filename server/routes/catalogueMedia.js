@@ -6,39 +6,19 @@
  *
  *   GET /media/materials/tipl-sb804.jpg          the 800 px picture (the 320 px thumbnail while a design has none of its own)
  *   GET /media/materials/tipl-sb804.jpg?w=320    the 320 px thumbnail (any ?w= up to 400)
- *   GET /media/materials/tipl-sb804.jpg?tile=1   a seamlessly-tileable crop of the same picture (target C1: the Design Studio's instant preview;
- *                                                 see server/lib/tileTexture.js for why a plain photo needs this and server/catalogue/studioFinishes.js
- *                                                 for where the address is given to the studio). Computed once per picture and kept in memory.
  *
  * Only a design the database lists is answered (the id is checked against the list, never put in a bucket address), so this is not a way to read
  * the bucket. Public, like the files it replaces: they were public product pictures. A design that is not listed is a plain 404; a design whose
  * picture the bucket did not give (no database, no signing key, Cloud Storage down) is answered with a neutral tile that says so, never cached,
- * so the shop shows a quiet square instead of a broken image and the next visit tries again. A `?tile=1` request that cannot be made seamless
- * (the picture is not a JPEG, or the crop failed) quietly falls back to the plain picture rather than fail: a non-tiling preview beats none.
+ * so the shop shows a quiet square instead of a broken image and the next visit tries again.
  */
 import { SLUG } from '../catalogue/designs.js';
 import { notFound } from '../middleware/errorHandler.js';
-import { makeSeamlessTile } from '../lib/tileTexture.js';
 
 const FILE = /^(tipl-[a-z]{2,4}\d{2,5})\.jpg$/;
 const THUMB_MAX_W = 400;
 const FRESH_S = 3600;
 const STALE_S = 86400;
-
-// The seamless crop is real CPU work (a JPEG decode, a few pixel passes, a re-encode): keep each design's result
-// in memory, keyed to the picture it was made from (found.tag), so a changed picture makes a new one and an
-// unchanged one never recomputes. Bounded and FIFO, not a true LRU: 63 designs' worth is a few MB at most, and
-// this is a cache for repeat requests of the same small set, not a general-purpose store.
-const TILE_CACHE_MAX = 128;
-const tileCache = new Map();
-function cachedTile(key, make) {
-  const hit = tileCache.get(key);
-  if (hit) return hit;
-  const made = make();
-  tileCache.set(key, made);
-  if (tileCache.size > TILE_CACHE_MAX) tileCache.delete(tileCache.keys().next().value);
-  return made;
-}
 
 const escapeXml = (s) => String(s).replace(/[<>&"']/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&apos;' })[c]);
 
@@ -64,29 +44,18 @@ export function catalogueImageHandler(ctx) {
       // a catalogue that lists designs and not this one: no such picture. A catalogue that lists nothing is not set up (or empty): the quiet tile below
       if (!design && all.length) return notFound(req, res);
       if (!design) throw Object.assign(new Error('no catalogue'), { name: 'NoCatalogue' });
-      const tiling = req.query.tile === '1';
       const wanted = Number.parseInt(String(req.query.w ?? ''), 10);
-      const size = tiling ? 'card' : Number.isFinite(wanted) && wanted > 0 && wanted <= THUMB_MAX_W ? 'thumb' : 'card';
+      const size = Number.isFinite(wanted) && wanted > 0 && wanted <= THUMB_MAX_W ? 'thumb' : 'card';
       const found = await designs.image(slug, size);
       if (!found) {
         res.status(200).set({ 'Content-Type': 'image/svg+xml; charset=utf-8', 'Cache-Control': 'no-store', 'X-Terucon-Picture': 'unavailable' }).send(tileSvg(design.code, design.hex));
         return;
       }
-      let { bytes, type, tag } = found;
-      if (tiling && found.type === 'image/jpeg') {
-        try {
-          const made = cachedTile(`${slug}:${found.tag}`, () => makeSeamlessTile(found.bytes));
-          bytes = made.buffer;
-          tag = `${found.tag}-tile`;
-        } catch (error) {
-          ctx.log?.warn?.(`catalogue tile of ${slug} could not be made, serving the plain picture: ${String(error?.message ?? error).slice(0, 80)}`);
-        }
-      }
-      const etag = `"${tag}"`;
-      res.set({ 'Content-Type': type, 'Cache-Control': `public, max-age=${FRESH_S}, stale-while-revalidate=${STALE_S}`, ETag: etag });
+      const etag = `"${found.tag}"`;
+      res.set({ 'Content-Type': found.type, 'Cache-Control': `public, max-age=${FRESH_S}, stale-while-revalidate=${STALE_S}`, ETag: etag });
       if (req.headers['if-none-match'] === etag) return res.status(304).end();
-      res.set('Content-Length', String(bytes.length));
-      res.end(bytes);
+      res.set('Content-Length', String(found.bytes.length));
+      res.end(found.bytes);
     } catch (error) {
       // the database is down or the catalogue is not set up: the same quiet tile, and never a cached one
       const code = slug.replace(/^tipl-/, '').toUpperCase();

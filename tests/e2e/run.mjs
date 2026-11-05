@@ -913,7 +913,7 @@ await test('Finder page: tapping an item sends a JPEG patch of it (smaller than 
     // a tap on the wall
     await page.mouse.click(box.x + box.width * 0.12, box.y + box.height * 0.3);
     await until(() => page.evaluate(() => document.querySelectorAll('#results .result').length === 3), 'the closest materials for the wall');
-    assert(seen.search.length === 1 && seen.search[0].type === 'image/jpeg' && seen.search[0].query === '?mode=look&k=8', 'one catalogue search, with a JPEG, with no spot (the patch is the spot): ' + JSON.stringify(seen.search));
+    assert(seen.search.length === 1 && seen.search[0].type === 'image/jpeg' && seen.search[0].query === '?mode=look&k=8&patch=1', 'one catalogue search, with a JPEG, with no spot (the patch is the spot) and marked as a patch: ' + JSON.stringify(seen.search));
     let st = await finderState(page);
     assert(/3 matches for the wall/.test(st.meta) && /Showing materials like the wall/.test(st.text), 'it says what the results are for: ' + st.meta + ' / ' + st.text);
     assert(await page.evaluate(() => document.querySelector('#outline-chips .chip[aria-pressed="true"]')?.textContent) === 'Wall', 'the chip of the tapped item is marked');
@@ -925,13 +925,13 @@ await test('Finder page: tapping an item sends a JPEG patch of it (smaller than 
     // "Find it" while the items are showing: the whole photo, as before
     await page.click('#go-photo');
     await until(() => seen.search.length === 3, 'the whole photo to be searched');
-    assert(seen.search.every((q) => q.query === '?mode=look&k=8'), 'no spot in any of them: ' + JSON.stringify(seen.search));
+    assert(seen.search[0].query === '?mode=look&k=8&patch=1' && seen.search[1].query === '?mode=look&k=8&patch=1' && seen.search[2].query === '?mode=look&k=8', 'the two taps are patches, "Find it" is the whole photo (no spot, not a patch): ' + JSON.stringify(seen.search));
     assert(seen.search[0].size > 2000 && seen.search[0].size < seen.search[2].size * 0.85 && seen.search[1].size < seen.search[2].size * 0.85, 'a patch of the wall and of the floor is smaller than the whole photo: ' + seen.search.map((x) => x.size));
     // colour: the tap searches by colour
     await page.click('#mode-colour');
     await page.evaluate(() => [...document.querySelectorAll('#outline-chips .chip')].find((c) => c.textContent === 'Window').click());
     await until(() => seen.search.length === 4, 'the window to be searched by colour');
-    assert(seen.search[3].query === '?mode=colour&k=8', 'colour mode: ' + seen.search[3].query);
+    assert(seen.search[3].query === '?mode=colour&k=8&patch=1', 'colour mode: ' + seen.search[3].query);
     await page.click('#mode-photo');
     // pick a spot instead: the box is back, nothing of the items is left on the photo
     await page.click('#outline-spot');
@@ -2040,6 +2040,12 @@ const tbSend = async (page, text) => { await page.type('.tb-input', text); await
 const tbBotTexts = (page) => page.evaluate(() => [...document.querySelectorAll('.tb-msg--bot .tb-text')].map((n) => n.textContent));
 const tbNotes = (page) => page.evaluate(() => [...document.querySelectorAll('.tb-note .tb-note__text')].map((n) => n.textContent));
 const tbWaitBot = (page, n) => until(async () => (await page.evaluate(() => document.querySelectorAll('.tb-msg--bot:not([data-greeting])').length)) >= n && !(await page.$('.tb-typing')), `bot message ${n}`, 8000);
+/** On the Design Studio, Inspiration and Finder pages the launcher dock (site/brand/launcher-dock.js) holds TeruBot's launcher and the capture launcher back behind one toggle: open it first, as a person would (a page with only TeruBot has no toggle, and an open fan must not be closed again). */
+const tbReveal = async (page) => {
+  await until(() => page.$('.tcd-toggle'), 'the combined launcher toggle', 15000);
+  if ((await page.evaluate(() => document.querySelector('.tcd-toggle').getAttribute('aria-expanded'))) !== 'true') await page.click('.tcd-toggle');
+  await until(() => page.evaluate(() => getComputedStyle(document.querySelector('.tb-launch')).pointerEvents !== 'none'), "TeruBot's launcher to be reachable");
+};
 const TB_CART_KEY = 'terucon.store.v1.cart';
 
 await test('terubot: one "Ask TeruBot" launcher on every page, nothing built until it opens; it opens, closes with the button and with Escape, and gives the focus back', async () => {
@@ -2054,6 +2060,7 @@ await test('terubot: one "Ask TeruBot" launcher on every page, nothing built unt
   }
   assert(st.calls.length === 0, 'the page load alone talked to the chat endpoint');
   await tbGo(page, '/finder');
+  await tbReveal(page); // the Finder carries both launchers, so they sit behind the dock's one toggle
   await page.click('.tb-launch');
   await until(() => page.evaluate(() => { const p = document.getElementById('terubot-panel'); return p && !p.hidden; }), 'the panel to open');
   await until(() => page.evaluate(() => document.querySelector('.tb-log').getAttribute('aria-live') === 'polite'), 'the live region to settle');
@@ -2064,6 +2071,7 @@ await test('terubot: one "Ask TeruBot" launcher on every page, nothing built unt
   await page.keyboard.press('Escape');
   await until(() => page.evaluate(() => document.getElementById('terubot-panel').hidden), 'Escape to close the panel');
   assert(await page.evaluate(() => document.activeElement === document.querySelector('.tb-launch')), 'the focus did not return to the launcher');
+  await tbReveal(page); // closing the panel puts the dock back to one quiet icon
   await page.click('.tb-launch');
   await until(() => page.evaluate(() => !document.getElementById('terubot-panel').hidden), 'a second open');
   await page.click('[aria-label="Close TeruBot"]');
@@ -2494,8 +2502,8 @@ await test('terubot: keys typed in the panel never reach the page; Tab stays ins
 
 await test('studio: the catalogue designs are added to the finish list before the studio starts (a group "Terucon catalogue" for wall, door and furniture, one item per surface kind), a card gets the design\'s photo, and the studio opens as it always did when the catalogue is off, down or slow', async () => {
   const finishes = [
-    { id: 'tipl-sb804', code: 'SB804', productId: 'TIPL-SB804', name: 'Emperador Dark', sub: 'SB804 · marble-like veining, gloss', about: 'Emperador Dark, Terucon catalogue design TIPL-SB804. A dark brown surface.', prompt: 'Apply the design. [[terucon-design:TIPL-SB804]]', hex: '#271c1c', image: '/media/materials/tipl-sb804.jpg?w=320', described: true },
-    { id: 'tipl-sb008', code: 'SB008', productId: 'TIPL-SB008', name: 'Burmese Teak', sub: 'SB008', about: 'Burmese Teak, Terucon catalogue design TIPL-SB008.', prompt: 'Apply the design. [[terucon-design:TIPL-SB008]]', hex: '#7b4312', image: '/media/materials/tipl-sb008.jpg?w=320', described: false },
+    { id: 'tipl-sb804', code: 'SB804', productId: 'TIPL-SB804', name: 'Emperador Dark', sub: 'SB804 · marble-like veining, gloss', about: 'Emperador Dark, Terucon catalogue design TIPL-SB804. A dark brown surface.', prompt: 'Apply the design. [[terucon-design:TIPL-SB804]]', hex: '#271c1c', image: '/media/materials/tipl-sb804.jpg?w=320', texture: { url: '/media/materials/tipl-sb804.jpg', previewTileWidthM: 1.22, previewTileHeightM: 0.854, sheen: 'gloss' }, described: true },
+    { id: 'tipl-sb008', code: 'SB008', productId: 'TIPL-SB008', name: 'Burmese Teak', sub: 'SB008', about: 'Burmese Teak, Terucon catalogue design TIPL-SB008.', prompt: 'Apply the design. [[terucon-design:TIPL-SB008]]', hex: '#7b4312', image: '/media/materials/tipl-sb008.jpg?w=320', texture: { url: 'https://elsewhere.example/tipl-sb008.jpg', previewTileWidthM: 1.22, previewTileHeightM: 0.854 }, described: false },
   ];
   const open = async (answer) => {
     const page = await newPage({ width: 1440, height: 900 });
@@ -2517,7 +2525,9 @@ await test('studio: the catalogue designs are added to the finish list before th
     return { wall: group('wall'), door: group('door'), furniture: group('furniture'), floor: group('floor'), ceiling: group('ceiling'), window: group('window'), paint: CATALOG.wall.some((g) => g.group === 'Paint'),
       wallItems: CATALOG.wall[0].items.map((i) => i.id), doorItems: (CATALOG.door[0].items || []).map((i) => i.id),
       kinds: { wall: findItemKind('tipl-sb804'), door: findItemKind('tipl-sb804-door'), furniture: findItemKind('tipl-sb008-furniture') },
-      found: (() => { const i = findItem('tipl-sb804-door'); return i && { name: i.name, mode: i.mode, hasTexture: !!i.texture, marker: /\[\[terucon-design:TIPL-SB804\]\]$/.test(i.prompt), swatch: i.swatch }; })() };
+      found: (() => { const i = findItem('tipl-sb804-door'); return i && { name: i.name, mode: i.mode, texture: i.texture ? JSON.parse(JSON.stringify(i.texture)) : null, marker: /\[\[terucon-design:TIPL-SB804\]\]$/.test(i.prompt), swatch: i.swatch }; })(),
+      // the instant preview's texture: on every kind's item, each its own object; a texture that is not one of the site's design pictures is dropped
+      textures: { wall: !!findItem('tipl-sb804')?.texture, furniture: !!findItem('tipl-sb804-furniture')?.texture, separate: !!findItem('tipl-sb804')?.texture && findItem('tipl-sb804').texture !== findItem('tipl-sb804-door')?.texture, foreign: !!findItem('tipl-sb008')?.texture } };
   });
 
   // 1. the catalogue answers
@@ -2530,7 +2540,12 @@ await test('studio: the catalogue designs are added to the finish list before th
     assert(c.paint, 'the studio\'s own finishes are still there');
     assert(JSON.stringify(c.wallItems) === '["tipl-sb804","tipl-sb008"]' && JSON.stringify(c.doorItems) === '["tipl-sb804-door","tipl-sb008-door"]', 'ids: ' + JSON.stringify([c.wallItems, c.doorItems]));
     assert(c.kinds.wall === 'wall' && c.kinds.door === 'door' && c.kinds.furniture === 'furniture', 'the studio forgets a finish whose kind is not the surface\'s (itemFitsKind): ' + JSON.stringify(c.kinds));
-    assert(c.found && c.found.name === 'Emperador Dark' && c.found.mode === 'surface' && c.found.marker && !c.found.hasTexture && c.found.swatch.hex === '#271c1c', 'the studio finds the item as one of its own: ' + JSON.stringify(c.found));
+    assert(c.found && c.found.name === 'Emperador Dark' && c.found.mode === 'surface' && c.found.marker && c.found.swatch.hex === '#271c1c', 'the studio finds the item as one of its own: ' + JSON.stringify(c.found));
+    // the design's photograph is its texture for the instant preview (WebGL2 / WebGPU), on the wall, door and furniture items alike. The guessed tile size is named
+    // previewTile*, never tileWidthM / tileHeightM: the studio quotes those two to the render model as a measured repeat (swatchroom/public/js/lib/prompts.js)
+    assert(JSON.stringify(c.found.texture) === JSON.stringify({ url: '/media/materials/tipl-sb804.jpg', previewTileWidthM: 1.22, previewTileHeightM: 0.854, sheen: 'gloss' }), 'the texture: ' + JSON.stringify(c.found.texture));
+    assert(c.textures.wall && c.textures.furniture && c.textures.separate, 'a texture on every kind\'s item, one object each: ' + JSON.stringify(c.textures));
+    assert(!c.textures.foreign, 'a texture that is not one of the site\'s design pictures is dropped (the design then renders with the AI only): ' + JSON.stringify(c.textures));
     // the studio draws its cards in code; the design's photograph is put on the card by the loader's observer
     await page.evaluate(() => {
       const tile = document.createElement('button');
@@ -2572,38 +2587,6 @@ await test('studio: the catalogue designs are added to the finish list before th
     } finally {
       await page.close();
     }
-  }
-});
-
-await test('studio: a catalogue design with a texture passes the studio\'s own fast-render gate (canFastRenderItem); one with no texture, or a malformed one, still opens fine and stays AI-only (target C1: the instant preview, previously none for any catalogue design)', async () => {
-  const finishes = [
-    { id: 'tipl-sb804', code: 'SB804', productId: 'TIPL-SB804', name: 'Emperador Dark', sub: 'SB804', about: 'Emperador Dark.', prompt: 'Apply the design. [[terucon-design:TIPL-SB804]]', hex: '#271c1c', image: '/media/materials/tipl-sb804.jpg?w=320', texture: { url: '/media/materials/tipl-sb804.jpg?tile=1', tileWidthM: 1.22, tileHeightM: 2.44 }, described: true },
-    { id: 'tipl-sb008', code: 'SB008', productId: 'TIPL-SB008', name: 'Burmese Teak', sub: 'SB008', about: 'Burmese Teak.', prompt: 'Apply the design. [[terucon-design:TIPL-SB008]]', hex: '#7b4312', image: '/media/materials/tipl-sb008.jpg?w=320', described: false }, // no texture at all
-    { id: 'tipl-sb009', code: 'SB009', productId: 'TIPL-SB009', name: 'Sand Wave', sub: 'SB009', about: 'Sand Wave.', prompt: 'Apply the design. [[terucon-design:TIPL-SB009]]', hex: '#c9b48a', image: '/media/materials/tipl-sb009.jpg?w=320', texture: { url: '/media/materials/tipl-sb009.jpg?tile=1', tileWidthM: 0 }, described: false }, // malformed (no tileHeightM, tileWidthM is 0)
-  ];
-  const page = await newPage({ width: 1440, height: 900 });
-  await page.setRequestInterception(true);
-  page.on('request', (req) => {
-    const u = new URL(req.url());
-    if (u.pathname === '/api/catalogue/studio-finishes') return req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify({ group: 'Terucon catalogue', kinds: ['wall', 'door', 'furniture'], finishes, state: 'ok' }) });
-    if (/^\/media\/materials\/tipl-/.test(u.pathname)) return req.respond({ status: 200, contentType: 'image/png', body: TB_PNG });
-    req.continue();
-  });
-  try {
-    await page.goto(base + '/design-studio', { waitUntil: 'domcontentloaded' });
-    await until(() => page.evaluate(() => /Add a room photo/.test(document.body.innerText)), 'the studio', 25000);
-    const r = await page.evaluate(async () => {
-      const { findItem } = await import('/js/data/catalog.js');
-      const { canFastRenderItem } = await import('/js/lib/fastrender/tiers.js');
-      const describe = (id) => { const i = findItem(id); return i && { texture: i.texture, canFastRender: canFastRenderItem(i) }; };
-      return { good: describe('tipl-sb804'), none: describe('tipl-sb008'), bad: describe('tipl-sb009') };
-    });
-    assert(r.good && r.good.canFastRender === true && r.good.texture.url === '/media/materials/tipl-sb804.jpg?tile=1', 'a design with a real texture passes the studio\'s own gate: ' + JSON.stringify(r.good));
-    assert(r.none && r.none.canFastRender === false && !r.none.texture, 'no texture at all: AI-only, exactly as before, no crash: ' + JSON.stringify(r.none));
-    assert(r.bad && r.bad.canFastRender === false && !r.bad.texture, 'a malformed texture from the server is dropped, not passed through half-built: ' + JSON.stringify(r.bad));
-    assert(page.problems.length === 0, 'problems: ' + page.problems.join(' | '));
-  } finally {
-    await page.close();
   }
 });
 
@@ -3521,7 +3504,7 @@ await test('shop: "Find it from a photo": the surfaces of the photo are outlined
   assert(lit.wall > 40 && lit.floor === 0, 'the wall is lit and the floor is not: ' + JSON.stringify(lit));
   await page.mouse.click(box.x + box.width * 0.12, box.y + box.height * 0.3);
   await until(() => page.evaluate(() => document.querySelectorAll('.tcs__card').length === 3), 'the closest designs');
-  assert(seen.search.length === 1 && seen.search[0].type === 'image/jpeg' && seen.search[0].query === '?mode=look&k=8', 'one catalogue search with a JPEG patch: ' + JSON.stringify(seen.search));
+  assert(seen.search.length === 1 && seen.search[0].type === 'image/jpeg' && seen.search[0].query === '?mode=look&k=8&patch=1', 'one catalogue search with a JPEG patch, marked as a patch: ' + JSON.stringify(seen.search));
   const cards = await page.$$eval('.tcs__card', (els) => els.map((e) => ({ name: e.querySelector('.tcs__cardName').textContent, code: e.querySelector('.tcs__cardCode').textContent, price: e.querySelector('.tcs__cardPrice').textContent, img: e.querySelector('img').getAttribute('src'), badge: !!e.querySelector('.tcs__badge') })));
   assert(cards[0].name === 'Emperador Dark (SB804)' && cards[0].code === 'TIPL-SB804' && cards[0].price === '₹6,020 / sheet' && cards[0].badge && !cards[1].badge && cards[0].img === '/media/materials/tipl-sb804.jpg', 'the first card: ' + JSON.stringify(cards));
   assert(/Closest designs to the wall/.test(await page.$eval('.tcs__status', (e) => e.textContent)), 'the status names what was searched');

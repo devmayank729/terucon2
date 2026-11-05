@@ -4,7 +4,7 @@
 
 This file has two parts:
 
-- **Part A (sections 1 to 11)** is new. It answers your questions, and every statement carries an evidence tag.
+- **Part A (sections 1 to 12)** is new. It answers your questions, and every statement carries an evidence tag. Section 12 was added later (2026-11-05): the website now serves an improved copy of the studio's instant-preview code, which changes what sections 3.5 and 7 describe.
 - **Part B (appendices A to F)** is a copy of the six existing guides in `swatchroom/`, unchanged except that heading levels were shifted to fit under this file. They are older writing: section 10 lists where they are out of date or contradict what was verified today.
 
 ## Contents
@@ -21,6 +21,7 @@ This file has two parts:
 - [9. How to see for yourself what is happening](#9-how-to-see-for-yourself-what-is-happening)
 - [10. Where the older guides are out of date](#10-where-the-older-guides-are-out-of-date)
 - [11. What was verified, and what was not](#11-what-was-verified-and-what-was-not)
+- [12. The instant preview's quality overlay: the website's preview is not the standalone studio's](#12-the-instant-previews-quality-overlay-the-websites-preview-is-not-the-standalone-studios)
 - Appendices A to F: the six existing guides, copied
 
 ---
@@ -35,7 +36,7 @@ This file has two parts:
 | **[DOC]** | Taken from an older guide in `swatchroom/` or from `README.md`; not re-checked unless a **[CODE]** or **[RAN]** tag sits next to it. |
 | **[NOT RUN]** | Reasoned from the code only. The behaviour was **not** reproduced in a browser or against a live service. |
 
-Two limits apply to the whole document. **No live service was called** (no Modal, Gemini, MongoDB or Render), and **no browser was driven**. I did not measure any latency today. Where a number appears, its source is named.
+Two limits apply to the whole document. **No live service was called** (no Modal, Gemini, MongoDB or Render), and **no browser was driven**. I did not measure any latency today. Where a number appears, its source is named. (**Section 12, added 2026-11-05, is the exception to the second and third limits**: it ran Chrome and timed one function. It still called no live service.)
 
 ---
 
@@ -225,7 +226,7 @@ The tapped region is selected **at once** from the scan. In the background the s
 
 ### 3.5 Choosing a finish (the instant preview)
 
-`maybeFastRender` / `runFastRender` **[CODE: `stage.js:480-624`]**. **No model call.** Network: at most one image fetch for the finish's texture, if it is not in memory. See section 6 for what takes time.
+`maybeFastRender` / `runFastRender` **[CODE: `stage.js:480-624`]**. **No model call.** Network: at most one image fetch for the finish's texture, if it is not in memory. See section 6 for what takes time. **On the website the preview code is the overlay's, not the studio's own, for 8 of its files (section 12): the file names above are right, the contents of those 8 are not what `swatchroom/` holds.**
 
 ### 3.6 The Render button (or Ctrl+Enter)
 
@@ -333,7 +334,7 @@ A number that exists: in headless Chrome on an Apple Silicon Mac, with the textu
 | Marked as | "flagged", confidence **0.6** | confidence from the plane fit |
 | When | before the analysis is loaded, for a surface the fit does not cover or scores below **0.3**, and on a render version | once the job is done and its layers are loaded, for a version whose id matches |
 
-**[CODE: `fastrender/provisional.js:1-21`, `previewScene.js:1-16`, `settings.js:107-110`, `fastrender/tiers.js:12-30`]**.
+**[CODE: `fastrender/provisional.js:1-21`, `previewScene.js:1-16`, `settings.js:107-110`, `fastrender/tiers.js:12-30`]**. That is the studio's own estimate. The website's overlay changes how the estimate's geometry and light are made (a level-camera guess for floors, ceilings and head-on walls instead of the four corners; the light read inside each surface instead of one blur), see section 12.
 
 ### 7.2 What the selection rule does (executed)
 
@@ -425,6 +426,7 @@ Each row was checked today against the code. The appendices below are left exact
 | Modal cold-start and warm timings | Appendices B and C | From the **2026-10-24 log of the old three-pool deployment**. Not re-measured for the current deployment (a VisionAll service exists since 2026-10-26 in the file; its deployment was never confirmed by me) |
 | SegFormer and Gemini timings, "Put together" total | Appendix C, Part 6 | The file itself marks them **unverified**, and Appendix B §0 says an earlier version of that section was not real. Nothing here re-measures them |
 | Line numbers in Appendix A (for example `studio.js:997-1011`, `:1161`, `stage.js:457`) | Appendix A | Moved; use the ones in sections 3 to 8 |
+| "Part 3a: Instant preview (3D path, in the browser)": the shader, the clamp 0.35 to 1.65, the exposure bounds, the four-corner estimate | Appendix A, Part 3a | True of the studio's own files in `swatchroom/`. **On the website 8 of those files are served in an improved version** (clamp 0.2 to 2.5, exposure 0.45 to 1.5, a level-camera guess, the light read inside each surface, a light colour, a soft edge on both sides, anisotropic filtering, seam repair): section 12 |
 
 ---
 
@@ -453,6 +455,128 @@ Each row was checked today against the code. The appendices below are left exact
 ### 11.3 The one-paragraph version
 
 A photo costs two Modal inference requests (OneFormer for the scan, one combined request for MoGe-2, Marigold and SAM 3 for the depth), one Gemini request for outlines, and one local Python request, plus wake-up pings. Everything after that (tapping, picking, hovering, history opens that find saved depth for the same version, refits, wall splits, the HD scan swap, polling) is your server, your database and your GPU, not Modal. The things that can call Modal again are a new photo and opening a room whose saved current version is a render. The "2D, then 3D" look is an estimate being replaced by the real fit, and it can stay on the estimate after a render. The many console lines are state changes of two separate jobs, and the second was local only.
+
+---
+
+## 12. The instant preview's quality overlay: the website's preview is not the standalone studio's
+
+*Added 2026-11-05. Evidence tags as in section 0. Everything below was run with no live service (no Modal, Google, MongoDB); the browser runs used Chrome 156 on one Apple M5 Mac.*
+
+**In one paragraph.** You said the instant preview's lighting, texture and fitting looked low quality. Eight (since 2026-11-05 nine, section 12.9) of the studio's browser files (the 3D draw of a finish on your photo) are now served from improved copies in `site/overlays/studio/`, **ahead of** the studio's own copies of the same addresses. `swatchroom/` itself is **not edited** by this (`git status swatchroom` is clean, and 13 of the 14 preview files the overlay depends on are byte-identical to your original folder, checked with `diff -rq` on 2026-11-05; the 14th, `fastrender/previewReason.js`, is the 2026-11-04 edit you approved, which your original does not have). The consequence you must keep in mind: **the website's instant preview is no longer the standalone studio's.** The same photo and finish are drawn differently on the website and in your own Swatchroom project, until you take the patch (12.7) into your project.
+
+### 12.1 What is served, and from where
+
+The studio's page imports its modules by relative address (`/js/views/stage.js` imports `../lib/fastrender/renderer.js`, and so on), so they are fetched from `/js/lib/...` **[CODE: `swatchroom/public/js/views/stage.js:20-21`, `studio.js:51-55`, `lib/geometryFacts.js:5`]**. In a real browser the studio loads all 14 preview files at start-up from these addresses and nothing else **[RAN: `render-preview/site-check.mjs`, section 12.3]**.
+
+| Address | Served from | What changed |
+|---|---|---|
+| `/js/lib/fastrender/geometry.js` | **overlay** | shading clamp, exposure bounds, the photo's light colour; (2026-11-05, 12.9) a finish's own tile size and sheen, the crop and the tone flattening of a photograph |
+| `/js/lib/fastrender/provisional.js` | **overlay** | the light read inside each surface; the level-camera guess; (2026-11-05, 12.9) the estimate for doors, furniture and other objects |
+| `/js/lib/fastrender/renderer.js` | **overlay** | the light colour passed on; seam repair of the finish's tile image; (2026-11-05, 12.9) the loader for a catalogue design's photograph, the tile size, slots for walls first |
+| `/js/lib/fastrender/shaders/swap.glsl.js` | **overlay** | soft edge on both sides; light colour; highlight roll-off; new clamp |
+| `/js/lib/fastrender/shaders/swap.wgsl.js` | **overlay** | the same, for WebGPU |
+| `/js/lib/fastrender/webgl2.js` | **overlay** | the light-colour uniform; 8x anisotropic filtering |
+| `/js/lib/fastrender/webgpu.js` | **overlay** | the light colour in the globals block; 8x anisotropic sampler |
+| `/js/lib/previewScene.js` | **overlay** | passes the light colour through for a fitted scene; (2026-11-05, 12.9) borrows the estimate for every kind it covers |
+| `/js/lib/fastrender/previewReason.js` | **overlay** (since 2026-11-05) | only the wording of "no-fit" |
+| `/js/lib/fastrender/{device,lru,sizing,textureStore,tiers}.js` | the studio, unchanged | (the overlaid files import them) |
+| every other `/js/...`, `/css`, `/fonts`, `/textures`, `/api` | the studio, unchanged | |
+
+**How [CODE: `app.js`, `server/middleware/studioOverlay.js`].** `app.use('/js', overlay)` sits just before `app.use(studio.app)`. Like the website's other files (and as `tests/js/server-startup.test.js` requires: the website never uses `express.static`) the overlay is served from a **fixed list of names**, the files found in `site/overlays/studio/js/` when the server starts, by `res.sendFile`: a GET or HEAD whose path is exactly one of them is answered, anything else (a miss, another method, `..`, the manifest next to the folder) falls through to the studio. The headers are the studio's own policy for its `/js` files: `Cache-Control: no-cache` plus the weak ETag and Last-Modified that Express's file sending adds, so a browser asks each time and gets a cheap 304, and the same `Content-Type` as the studio's own files (a test compares them). Overlaid answers carry `X-Terucon-Overlay: studio-preview` (the studio's own never do), which is how a browser test tells them apart. The header table in `app.js` has the line. With no `site/overlays/` folder it is a silent no-op, which is also why every other studio test (whose throw-away project has none) runs the studio's own files.
+
+### 12.2 What the four fixes change
+
+The instant preview, in order **[CODE: `fastrender/*`, `previewScene.js`]**: the scan's masks and the photo's light (`geometry.lumaFromRgba`) make a scene (the estimate, `provisional.js`, or the real fit, `previewScene.js` choosing between them, section 7); `renderer.uploadScene` packs each surface's homography, its median light and its exposure; the shader, per pixel, takes the surface's own pattern of light divided by its median (clamped), multiplies it into the finish's texture (sampled in perspective), applies exposure and a highlight, converts to sRGB.
+
+**Fix 1: lighting.**
+
+* The clamp on that "light divided by median" was 0.35 to 1.65 (so a surface could keep at most a 4.7 : 1 sun-to-shade range); it is now **0.2 to 2.5** (12.5 : 1), in `geometry.js` and in both shaders (a test keeps the three equal).
+* `exposureFor` (how far a dim or bright room moves a finish) had exponent 0.35 and bounds 0.7 to 1.25; it is now **0.6 and 0.45 to 1.5**. A room with a third of the reference light darkens a finish to 0.52 (it was held at 0.7).
+* The **estimate's light** (the part before the room analysis arrives, and for surfaces the fit does not cover) was the whole photo blurred once with a box of radius 3% of the long side (about 30 px on the 1024 px scan). That erased the sun and shadow edges that carry a room's look, and mixed the brightness of the neighbours (a cove light, a window, a dark sofa) into a surface's edge. It is now a **guided filter** (He, Sun, Tang 2010) on log luminance, computed **inside each wall, floor or ceiling region with that region's mask as the weights**, so nothing outside the region contributes. Detail finer than about 4 px (plank grain, grout: the old finish) is removed first, detail weaker than about 25% in luminance is flattened, stronger edges stay. Outside the painted surfaces the old blur is kept (those pixels are never drawn).
+* The **colour of the room's light**: `lumaFromRgba` also returns the photo's mean colour as linear RGB scaled to luminance 1, each channel kept within 0.55 to 1.7. The renderer applies **30%** of it and the shader multiplies it into the lit colour (the 30% is a value chosen by eye: 60% gave peach floors on both test photos).
+* **Highlight roll-off**: when the brightest channel of the lit colour passes 0.85 it is pulled toward 1 along `0.85 + 0.15 (1 - e^(-(p - 0.85)/0.15))`, scaling all three channels together so the hue stays (a sunbeam on a pale finish used to clip each channel on its own into flat white or flat yellow).
+
+**Fix 2: edges and filtering.**
+
+* A pixel that has no painted region of its own (outside every region, or in a region that has no finish yet: the wall beside a painted floor) now **takes the label of a painted 4-neighbour**, so the soft alpha edge the shader already had can fade on **both** sides of a boundary; before it could only fade inward, which left a one-scan-pixel staircase along every edge. In both shaders.
+* **8x anisotropic filtering** of the finish: WebGL2 asks for `min(8, what the GPU allows)` where `EXT_texture_filter_anisotropic` exists; the WebGPU sampler has `maxAnisotropy: 8` (with all three filters linear, which that needs). The shader already hands the GPU the exact, very unequal footprint of a floor receding in perspective; without anisotropy the far floor was filtered over a square of the longer side and turned to mush.
+
+**Fix 3: a level-camera guess for the estimate's geometry.** The estimate used the four extreme points of a surface's outline as a quadrilateral. A floor that runs off both sides of the picture (nearly every floor) has a rectangular outline, so its estimate was a flat poster **4 m wide with no perspective**; a wall with furniture in front has corners taken from the furniture's cut-out, which shears the mapping (bricks sloping about 15 degrees on a head-on wall). Now, for a **floor, a ceiling and a head-on wall**, the estimate assumes the camera is **1.5 m above the floor and looks (nearly) level** (the horizon is put 6% of the picture's height above the floor's top row, and never below the picture's centre), the ceiling is **2.6 m** high, and a head-on wall stands where it meets the floor. That gives real perspective and a real scale from two assumed numbers; it is a **guess, not a measurement**. It is used only where it can hold: a floor or ceiling on its own side of the horizon, and a wall whose top edge is level to within 3% of the picture's height (the bottom edge if the top is cut by the picture's border); everything else keeps the old four-corner estimate. It does not touch the real fit.
+
+* **[RAN, by me, on the studio's own function and the overlay's]** for a floor mask that runs across the whole picture (1024 x 683, top at 62%): the studio's estimate has a vanishing term of 8e-22 (a flat poster: 4.00 m wide, 1.01 m deep, the same metres per row at the near and the far end); the overlay's has -1.2e-3, and one picture row covers **17 times more floor at the back than at the front**.
+* One number changes meaning: a head-on wall's `sizeM` is now what the camera guess gives (4.1 m high for the test scene in `studio-overlay-behaviour.test.js`), not the constant `WALL_HEIGHT_M` 2.6. `sizeM` is not read anywhere outside `provisional.js` **[CODE: grep of `swatchroom/public/js`]**; only the homography draws.
+
+**Fix 4: texture seams.** The studio's finish textures (`swatchroom/public/textures/`, 67 files) are not seamless: the drafter's sheet of eight of them tiled 2 x 2 (oak planks, teak, brick, kota, herringbone, checker, terrazzo, slate), which I looked at on 2026-11-05, shows a visible seam at the tile borders on seven (not on brick); I did not look at the other 59. On load, within 12% of each border, the tile is cross-faded into a copy of itself shifted by half a tile, which is continuous across those borders (smoothstep weights, the middle untouched). It **hides the line; it cannot repair a pattern whose structure is cut at the border (it ghosts there)**, so the real fix is seamless files, which this does not provide.
+
+### 12.3 What was measured
+
+**Tests (Node, no GPU) [RAN]:**
+
+* `tests/js/studio-overlay-behaviour.test.js`, **44 tests**, run against the file set a browser gets (the studio's `public/js` with the overlay laid over it): **28 are the studio's own `swatchroom/tests/fastrender.test.js`, ported** (it is not edited): 25 unchanged and passing, **3 changed on purpose** (below), and **16 new**: the light colour (3: the maths, the 30% reaching the backend, `previewScene.js` passing it on for the fitted path, the estimate path and a weak fit that borrows the estimate), the light read inside a surface (2: no leak from a window 30 times brighter; the sun/shade edge, the old finish's grain and a smooth fall-off at the real scan size), the level-camera guess (2, against an independent derivation from the camera's pose in world coordinates), the shaders (4: the clamp equal to `geometry.js`, the roll-off curve, the light colour wiring including where WGSL's block puts it, the label borrowing in both sources), the backends against a fake GL and a fake GPU device (3: `u_tint` on every draw; anisotropy 8, less where the GPU allows less, none without the extension; the WebGPU sampler and the globals block), the seam repair through the real texture loader (1), and one that fails when the studio's own test list gains a test that is not ported (1). With the overlay left out, 17 of the 44 fail (the 3 changed ones and 14 of the 16 new; the clamp-parity test and the list check pass either way), so the tests do tell the two apart.
+* The three changed tests assert, in the studio's file, the old values on purpose: *"the shading multiplier … clamped to [0.35, 1.65]"*; *"exposureFor(): gentle, bounded"* (0.7 and 1.25); *"provisional: buildProvisionalScene() … keeps only the lighting"*, whose bound "shading is smooth where the photo flickers" (0.02) now reads 0.022, still 26 times smoother than the photo's own 0.58, and which hides a **fourth** assertion behind the first: "a wall is 2.6 m tall" no longer holds for a head-on wall (4.125 m in that synthetic scene). The studio's own test run therefore reports 3 failures for 4 changed assertions. The studio's tests test `swatchroom/`'s own files, which are unchanged, so `npm run test:swatchroom` still passes as before.
+* `tests/js/studio-overlay.test.js`, **13 tests**: the guard (12.6, including that a stray `.DS_Store` breaks nothing), the bytes and headers served (every overlaid address returns the overlay's bytes, the studio's content type and cache policy, validators, 304, HEAD, br and gzip; 11 other studio files return the studio's own bytes with the same kind of headers and no marker; misses, other methods, traversal and the manifest are not served), the switch (the env file, read on the next request), the silent no-op without the folder.
+* `tests/js/server-studio-parity.test.js`: one added test says its project has no overlay, so it still compares the studio's own files with the studio's own files (it **cannot** notice the overlay: it compares other files).
+
+**Browser, real WebGL2 and WebGPU [RAN]: `docs/design-studio-checks/render-preview/`** (`run-all.mjs` and `site-check.mjs`; the README there says what the pictures are). Four hand-masked surfaces on two photos (`media/p02-lobby.jpg`, `p04-clinic.jpg`), the studio's own estimate geometry and a hand-built plane, studio code against overlay:
+
+| surface | how closely the render's light follows the photo's (1 = same) | sun/shade ratio, photo / studio / overlay |
+|---|---|---|
+| lobby floor, oak | 0.796 to 0.958 | 3.44 / 2.62 / 2.76 |
+| clinic floor, oak | 0.912 to 0.983 | 4.52 / 3.98 / 4.33 |
+| lobby wall, brick | 0.478 to 0.821 | 2.18 / 2.39 / 2.19 |
+| clinic wall, limewash | 0.502 to 0.861 | 1.70 / 1.55 / 1.63 |
+
+* **WebGL2 against WebGPU**, same scene, the overlay's code: at most 1 level of 255 apart, on no pixel more than 8 (the studio's code: identical).
+* **The website serves what that draws**: with the real website started on throw-away settings (`tests/dev/stack.mjs`), the 14 module addresses return the manifest's bytes (8 overlay with the marker, 6 the studio's; since 2026-11-05: 9 and 5), the studio page opens and loads exactly those files at start-up with no console error, and 8 pictures drawn from the modules the website serves are **pixel-identical** (0 difference) to the same scenes drawn by the check's own server; with `STUDIO_PREVIEW_OVERLAY=off` the same 8 equal the studio's own, and all 8 differ between on and off.
+* The 16 pictures (4 surfaces x studio/overlay x estimate/plane) are pixel-identical to the reference pictures the drafter of the fixes had made earlier on the same computer.
+* **The studio still starts and its pages load cleanly with the overlay on** [RAN]: `tests/e2e/run.mjs` with `E2E_ONLY=studio` (26 tests: the studio opens inside the site, its splash and sign-in, the cold start, the camera, the header over the studio, TeruBot in the studio, the catalogue finishes, the loader and its motion) and `E2E_ONLY="Design Studio"` (5 tests, including "secrets and source code are never served"), **31 of 31 passed**, against the final middleware (the 26 started just before a three-line skip of hidden files such as `.DS_Store` was added to it, and a banner sentence changed afterwards; the 5 ran after the skip). The dev stack copies `site/`, so the overlay was served (site-check.mjs shows the markers). Those tests fail on any console error or failed request of a page. None of them draws an instant preview (it needs a scan).
+* **Cost:** `buildProvisionalScene()` (once per scan) 9 ms with the studio's code, 27 to 34 ms with the overlay's, in Chrome on that Mac at the 1024 px scan. Not measured on a phone.
+
+### 12.4 Honest negatives
+
+* **The light colour is the least certain change.** It reads the photo's mean colour, which mixes the room's light with the colour of its biggest surfaces; a room that is mostly one strong colour is tinted wrongly (hence the clamp and the 30%). On both test photos it makes the floors warmer; whether you like that is yours to judge by eye.
+* **The old finish can ghost through** on a strong pattern: the light is estimated from the photo, and a pattern with more than about 25% luminance contrast reads as light. `render.mjs ... oldpattern=checker` draws the worst case.
+* **The level-camera guess was never tried on a real fused fit** (it replaces only the estimate), nor on a scan model's real masks (the masks are hand-drawn), and its two numbers (1.5 m, 2.6 m) are assumptions. A floor whose top edge is just below the horizon gets an enormous depth (a synthetic floor starting at row 35 of a 100-row picture comes out 31 m deep); only the homography draws, but a photo taken from a very high or very low camera will be off.
+* **The seam repair hides a line, it does not fix a texture.** Ghosting where a pattern is cut at the border; seamless texture files are the real fix. It runs on every texture load, a full-tile read and write of pixels on the CPU: not timed.
+* **A fourth assertion changed in the studio's tests** besides the three you were told about (12.3).
+* **The website's preview now differs from your own Swatchroom's**, and `server-studio-parity.test.js` will not say so (12.8).
+* **More work per scan**: the estimate takes three to four times as long as it did (12.3).
+
+### 12.5 What was not verified
+
+* **A real phone** (the overlay was only drawn in desktop Chrome; a phone's GPU, memory and `EXT_texture_filter_anisotropic` support may differ; the CPU cost of the estimate and of the seam repair on a phone).
+* **Any GPU but the Apple M5** it was run on, and WebGPU on anything else. The drafter and I used the same computer.
+* **A real fused fit** (live Modal, MoGe-2, Marigold) or a real scan model's masks; **the studio's other 59 textures** (only the eight of the sheet were looked at; Terucon's own catalogue designs have no instant preview at all, `docs/CATALOGUE_STUDIO.md`); **the studio's own interface around the preview** (`tests/e2e/run.mjs` proves the studio still starts and its pages load cleanly with the overlay on; no browser test draws a preview, because a scan needs the live models). Whether the result looks better to you on your own photos: **not asked of anyone yet**.
+
+### 12.6 When `swatchroom/` is copied in again (the guard)
+
+`site/overlays/studio/manifest.json` records the SHA-256 of **every** file in `swatchroom/public/js/lib/fastrender/` (13) and of `previewScene.js`, as they were when the overlay was merged with them (including the six the overlay does not replace, because the overlaid files depend on their interfaces), and of the 8 overlay files. **`tests/js/studio-overlay.test.js` fails, naming the file, if any of them differs:**
+
+> upstream changed js/lib/fastrender/webgl2.js (an overlaid file: its improvements must be merged into the studio's new version): re-merge the overlay, then update the manifest with `node tools/studio-overlay-manifest.js`
+
+(`upstream removed` and `upstream added` likewise; `node tools/studio-overlay-manifest.js --check` prints the same without running the tests.) A second test checks that every name the studio's files import from an overlaid module is still exported by the overlay. To merge: run `--check`; for each overlaid file the studio changed, take the studio's new file, apply the overlay's change to it (`docs/design-studio-checks/instant-preview-quality.patch` is exactly that change, the 9 files as a diff; `git apply --3way` helps), copy the result into `site/overlays/studio/js/...`; run the two overlay test files; run `node docs/design-studio-checks/render-preview/run-all.mjs` and look at the grids; then write the manifest. **Without this, a re-copy would silently put the old preview back in front of any change you made in your project.** If none of the 14 files changed, a re-copy needs nothing. (Guard failure was shown on purpose: one hash in the manifest was altered and the test failed with the message above; restored.)
+
+### 12.7 The switch, and taking it out
+
+* **`STUDIO_PREVIEW_OVERLAY=off`** in the website's `.env` (default **on**; `.env.example` and the settings table have it) serves the studio's own files again. It is read on every request, so saving `.env` is enough; a browser shows the other version on its next load (no stale copy: the validators differ). The start-up banner says which one is on. Use it to compare, or to roll back without deleting anything.
+* **To remove it for good:** delete `site/overlays/studio/`. With no folder the middleware does nothing and the overlay tests skip themselves; the lines in `app.js` that mention the overlay (`grep -n -i overlay app.js`: the import, the two that make and mount it, the one in `app.locals`, the banner's), `server/middleware/studioOverlay.js`, `tools/studio-overlay-manifest.js`, the two `tests/js/studio-overlay*.test.js` and `docs/design-studio-checks/render-preview/` may then go too.
+* **What this means for the standalone studio:** nothing in `swatchroom/` changed, so nothing there needs undoing. To get the same preview in your own project: `docs/design-studio-checks/instant-preview-quality.patch` (its header says how to apply it and which three of the studio's tests then need their numbers updated).
+
+### 12.8 The website's preview is not the standalone studio's
+
+Everything the studio's own documents (`swatchroom/ARCHITECTURE.md` and Appendix A here) say about the instant preview describes `swatchroom/`'s files. On the website, 9 of them are replaced as in 12.1 (8 until 2026-11-05). `tests/js/server-studio-parity.test.js` proves that the studio's **other** files and its API behave the same mounted as alone; its project folder has no overlay and it compares other files, so it will not notice that the preview differs. That is by design and has two safeguards: the overlay's own tests (12.3, 12.6), and this section.
+
+### 12.9 Catalogue designs in the preview, and doors, furniture and other objects (added 2026-11-05)
+
+*You reported that the newer items (the 63 catalogue designs) could not be drawn instantly with WebGL, and asked that every item support both the instant preview and the Gemini render. The full account (causes, what is built, what was tried and rejected, what cannot have a preview, what was and was not verified) is in `docs/CATALOGUE_STUDIO.md`, section "The instant preview (WebGL2 / WebGPU) of a design". The part that belongs to the overlay:*
+
+* **A ninth file is served from the overlay:** `js/lib/fastrender/previewReason.js` (only the wording of "no-fit": the studio's reason codes are untouched, and the studio's own test of it asserts codes, not wording). The manifest (`node tools/studio-overlay-manifest.js`) now lists 9 overlay files; `tests/js/studio-overlay.test.js` pins 9.
+* **geometry.js** gains `tileSizeOf` (a finish may state `previewTileWidthM` / `previewTileHeightM`, which only the preview reads: the studio quotes `tileWidthM` / `tileHeightM` to the render model as measured, `swatchroom/public/js/lib/prompts.js:61-71`), `textureCrop`, `isPhotographUrl` (a picture under `/media/`), `flattenTone` / `toneRadiusOf`, and `specularFor` now takes a finish's stated sheen first.
+* **renderer.js** loads a design's photograph: refuses the website's "picture not available" SVG tile (HTTP 200 with `X-Terucon-Picture: unavailable`), crops to the tile's 10:7 instead of stretching, flattens the light drift of a photograph and then repairs the seam as before (the studio's own textures are not flattened), reads the tile size with `tileSizeOf`, and gives walls, floors and ceilings the GPU slots first (16 in all).
+* **provisional.js / previewScene.js:** `ESTIMATED_KINDS` = wall, floor, ceiling, **door, furniture, other**. A door (level top edge), furniture and "other" get an upright plane standing on the floor at the object's foot (the same level-camera guess as a head-on wall); otherwise the four-corner estimate with an assumed height (door 2.1 m, furniture 0.9 m, other 1 m, wall 2.6 m as before). A window is not covered. `regionShading` reads each of these surfaces' light inside its own mask. The composer borrows the estimate for any covered kind the room's real fit does not know, which is every door, piece of furniture and "other" object, since the server's plane fit is wall, floor and ceiling only.
+* **What the AI render receives is unchanged for the studio's own finishes.** For a catalogue design the guess of the tile size is not told to the model (a test runs the studio's real `prompts.js`).
+* **Evidence:** 16 new overlay behaviour tests (60 in `studio-overlay-behaviour.test.js`, was 44; 3 of the studio's ported tests are marked CHANGED as before, and one of them, the provisional-scene test, changed again: a sofa is now covered, and the smoothness check is limited to the wall's own columns because the sofa is a surface of its own); the real-Chrome check `docs/design-studio-checks/render-preview/design-check.mjs` (8 designs x wall, door, cabinet front, sofa; WebGL2, and WebGPU on wall and door; the studio's own code gives no slot to the last three); `site-check.mjs` (the website serves the 9 overlay files, all checks passed). **The patch for your own Swatchroom project** (`docs/design-studio-checks/instant-preview-quality.patch`) was regenerated: it now changes 9 files and applies cleanly to the website's copy of the studio's files (`git apply --check` run on a throw-away copy; the result equals the overlay).
+* **Not verified:** the full click path in the studio's real page with a real scan; a real phone; the other 55 designs; the loader against the real picture route; the new rule-13 sentence against live Gemini.
 
 ---
 

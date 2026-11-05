@@ -63,6 +63,7 @@ function emptySettings(envPath) {
     studio: {
       warmup: true, // wake the studio's GPU services as soon as the landing page opens
       requirePasscode: false, // ask for swatchroom's STUDIO_PASSCODE (it is switched off here by default)
+      previewOverlay: true, // serve the improved instant-preview files of site/overlays/studio/ ahead of the studio's own (server/middleware/studioOverlay.js)
       limits: { ...LIMIT_DEFAULTS }, // requests per visitor per hour, per route group (server/lib/studioShield.js)
     },
     // PostHog for every page. Blank key: the studio's own POSTHOG_KEY (swatchroom/.env) is used, so both land in one project.
@@ -104,6 +105,7 @@ export function loadSettings(envPath, environ, root = ROOT) {
   // --- Design Studio
   s.studio.warmup = flag(get('STUDIO_WARMUP'), true);
   s.studio.requirePasscode = flag(get('STUDIO_REQUIRE_PASSCODE'), false);
+  s.studio.previewOverlay = flag(get('STUDIO_PREVIEW_OVERLAY'), true);
   for (const [name, key] of [['AI', 'ai'], ['VISION', 'vision'], ['PIPELINE', 'pipeline'], ['CHECK', 'check'], ['ROOMS', 'rooms'], ['ADDRESS_FACTOR', 'perAddress']]) {
     s.studio.limits[key] = int(get(`STUDIO_LIMIT_${name}`), LIMIT_DEFAULTS[key], 1, 1000000);
   }

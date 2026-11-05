@@ -5,8 +5,9 @@
  * model; it sends the model the photo, a mask and that text, and nothing else, so a design it cannot draw is only a name and a sentence to it. For
  * a catalogue design this file does two things:
  *
- *   1. `finishOf(design)` is the finish the studio's list gets (a name, a sub-line, a sentence, the brief and a marker, `[[terucon-design:TIPL-SB804]]`),
- *      served by GET /api/catalogue/studio-finishes and added to the studio by site/catalogue-ui/studio-finishes.js.
+ *   1. `finishOf(design)` is the finish the studio's list gets (a name, a sub-line, a sentence, the brief and a marker, `[[terucon-design:TIPL-SB804]]`,
+ *      and the design's photograph as a `texture` for the instant in-browser preview), served by GET /api/catalogue/studio-finishes and added
+ *      to the studio by site/catalogue-ui/studio-finishes.js.
  *   2. `referenceOf(design, parts, systemPrompt, brief)` is applied by server/lib/studioReference.js to a render request that carries the marker: it
  *      attaches the design's own photograph as one more image and adds four rules about how to use it, so the model sees the real material instead
  *      of imagining one from a name.
@@ -19,6 +20,32 @@
 /** The studio's surface kinds the designs are offered for. A decorative sheet is wall cladding, a door or cabinet face: not a floor, ceiling or window. */
 export const STUDIO_KINDS = Object.freeze(['wall', 'door', 'furniture']);
 export const STUDIO_GROUP = 'Terucon catalogue';
+
+/**
+ * The size one tile of a design's photograph is drawn at by the instant preview (metres; the tile has the proportions of every texture of
+ * the preview, 10:7). AN ASSUMPTION: the catalogue records no size for a design, so a design's photograph is drawn as if it were a 1.22 m
+ * (4 ft) wide sheet. It decides only how large the preview's pattern is on a wall and is the one number to change if Terucon gives the real
+ * sheet size. It is sent under the names previewTileWidthM / previewTileHeightM and NOT as tileWidthM / tileHeightM, because the studio
+ * quotes tileWidthM / tileHeightM to the render model as a measured repeat ("Tile repeat scale must match ..."): this guess must stay out of
+ * the AI brief.
+ */
+export const PREVIEW_TILE_WIDTH_M = 1.22;
+export const PREVIEW_TILE_HEIGHT_M = Math.round(PREVIEW_TILE_WIDTH_M * 0.7 * 1000) / 1000;
+/** How wide (pixels of the 640 px tile) the browser's lighting-drift removal looks, for a design with bold features. Chosen by eye on SB830, SB8001 and SB940 (2026-11-05): 40, the default, smudged them. */
+export const LARGE_FEATURE_TONE_RADIUS = 100;
+
+/**
+ * The finish's texture for the instant preview: the design's own photograph (the 800 px picture, a straight-on photograph of the sheet),
+ * tiled by the browser, and how shiny it is (Gemini's reading of the picture), which the preview's highlight follows.
+ */
+export function textureOf(design) {
+  // ?tone=100 is a hint for the browser's tile preparation (the picture's route ignores it): a design with bold features (Gemini's scale "large")
+  // must not have them flattened away with the lighting drift of the photograph (overlay geometry.js toneRadiusOf; the browser's default is 40)
+  const tone = design.studio?.scale === 'large' ? `?tone=${LARGE_FEATURE_TONE_RADIUS}` : '';
+  const texture = { url: `/media/materials/${design.id}.jpg${tone}`, previewTileWidthM: PREVIEW_TILE_WIDTH_M, previewTileHeightM: PREVIEW_TILE_HEIGHT_M };
+  if (design.studio?.sheen) texture.sheen = design.studio.sheen;
+  return texture;
+}
 
 export const MARKER_RE = /\[\[terucon-design:(TIPL-[A-Z]{2,4}\d{2,5})\]\]/;
 const markerOf = (productId) => `[[terucon-design:${productId}]]`;
@@ -82,23 +109,6 @@ export function briefOf(design) {
   return lines.join(' ');
 }
 
-// The real-world size of one sheet of the design (2026-11-04: the same placeholder A1 already flags on the shop's product
-// pages, "Size and price: Sample values until the price list is loaded" - 1220 x 2440 mm. Reused here, not re-guessed, so
-// the one open question (open decision 23, TARGETS.md) has one answer everywhere it appears. It only sets how often the
-// instant preview's texture repeats across a wall; a wrong number does not break the preview, just its scale.
-const SHEET_WIDTH_M = 1.22;
-const SHEET_HEIGHT_M = 2.44;
-
-/**
- * The finish's texture for the studio's instant (browser-side) preview: a seamlessly-tileable crop of the design's own
- * photograph (server/lib/tileTexture.js, served by server/routes/catalogueMedia.js's `?tile=1`), at the sheet's own real
- * size. Without this the design still works, it just always renders with the AI (swatchroom/public/js/lib/fastrender/tiers.js
- * canFastRenderItem: no `texture.url`, no fast path) - true until 2026-11-04, see TARGETS.md C1.
- */
-function textureOf(design) {
-  return { url: `/media/materials/${design.id}.jpg?tile=1`, tileWidthM: SHEET_WIDTH_M, tileHeightM: SHEET_HEIGHT_M };
-}
-
 /** The finish as the studio's list needs it (the same fields as swatchroom/public/js/data/catalog.js, plus the picture). */
 export function finishOf(design) {
   return {
@@ -128,7 +138,10 @@ export function referenceRules(design, n) {
     `Image ${n} (a material reference, when sent): a straight-on photograph of the exact material to fit, the catalogue design "${design.name}" (${design.code}). It is the ground truth for the design.`,
     `11. Reproduce what Image ${n} shows: its colours, its pattern or grain (the shape, density and direction of its marks), its sheen and its surface relief. Do not recolour it, simplify it, tidy it into a different pattern or invent features it does not have.`,
     `12. Image ${n} is a sample photograph, not a picture to paste. Do not copy its frame, its edges, any label or text, or its lighting. Lay the material on the target surface the way a fitted installation of it would look: following the plane and perspective of the surface, lit by the light of Image 1 (direction, falloff, shadows and reflections come from the room, never from the sample).`,
-    '13. Scale the pattern from the room (rule 8): features must be a believable size on this surface; never stretch the sample to fill the surface and never shrink it into noise. Continue the pattern across the whole surface naturally, with no visible repeat of a tile and no seam, unless the brief asks for joints.',
+    // a guide image exists only when the reference is Image 4 or later (the lite model sends none: then Image 3 IS the reference photograph, and a sentence about a
+    // "preview in Image 3" would tell the model to distrust the one picture it has)
+    '13. Scale the pattern from the room (rule 8): features must be a believable size on this surface; never stretch the sample to fill the surface and never shrink it into noise. Continue the pattern across the whole surface naturally, with no visible repeat of a tile and no seam, unless the brief asks for joints.' +
+      (n >= 4 ? ' If Image 3 carries a perspective preview of this design inside the outline, it is a stand-in: take only its line convergence and the room\'s light from it, never its repeat size or the joins of its tiles.' : ''),
     `14. Keep the sample's sheen and relief as the camera would see them at this distance: matte stays flat, gloss reflects the room softly, a textured or embossed surface keeps its fine light-and-shadow texture. Colour must stay true to Image ${n} after the room's light is applied.`,
   ].join('\n');
 }

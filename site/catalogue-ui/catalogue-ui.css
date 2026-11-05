@@ -23,13 +23,14 @@
 .modes button[aria-pressed="true"] { background:var(--ink, #291C0E); color:var(--bg, #E1D4C2); }
 
 /* The box takes the shape of the photo or camera picture it shows (finder.js sets --vf-ar to width / height once it knows it), so the
-   spot the person drags the frame onto is the same spot in the picture that is searched; a tall phone picture is capped so it
-   leaves room on screen for the buttons under it. */
+   spot the person drags the frame onto is the same spot in the picture that is searched. The capture controls (#photo-actions, styled
+   in pages/finder.html) sit inside this box, floating over its own bottom edge like a camera app's shutter row, instead of in a
+   separate block below it. */
 .viewfinder { position:relative; width:100%; max-width:480px; max-width:min(480px, calc(62dvh * var(--vf-ar, 1.3333))); aspect-ratio:var(--vf-ar, 1.3333); margin:0 auto; border-radius:24px; overflow:hidden; background:#1a130a; }
 .viewfinder video, .viewfinder img.still { width:100%; height:100%; object-fit:cover; display:block; }
 .viewfinder .reticle { position:absolute; border:2px solid #fff; border-radius:14px; box-shadow:0 0 0 2000px rgba(0,0,0,.28); touch-action:none; }
 .viewfinder .reticle::after { content:""; position:absolute; inset:-2px; border-radius:16px; border:1px dashed rgba(255,255,255,.6); }
-.viewfinder .hint { position:absolute; left:0; right:0; bottom:10px; text-align:center; font:500 12.5px/1 Switzer, Helvetica, Arial, sans-serif; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.6); pointer-events:none; }
+.viewfinder .hint { position:absolute; left:0; right:0; top:12px; text-align:center; font:500 12.5px/1 Switzer, Helvetica, Arial, sans-serif; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.6); pointer-events:none; }
 
 /* "Search the whole photo" (finder.js): the photo is outlined into its items. The canvas lies exactly over the photo (same box), faint tints and edges show the
    items, a tap on one searches the catalogue for it. While the models work the photo is dimmed and a light band sweeps over it. */
@@ -42,7 +43,6 @@
 .viewfinder .hint { z-index:2; }
 
 .outline-panel { display:flex; flex-direction:column; gap:12px; margin-top:14px; }
-.is-below-panel { margin-top:14px; }
 #results-block { scroll-margin-top:100px; } /* the site's pill header is fixed to the top of the window: the results scroll in under it, not behind it */
 .outline-status { margin:0; font:400 14.5px/1.55 Switzer, Helvetica, Arial, sans-serif; color:var(--ink2, #6E473B); }
 .chips { display:flex; flex-wrap:wrap; gap:8px; }

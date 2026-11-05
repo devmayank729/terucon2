@@ -23,6 +23,7 @@ import { compress } from './server/middleware/compress.js';
 import { guards } from './server/middleware/guards.js';
 import { securityHeaders } from './server/middleware/headers.js';
 import { longLived, TEXTURE_CACHE } from './server/middleware/studioCache.js';
+import { studioOverlay } from './server/middleware/studioOverlay.js';
 import { studioReference } from './server/lib/studioReference.js';
 import { studioShield } from './server/lib/studioShield.js';
 import { mountAnalytics } from './server/routes/analytics.js';
@@ -59,6 +60,7 @@ import { mountTerubot } from './server/routes/terubot.js';
  *  /inspiration/assets/*, /catalogue-ui/*      no-cache                                              weak ETag + Last-Modified       on the fly                     routes/inspiration.js, catalogueUi.js
  *  /api/*                                      no-store                                              none (by design)                on the fly, over 1 KB          routes/api.js, lib/errors.js
  *  studio /js /css /admin /favicon.svg         no-cache (the studio's own)                           weak ETag + Last-Modified       on the fly                     swatchroom/server (unchanged)
+ *   - 8 of the /js files (the instant preview)  no-cache (the same), + X-Terucon-Overlay: studio-preview weak ETag + Last-Modified       on the fly                     middleware/studioOverlay.js (site/overlays/studio)
  *  studio /fonts/*.woff2                       public, max-age=31536000, immutable (the studio's own) weak ETag + Last-Modified      none                           swatchroom/server (unchanged)
  *  studio /textures/*                          public, max-age=604800 (was no-cache)                 weak ETag + Last-Modified       none (png)                     middleware/studioCache.js
  *  5xx errors, 404s of /assets and /brand      no-store                                              none                            on the fly                     lib/errorPage.js, lib/errors.js
@@ -188,6 +190,9 @@ export function createApp({ root = ROOT, envPath, environ, log = createLogger(),
   if (studio) app.use(studioReference({ designs: () => ctx.catalogue?.designs ?? null, limit: studio.aiBodyLimit(), log }));
   // the studio's textures are not worth a round trip per visit (server/middleware/studioCache.js); its other files keep its own policy
   if (studio) app.use(longLived(['/textures'], TEXTURE_CACHE));
+  // the instant preview's improved files (site/overlays/studio/js/), ahead of the studio's own copies of the same addresses; STUDIO_PREVIEW_OVERLAY=off, or no folder, serves the studio's own
+  const overlay = studio ? studioOverlay({ root, enabled: () => ctx.settings().studio.previewOverlay }) : null;
+  if (overlay) app.use('/js', overlay);
   if (studio) app.use(studio.app);
   app.use(comingSoon(ctx));
   app.use(notFound);
@@ -198,6 +203,7 @@ export function createApp({ root = ROOT, envPath, environ, log = createLogger(),
     site,
     studio,
     studioDir,
+    studioOverlay: overlay,
     root,
     requirePasscode,
     dist,
@@ -290,6 +296,8 @@ function printBanner({ app, port }) {
   if (studio) {
     const studioEnv = path.join(studioDir, '.env');
     lines.push(`  Studio settings:   ${studioEnv}  (${fs.existsSync(studioEnv) ? 'found' : 'NOT FOUND - copy swatchroom/.env.example to swatchroom/.env'})`);
+    const overlay = app.locals.terucon.studioOverlay;
+    if (overlay?.present) lines.push(`  Instant preview:   ${s.studio.previewOverlay ? `improved (${overlay.files.length} files of the studio's, in site/overlays/studio/); STUDIO_PREVIEW_OVERLAY=off shows the studio's own` : "the studio's own (STUDIO_PREVIEW_OVERLAY=off in .env); on is the default"}`);
   }
   for (const line of describe(s)) lines.push('  ' + line);
   const auth = app.locals.terucon.auth.status();

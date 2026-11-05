@@ -1,0 +1,30 @@
+{
+  "_comment": "Written by tools/studio-overlay-manifest.js; checked by tests/js/studio-overlay.test.js. upstream = SHA-256 of the studio files the overlay was merged with (swatchroom/public/<path>: all of js/lib/fastrender/ and js/lib/previewScene.js, because the overlaid files depend on the interfaces of the others); overlay = SHA-256 of the files in site/overlays/studio/<path>, which are served at /<path>. Do not edit by hand.",
+  "upstream": {
+    "js/lib/fastrender/device.js": "fe4232269707ef176592e370bc15e0f9952c6cfd4571b4b99aa0251e4bc5668f",
+    "js/lib/fastrender/geometry.js": "3c4d8cd795446f0a1c289bff08ee016186ed61fe1f439aeefb9d4f08acec734b",
+    "js/lib/fastrender/lru.js": "2d7d42d37e1bb462b6627b15abbd9226ad59168d52f4b9013e9cbec1e1d15233",
+    "js/lib/fastrender/previewReason.js": "4e8a177d3dbceafd091e36242596be7b9aa599b5786130218a85a090aa2b5c95",
+    "js/lib/fastrender/provisional.js": "62b2909d159f5e89b28711610b6baf01e4f2b46407cd91249926364a3d9f3706",
+    "js/lib/fastrender/renderer.js": "cae967a8619ac6ec5085d908d8e4b6154df0133166561e0437a0416441cc381f",
+    "js/lib/fastrender/shaders/swap.glsl.js": "1cb7d21d22e79b25ca1fc64084a674355342e3ad917a00908f2a9f6f2828a2e6",
+    "js/lib/fastrender/shaders/swap.wgsl.js": "f301181ed7e25f26a44c8c8dc8e0d6e666f77b82a5514dfc6fcf7b4d6b4ab687",
+    "js/lib/fastrender/sizing.js": "af6e21dfd4e4d494244b96af91c654b2309674a34af61d380ec032e8fd31c39b",
+    "js/lib/fastrender/textureStore.js": "a5e7038f4cfd654f6210128d1e5a9a2c5278f58d45454433482e134ab1f1704a",
+    "js/lib/fastrender/tiers.js": "36a65aacff2718352b1ed1ba4d220d03988c7b1c336857794e8baec77457ec5c",
+    "js/lib/fastrender/webgl2.js": "6a1b1897dd2d5ae93257a51dda0cf1ca7d8cecc87d9a8e44ddf56141dab4255b",
+    "js/lib/fastrender/webgpu.js": "a3fc55e88eddb172b40978f880237eb927cb795971f8b6cb377e8991f8addf26",
+    "js/lib/previewScene.js": "4a9a475463c4f9f9ccc3d5a44c8915f57e58021c62b6aa8dd98149962a05a104"
+  },
+  "overlay": {
+    "js/lib/fastrender/geometry.js": "aba6b8b79be6222f06b5174a98593647c9cbfbfec143a86a4a64c3e42e7ad58b",
+    "js/lib/fastrender/previewReason.js": "10df9bb9b72f99ca41bac4a17aa9d9514fc41f2b433f97a978a5c32e334b66df",
+    "js/lib/fastrender/provisional.js": "03f238444567fe5c9dd012a694f2eea4f67e4bab35d21338c5caff36251cdc8c",
+    "js/lib/fastrender/renderer.js": "cef0dabc3f057ed9e72467dba954f60ab9049706e17f0fe92fbfd78b9c81da26",
+    "js/lib/fastrender/shaders/swap.glsl.js": "7a0474aea47969ec012d04169434cacda2515386675774e67bf3baca946e8379",
+    "js/lib/fastrender/shaders/swap.wgsl.js": "9aa2a924c37426a4fc0b0121a7dbe54873843fdf704beb3d7dbd9bd14360b65a",
+    "js/lib/fastrender/webgl2.js": "49e286cbc074b916cc4c3068746088d8ef3ea0af6345ca345630810a4206f556",
+    "js/lib/fastrender/webgpu.js": "5dc84b54bd0d1c6f37b3cb4e27f87e0d529674a8d91b40e4d9c19422211ba8e2",
+    "js/lib/previewScene.js": "97672b08eb0d0cb2f2a6db8004bef2666831cfb454d80a21e864817d7e4a6920"
+  }
+}

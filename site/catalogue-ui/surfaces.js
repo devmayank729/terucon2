@@ -258,7 +258,7 @@ async function searchRegion(region) {
       clean = cut.clean;
       blob = cut.blob;
     }
-    const found = await searchPhoto({ photo: blob, mode: 'look', k: 8 });
+    const found = await searchPhoto({ photo: blob, mode: 'look', k: 8, patch: true });
     if (mine !== state.token || state.photo !== p) return;
     status.textContent = region ? `Closest designs to the ${what}${clean ? '' : ' (this surface is small or broken up, so the match is rougher)'}:` : 'Closest designs to your photo:';
     showResults(found.items ?? [], results);

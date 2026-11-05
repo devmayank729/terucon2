@@ -11,21 +11,35 @@
  *      names a catalogue id (TIPL-SB804) gets an <img> of /media/materials/tipl-sb804.jpg?w=320, which the server reads from Cloud Storage.
  *
  * Each kind of surface gets its own item (the studio forgets the selected finish when its kind is not the clicked surface's: itemFitsKind in studio.js),
- * so the id is the design's for a wall and `<id>-door`, `<id>-furniture` for the others. Every item still renders with the AI (with the design's
- * photograph as a reference, added by the server: server/lib/studioReference.js) - that is the only way to get a finished room photo. Since 2026-11-04
- * (added here, not in the server's answer) each item also carries `texture` (a seamlessly-tileable crop of the same photograph, server/lib/tileTexture.js,
- * `?tile=1` on the same picture address; the server already sent `f.texture`, this file only re-validates and copies it), so on a wall - one of the
- * three surface kinds the studio's geometry fit covers (swatchroom/public/js/lib/fastrender/provisional.js; a door or furniture never gets an instant
- * preview of ANY finish, catalogue or built-in: a pre-existing, larger gap, see TARGETS.md C1) - the studio can show the instant browser-side preview
- * before the AI render arrives, exactly as a built-in finish with a texture does (canFastRenderItem, swatchroom/public/js/lib/fastrender/tiers.js).
+ * so the id is the design's for a wall and `<id>-door`, `<id>-furniture` for the others. Each item carries a `texture` (the design's own photograph, see
+ * textureOf() below) so the instant in-browser preview (WebGL2 / WebGPU) draws it the moment it is picked, like the studio's own finishes; before 2026-11-05 these
+ * items had none and could only be rendered by the AI. Both paths stay: Render sends the AI the same design with its photograph as a reference, added by the
+ * server (server/lib/studioReference.js).
  *
- * A failure at any step leaves the studio exactly as it was: no group, no error shown. A missing or malformed `texture` on one design just leaves that
- * one item without it (AI-only, as before); it never stops the others from getting theirs.
+ * A failure at any step leaves the studio exactly as it was: no group, no error shown.
  */
 
 const ENDPOINT = '/api/catalogue/studio-finishes';
 const WAIT_MS = 4000;
 const CARD_ID = /\b(TIPL-[A-Z]{2,4}\d{2,5})\b/;
+
+const SHEENS = ['matte', 'satin', 'semi-gloss', 'gloss', 'metallic'];
+
+/**
+ * The texture of one finish, from what the server sent, or null (the finish then renders with the AI only, exactly as before). Only what the preview reads is
+ * copied, and checked: the picture must be one of the site's design pictures, the size a positive number. The size is named previewTile*: the studio's own
+ * tileWidthM / tileHeightM are quoted to the render model as a measured repeat (swatchroom/public/js/lib/prompts.js), and this one is an assumption.
+ */
+export function textureOf(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const width = Number(raw.previewTileWidthM);
+  const height = Number(raw.previewTileHeightM);
+  if (typeof raw.url !== 'string' || !/^\/media\/materials\/tipl-[a-z]{2,4}\d{2,5}\.jpg(\?tone=\d{1,3})?$/.test(raw.url)) return null;
+  if (!(width > 0 && width <= 10 && height > 0 && height <= 10)) return null;
+  const texture = { url: raw.url, previewTileWidthM: width, previewTileHeightM: height };
+  if (SHEENS.includes(raw.sheen)) texture.sheen = raw.sheen;
+  return texture;
+}
 
 /** @returns {Promise<{added: number, state: string}>} */
 export async function addCatalogueFinishes() {
@@ -56,7 +70,8 @@ export async function addCatalogueFinishes() {
     const items = [];
     for (const f of data.finishes) {
       if (typeof f.id !== 'string' || typeof f.name !== 'string' || typeof f.prompt !== 'string') continue;
-      const item = {
+      const texture = textureOf(f.texture);
+      items.push({
         id: kind === 'wall' ? f.id : `${f.id}-${kind}`,
         name: f.name,
         sub: String(f.sub ?? ''),
@@ -65,14 +80,9 @@ export async function addCatalogueFinishes() {
         swatch: { type: 'paint', hex: /^#[0-9a-f]{6}$/i.test(f.hex ?? '') ? f.hex : '#cfc7bb' },
         prompt: f.prompt,
         catalogue: true,
-      };
-      // canFastRenderItem (swatchroom/public/js/lib/fastrender/tiers.js) only ever looks at item.texture.url: a
-      // malformed one here would silently turn the instant preview off for this one design, never break anything else.
-      const t = f.texture;
-      if (t && typeof t.url === 'string' && t.url && typeof t.tileWidthM === 'number' && t.tileWidthM > 0 && typeof t.tileHeightM === 'number' && t.tileHeightM > 0) {
-        item.texture = { url: t.url, tileWidthM: t.tileWidthM, tileHeightM: t.tileHeightM };
-      }
-      items.push(item);
+        // a fresh object per item: the studio may keep or change an item without touching the one of another kind
+        ...(texture ? { texture: { ...texture } } : {}),
+      });
     }
     if (!items.length) continue;
     catalog[kind].unshift({ group: String(data.group ?? 'Terucon catalogue'), items });
