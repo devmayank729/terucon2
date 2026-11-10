@@ -1,0 +1,704 @@
+{
+ "hero-01": {
+  "w": 1920,
+  "h": 1080,
+  "variants": [
+   {
+    "w": 960,
+    "h": 540,
+    "file": "hero-01-960-532fbdd25c56.webp",
+    "bytes": 70978
+   },
+   {
+    "w": 1440,
+    "h": 810,
+    "file": "hero-01-1440-35dbe445d46d.webp",
+    "bytes": 118594
+   },
+   {
+    "w": 1920,
+    "h": 1080,
+    "file": "hero-01-1920-c9ef5c2f440c.webp",
+    "bytes": 213482
+   }
+  ]
+ },
+ "hero-01-m": {
+  "w": 900,
+  "h": 1350,
+  "variants": [
+   {
+    "w": 480,
+    "h": 720,
+    "file": "hero-01-m-480-407309b35ed7.webp",
+    "bytes": 41418
+   },
+   {
+    "w": 800,
+    "h": 1200,
+    "file": "hero-01-m-800-12a207fc1e5a.webp",
+    "bytes": 76956
+   },
+   {
+    "w": 900,
+    "h": 1350,
+    "file": "hero-01-m-900-6dcd8f8373d2.webp",
+    "bytes": 110610
+   }
+  ]
+ },
+ "hero-02": {
+  "w": 1920,
+  "h": 1080,
+  "variants": [
+   {
+    "w": 960,
+    "h": 540,
+    "file": "hero-02-960-4378d4235d1f.webp",
+    "bytes": 40428
+   },
+   {
+    "w": 1440,
+    "h": 810,
+    "file": "hero-02-1440-cc06c31f27ab.webp",
+    "bytes": 70782
+   },
+   {
+    "w": 1920,
+    "h": 1080,
+    "file": "hero-02-1920-6f417f2a2aae.webp",
+    "bytes": 159664
+   }
+  ]
+ },
+ "hero-02-m": {
+  "w": 900,
+  "h": 1350,
+  "variants": [
+   {
+    "w": 480,
+    "h": 720,
+    "file": "hero-02-m-480-633aabf302fc.webp",
+    "bytes": 21074
+   },
+   {
+    "w": 800,
+    "h": 1200,
+    "file": "hero-02-m-800-aad3ffd35c29.webp",
+    "bytes": 44144
+   },
+   {
+    "w": 900,
+    "h": 1350,
+    "file": "hero-02-m-900-799b8979d272.webp",
+    "bytes": 81648
+   }
+  ]
+ },
+ "hero-03": {
+  "w": 1920,
+  "h": 1080,
+  "variants": [
+   {
+    "w": 960,
+    "h": 540,
+    "file": "hero-03-960-086a7c93bb38.webp",
+    "bytes": 60758
+   },
+   {
+    "w": 1440,
+    "h": 810,
+    "file": "hero-03-1440-a117bf3baccd.webp",
+    "bytes": 101434
+   },
+   {
+    "w": 1920,
+    "h": 1080,
+    "file": "hero-03-1920-d7a7720959aa.webp",
+    "bytes": 202784
+   }
+  ]
+ },
+ "hero-03-m": {
+  "w": 900,
+  "h": 1350,
+  "variants": [
+   {
+    "w": 480,
+    "h": 720,
+    "file": "hero-03-m-480-c61419a789ff.webp",
+    "bytes": 22320
+   },
+   {
+    "w": 800,
+    "h": 1200,
+    "file": "hero-03-m-800-32ef333fb64c.webp",
+    "bytes": 40498
+   },
+   {
+    "w": 900,
+    "h": 1350,
+    "file": "hero-03-m-900-32fc58126b38.webp",
+    "bytes": 68708
+   }
+  ]
+ },
+ "hero-04": {
+  "w": 1920,
+  "h": 1080,
+  "variants": [
+   {
+    "w": 960,
+    "h": 540,
+    "file": "hero-04-960-10a3bc294fdf.webp",
+    "bytes": 39430
+   },
+   {
+    "w": 1440,
+    "h": 810,
+    "file": "hero-04-1440-7587789722ed.webp",
+    "bytes": 69042
+   },
+   {
+    "w": 1920,
+    "h": 1080,
+    "file": "hero-04-1920-070bff08fec7.webp",
+    "bytes": 149850
+   }
+  ]
+ },
+ "hero-04-m": {
+  "w": 900,
+  "h": 1350,
+  "variants": [
+   {
+    "w": 480,
+    "h": 720,
+    "file": "hero-04-m-480-cff5d61f9afa.webp",
+    "bytes": 17066
+   },
+   {
+    "w": 800,
+    "h": 1200,
+    "file": "hero-04-m-800-e9e6c084cfac.webp",
+    "bytes": 35492
+   },
+   {
+    "w": 900,
+    "h": 1350,
+    "file": "hero-04-m-900-dc3b3d6e6a7d.webp",
+    "bytes": 63746
+   }
+  ]
+ },
+ "disc-01-acp-facades": {
+  "w": 1200,
+  "h": 1500,
+  "variants": [
+   {
+    "w": 480,
+    "h": 600,
+    "file": "disc-01-acp-facades-480-0bded353c547.webp",
+    "bytes": 6420
+   },
+   {
+    "w": 720,
+    "h": 900,
+    "file": "disc-01-acp-facades-720-02bda62c1e2c.webp",
+    "bytes": 11376
+   },
+   {
+    "w": 1200,
+    "h": 1500,
+    "file": "disc-01-acp-facades-1200-5ce2ab5b9929.webp",
+    "bytes": 57414
+   }
+  ]
+ },
+ "disc-02-commercial-interiors": {
+  "w": 1200,
+  "h": 1500,
+  "variants": [
+   {
+    "w": 480,
+    "h": 600,
+    "file": "disc-02-commercial-interiors-480-da3e106c7f7b.webp",
+    "bytes": 24598
+   },
+   {
+    "w": 720,
+    "h": 900,
+    "file": "disc-02-commercial-interiors-720-9b1ff3db6090.webp",
+    "bytes": 49120
+   },
+   {
+    "w": 1200,
+    "h": 1500,
+    "file": "disc-02-commercial-interiors-1200-0b39ec92d964.webp",
+    "bytes": 142960
+   }
+  ]
+ },
+ "disc-03-false-ceiling-gypsum": {
+  "w": 1200,
+  "h": 1500,
+  "variants": [
+   {
+    "w": 480,
+    "h": 600,
+    "file": "disc-03-false-ceiling-gypsum-480-dc7822b779ee.webp",
+    "bytes": 3164
+   },
+   {
+    "w": 720,
+    "h": 900,
+    "file": "disc-03-false-ceiling-gypsum-720-63ec3ae81724.webp",
+    "bytes": 5500
+   },
+   {
+    "w": 1200,
+    "h": 1500,
+    "file": "disc-03-false-ceiling-gypsum-1200-6408cf6dd3ba.webp",
+    "bytes": 13824
+   }
+  ]
+ },
+ "disc-04-flooring": {
+  "w": 1200,
+  "h": 1500,
+  "variants": [
+   {
+    "w": 480,
+    "h": 600,
+    "file": "disc-04-flooring-480-12ce16d7375c.webp",
+    "bytes": 41434
+   },
+   {
+    "w": 720,
+    "h": 900,
+    "file": "disc-04-flooring-720-74170c47dc29.webp",
+    "bytes": 72248
+   },
+   {
+    "w": 1200,
+    "h": 1500,
+    "file": "disc-04-flooring-1200-f16cc7309f5c.webp",
+    "bytes": 149804
+   }
+  ]
+ },
+ "disc-05-civil-painting": {
+  "w": 1200,
+  "h": 1500,
+  "variants": [
+   {
+    "w": 480,
+    "h": 600,
+    "file": "disc-05-civil-painting-480-33b3a77d4cd6.webp",
+    "bytes": 7138
+   },
+   {
+    "w": 720,
+    "h": 900,
+    "file": "disc-05-civil-painting-720-abec72e0c78c.webp",
+    "bytes": 15118
+   },
+   {
+    "w": 1200,
+    "h": 1500,
+    "file": "disc-05-civil-painting-1200-ab020cbee792.webp",
+    "bytes": 61936
+   }
+  ]
+ },
+ "disc-06-fabrication-glazing": {
+  "w": 1200,
+  "h": 1500,
+  "variants": [
+   {
+    "w": 480,
+    "h": 600,
+    "file": "disc-06-fabrication-glazing-480-cbed0209233c.webp",
+    "bytes": 29582
+   },
+   {
+    "w": 720,
+    "h": 900,
+    "file": "disc-06-fabrication-glazing-720-3f2565ebf1bf.webp",
+    "bytes": 49130
+   },
+   {
+    "w": 1200,
+    "h": 1500,
+    "file": "disc-06-fabrication-glazing-1200-2bcd355ff7c2.webp",
+    "bytes": 113074
+   }
+  ]
+ },
+ "shade-cmt6001": {
+  "w": 1000,
+  "h": 1000,
+  "variants": [
+   {
+    "w": 240,
+    "h": 240,
+    "file": "shade-cmt6001-240-0f7d8e9a6fdb.webp",
+    "bytes": 8990
+   },
+   {
+    "w": 480,
+    "h": 480,
+    "file": "shade-cmt6001-480-2a9057140a3a.webp",
+    "bytes": 55458
+   }
+  ]
+ },
+ "shade-cmt6002": {
+  "w": 1000,
+  "h": 1000,
+  "variants": [
+   {
+    "w": 240,
+    "h": 240,
+    "file": "shade-cmt6002-240-2bf9bd3cf8c3.webp",
+    "bytes": 922
+   },
+   {
+    "w": 480,
+    "h": 480,
+    "file": "shade-cmt6002-480-09f95497de16.webp",
+    "bytes": 4752
+   }
+  ]
+ },
+ "shade-cmt6003": {
+  "w": 1000,
+  "h": 1000,
+  "variants": [
+   {
+    "w": 240,
+    "h": 240,
+    "file": "shade-cmt6003-240-7f594947b5dd.webp",
+    "bytes": 2782
+   },
+   {
+    "w": 480,
+    "h": 480,
+    "file": "shade-cmt6003-480-d662fcd15f7a.webp",
+    "bytes": 16936
+   }
+  ]
+ },
+ "shade-cmt6004": {
+  "w": 1000,
+  "h": 1000,
+  "variants": [
+   {
+    "w": 240,
+    "h": 240,
+    "file": "shade-cmt6004-240-fdacb3adaaaa.webp",
+    "bytes": 926
+   },
+   {
+    "w": 480,
+    "h": 480,
+    "file": "shade-cmt6004-480-914be7b6bc62.webp",
+    "bytes": 2230
+   }
+  ]
+ },
+ "shade-cmt6007": {
+  "w": 1000,
+  "h": 1000,
+  "variants": [
+   {
+    "w": 240,
+    "h": 240,
+    "file": "shade-cmt6007-240-6525c0a1b97b.webp",
+    "bytes": 304
+   },
+   {
+    "w": 480,
+    "h": 480,
+    "file": "shade-cmt6007-480-1739e4ffb5b1.webp",
+    "bytes": 1242
+   }
+  ]
+ },
+ "shade-cmt6008": {
+  "w": 1000,
+  "h": 1000,
+  "variants": [
+   {
+    "w": 240,
+    "h": 240,
+    "file": "shade-cmt6008-240-43f486bc863d.webp",
+    "bytes": 4842
+   },
+   {
+    "w": 480,
+    "h": 480,
+    "file": "shade-cmt6008-480-65a90b12f8b3.webp",
+    "bytes": 27142
+   }
+  ]
+ },
+ "studio-stone-bronze": {
+  "w": 1600,
+  "h": 1200,
+  "variants": [
+   {
+    "w": 320,
+    "h": 240,
+    "file": "studio-stone-bronze-320-eee0dbb27a4f.webp",
+    "bytes": 4798
+   },
+   {
+    "w": 640,
+    "h": 480,
+    "file": "studio-stone-bronze-640-873ee1d90295.webp",
+    "bytes": 15910
+   },
+   {
+    "w": 1000,
+    "h": 750,
+    "file": "studio-stone-bronze-1000-2a9ae51c728b.webp",
+    "bytes": 32738
+   },
+   {
+    "w": 1600,
+    "h": 1200,
+    "file": "studio-stone-bronze-1600-880bba25389f.webp",
+    "bytes": 109714
+   }
+  ]
+ },
+ "studio-teak-terracotta": {
+  "w": 1600,
+  "h": 1200,
+  "variants": [
+   {
+    "w": 320,
+    "h": 240,
+    "file": "studio-teak-terracotta-320-2cd8cdb47744.webp",
+    "bytes": 5478
+   },
+   {
+    "w": 640,
+    "h": 480,
+    "file": "studio-teak-terracotta-640-515e63232259.webp",
+    "bytes": 19072
+   },
+   {
+    "w": 1000,
+    "h": 750,
+    "file": "studio-teak-terracotta-1000-8f7462ad554e.webp",
+    "bytes": 40568
+   },
+   {
+    "w": 1600,
+    "h": 1200,
+    "file": "studio-teak-terracotta-1600-31f79b5edb58.webp",
+    "bytes": 119128
+   }
+  ]
+ },
+ "studio-lime-oak": {
+  "w": 1600,
+  "h": 1200,
+  "variants": [
+   {
+    "w": 320,
+    "h": 240,
+    "file": "studio-lime-oak-320-8b52a7361e4e.webp",
+    "bytes": 4046
+   },
+   {
+    "w": 640,
+    "h": 480,
+    "file": "studio-lime-oak-640-d727a78a22a5.webp",
+    "bytes": 12276
+   },
+   {
+    "w": 1000,
+    "h": 750,
+    "file": "studio-lime-oak-1000-29f8887d85ff.webp",
+    "bytes": 26014
+   },
+   {
+    "w": 1600,
+    "h": 1200,
+    "file": "studio-lime-oak-1600-279e68a17b91.webp",
+    "bytes": 96818
+   }
+  ]
+ },
+ "studio-dark-monolith": {
+  "w": 1600,
+  "h": 1200,
+  "variants": [
+   {
+    "w": 320,
+    "h": 240,
+    "file": "studio-dark-monolith-320-82d0ecdf6f1d.webp",
+    "bytes": 3674
+   },
+   {
+    "w": 640,
+    "h": 480,
+    "file": "studio-dark-monolith-640-1d9b5f165293.webp",
+    "bytes": 10660
+   },
+   {
+    "w": 1000,
+    "h": 750,
+    "file": "studio-dark-monolith-1000-f1b0f648f18a.webp",
+    "bytes": 21004
+   },
+   {
+    "w": 1600,
+    "h": 1200,
+    "file": "studio-dark-monolith-1600-651dbdd81e5e.webp",
+    "bytes": 69206
+   }
+  ]
+ },
+ "journal-cladding-choices": {
+  "w": 1500,
+  "h": 1000,
+  "variants": [
+   {
+    "w": 480,
+    "h": 320,
+    "file": "journal-cladding-choices-480-7bea2015455b.webp",
+    "bytes": 14602
+   },
+   {
+    "w": 800,
+    "h": 533,
+    "file": "journal-cladding-choices-800-b75aed253ef7.webp",
+    "bytes": 39336
+   },
+   {
+    "w": 1200,
+    "h": 800,
+    "file": "journal-cladding-choices-1200-74b025d6e958.webp",
+    "bytes": 76948
+   }
+  ]
+ },
+ "journal-fitout-14-weeks": {
+  "w": 1500,
+  "h": 1000,
+  "variants": [
+   {
+    "w": 480,
+    "h": 320,
+    "file": "journal-fitout-14-weeks-480-c41847bf780b.webp",
+    "bytes": 21448
+   },
+   {
+    "w": 800,
+    "h": 533,
+    "file": "journal-fitout-14-weeks-800-d1aec18beee9.webp",
+    "bytes": 47028
+   },
+   {
+    "w": 1200,
+    "h": 800,
+    "file": "journal-fitout-14-weeks-1200-da59fd110d10.webp",
+    "bytes": 79324
+   }
+  ]
+ },
+ "journal-retail-rollout": {
+  "w": 1500,
+  "h": 1000,
+  "variants": [
+   {
+    "w": 480,
+    "h": 320,
+    "file": "journal-retail-rollout-480-c15f5cd102fb.webp",
+    "bytes": 25708
+   },
+   {
+    "w": 800,
+    "h": 533,
+    "file": "journal-retail-rollout-800-16ab635cb20c.webp",
+    "bytes": 55540
+   },
+   {
+    "w": 1200,
+    "h": 800,
+    "file": "journal-retail-rollout-1200-b93e5c1835cc.webp",
+    "bytes": 94666
+   }
+  ]
+ },
+ "firm-material-desk": {
+  "w": 1600,
+  "h": 1280,
+  "variants": [
+   {
+    "w": 640,
+    "h": 512,
+    "file": "firm-material-desk-640-607d2725f765.webp",
+    "bytes": 30010
+   },
+   {
+    "w": 1000,
+    "h": 800,
+    "file": "firm-material-desk-1000-2a95ffb33b44.webp",
+    "bytes": 63142
+   },
+   {
+    "w": 1600,
+    "h": 1280,
+    "file": "firm-material-desk-1600-6d32661dff14.webp",
+    "bytes": 149610
+   }
+  ]
+ },
+ "film-poster": {
+  "w": 1920,
+  "h": 1200,
+  "variants": [
+   {
+    "w": 960,
+    "h": 600,
+    "file": "film-poster-960-82b2f5608d1b.webp",
+    "bytes": 24934
+   },
+   {
+    "w": 1440,
+    "h": 900,
+    "file": "film-poster-1440-2e2859c244be.webp",
+    "bytes": 41704
+   },
+   {
+    "w": 1920,
+    "h": 1200,
+    "file": "film-poster-1920-855d910217e8.webp",
+    "bytes": 92072
+   }
+  ]
+ },
+ "logo": {
+  "w": 720,
+  "h": 456,
+  "variants": [
+   {
+    "w": 264,
+    "h": 167,
+    "file": "logo-264-702f2fde33db.webp",
+    "bytes": 17776
+   },
+   {
+    "w": 380,
+    "h": 241,
+    "file": "logo-380-ee742b0ad7e1.webp",
+    "bytes": 29536
+   }
+  ]
+ }
+}

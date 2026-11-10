@@ -38,6 +38,7 @@ import { mountCatalogueUi } from './server/routes/catalogueUi.js';
 import { mountDocs } from './server/routes/docs.js';
 import { mountEnquiry } from './server/routes/enquiry.js';
 import { mountInspiration } from './server/routes/inspiration.js';
+import { mountLanding } from './server/routes/landing.js';
 import { mountMedia } from './server/routes/media.js';
 import { comingSoon, mountPages } from './server/routes/pages.js';
 import { mountStudioRoutes } from './server/routes/studio.js';
@@ -159,6 +160,7 @@ export function createApp({ root = ROOT, envPath, environ, log = createLogger(),
   app.use(guards(ctx));
   mountBrand(app, ctx); // /brand/*, /favicon.ico, /site.webmanifest
   mountAssets(app, ctx); // /assets/*: the built site's files, from dist/
+  mountLanding(app, ctx); // "/" and /lp/*: the landing page, built in memory from site/landing/ (server/lib/landing/); before the site map's pages so "/" is this one
   mountPages(app, ctx);
   mountDocs(app, ctx);
   mountMedia(app, ctx);

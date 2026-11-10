@@ -60,6 +60,8 @@ function emptySettings(envPath) {
     // trust proxy: how many proxies sit in front (Render: 1), as in the studio's own TRUST_PROXY. Used for the visitor's address
     // (rate limits) and for "is this HTTPS" (HSTS, secure cookies).
     trustProxy: 'loopback',
+    // which landing page "/" shows: 'new' (site/landing/, built in memory, server/routes/landing.js) or 'classic' (the earlier one of the site map, pages/home.html)
+    landing: 'new',
     studio: {
       warmup: true, // wake the studio's GPU services as soon as the landing page opens
       requirePasscode: false, // ask for swatchroom's STUDIO_PASSCODE (it is switched off here by default)
@@ -101,6 +103,8 @@ export function loadSettings(envPath, environ, root = ROOT) {
   s.host = get('HOST', '127.0.0.1') || '127.0.0.1';
   s.port = int(get('PORT'), 8080, 0, 65535); // 0 = let the system pick (tests)
   s.allowedHosts = get('ALLOWED_HOSTS').split(',').map((h) => h.trim().toLowerCase()).filter(Boolean);
+
+  s.landing = get('LANDING').trim().toLowerCase() === 'classic' ? 'classic' : 'new'; // anything but "classic" is the new page
 
   // --- Design Studio
   s.studio.warmup = flag(get('STUDIO_WARMUP'), true);
@@ -171,6 +175,9 @@ export function loadSettings(envPath, environ, root = ROOT) {
 /** Human-readable start-up lines for the banner. Contains no secrets. The address itself is shown by the banner. */
 export function describe(settings) {
   return [
+    settings.landing === 'classic'
+      ? 'Landing page: the CLASSIC one (LANDING=classic); remove the line to show the new one (site/landing/)'
+      : 'Landing page: the new one (site/landing/); LANDING=classic in .env brings back the earlier one without a restart (a LANDING set in the real environment is read when the server starts)',
     settings.studio.warmup
       ? 'Cold start: the landing page and the studio page wake the studio\'s GPU services (STUDIO_WARMUP=off to stop)'
       : 'Cold start: the studio wakes its GPU services only when a photo is scanned (STUDIO_WARMUP=off)',

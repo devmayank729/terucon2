@@ -37,7 +37,20 @@
     "catalogue/": "The real-catalogue retrieval engine (Python), ported from terucon-cat-1.ipynb: extraction, encoders, the Vertex/Gemini captions, the publisher (MongoDB + GCS + a Modal cache), the search service and the Modal app. Not shipped in the website's Docker image. Start with catalogue/ARCHITECTURE.md.",
     "server/capture/": "Capture from a phone: the settings, the in-memory or MongoDB store, the sessions and photos logic, the metadata stripper, the WhatsApp client and the routes.",
     "site/capture/": "The browser code of the phone page /capture (take or choose photos, labels, location, a queue that survives a reload and a lost connection). Served from /capture-ui/assets/ by a fixed list of names.",
-    "site/overlays/": "Improved copies of some of the studio's own browser files, served ahead of the studio's own (STUDIO_PREVIEW_OVERLAY)."
+    "site/overlays/": "Improved copies of some of the studio's own browser files, served ahead of the studio's own (STUDIO_PREVIEW_OVERLAY).",
+    "site/landing/": "The new landing page (the website's \"/\"): page.html (the body), landing.css (inlined into the head), landing.js (one deferred script), content.json and config.json (words and settings), three self-hosted fonts and the responsive pictures. Built in memory at start-up by server/lib/landing/. README.md in this folder says how to change it.",
+    "site/landing/fonts/": "Geist (variable), Geist Mono 400 and Instrument Serif italic, latin subsets as WOFF2, with their SIL Open Font Licence texts. Self-hosted: the page makes no request to Google Fonts.",
+    "site/landing/img/": "The landing page's pictures as responsive WebP copies named by their own hash, and index.json (what exists, at which widths). Made by tools/optimize-landing.mjs from the designer's masters; committed because the Docker image has no encoder.",
+    "server/lib/landing/": "Builds the landing page: render.js (the repeated markup and the structured data) and index.js (assembles the page, inlines and minifies the CSS, hashes the files, makes the brotli and gzip bodies once).",
+    "Terucon_landingPage_2/": "The designer's hand-off of the landing page v2 (2026-11-09): the design file (Terucon Landing v2.dc.html, a Claude Design canvas rendered by React in the browser), its runtime, the original pictures and a deploy folder for a static host. The website does not serve it: site/landing/ is the production version built from it. About 65 MB, mostly the full-size picture sources; .dockerignore keeps it out of the image.",
+    "Terucon_landingPage_2/deploy/": "The designer's hints for a static host (cache headers, redirects, robots, sitemap for terucon.in). Not used by the website: it lists pages that do not exist on this site.",
+    "Terucon_landingPage_2/images/": "The designer's optimized pictures for the landing page (hero, disciplines, shades, studio, journal, firm, film poster, logo). The masters tools/optimize-landing.mjs scales down from.",
+    "Terucon_landingPage_2/images/disciplines/": "The six discipline pictures (4:5).",
+    "Terucon_landingPage_2/images/firm/": "The material-desk picture.",
+    "Terucon_landingPage_2/images/hero/": "The four hero slides, desktop and mobile crops.",
+    "Terucon_landingPage_2/images/journal/": "The three journal pictures.",
+    "Terucon_landingPage_2/images/shades/": "The six shade swatches.",
+    "Terucon_landingPage_2/images/studio/": "The four AI-render material directions."
   },
   "files": [
     {
@@ -2023,6 +2036,196 @@
         "Run"
       ],
       "desc": "Writes site/overlays/studio/manifest.json; --check says what differs between swatchroom/, the overlay and the manifest (exit 1)."
+    },
+    {
+      "match": "site/landing/README.md",
+      "owner": "docs",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "How the landing page is made and changed: the files, the build, how to add the project photos and client logos, how to turn the domain on, the budgets, and how to switch back (LANDING=classic)."
+    },
+    {
+      "match": "site/landing/page.html",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The landing page's body as plain HTML, with {{markers}} where server/lib/landing/render.js writes the repeated parts (menus, slides, lists, cards). No inline styles or handlers."
+    },
+    {
+      "match": "site/landing/landing.css",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The landing page's whole stylesheet: the designer's values as classes, the three @font-face rules and their size-matched fallbacks. The builder inlines it (minified) into the head, so no stylesheet request blocks the first paint."
+    },
+    {
+      "match": "site/landing/landing.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The landing page's behaviour, one deferred file of plain JavaScript: slideshow, menu, accordions, project filter, studio tabs, the enquiry form (POST /api/enquiry), scroll reveal, the real TeruBot fetched on the first tap, and the analytics and warm-up script fetched after the first real interaction."
+    },
+    {
+      "match": "site/landing/content.json",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The landing page's words and lists (navigation, slides, disciplines, shades, clients, projects, questions, journal notes, the platform links), copied from the designer's file."
+    },
+    {
+      "match": "site/landing/config.json",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The landing page's settings: asset prefix, studio path, phone, e-mail, the siteUrl that is empty until the domain is attached, the film address, the font-size adjustments measured for the fallbacks."
+    },
+    {
+      "match": "site/landing/fonts/*.woff2",
+      "owner": "site-data",
+      "tags": [
+        "Edit"
+      ],
+      "summarize": true,
+      "desc": "The three self-hosted fonts of the landing page (latin subsets, from the Fontsource packages)."
+    },
+    {
+      "match": "site/landing/fonts/OFL-*.txt",
+      "owner": "docs",
+      "tags": [
+        "Edit"
+      ],
+      "summarize": true,
+      "desc": "The SIL Open Font Licence texts that come with the three fonts."
+    },
+    {
+      "match": "site/landing/img/*.webp",
+      "owner": "site-data",
+      "tags": [
+        "Generated"
+      ],
+      "summarize": true,
+      "desc": "Responsive WebP copies of the landing page's pictures, named <id>-<width>-<hash>.webp. Made by tools/optimize-landing.mjs; never edited by hand."
+    },
+    {
+      "match": "site/landing/img/index.json",
+      "owner": "site-data",
+      "tags": [
+        "Generated"
+      ],
+      "desc": "Which pictures exist, their size and their widths, with the file of each. The page builder reads only this: a picture that is not listed is not asked for (a text card, a monogram or a drawn face stands in)."
+    },
+    {
+      "match": "server/lib/landing/**",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "The landing page builder: render.js writes the repeated markup, the picture tags and the structured data; index.js assembles the page from site/landing/, minifies the CSS, hashes the files and makes the brotli and gzip bodies once. Pure functions of the files in site/landing/."
+    },
+    {
+      "match": "server/routes/landing.js",
+      "owner": "website",
+      "tags": [
+        "Edit"
+      ],
+      "desc": "GET / (br, gzip or plain, strong ETag per body, no-cache) and GET /lp/<name> (pictures, fonts and scripts, immutable for a year). LANDING=classic in .env hands \"/\" back to the site map's own landing page without a restart (a LANDING set in the real environment is read at start-up)."
+    },
+    {
+      "match": "tools/optimize-landing.mjs",
+      "owner": "tooling",
+      "tags": [
+        "Run"
+      ],
+      "desc": "Makes the WebP copies in site/landing/img/ from the designer's masters with cwebp (never enlarging a picture); --check (plain Node) verifies every committed copy against its own hash. Run it again after dropping a project photo, a client logo or terubot.png into the designer's folder."
+    },
+    {
+      "match": "tests/js/landing.test.js",
+      "owner": "tests",
+      "tags": [
+        "Dev"
+      ],
+      "desc": "The landing page: size budgets, no request to another site, pictures with alt and size, no inline handlers or styles, addresses that exist, the structured data, the form without WhatsApp, the fallbacks for missing pictures, and the route's headers, 304, br/gzip, immutable files, 404s and the LANDING=classic switch."
+    },
+    {
+      "match": "Terucon_landingPage_2/Terucon Landing v2.dc.html",
+      "owner": "site-data",
+      "tags": [
+        "Source"
+      ],
+      "desc": "The designer's landing page v2: a Claude Design canvas that a 68 KB runtime plus React and ReactDOM (from unpkg) render in the browser. Kept as the design source; the production page is site/landing/, which is plain HTML."
+    },
+    {
+      "match": "Terucon_landingPage_2/Terucon Landing.dc.html",
+      "owner": "site-data",
+      "tags": [
+        "Source"
+      ],
+      "desc": "The designer's first version of the landing page (v1). Not used."
+    },
+    {
+      "match": "Terucon_landingPage_2/support.js",
+      "owner": "site-data",
+      "tags": [
+        "Source"
+      ],
+      "desc": "The runtime the .dc.html files load (generated from the designer's dc-runtime). Not used by the website."
+    },
+    {
+      "match": "Terucon_landingPage_2/Photo Prompts.md",
+      "owner": "docs",
+      "tags": [
+        "Source"
+      ],
+      "desc": "The designer's brief for every picture on the page: sizes, export rules, which files must be real photographs (the six project photos and the client logos are still to come)."
+    },
+    {
+      "match": "Terucon_landingPage_2/*.png",
+      "owner": "site-data",
+      "tags": [
+        "Source"
+      ],
+      "summarize": true,
+      "desc": "Full-size picture sources the designer generated (H hero, D disciplines, S shades, A studio directions, J journal, F firm, FP film poster) and the logo. 1536 px wide or so; the page uses the exports in images/."
+    },
+    {
+      "match": "Terucon_landingPage_2/*.webp",
+      "owner": "site-data",
+      "tags": [
+        "Source"
+      ],
+      "summarize": true,
+      "desc": "Full-size discipline picture sources (D1-D56)."
+    },
+    {
+      "match": "Terucon_landingPage_2/.thumbnail",
+      "owner": "site-data",
+      "tags": [
+        "Optional"
+      ],
+      "desc": "A preview image the design tool leaves in its folder."
+    },
+    {
+      "match": "Terucon_landingPage_2/deploy/**",
+      "owner": "site-data",
+      "tags": [
+        "Optional"
+      ],
+      "desc": "Cache-header, redirect, robots and sitemap files the designer prepared for a static host and for terucon.in. Not used: the website serves the page itself, and these list pages that do not exist here."
+    },
+    {
+      "match": "Terucon_landingPage_2/images/**",
+      "owner": "site-data",
+      "tags": [
+        "Source"
+      ],
+      "summarize": true,
+      "desc": "The designer's optimized pictures: the masters that tools/optimize-landing.mjs scales down into site/landing/img/."
     }
   ]
 }

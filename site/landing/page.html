@@ -1,0 +1,409 @@
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="hdr">
+  <div class="hdr__in">
+    <a class="hdr__logo" href="#overview" aria-label="Terucon India — back to top">{{logo}}</a>
+    <nav class="nav" aria-label="Primary">{{nav_desktop}}</nav>
+    <div class="hdr__r">
+      <a class="cta" href="{{studioPath}}"><span class="cta__shine" aria-hidden="true"></span><span class="cta__dot" aria-hidden="true"><i></i><i></i></span><span class="cta__l">AI Design Studio</span><span class="cta__s">AI Studio</span><span class="cta__arrow" aria-hidden="true">↗</span></a>
+      <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Toggle menu"><span aria-hidden="true"><i></i><i></i></span></button>
+    </div>
+  </div>
+</header>
+
+<div class="menu" id="menu" role="dialog" aria-label="Site menu" hidden>
+  <div class="menu__in">
+    <nav class="menu__nav" aria-label="Mobile">{{nav_menu}}</nav>
+    <div class="menu__act">
+      <a class="pill" href="tel:{{phone}}">Call {{phoneDisplay}}</a>
+      <button class="pill" type="button" data-bot><span class="gdot" aria-hidden="true"></span>Ask TeruBot</button>
+    </div>
+    <div class="menu__plat">
+      <p class="mono menu__h">Platform</p>
+      <div class="menu__links">{{platform_menu}}</div>
+    </div>
+  </div>
+</div>
+
+<main id="main">
+
+<section id="overview" class="hero" data-ms="{{heroMs}}" aria-roledescription="carousel" aria-label="Featured Terucon spaces">
+  <div class="hero__media" id="slides">{{hero_slide_1}}</div>
+  <template id="hero-more">{{hero_more}}</template>
+  <div class="hero__shade" aria-hidden="true"></div>
+  <div class="hero__in">
+    <div class="hero__top mono">
+      <span>Terucon India Pvt. Ltd. · Bengaluru · Karnataka</span>
+      <span id="hero-cap" aria-live="off" aria-atomic="true"><span class="gold">01</span> / 04 — {{hero_cap_1}}</span>
+    </div>
+    <div class="hero__sp"></div>
+    <h1 id="hero-title">Façades and interiors, built by <em>one accountable team.</em></h1>
+    <div class="hero__row">
+      <p>From premium ACP façades to turnkey commercial interiors — material expertise, skilled site teams and single-point accountability, from material selection to final handover.</p>
+      <div class="hero__cta">
+        <a class="btn btn--light btn--lg" href="#engage">Discuss your project <span aria-hidden="true">→</span></a>
+        <a class="btn btn--ghost-light btn--lg" href="#work">View signature work</a>
+      </div>
+    </div>
+    <div class="hero__ctl" id="hero-ctl">
+      <div class="picker" role="group" aria-label="Choose a featured space">{{hero_picker}}</div>
+      <div class="ctl">
+        <button class="rbtn" id="hero-prev" type="button" aria-label="Previous slide">←</button>
+        <button class="rbtn" id="hero-pause" type="button" aria-label="Pause slideshow" aria-pressed="false"><span class="ico-pause" aria-hidden="true"><i></i><i></i></span><span class="ico-play" aria-hidden="true"></span></button>
+        <button class="rbtn" id="hero-next" type="button" aria-label="Next slide">→</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section aria-label="Terucon at a glance" class="glance">
+  <div class="wrap">
+    <dl class="stats">
+      <div><dt>Superbond ACP shades in the current catalogue</dt><dd>63</dd></div>
+      <div><dt>Integrated service verticals under one contract</dt><dd>06</dd></div>
+      <div><dt>Coordination across supply, labour and execution</dt><dd>360°</dd></div>
+      <div><dt>Accountable partner, from first survey to handover</dt><dd>01</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section aria-labelledby="clients-title" class="clients">
+  <div class="wrap clients__h mono">
+    <h2 id="clients-title">Trusted by national retail &amp; workplace teams</h2>
+    <span>Across Bengaluru &amp; Karnataka</span>
+  </div>
+  <div class="mq"><ul class="mq__t">{{clients}}</ul></div>
+</section>
+
+<section id="disciplines" class="sec sec--rule" aria-labelledby="disc-title">
+  <div class="wrap">
+    <div class="split" data-reveal>
+      <div>
+        <p class="eyebrow mono"><span class="n">01</span><span class="rule" aria-hidden="true"></span>Disciplines · What we do</p>
+        <h2 class="h2" id="disc-title">Complete project solutions. <em>One responsible team.</em></h2>
+      </div>
+      <p class="lead">Material knowledge, skilled execution and disciplined site coordination — combined under one roof. Six specialist verticals, delivered individually or as a single turnkey package.</p>
+    </div>
+
+    <div class="disc">
+      <div class="disc__list" id="disc-list">{{disc_list}}</div>
+      <div class="disc__side">
+        <div class="disc__fig">
+          {{disc_stack}}
+          <p class="disc__cap mono" id="disc-cap"><span id="disc-n">01</span> / 06 — <span id="disc-t">{{disc_title_1}}</span></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="lib">
+      <div class="split split--s" data-reveal>
+        <div>
+          <p class="mono lib__k">Material library · Superbond Diamond Edition</p>
+          <h3 class="h3">Every façade begins with the <em>right finish.</em></h3>
+        </div>
+        <div class="lib__r">
+          <p>Search 63 current ACP shades by product name, code or series. Every shade carries its own enquiry for price and availability.</p>
+          <div class="lib__links">
+            <a class="ulink" href="{{ext}}/acp-sheets/">Browse all 63 shades →</a>
+            <a class="ulink ulink--soft" href="{{pdf}}" target="_blank" rel="noopener">Catalogue PDF ↗</a>
+          </div>
+        </div>
+      </div>
+      <ul class="shades">{{shades}}</ul>
+    </div>
+  </div>
+</section>
+
+<section id="work" class="sec sec--stone" aria-labelledby="work-title">
+  <div class="wrap">
+    <div class="split" data-reveal>
+      <div>
+        <p class="eyebrow mono"><span class="n">02</span><span class="rule rule--d" aria-hidden="true"></span>Signature Work · Clients &amp; projects</p>
+        <h2 class="h2" id="work-title">Spaces shaped by execution, <em>not promises.</em></h2>
+      </div>
+      <div class="work__r">
+        <p class="lead">Retail, workplace and façade environments delivered through coordinated material supply and specialist execution — for national brands in metros and tier-2 towns alike.</p>
+        <div class="filters" role="group" aria-label="Filter projects">{{filters}}</div>
+      </div>
+    </div>
+    <div class="pgrid" id="pgrid">{{projects}}</div>
+    <div class="next" data-reveal>
+      <p>Your project can be <em>next.</em></p>
+      <div class="next__b">
+        <a class="btn btn--dark" href="#engage">Start a project enquiry →</a>
+        <a class="btn btn--ghost-dark" href="{{ext}}/projects/">Complete portfolio ↗</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="studio" class="sec sec--ink" aria-labelledby="studio-title">
+  <div class="wrap studio">
+    <div data-reveal>
+      <p class="badge mono"><span aria-hidden="true"></span>New · Terucon AI Design Studio</p>
+      <h2 class="h2 h2--l" id="studio-title">Upload the real site. <em>See it finished</em> before we begin.</h2>
+      <p class="studio__p">Photograph your façade, lobby or office. The Studio visualises a direction in Terucon materials, matches it against the current ACP catalogue, brings stakeholder preferences together — and moves your favourite into a supervisor-validated quotation.</p>
+      <ol class="steps">
+        <li><span class="mono">01</span><span><strong>Upload a photo</strong><span>A phone photo or inspiration image is enough.</span></span></li>
+        <li><span class="mono">02</span><span><strong>Match materials</strong><span>63 ACP shades from the current catalogue.</span></span></li>
+        <li><span class="mono">03</span><span><strong>Brief together</strong><span>Voice brief and collaborative selection.</span></span></li>
+        <li><span class="mono">04</span><span><strong>Approve privately</strong><span>Supervisor-validated quotation on WhatsApp.</span></span></li>
+      </ol>
+      <div class="studio__cta">
+        <a class="btn btn--gold btn--xl" href="{{studioPath}}">Open the AI Design Studio <span aria-hidden="true">↗</span></a>
+        <span class="mono studio__note">Free · works on your phone</span>
+      </div>
+    </div>
+    <figure class="dirs">
+      <div class="dirs__main">
+        {{dir_main}}
+        <p class="dirs__tag mono">AI render · <span id="dir-label">{{dir_label_1}}</span></p>
+      </div>
+      <div class="dirs__tabs" id="dir-tabs" role="group" aria-label="Material directions">{{dir_tabs}}</div>
+      <figcaption class="mono">One reception, four material directions — generated in minutes.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="firm" class="sec" aria-labelledby="firm-title">
+  <div class="wrap">
+    <div data-reveal>
+      <p class="eyebrow mono"><span class="n">03</span><span class="rule" aria-hidden="true"></span>The Firm · Corporate legacy</p>
+      <h2 class="h2" id="firm-title">Building trust into <em>every layer.</em></h2>
+    </div>
+    <div class="firm">
+      <figure class="firm__fig">
+        <div class="firm__img">{{firm_img}}</div>
+        <figcaption class="mono">Material selection · Bengaluru studio</figcaption>
+      </figure>
+      <div class="firm__t" data-reveal>
+        <p class="firm__lead">Terucon India Private Limited is a Bengaluru-based building materials and project execution company, bringing material expertise, skilled site teams and accountable coordination to ambitious spaces.</p>
+        <p>We connect the right system, product and execution team for ACP façades, commercial interiors, false ceilings, gypsum works, flooring, civil works, painting, fabrication and glazing.</p>
+        <p>Our role is to make procurement and execution easier: understand the requirement, recommend practically, coordinate responsibly and finish with care.</p>
+        <ul class="rows">
+          <li><strong>Single-window coordination</strong><span>One team across material planning, labour, execution and finishing.</span></li>
+          <li><strong>Practical material knowledge</strong><span>Recommendations grounded in performance, budget, maintenance and availability.</span></li>
+          <li><strong>Project-first communication</strong><span>Clear scope, realistic next steps and responsive coordination throughout.</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="princ">
+      <h3 class="mono princ__h" data-reveal>How we work — four principles behind every project</h3>
+      <ul class="princ__l">
+        <li data-reveal><span class="mono">01</span><h4>Clarity</h4><p>Clear requirements, scope, material recommendations and next steps.</p></li>
+        <li data-reveal><span class="mono">02</span><h4>Quality</h4><p>Appropriate materials, skilled workmanship and attention to finishing.</p></li>
+        <li data-reveal><span class="mono">03</span><h4>Coordination</h4><p>One point of accountability across supply, labour and execution.</p></li>
+        <li data-reveal><span class="mono">04</span><h4>Commitment</h4><p>Responsive communication and responsible project follow-through.</p></li>
+      </ul>
+    </div>
+
+    <div class="tl">
+      <div class="tl__h" data-reveal>
+        <h3 class="h3 h3--s">From bare shell to <em>final handover.</em></h3>
+        <p class="mono">Typical commercial floor · 18,400 sq ft · 14 weeks</p>
+      </div>
+      <ol class="tl__l">
+        <li data-reveal><i aria-hidden="true"></i><p class="mono">Week 0</p><h4>Survey &amp; set-out</h4><p>We measure, laser-scan and set out every line before a single material reaches site.</p></li>
+        <li data-reveal><i aria-hidden="true"></i><p class="mono">Weeks 2–6</p><h4>Services &amp; framing</h4><p>Ducting, power, fire and data run overhead; partitions are framed and the ceiling grid goes up.</p></li>
+        <li data-reveal><i aria-hidden="true"></i><p class="mono">Weeks 7–12</p><h4>Surfaces</h4><p>ACP, stone, timber, glass and paint go in — everything people will touch, every day.</p></li>
+        <li data-reveal><i class="end" aria-hidden="true"></i><p class="mono">Week 14</p><h4>Handover</h4><p>Cleaned, commissioned and handed over with drawings, warranties and a team that still picks up the phone.</p></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section id="credentials" class="sec sec--stone" aria-labelledby="cred-title">
+  <div class="wrap">
+    <div class="split" data-reveal>
+      <div>
+        <p class="eyebrow mono"><span class="n">04</span><span class="rule rule--d" aria-hidden="true"></span>Credentials · Transparency &amp; scale</p>
+        <h2 class="h2" id="cred-title">Open records. <em>Measured scale.</em></h2>
+      </div>
+      <p class="lead">Procurement teams, consultants and partners get the same facts we work by — a registered entity, documented capability and a due-diligence pack shared on request.</p>
+    </div>
+    <div class="cred">
+      <div data-reveal>
+        <h3 class="mono cred__h">Corporate record</h3>
+        <dl class="rec">
+          <div><dt class="mono">Legal entity</dt><dd><b>Terucon India Private Limited</b></dd></div>
+          <div><dt class="mono">CIN</dt><dd class="mono cin">U45400KA2021PTC153053</dd></div>
+          <div><dt class="mono">Incorporated</dt><dd>2021 · Karnataka</dd></div>
+          <div><dt class="mono">Activity</dt><dd>Building completion, finishing &amp; material supply</dd></div>
+          <div><dt class="mono">Material line</dt><dd>Superbond ACP · Diamond Edition</dd></div>
+          <div><dt class="mono">Office</dt><dd class="addr">No. 4, No. 49/7, 80 Feet Road, 8th Block, Anjanapura BDA Layout, Bengaluru 560108</dd></div>
+        </dl>
+      </div>
+      <div data-reveal>
+        <h3 class="mono cred__h">Scale of engagement</h3>
+        <dl class="scale">
+          <div><dt>Engagements from under ₹10 lakh to above ₹1 crore</dt><dd>₹1 Cr+</dd></div>
+          <div><dt>National retail &amp; lifestyle brands supported</dt><dd>07</dd></div>
+          <div><dt>Service verticals delivered under one contract</dt><dd>06</dd></div>
+          <div><dt>ACP shades catalogued and quoted on request</dt><dd>63</dd></div>
+        </dl>
+        <p class="mono cred__k">Engagement models</p>
+        <ul class="tags">
+          <li>Material supply only</li><li>Installation only</li><li>Supply &amp; installation</li><li>Turnkey execution</li>
+        </ul>
+      </div>
+    </div>
+    <div class="dd" data-reveal>
+      <div>
+        <h3>Due-diligence pack</h3>
+        <p>Incorporation certificate, GST registration, audited financial statements and project credentials — shared directly with procurement and finance teams.</p>
+        <a class="btn btn--dark" href="https://wa.me/{{phoneDigits}}?text=Hello%20Terucon%20India%2C%20please%20share%20your%20company%20profile%20and%20due-diligence%20documents." target="_blank" rel="noopener">Request the company dossier ↗</a>
+      </div>
+      <ul>
+        <li><span>Certificate of incorporation</span><span class="mono">On request</span></li>
+        <li><span>GST registration</span><span class="mono">On request</span></li>
+        <li><span>Audited financial statements</span><span class="mono">On request</span></li>
+        <li><span>Company profile &amp; project credentials</span><span class="mono">On request</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="journal" class="sec" aria-labelledby="journal-title">
+  <div class="wrap">
+    <div class="jhead" data-reveal>
+      <div>
+        <p class="eyebrow mono"><span class="n">05</span><span class="rule" aria-hidden="true"></span>Journal · Insights</p>
+        <h2 class="h2" id="journal-title">Field notes on <em>materials &amp; making.</em></h2>
+      </div>
+      <a class="ulink" href="#journal">All articles →</a>
+    </div>
+    <div class="jgrid">{{journal}}</div>
+  </div>
+</section>
+
+<section id="engage" class="sec sec--stone" aria-labelledby="engage-title">
+  <div class="wrap">
+    <div class="engage">
+      <div data-reveal>
+        <p class="eyebrow mono"><span class="n">06</span><span class="rule rule--d" aria-hidden="true"></span>Engage · Partner with us</p>
+        <h2 class="h2 h2--s" id="engage-title">Tell us what you’re <em>planning.</em></h2>
+        <p class="lead engage__p">Share the basics — site location, approximate area and the service you need. A project lead helps you identify the right material, scope and next step.</p>
+        <dl class="contact">
+          <div><dt class="mono">Call</dt><dd><a href="tel:{{phone}}">{{phoneDisplay}}</a></dd></div>
+          <div><dt class="mono">WhatsApp</dt><dd><a href="https://wa.me/{{phoneDigits}}?text=Hello%20Terucon%20India%2C%20I%20would%20like%20to%20discuss%20a%20project%20requirement." target="_blank" rel="noopener">Start a conversation ↗</a></dd></div>
+          <div><dt class="mono">Email</dt><dd><a class="brk" href="mailto:{{email}}">{{email}}</a></dd></div>
+          <div><dt class="mono">Office</dt><dd><address>No. 4, No. 49/7, 80 Feet Road, 8th Block, Anjanapura BDA Layout, Bengaluru 560108</address></dd></div>
+          <div><dt class="mono">Hours</dt><dd>Mon – Sat · 9:30 – 18:30</dd></div>
+        </dl>
+      </div>
+
+      <div class="card">
+        <div class="sent" id="sent" role="status" hidden>
+          <p class="mono sent__k">Enquiry received</p>
+          <h3>Thank you, <span id="sent-name">there</span>.</h3>
+          <p>We have your brief — a project lead will respond, usually within one working day.<span id="sent-ref"></span></p>
+          <div class="sent__b">
+            <a class="btn btn--dark" href="{{studioPath}}">Try the AI Design Studio ↗</a>
+            <button class="btn btn--ghost-dark" id="sent-again" type="button">Send another</button>
+          </div>
+        </div>
+        <form class="form" id="enquiry" aria-label="Project enquiry" novalidate>
+          <fieldset class="chips">
+            <legend class="mono">I need help with</legend>
+            <div class="chips__l">{{chips}}</div>
+          </fieldset>
+          <div class="fgrid">
+            <label>Your name *<input type="text" name="name" autocomplete="name" maxlength="120" required aria-describedby="e-name"><span class="ferr" id="e-name" hidden>Please add your name.</span></label>
+            <label>Phone number *<input type="tel" name="phone" autocomplete="tel" inputmode="tel" placeholder="+91" maxlength="32" required aria-describedby="e-phone"><span class="ferr" id="e-phone" hidden>Enter a valid 10-digit number.</span></label>
+            <label>Work email<input type="email" name="email" autocomplete="email" maxlength="254"></label>
+            <label>Project location<input type="text" name="city" placeholder="e.g. Whitefield, Bengaluru" maxlength="120"></label>
+            <label>Approx. area (sq ft)<input type="text" name="area" inputmode="numeric" maxlength="40"></label>
+            <label>Material &amp; execution<select name="scope"><option value="">Select</option><option>Material supply only</option><option>Installation only</option><option>Supply and installation</option><option>Need recommendation</option></select></label>
+            <label>Indicative budget<select name="budget"><option value="">Select</option><option>Below ₹10 lakh</option><option>₹10–25 lakh</option><option>₹25–50 lakh</option><option>₹50 lakh–₹1 crore</option><option>Above ₹1 crore</option><option>Need an estimate</option></select></label>
+            <label>Timeline<select name="timeline"><option value="">Select</option><option>Immediately</option><option>Within 1 month</option><option>1–3 months</option><option>3–6 months</option><option>Just exploring</option></select></label>
+          </div>
+          <label class="ta">Project details *<textarea name="details" rows="4" maxlength="1500" placeholder="Building type, floors, drawings available, anything we should know" required aria-describedby="e-details"></textarea><span class="ferr" id="e-details" hidden>A line or two about the project helps us respond faster.</span></label>
+          <div class="hp" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+          <div class="submit">
+            <p class="ferr ferr--b" id="form-err" role="alert" hidden></p>
+            <button class="send" id="send" type="submit">Send enquiry <span aria-hidden="true">→</span></button>
+            <p class="fine">By sending, you agree that Terucon may contact you regarding this requirement.</p>
+          </div>
+        </form>
+        <noscript><p class="fine">The form needs JavaScript. Please call {{phoneDisplay}} or write to {{email}}.</p></noscript>
+      </div>
+    </div>
+
+    <div class="faq">
+      <div data-reveal>
+        <h3 class="h3 h3--s">Questions, <em>answered.</em></h3>
+        <p class="faq__p">Can’t find yours? <button class="linkbtn" type="button" data-bot>Ask TeruBot</button> for an instant answer, or a project lead on <a href="https://wa.me/{{phoneDigits}}?text=Hello%20Terucon%20India%2C%20I%20have%20a%20question." target="_blank" rel="noopener">WhatsApp</a>.</p>
+      </div>
+      <div class="faq__l">{{faq}}</div>
+    </div>
+  </div>
+</section>
+
+<section id="film" class="film" aria-labelledby="film-title">
+  <div class="film__in">
+    {{film}}
+    <div class="film__shade" aria-hidden="true"></div>
+    <div class="film__body">
+      <div class="film__row">
+        <h2 id="film-title">Let’s build something <em>that lasts.</em></h2>
+        <div class="film__r">
+          <p>One team from material selection to final handover — façades, interiors and finishes, executed across Bengaluru and Karnataka.</p>
+          <div class="film__b">
+            <a class="btn btn--light btn--lg" href="#engage">Start a project →</a>
+            <a class="btn btn--ghost-light btn--lg" href="{{studioPath}}">AI Design Studio ↗</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="foot__in">
+    <div class="foot__grid">
+      <div class="foot__brand">
+        <a class="foot__logo" href="#overview" aria-label="Terucon India — back to top">{{footer_logo}}</a>
+        <p>Premium building materials and dependable project execution for ambitious commercial, retail and architectural spaces.</p>
+      </div>
+      <nav class="foot__col" aria-label="Footer">
+        <p class="mono fh">Explore</p>
+        {{footer_nav}}
+      </nav>
+      <div class="foot__col">
+        <p class="mono fh">Disciplines</p>
+        <a href="#disciplines">ACP Cladding &amp; Façades</a>
+        <a href="#disciplines">Commercial Interiors</a>
+        <a href="#disciplines">False Ceiling &amp; Gypsum</a>
+        <a href="#disciplines">Flooring Solutions</a>
+        <a href="#disciplines">Civil, Painting &amp; Glazing</a>
+        <a href="{{ext}}/acp-sheets/">ACP Sheet Catalogue</a>
+      </div>
+      <nav class="foot__col" aria-label="Platform">
+        <p class="mono fh">Platform</p>
+        {{platform_footer}}
+      </nav>
+      <div class="foot__col">
+        <p class="mono fh">Office</p>
+        <address>No. 4, No. 49/7, 80 Feet Road,<br>8th Block, Anjanapura BDA Layout,<br>Bengaluru 560108</address>
+        <a href="tel:{{phone}}">{{phoneDisplay}}</a>
+        <a class="brk" href="mailto:{{email}}">{{email}}</a>
+        <a href="https://wa.me/{{phoneDigits}}?text=Hello%20Terucon%20India%2C%20I%20would%20like%20to%20discuss%20a%20project%20requirement." target="_blank" rel="noopener">WhatsApp ↗</a>
+      </div>
+    </div>
+    <div class="foot__mark" aria-hidden="true"></div>
+    <div class="foot__base">
+      <span>© <span id="yr">{{year}}</span> Terucon India Private Limited · CIN U45400KA2021PTC153053</span>
+      <span>Materials · Interiors · Turnkey Execution</span>
+      <a href="#overview">Back to top ↑</a>
+    </div>
+  </div>
+</footer>
+
+<button class="bot" id="bot" type="button" aria-haspopup="dialog" hidden>
+  <span class="bot__ic"><span class="bot__face" aria-hidden="true"><i></i><i></i></span><span class="bot__on" aria-hidden="true"></span></span>
+  <span class="bot__vh">Ask TeruBot</span>
+  <span class="bot__t"><b>Ask TeruBot</b><small>Project assistant</small></span>
+</button>

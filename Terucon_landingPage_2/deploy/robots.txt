@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /my-project/
+Disallow: /account/
+
+Sitemap: https://terucon.in/sitemap.xml

@@ -23,7 +23,8 @@
         "Sign-in: a code goes only to the address asked for, works once, is stored only as a keyed hash, and five wrong guesses (counted atomically) kill it; wrong guesses are counted across codes and lock the address",
         "Every page but the landing page, and the studio's costly API, need a finished account, however the address is spelled (capitals, encoded letters, aliases); /API/rooms is 404",
         "The attack suite: brute force, races, CSRF, NoSQL and prototype-pollution payloads, SSRF in the firm look-up, Google token forgeries, enumeration, pre-account takeover, header and log injection",
-        "The SMTP client against a pretend mail server (TLS and STARTTLS checked), Twilio and the SMS webhook, and the Zoho queue against a pretend Zoho"
+        "The SMTP client against a pretend mail server (TLS and STARTTLS checked), Twilio and the SMS webhook, and the Zoho queue against a pretend Zoho",
+        "The landing page: it builds the same bytes twice, stays inside its size budgets, asks no other site for anything, has alt and size on every picture, no inline handlers or styles, only addresses that exist, a form that saves on this site without WhatsApp; the route answers br, gzip and plain with strong ETags and 304s, its files are immutable, a bad name is a plain 404, and LANDING=classic hands \"/\" back to the earlier page at once"
       ]
     },
     {

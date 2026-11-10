@@ -70,7 +70,7 @@
       "guards": [
         "Host"
       ],
-      "summary": "The pages, from site/site.json.",
+      "summary": "The pages, from site/site.json. (\"/\" is the new landing page, server/routes/landing.js, unless LANDING=classic: then the site map's home page answers.)",
       "request": "No body. The route list comes from site/site.json (`pages.<key>.route`).",
       "response": "200 text/html, Cache-Control: no-cache, conditional requests, plus the headers the page lists in site/site.json (`pages.<key>.headers`). Every page but the landing page (`access: \"signed-in\"` in site.json) needs a signed-in, finished account: a visitor without one gets 302 to /login?next=<the route>, whatever way the address was written (aliases, capitals, encoded letters); the private pages are `Cache-Control: private, no-cache` with `Vary: Cookie`.",
       "errors": [
@@ -197,6 +197,43 @@
         }
       ],
       "curl": "curl -sI -H 'Accept-Encoding: br' http://localhost:8080/assets/<a file from dist/assets> | head -8"
+    },
+    {
+      "method": "GET",
+      "path": "/lp/:name",
+      "owner": "JS",
+      "group": "site",
+      "guards": [
+        "Host"
+      ],
+      "summary": "The landing page's pictures, fonts and script (server/lib/landing/, from site/landing/). Every name carries a hash of the file.",
+      "request": "No body. Only names the landing build knows (a Map lookup, never a path on disk chosen by the visitor).",
+      "response": "200 with Cache-Control: public, max-age=31536000, immutable. The script comes in the coding the browser accepts (br, gzip, plain) with Vary: Accept-Encoding; pictures and fonts are sent as they are.",
+      "errors": [
+        {
+          "status": 404,
+          "when": "A name that is not in the build, a path trick, or no landing build (JSON error body, not the Coming soon page)"
+        }
+      ],
+      "curl": "curl -sI http://localhost:8080/ | head -3   # then ask for any /lp/ name the page lists"
+    },
+    {
+      "method": "GET",
+      "path": "/lp",
+      "owner": "JS",
+      "group": "site",
+      "guards": [
+        "Host"
+      ],
+      "summary": "The landing page's file folder itself (/lp and /lp/): nothing to list.",
+      "request": "No body.",
+      "response": "404 in the website's error shape.",
+      "errors": [
+        {
+          "status": 404,
+          "when": "Always"
+        }
+      ]
     },
     {
       "method": "GET",

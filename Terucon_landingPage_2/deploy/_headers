@@ -1,0 +1,33 @@
+# Cloudflare Pages / Netlify — edge cache rules
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+
+# HTML: always revalidate at the browser, cache 10 min at the edge, serve stale for a day while refreshing
+/
+  Cache-Control: public, max-age=0, must-revalidate
+  CDN-Cache-Control: public, s-maxage=600, stale-while-revalidate=86400, stale-if-error=604800
+  Link: </images/hero/hero-01.webp>; rel=preload; as=image; fetchpriority=high; media="(orientation: landscape)", </images/hero/hero-01-m.webp>; rel=preload; as=image; fetchpriority=high; media="(orientation: portrait)", <https://fonts.gstatic.com>; rel=preconnect; crossorigin
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+  CDN-Cache-Control: public, s-maxage=600, stale-while-revalidate=86400, stale-if-error=604800
+
+# Fingerprinted assets: cache forever
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+/images/*
+  Cache-Control: public, max-age=31536000, immutable
+/logo.png
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+/terubot.png
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+# Brand film: long cache + range requests so it streams on scroll
+/media/*
+  Cache-Control: public, max-age=31536000, immutable
+  Accept-Ranges: bytes

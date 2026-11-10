@@ -1,0 +1,58 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": true,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        }
+      ]
+    },
+    {
+      "source": "/",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        },
+        {
+          "key": "CDN-Cache-Control",
+          "value": "public, s-maxage=600, stale-while-revalidate=86400"
+        },
+        {
+          "key": "Link",
+          "value": "</images/hero/hero-01.webp>; rel=preload; as=image; fetchpriority=high; media=\"(orientation: landscape)\", </images/hero/hero-01-m.webp>; rel=preload; as=image; fetchpriority=high; media=\"(orientation: portrait)\", <https://fonts.gstatic.com>; rel=preconnect; crossorigin"
+        }
+      ]
+    },
+    {
+      "source": "/(logo|terubot).png",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/(assets|fonts|images|media)/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ]
+}

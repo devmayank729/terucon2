@@ -1,0 +1,81 @@
+{
+  "_comment": "Words and lists of the landing page, copied from the designer's 'Terucon Landing v2.dc.html' (2026-11-10). The page shell is page.html; server/lib/landing/render.js turns these lists into markup. Edit the words here; nothing in this file is a picture path (pictures come from img/index.json by id).",
+  "nav": [
+    { "id": "overview", "label": "Overview", "sub": "Home" },
+    { "id": "disciplines", "label": "Disciplines", "sub": "What we do" },
+    { "id": "work", "label": "Signature Work", "sub": "Clients & projects" },
+    { "id": "firm", "label": "The Firm", "sub": "Corporate legacy" },
+    { "id": "credentials", "label": "Credentials", "sub": "Transparency & scale" },
+    { "id": "journal", "label": "Journal", "sub": "Insights & field notes" },
+    { "id": "engage", "label": "Engage", "sub": "Partner with us · FAQ" }
+  ],
+  "hero": [
+    { "label": "Façades", "cap": "ACP cladding & elevations", "alt": "Contemporary commercial building with a bronze ACP façade at dusk" },
+    { "label": "Workplaces", "cap": "Commercial office interiors", "alt": "Open-plan office with seamless gypsum ceiling and glass meeting rooms" },
+    { "label": "Retail", "cap": "Retail rollouts across Karnataka", "alt": "Large-format retail interior with clean ceiling lines and polished floor" },
+    { "label": "Receptions", "cap": "Arrival spaces & reception fit-outs", "alt": "Corporate reception in travertine, fluted oak and brushed bronze" }
+  ],
+  "disciplines": [
+    { "slug": "01-acp-facades", "title": "ACP Cladding & Façades", "summary": "Complete façade and elevation delivery — from site measurement and material selection to fabrication, installation and finishing.", "detail": "For commercial, retail and residential elevations, with shades drawn from the 63-colour Superbond Diamond Edition catalogue.", "scope": ["Façade measurement", "ACP shade selection", "Framework planning", "Fabrication & routing", "Bending & installation", "Sealant & finishing"] },
+    { "slug": "02-commercial-interiors", "title": "Commercial Interiors", "summary": "Turnkey interior execution for offices, retail stores and commercial environments.", "detail": "One accountable team for planning, coordination and final handover — every trade on site answers to a single project lead.", "scope": ["Planning & coordination", "Partitions", "Ceilings", "Flooring", "Civil finishes & painting", "Carpentry", "Electrical coordination", "Handover"] },
+    { "slug": "03-false-ceiling-gypsum", "title": "False Ceiling & Gypsum", "summary": "Gypsum ceilings, partitions and finishing delivered by experienced site teams.", "detail": "From suspended grids to designer ceiling features, finished with careful jointing for a seamless surface.", "scope": ["Gypsum partitions", "Suspended ceilings", "Designer features", "Bulkheads", "Access panels", "Insulation coordination"] },
+    { "slug": "04-flooring", "title": "Flooring Solutions", "summary": "Civil, SPC, carpet and resilient flooring for high-performance commercial spaces.", "detail": "Every floor starts with site inspection, substrate preparation and levelling — the work that decides how long it lasts.", "scope": ["Site inspection", "Substrate preparation", "Levelling", "Carpet tiles", "SPC & resilient", "Civil flooring"] },
+    { "slug": "05-civil-painting", "title": "Civil & Painting", "summary": "Civil modifications, repairs, surface preparation and professional painting.", "detail": "Commercial civil works and coatings, inside and out, with waterproofing coordinated where the brief demands it.", "scope": ["Civil works", "Masonry changes", "Patch repairs", "Waterproofing coordination", "Wall preparation", "Interior & exterior coatings"] },
+    { "slug": "06-fabrication-glazing", "title": "Fabrication & Glazing", "summary": "Aluminium fabrication, structural support, glass partitions and façade glazing.", "detail": "Custom metalwork and glazing, coordinated carefully with façade and interior teams on site.", "scope": ["Aluminium fabrication", "Structural supports", "Doors", "Glazed partitions", "External glazing", "Allied metal works"] }
+  ],
+  "shades": [
+    { "code": "CMT6001", "name": "Metafrazo Texture" },
+    { "code": "CMT6002", "name": "Cortern Brown" },
+    { "code": "CMT6003", "name": "Abstract Metal" },
+    { "code": "CMT6004", "name": "Lustrous Grey" },
+    { "code": "CMT6007", "name": "Arcadian Ochre" },
+    { "code": "CMT6008", "name": "Saprophyte Rust" }
+  ],
+  "clients": [
+    { "name": "Decathlon", "slug": "decathlon" },
+    { "name": "DMart", "slug": "dmart" },
+    { "name": "GAP", "slug": "gap" },
+    { "name": "Smart Bazaar", "slug": "smart-bazaar" },
+    { "name": "Trends", "slug": "trends" },
+    { "name": "BMore", "slug": "bmore" },
+    { "name": "Style Union", "slug": "style-union" }
+  ],
+  "projects": [
+    { "slug": "decathlon-whitefield", "title": "Decathlon Whitefield", "loc": "Whitefield, Bengaluru", "sector": "Sports retail", "scope": "Façade and project execution for a large-format sports retail destination.", "services": "ACP façade · Elevation · Project execution", "cats": ["Retail", "Façade"] },
+    { "slug": "smart-bazaar-gonikoppa", "title": "Smart Bazaar", "loc": "Gonikoppa, Karnataka", "sector": "Hypermarket", "scope": "Civil, flooring, painting, fabrication, glazing, carpentry and ACP work — delivered as one package.", "services": "Civil · Flooring · Painting · Fabrication · Glazing · Carpentry · ACP", "cats": ["Retail", "Façade"] },
+    { "slug": "trends", "title": "Trends", "loc": "Karnataka", "sector": "Fashion retail", "scope": "Retail interior execution.", "services": "Retail interiors", "cats": ["Retail"] },
+    { "slug": "style-union", "title": "Style Union", "loc": "Karnataka", "sector": "Fashion retail", "scope": "Retail fit-out and finishing.", "services": "Fit-out · Finishing", "cats": ["Retail"] },
+    { "slug": "office-fitout", "title": "Commercial Office Fit-out", "loc": "Bengaluru", "sector": "Workplace", "scope": "Partitions, ceilings, flooring and interior execution.", "services": "Partitions · Ceilings · Flooring · Interiors", "cats": ["Workplace"] },
+    { "slug": "meeting-space", "title": "Corporate Meeting Space", "loc": "Bengaluru", "sector": "Workplace", "scope": "Commercial interiors and finishing.", "services": "Interiors · Finishing", "cats": ["Workplace"] }
+  ],
+  "filters": ["All", "Retail", "Workplace", "Façade"],
+  "directions": [
+    { "label": "Stone & Bronze", "slug": "stone-bronze" },
+    { "label": "Teak & Terracotta", "slug": "teak-terracotta" },
+    { "label": "Lime & Oak", "slug": "lime-oak" },
+    { "label": "Dark Monolith", "slug": "dark-monolith" }
+  ],
+  "journal": [
+    { "slug": "cladding-choices", "tag": "Materials", "read": "6 min read", "title": "ACP, HPL or terracotta? Choosing façade cladding for Bengaluru’s climate", "summary": "How heat, monsoon rain and maintenance budgets should shape your elevation material — and where each system earns its cost.", "alt": "Bronze ACP, dark HPL and terracotta cladding samples on a site mock-up wall" },
+    { "slug": "fitout-14-weeks", "tag": "Process", "read": "8 min read", "title": "Shell to handover: how a 14-week commercial fit-out really runs", "summary": "What happens in each phase, who signs off what, and the decisions that keep a fit-out on schedule.", "alt": "Commercial office floor mid fit-out with ceiling grid and partition framing" },
+    { "slug": "retail-rollout", "tag": "Retail", "read": "5 min read", "title": "Rolling out retail stores across Karnataka without losing consistency", "summary": "Lessons from executing façades and interiors for national brands in metros and tier-2 towns.", "alt": "Modern retail storefront in a Karnataka town at dusk" }
+  ],
+  "services": ["ACP Cladding & Façades", "Commercial Interiors", "False Ceiling & Gypsum", "Flooring Solutions", "Civil & Painting", "Fabrication & Glazing", "ACP sheet supply", "Not sure yet"],
+  "faq": [
+    { "q": "Do you supply materials only, or install as well?", "a": "Both. Choose material supply only, installation only, or complete supply and installation — or ask us to recommend the right model for your scope and budget." },
+    { "q": "Which locations do you serve?", "a": "Bengaluru and across Karnataka — from Whitefield workplaces to retail rollouts in towns like Gonikoppa. Larger programmes outside the state are considered case by case." },
+    { "q": "What project sizes do you take on?", "a": "Everything from focused ceiling, flooring or painting packages under ₹10 lakh to turnkey façade and fit-out programmes above ₹1 crore." },
+    { "q": "How do I get prices for ACP sheets?", "a": "All 63 current Superbond Diamond Edition shades are priced on request, based on quantity, thickness and site. Tap any shade for price and availability." },
+    { "q": "Do I need drawings before I enquire?", "a": "No. Site photos, an approximate area and the service you need are enough to start. If you need design support we’ll help define the scope — or try the AI Design Studio first." },
+    { "q": "How does the AI Design Studio work?", "a": "Upload a photo of your site or an inspiration image, explore material directions and match shades from the current catalogue. A supervisor validates the selection and shares a private quotation on WhatsApp." },
+    { "q": "How quickly will you respond?", "a": "A project lead — not a call centre — responds to every enquiry, usually within one working day." }
+  ],
+  "platform": [
+    { "label": "Materials", "href": "/materials" },
+    { "label": "Design Studio", "href": "/design-studio" },
+    { "label": "Inspiration", "href": "/inspiration" },
+    { "label": "Finder", "href": "/finder" },
+    { "label": "My project", "href": "/my-project" },
+    { "label": "Sign in", "href": "/login" }
+  ]
+}

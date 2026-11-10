@@ -1,0 +1,22 @@
+{
+  "_comment": "Settings of the landing page. Nothing here is a secret. See site/landing/README.md.",
+  "siteUrl": "",
+  "siteUrlNote": "Empty on purpose (decided 2026-11-10: terucon.in is not this site's address yet). While it is empty the page has no canonical, no og:url, no og:image and no address in its structured data. When the domain is attached, put it here (e.g. \"https://terucon.in\") and rebuild: canonical, og:url and the structured-data addresses turn on; add an og image id to img/ first for link previews.",
+  "assetBase": "/lp/",
+  "studioPath": "/design-studio",
+  "externalBase": "https://terucon.in",
+  "externalBaseNote": "Pages that exist only on the company's current website (the shade catalogue, the portfolio) keep their address there, by decision of 2026-11-10.",
+  "phone": "+916360165982",
+  "phoneDisplay": "+91 63601 65982",
+  "email": "superbond.tipl@gmail.com",
+  "brochurePdf": "https://terucon.in/wp-content/uploads/2026/09/SUPERBOND-Diamond-Edition-Brochure-2.pdf",
+  "filmUrl": "",
+  "heroSeconds": 6.5,
+  "fontAdjust": {
+    "geist": "102.3%",
+    "geist5": "104.8%",
+    "mono": "99.7%",
+    "serif": "79.2%"
+  },
+  "fontAdjustNote": "Measured 2026-11-10 in Chrome: the width of one paragraph in each web font divided by the same text in Arial (Geist 400 and 500), Menlo (Geist Mono) and Georgia italic (Instrument Serif). The system font is shown at this size until the real one arrives, so the headline does not re-wrap. Re-measure if a font file changes."
+}

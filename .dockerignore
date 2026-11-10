@@ -26,3 +26,5 @@ catalogue/
 **/*.ipynb
 # The built site is made inside the image (Dockerfile: RUN node tools/build-dist.js); a copy built on this computer would be stale or from another version
 dist/
+# The designer's hand-off of the landing page (65 MB, mostly full-size picture sources): the website serves site/landing/, which is built from it
+Terucon_landingPage_2/

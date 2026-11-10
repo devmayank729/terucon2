@@ -9,7 +9,11 @@ import fs, { existsSync, readFileSync } from 'node:fs';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { startStack } from '../dev/stack.mjs';
+import { startStack as startStackOnce } from '../dev/stack.mjs';
+// "/" is now the new landing page (site/landing/). Every test below that was written before it (the site chrome, the header, the loader, the
+// hero's louvres, the studio wake-up "as the page opens") is about the earlier landing page, which LANDING=classic brings back, so the stacks
+// they start say so. The new landing page has its own tests at the end of this file ("new landing page: ...") on a stack that does not.
+const startStack = (opts = {}) => startStackOnce({ ...opts, env: { LANDING: 'classic', ...(opts.env || {}) } });
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -3939,6 +3943,214 @@ await test('launcher dock: on a page with both launchers, one small toggle shows
   await page.close();
 });
 // ==== capture from a phone (end) ====
+
+// ==== the new landing page (site/landing/) ====
+// "/" on a stack that does not say LANDING=classic. Chrome, the real server, the real Design Studio mounted, mock GPU services.
+const landing = await startStackOnce({ port: 0, passcode: PASSCODE, bootMs: 300 });
+const openLanding = async (viewport, { record = false } = {}) => {
+  const page = await newPage(viewport, landing, { signedIn: false });
+  page.requests = [];
+  if (record) page.on('request', (r) => page.requests.push(`${r.method()} ${r.url().replace(landing.base, '')}`));
+  await page.goto(landing.base + '/', { waitUntil: 'load' });
+  return page;
+};
+const slideLabel = (page) => page.$eval('.pk[aria-current="true"]', (e) => e.getAttribute('aria-label'));
+
+await test('new landing page: "/" is the new page; no console or network problem, no sideways scroll, no request to another site, one request for the first hero picture, at 1440, 820 and 390 px', async () => {
+  for (const vp of [{ width: 1440, height: 900 }, { width: 820, height: 1100 }, PHONE]) {
+    const page = await newPage(vp, landing, { signedIn: false });
+    const urls = [];
+    page.on('request', (r) => urls.push(r.url()));
+    const res = await page.goto(landing.base + '/', { waitUntil: 'load' });
+    await sleep(700);
+    assert(res.status() === 200 && res.headers()['content-encoding'] === 'br', `at ${vp.width}: status ${res.status()}, encoding ${res.headers()['content-encoding']}`);
+    const m = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, w: innerWidth, h1: document.querySelector('h1').textContent.trim(), lang: document.documentElement.lang, title: document.title }));
+    assert(/^Façades and interiors, built by one accountable team\.$/.test(m.h1), `the headline: ${m.h1}`);
+    assert(m.sw <= m.w, `sideways scroll at ${vp.width}: ${m.sw} > ${m.w}`);
+    assert(m.lang === 'en-IN' && /Terucon India/.test(m.title), `${m.lang} / ${m.title}`);
+    const foreign = urls.filter((u) => /^https?:/.test(u) && !u.startsWith(landing.base));
+    assert(foreign.length === 0, `requests to other sites: ${foreign.join(', ')}`);
+    const hero = urls.filter((u) => /\/lp\/hero-01-/.test(u));
+    assert(hero.length === 1, `the first hero picture was requested ${hero.length} times: ${hero.join(', ')}`);
+    assert(!urls.some((u) => /\/brand\/terubot|\/lp\/later-|\/api\/analytics|\/api\/studio\/warmup/.test(u)), 'TeruBot, analytics or the warm-up were fetched before the visitor did anything');
+    noProblems(page, `new landing page at ${vp.width}`);
+    await page.close();
+  }
+});
+
+await test('new landing page: the slideshow moves on by itself, and the picker, the arrows, the keyboard and the pause button work', async () => {
+  const page = await openLanding({ width: 1440, height: 900 });
+  assert((await slideLabel(page)).startsWith('Slide 1 of 4'), await slideLabel(page));
+  await until(async () => (await page.$$('.slide')).length === 4, 'the other three slides to be added', 6000);
+  await until(async () => (await slideLabel(page)).startsWith('Slide 2'), 'the slideshow to move to slide 2 by itself', 10000);
+  assert((await page.$eval('#hero-cap', (e) => e.textContent)).includes('02 / 04'), 'the caption follows the slide');
+  await page.click('#hero-pause');
+  assert((await page.$eval('#hero-pause', (e) => e.getAttribute('aria-label'))) === 'Play slideshow', 'pause shows Play');
+  assert((await page.evaluate(() => getComputedStyle(document.querySelector('.pk.run .pk__f')).animationPlayState)) === 'paused', 'the progress bar is paused');
+  await sleep(1500);
+  assert((await slideLabel(page)).startsWith('Slide 2'), 'a paused slideshow stays where it is');
+  await page.click('.pk:nth-child(4)');
+  assert((await slideLabel(page)).startsWith('Slide 4'), 'the picker');
+  await page.click('#hero-next');
+  assert((await slideLabel(page)).startsWith('Slide 1'), 'next wraps round to slide 1');
+  await page.click('#hero-prev');
+  assert((await slideLabel(page)).startsWith('Slide 4'), 'previous wraps back to slide 4');
+  await page.focus('.pk:nth-child(4)');
+  await page.keyboard.press('ArrowLeft');
+  assert((await slideLabel(page)).startsWith('Slide 3'), 'the arrow key');
+  const shown = await page.$$eval('.slide.is-on', (e) => e.length);
+  assert(shown === 1, `${shown} slides are shown`);
+  noProblems(page, 'slideshow');
+  await page.close();
+});
+
+await test('new landing page: on a phone the menu opens, leads on to the platform, and closes on a choice, on Escape and on the burger', async () => {
+  const page = await openLanding(PHONE);
+  assert(!(await page.$eval('.nav', (e) => e.offsetParent !== null)), 'the desktop links are hidden on a phone');
+  await page.tap('#burger');
+  assert(await page.$eval('#menu', (e) => !e.hidden), 'the menu opened');
+  assert((await page.$eval('#burger', (e) => e.getAttribute('aria-expanded'))) === 'true');
+  const links = await page.$$eval('.menu__links a', (a) => a.map((x) => `${x.textContent.trim()} ${new URL(x.href).pathname}`));
+  assert(JSON.stringify(links) === JSON.stringify(['Materials /materials', 'Design Studio /design-studio', 'Inspiration /inspiration', 'Finder /finder', 'My project /my-project', 'Sign in /login']), JSON.stringify(links));
+  await page.tap('.menu__nav a[href="#work"]');
+  await until(() => page.$eval('#menu', (e) => e.hidden), 'the menu to close after a choice');
+  await until(async () => (await page.$eval('#work', (e) => Math.round(e.getBoundingClientRect().top))) <= 80, 'the section to scroll under the header');
+  await page.tap('#burger');
+  await page.keyboard.press('Escape');
+  assert(await page.$eval('#menu', (e) => e.hidden), 'Escape closes the menu');
+  await page.tap('#burger');
+  await page.tap('#burger');
+  assert(await page.$eval('#menu', (e) => e.hidden), 'the burger closes it again');
+  noProblems(page, 'phone menu');
+  await page.close();
+});
+
+await test('new landing page: the Design Studio buttons go to this site\'s /design-studio, the platform links are in the footer, and the header follows the section being read', async () => {
+  const page = await openLanding({ width: 1440, height: 900 });
+  const studio = await page.$$eval('a[href="/design-studio"]', (a) => a.map((x) => x.textContent.replace(/\s+/g, ' ').trim()));
+  assert(studio.length >= 4 && studio.some((t) => /AI Design Studio/.test(t)) && studio.some((t) => /Open the AI Design Studio/.test(t)), JSON.stringify(studio));
+  const footer = await page.$$eval('footer nav[aria-label="Platform"] a', (a) => a.map((x) => x.getAttribute('href')));
+  assert(JSON.stringify(footer) === JSON.stringify(['/materials', '/design-studio', '/inspiration', '/finder', '/my-project', '/login']), JSON.stringify(footer));
+  await page.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; document.getElementById('firm').scrollIntoView(); });
+  await until(() => page.$eval('.nav a[href="#firm"]', (e) => e.getAttribute('aria-current') === 'true'), 'the header to underline The Firm');
+  await clickLink(page, 'Open the AI Design Studio');
+  await until(() => page.url().endsWith('/design-studio') || /\/login/.test(page.url()), 'the studio button to leave the landing page: ' + page.url(), 6000);
+  noProblems(page, 'platform links');
+  await page.close();
+});
+
+await test('new landing page: disciplines (one open, the picture follows), the project filter (the first shown is the featured one), the studio tabs and the questions', async () => {
+  const page = await openLanding({ width: 1440, height: 900 });
+  await page.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; });
+  await page.click('.d:nth-child(2) summary');
+  await until(() => page.$eval('#disc-t', (e) => e.textContent === 'Commercial Interiors'), 'the caption of the side picture');
+  assert((await page.$$eval('.d[open]', (e) => e.length)) === 1, 'one discipline open');
+  assert((await page.$$eval('.disc__fig img', (a) => a.findIndex((i) => i.classList.contains('on')))) === 1, 'the second picture is shown');
+  await page.click('.d:nth-child(2) summary');
+  assert(await page.$eval('.d:nth-child(2)', (e) => e.open), 'the open discipline cannot be closed');
+  await page.click('.fb[data-f="Workplace"]');
+  const shown = await page.$$eval('.pj', (a) => a.filter((x) => !x.hidden).map((x) => x.querySelector('h3').textContent));
+  assert(JSON.stringify(shown) === JSON.stringify(['Commercial Office Fit-out', 'Corporate Meeting Space']), JSON.stringify(shown));
+  assert((await page.$eval('.pj.is-feature h3', (e) => e.textContent)) === 'Commercial Office Fit-out', 'the featured one moves on');
+  await page.click('.fb[data-f="All"]');
+  assert((await page.$$eval('.pj', (a) => a.filter((x) => !x.hidden).length)) === 6, 'All shows six');
+  await page.click('.th:nth-child(3)');
+  assert((await page.$eval('#dir-label', (e) => e.textContent)) === 'Lime & Oak' && (await page.$$eval('.dirs__main img', (a) => a.findIndex((i) => i.classList.contains('on')))) === 2, 'studio direction 3');
+  await page.click('.q:nth-child(3) summary');
+  assert((await page.$$eval('.q[open]', (e) => e.length)) === 1, 'one answer open');
+  noProblems(page, 'sections');
+  await page.close();
+});
+
+await test('new landing page: the enquiry form checks what is needed, then saves the enquiry on this site: no WhatsApp, a reference, the form comes back for another', async () => {
+  const page = await openLanding({ width: 1440, height: 900 }, { record: true });
+  let posted = null;
+  page.on('request', (r) => { if (r.method() === 'POST' && r.url().endsWith('/api/enquiry')) posted = JSON.parse(r.postData()); });
+  await page.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; document.getElementById('enquiry').scrollIntoView(); });
+  await page.click('#send');
+  for (const id of ['e-name', 'e-phone', 'e-details']) assert(await page.$eval(`#${id}`, (e) => !e.hidden), `${id} is not shown`);
+  assert((await page.evaluate(() => document.activeElement.name)) === 'name', 'focus goes to the first field that needs filling');
+  await page.type('input[name=name]', 'Asha Rao');
+  await page.type('input[name=phone]', '98765 43210');
+  await page.type('input[name=email]', 'asha@example.com');
+  await page.type('input[name=city]', 'Whitefield, Bengaluru');
+  await page.select('select[name=budget]', '₹25–50 lakh');
+  await page.$eval('label.chip:nth-child(2)', (e) => e.scrollIntoView({ block: 'center' })); // clear of the fixed header, as a visitor would have it
+  await page.click('label.chip:nth-child(2)');
+  await page.type('textarea[name=details]', 'Four-storey office, ACP façade, drawings available.');
+  await page.click('#send');
+  await until(() => page.$eval('#sent', (e) => !e.hidden), 'the thank-you', 8000);
+  assert(posted && posted.source === 'landing' && posted.phone === '+91 9876543210' && /Service: Commercial Interiors/.test(posted.message) && /Budget: ₹25–50 lakh/.test(posted.message) && posted.website === '', 'what was sent: ' + JSON.stringify(posted));
+  assert(/^Asha$/.test(await page.$eval('#sent-name', (e) => e.textContent)) && /TR-[A-Z0-9]{6}/.test(await page.$eval('#sent-ref', (e) => e.textContent)), 'the name and the reference are shown');
+  assert(!page.requests.some((u) => /wa\.me|whatsapp/i.test(u)), 'a request went to WhatsApp: ' + page.requests.filter((u) => /wa\.me/.test(u)));
+  assert((await browser.pages()).filter((x) => /wa\.me/.test(x.url())).length === 0, 'a WhatsApp window was opened');
+  await page.click('#sent-again');
+  assert(await page.$eval('#enquiry', (e) => !e.hidden) && (await page.$eval('input[name=name]', (e) => e.value)) === '', 'the form is back, empty');
+  noProblems(page, 'enquiry form');
+  await page.close();
+});
+
+await test('new landing page: TeruBot is not downloaded until the button is tapped; then the site\'s real TeruBot opens and the landing button steps aside', async () => {
+  const page = await openLanding({ width: 1440, height: 900 }, { record: true });
+  await sleep(800);
+  assert(await page.$eval('#bot', (e) => e.hidden), 'the button is not shown on the first screen');
+  await page.evaluate(() => scrollTo(0, 1600));
+  await until(() => page.$eval('#bot', (e) => !e.hidden), 'the button to appear once the first screen is past');
+  assert(!page.requests.some((u) => /\/brand\/terubot/.test(u)), 'TeruBot was fetched before a tap: ' + page.requests.filter((u) => /terubot/.test(u)));
+  await page.click('#bot');
+  await until(() => page.evaluate(() => !!window.TeruBot && window.TeruBot.isOpen()), 'the real TeruBot to open', 8000);
+  assert(page.requests.some((u) => /GET \/brand\/terubot\.js/.test(u)) && page.requests.some((u) => /GET \/brand\/terubot\.css/.test(u)), 'its files were fetched on the tap');
+  assert(await page.$eval('#bot', (e) => e.hidden), 'the landing button stepped aside');
+  assert(await page.evaluate(() => !!document.querySelector('#terubot-panel')), 'the panel is in the page');
+  noProblems(page, 'TeruBot on the landing page');
+  await page.close();
+});
+
+await test('new landing page: analytics and the studio wake-up wait for the visitor (a crawler or a speed test neither loads PostHog nor wakes a GPU), then both happen', async () => {
+  const before = poolHits(landing); // earlier tests on this stack clicked, and woke the services
+  const page = await openLanding({ width: 1440, height: 900 }, { record: true });
+  await sleep(3000);
+  assert(JSON.stringify(poolHits(landing)) === JSON.stringify(before), 'a visitor who only looked woke the GPU services: ' + JSON.stringify(poolHits(landing)) + ' (before: ' + JSON.stringify(before) + ')');
+  assert(!page.requests.some((u) => /\/lp\/later-|\/api\/analytics|warmup/.test(u)), 'requests before any interaction: ' + page.requests.filter((u) => /later|analytics|warmup/.test(u)));
+  await page.mouse.click(600, 400);
+  // (the server skips services that earlier tests already woke, so the request is what is asserted, not the pools' counters)
+  await until(() => page.requests.includes('POST /api/studio/warmup'), 'the wake-up request after the first click', 6000);
+  assert(page.requests.some((u) => /GET \/lp\/later-[0-9a-f]{12}\.js/.test(u)) && page.requests.some((u) => /GET \/api\/analytics/.test(u)), 'the analytics script and its question: ' + page.requests.filter((u) => /later|analytics|warmup/.test(u)));
+  assert(page.requests.filter((u) => u === 'POST /api/studio/warmup').length === 1, 'exactly one wake-up request');
+  await page.close();
+});
+
+await test('new landing page: a second visit asks the server only to confirm: the page is a 304 and every file under /lp/ is served from the browser\'s cache', async () => {
+  const page = await newPage({ width: 1440, height: 900 }, landing, { signedIn: false });
+  await page.goto(landing.base + '/', { waitUntil: 'load' });
+  await sleep(800);
+  const net = [];
+  page.on('response', (r) => net.push({ path: r.url().replace(landing.base, ''), status: r.status(), cached: r.fromCache() }));
+  await page.goto(landing.base + '/', { waitUntil: 'load' });
+  await sleep(800);
+  const doc = net.find((n) => n.path === '/');
+  assert(doc && (doc.status === 304 || doc.cached), 'the page on a second visit: ' + JSON.stringify(doc));
+  const files = net.filter((n) => n.path.startsWith('/lp/'));
+  assert(files.length > 5 && files.every((n) => n.cached), 'files that were fetched again: ' + files.filter((n) => !n.cached).map((n) => n.path).join(', '));
+  await page.close();
+});
+await test('new landing page: when TeruBot sent the visitor here, the conversation opens again by itself, as on every other page (and nothing of TeruBot is fetched for a visitor with no such conversation)', async () => {
+  const page = await newPage({ width: 1440, height: 900 }, landing, { signedIn: false });
+  const urls = [];
+  page.on('request', (r) => urls.push(new URL(r.url()).pathname));
+  await page.goto(landing.base + '/', { waitUntil: 'load' });
+  await sleep(1200);
+  assert(!urls.some((u) => /\/brand\/terubot/.test(u)), 'TeruBot was fetched without a conversation to resume');
+  await page.evaluate(() => sessionStorage.setItem('terucon.terubot.v1', JSON.stringify({ v: 1, resume: true, msgs: [{ role: 'bot', text: 'Here is the page you asked for.' }] })));
+  await page.goto(landing.base + '/', { waitUntil: 'load' });
+  await until(() => page.evaluate(() => !!window.TeruBot && window.TeruBot.isOpen()), 'TeruBot to open again by itself', 8000);
+  assert(await page.$eval('#bot', (e) => e.hidden), 'the landing button stepped aside');
+  noProblems(page, 'resuming TeruBot on the landing page');
+  await page.close();
+});
+await landing.stop();
+// ==== the new landing page (end) ====
+
 
 
 await browser.close();
